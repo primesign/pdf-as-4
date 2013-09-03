@@ -1,2 +1,2 @@
 
-include "signature-standards/sigs-pades", "pdf-as-lib"
+include "signature-standards:sigs-pades", "pdf-as-lib"
