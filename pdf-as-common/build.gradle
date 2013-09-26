@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Signature Standard PAdES', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'PDF-AS-4 Commons', 'Implementation-Version': version
     }
 }
 
@@ -12,9 +12,10 @@ repositories {
 }
 
 dependencies {
-	compile project (':pdf-as-lib')
-	compile project (':pdf-as-common')
+	compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.5'
+	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.2'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+	compile group: 'ognl', name: 'ognl', version: '3.0.6'
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 

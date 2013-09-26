@@ -1,2 +1,2 @@
 
-include "signature-standards:sigs-pades", "pdf-as-lib"
+include "pdf-as-common", "stamper:stmp-itext", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-cli"

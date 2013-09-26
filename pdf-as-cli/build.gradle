@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Signature Standard PAdES', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'PDF-AS CLI', 'Implementation-Version': version
     }
 }
 
@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
 	compile project (':pdf-as-lib')
-	compile project (':pdf-as-common')
+	compile project (':stamper:stmp-itext')
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
