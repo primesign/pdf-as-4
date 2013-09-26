@@ -3,10 +3,12 @@ package at.gv.egiz.pdfas.cli;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
+import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
@@ -24,8 +26,13 @@ public class DeveloperMain {
 		byte[] data;
 		try {
 			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/devel/pdfas_neu/simple.pdf"));
-			SignParameter parameter = new SignParameter(config, new ByteArrayDataSource(data));
+			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
+			ByteArrayDataSink bads = new ByteArrayDataSink();
+			parameter.setOutput(bads);
 			pdfas.sign(parameter);
+			FileOutputStream fos = new FileOutputStream("/home/afitzek/devel/pdfas_neu/simple_out.pdf");
+			fos.write(bads.getData());
+			fos.close();
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

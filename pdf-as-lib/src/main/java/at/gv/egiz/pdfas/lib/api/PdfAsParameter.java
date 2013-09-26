@@ -1,32 +1,14 @@
 package at.gv.egiz.pdfas.lib.api;
 
-public abstract class PdfAsParameter {
+public interface PdfAsParameter {
 
-	protected Configuration configuration;
-	
-	protected IDataSource dataSource;
-	
-	public PdfAsParameter(Configuration configuration, 
-			IDataSource dataSource) {
-		this.configuration = configuration;
-		this.dataSource = dataSource;
-	}
+	public Configuration getConfiguration() ;
 
-	public Configuration getConfiguration() {
-		return configuration;
-	}
+	public void setConfiguration(Configuration configuration);
 
-	public void setConfiguration(Configuration configuration) {
-		this.configuration = configuration;
-	}
+	public DataSource getDataSource();
 
-	public IDataSource getDataSource() {
-		return dataSource;
-	}
-
-	public void setDataSource(IDataSource dataSource) {
-		this.dataSource = dataSource;
-	}
+	public void setDataSource(DataSource dataSource);
 	
 	
 }

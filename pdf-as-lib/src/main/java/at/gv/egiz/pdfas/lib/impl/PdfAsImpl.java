@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.lib.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -145,7 +146,18 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			// TODO: Create signature
 
-			return null;
+			status.getPdfObject().setSignedDocument(status.getPdfObject().getStampedDocument());
+			
+			// ================================================================
+			// Create SignResult
+			SignResultImpl result = new SignResultImpl(status.getSignParamter().getOutput());
+			OutputStream outputStream = result.getOutputDocument().createOutputStream();
+			
+			outputStream.write(status.getPdfObject().getSignedDocument());
+			
+			outputStream.close();
+			
+			return result;
 		} catch (Throwable e) {
 			logger.error("sign failed " + e.getMessage(), e);
 			throw new PdfAsException("sign Failed", e);

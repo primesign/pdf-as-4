@@ -4,7 +4,9 @@ import java.io.File;
 
 import org.apache.log4j.PropertyConfigurator;
 
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
+import at.gv.egiz.pdfas.lib.impl.SignParameterImpl;
 
 public class PdfAsFactory {
 	
@@ -14,5 +16,10 @@ public class PdfAsFactory {
 	
 	public static PdfAs createPdfAs(File configuration) {
 		return new PdfAsImpl(configuration);
+	}
+	
+	public static SignParameter createSignParameter(Configuration configuration, DataSource dataSource) {
+		SignParameter param = new SignParameterImpl(configuration, dataSource);
+		return param;
 	}
 }

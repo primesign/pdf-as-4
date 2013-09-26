@@ -1,6 +1,6 @@
 package at.gv.egiz.pdfas.lib.api;
 
-public class ByteArrayDataSource implements IDataSource {
+public class ByteArrayDataSource implements DataSource {
 
     private byte[] byteData;
 
