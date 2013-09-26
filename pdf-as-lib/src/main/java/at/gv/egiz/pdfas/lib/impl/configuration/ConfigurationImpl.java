@@ -14,6 +14,12 @@ public class ConfigurationImpl implements ISettings, Configuration {
 
 	protected Properties overwrittenProperties = new Properties();
 	
+	protected Settings settings;
+	
+	public ConfigurationImpl(Settings settings) {
+		this.settings = settings;
+	}
+	
 	public void setValue(String key, String value) {
 		overwrittenProperties.setProperty(key, value);
 	}
@@ -22,7 +28,7 @@ public class ConfigurationImpl implements ISettings, Configuration {
 		if(overwrittenProperties.containsKey(key)) {
 			return overwrittenProperties.getProperty(key);
 		} else {
-			return Settings.getInstance().getValue(key);
+			return this.settings.getValue(key);
 		}
 	}
 
@@ -30,14 +36,14 @@ public class ConfigurationImpl implements ISettings, Configuration {
 		if(overwrittenProperties.containsKey(key)) {
 			return true;
 		} else {
-			return Settings.getInstance().hasValue(key);
+			return this.settings.hasValue(key);
 		}
 	}
 
 	public Map<String, String> getValuesPrefix(String prefix) {
 		
 		Map<String, String> valueMap = null;
-		valueMap = Settings.getInstance().getValuesPrefix(prefix);
+		valueMap = this.settings.getValuesPrefix(prefix);
 		if(valueMap == null) {
 			valueMap = new HashMap<String, String>();
 		}
@@ -61,7 +67,7 @@ public class ConfigurationImpl implements ISettings, Configuration {
 
 	public Vector<String> getFirstLevelKeys(String prefix) {
 		
-		Vector<String> valueMap = Settings.getInstance().getFirstLevelKeys(prefix);
+		Vector<String> valueMap = this.settings.getFirstLevelKeys(prefix);
 		if(valueMap == null) {
 			valueMap = new Vector<String>();
 		}
@@ -91,7 +97,7 @@ public class ConfigurationImpl implements ISettings, Configuration {
 
 	public boolean hasPrefix(String prefix) {
 		
-		if(Settings.getInstance().hasPrefix(prefix)) {
+		if(this.settings.hasPrefix(prefix)) {
 			return true;
 		}
 		
@@ -104,6 +110,10 @@ public class ConfigurationImpl implements ISettings, Configuration {
             }
         }
         return false;
+	}
+
+	public String getWorkingDirectory() {
+		return this.settings.getWorkingDirectory();
 	}
 
 	

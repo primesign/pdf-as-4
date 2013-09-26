@@ -41,6 +41,10 @@ public class RequestedSignature {
     public TablePos getTablePos() {
     	return this.signaturePosition;
     }
+    
+    public String getSignatureProfileID() {
+    	return this.signatureProfile;
+    }
 
 /*
     public IPlainSigner getSigner() {

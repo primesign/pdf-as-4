@@ -6,8 +6,9 @@ public interface IConfigurationConstants {
 	
 	public static final String SIG_OBJECT = "sig_obj";
 	public static final String TYPE = "type";
-	public static final String TABLE = "type";
+	public static final String TABLE = "table";
 	public static final String MAIN = "main";
+	public static final String POS = "pos";
 	public static final String DEFAULT = "default";
 	public static final String SEPERATOR = ".";
 	
