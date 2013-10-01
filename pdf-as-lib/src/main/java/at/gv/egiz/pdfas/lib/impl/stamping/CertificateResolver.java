@@ -3,13 +3,16 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.DNUtils;
 import at.gv.egiz.pdfas.common.utils.OgnlUtils;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import iaik.x509.X509Certificate;
 import ognl.OgnlContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
+
 import java.util.Map;
 
 public class CertificateResolver implements IResolver {
@@ -39,7 +42,8 @@ public class CertificateResolver implements IResolver {
 
     }
 
-    public String resolve(String key, String value, SignatureProfileSettings settings) {
+    public String resolve(String key, String value, SignatureProfileSettings settings,
+    		RequestedSignature signature) {
         return OgnlUtils.resolvsOgnlExpression(value, this.ctx);
     }
 

@@ -1,9 +1,16 @@
 package at.gv.egiz.pdfas.lib.impl.status;
 
 public class PDFObject {
+	
+	private OperationStatus status;
+	
 	private byte[] originalDocument;
 	private byte[] stampedDocument;
 	private byte[] signedDocument;
+
+	public PDFObject(OperationStatus operationStatus) {
+		this.status = operationStatus;
+	}
 
 	public byte[] getOriginalDocument() {
 		return originalDocument;
@@ -27,5 +34,13 @@ public class PDFObject {
 
 	public void setSignedDocument(byte[] signedDocument) {
 		this.signedDocument = signedDocument;
+	}
+
+	public OperationStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(OperationStatus status) {
+		this.status = status;
 	}
 }

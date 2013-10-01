@@ -16,4 +16,8 @@ public interface SignParameter extends PdfAsParameter {
 	public void setOutput(DataSink output);
 	
 	public DataSink getOutput();
+	
+	public void setPlainSigner(IPlainSigner signer);
+	
+	public IPlainSigner getPlainSigner();
 }

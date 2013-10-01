@@ -62,4 +62,6 @@ public interface IProfileConstants {
     public final static String CFG_DIR = "cfg";
     public final static String CFG_FILE = "config.properties";
     
+    public final static String TMP_DIR = "default.pdfastmp_dir";
+    public final static String TMP_DIR_DEFAULT_VALUE = "pdfastmp";
 }

@@ -1,5 +1,7 @@
 package at.gv.egiz.pdfas.lib.impl;
 
+import iaik.x509.X509Certificate;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.OutputStream;
@@ -9,6 +11,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import sun.misc.Regexp;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
@@ -25,6 +28,8 @@ import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 import at.gv.egiz.pdfas.lib.impl.positioning.Positioning;
+import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
+import at.gv.egiz.pdfas.lib.impl.signing.PdfSignerFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.gv.egiz.pdfas.lib.impl.stamping.StamperFactory;
@@ -83,9 +88,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			if (placeholderConfiguration.isGlobalPlaceholderEnabled()) {
 				// TODO: Do placeholder search
 			}
-
-			// TODO get Certificate
-
+			
 			if (requestedSignature.isVisual()) {
 				logger.info("Creating visual siganture block");
 				// ================================================================
@@ -95,7 +98,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						.createProfile(signatureProfileID, settings);
 
 				Table main = TableFactory.createSigTable(
-						signatureProfileSettings, MAIN, settings);
+						signatureProfileSettings, MAIN, settings, requestedSignature);
 
 				IPDFStamper stamper = StamperFactory.createDefaultStamper(settings);
 				IPDFVisualObject visualObject = stamper.createVisualPDFObject(
@@ -145,8 +148,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 
 			// TODO: Create signature
-
-			status.getPdfObject().setSignedDocument(status.getPdfObject().getStampedDocument());
+			IPdfSigner signer = PdfSignerFactory.createPdfSigner();
+			signer.signPDF(status.getPdfObject(), requestedSignature, status.getSignParamter().getPlainSigner());
+			
+			//status.getPdfObject().setSignedDocument(status.getPdfObject().getStampedDocument());
 			
 			// ================================================================
 			// Create SignResult

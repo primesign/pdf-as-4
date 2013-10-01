@@ -1,6 +1,7 @@
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,5 +11,6 @@ import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
  * To change this template use File | Settings | File Templates.
  */
 public interface IResolver {
-    public String resolve(String key, String value, SignatureProfileSettings settings);
+    public String resolve(String key, String value, SignatureProfileSettings settings,
+    		RequestedSignature signature);
 }
