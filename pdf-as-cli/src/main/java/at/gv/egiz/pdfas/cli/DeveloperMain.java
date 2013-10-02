@@ -15,8 +15,9 @@ import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
-import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.JKSSigner;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
+import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
+import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 
 public class DeveloperMain {
 
@@ -34,7 +35,7 @@ public class DeveloperMain {
 		Configuration config = pdfas.getConfiguration();
 		byte[] data;
 		try {
-			IPlainSigner signer = new JKSSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
+			IPlainSigner signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
 			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/devel/pdfas_neu/simple.pdf"));
 			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
 			ByteArrayDataSink bads = new ByteArrayDataSink();
@@ -45,6 +46,10 @@ public class DeveloperMain {
 			FileOutputStream fos = new FileOutputStream("/home/afitzek/devel/pdfas_neu/simple_out.pdf");
 			fos.write(bads.getData());
 			fos.close();
+			
+			VerifyParameter verify = new VerifyParameterImpl(config, new ByteArrayDataSource(bads.getData()));
+			pdfas.verify(verify);
+			
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

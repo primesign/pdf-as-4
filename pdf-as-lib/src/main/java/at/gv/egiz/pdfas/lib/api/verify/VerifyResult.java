@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.lib.api.verify;
 
+import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 
 public interface VerifyResult {
@@ -47,4 +48,7 @@ public interface VerifyResult {
 	 *         certificate.
 	 */
 	public boolean isQualifiedCertificate();
+	
+	
+	public X509Certificate getSignerCertificate();
 }

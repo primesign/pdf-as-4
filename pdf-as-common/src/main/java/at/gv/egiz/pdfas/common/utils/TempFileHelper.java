@@ -27,6 +27,8 @@ public class TempFileHelper implements IProfileConstants {
 
     private List<String> tmpFiles = new ArrayList<String>();
     
+    private boolean needsDeletion = false;
+    
     public TempFileHelper(ISettings settings) {
     	initializeMD();
     	
@@ -37,9 +39,12 @@ public class TempFileHelper implements IProfileConstants {
     			// relatives tmp dir
     			myTmpDirFile = new File(settings.getWorkingDirectory() + File.separator + myTmpDir);
     		} 
-    		tmpDir = myTmpDirFile.getAbsolutePath();
+    		tmpDir = myTmpDirFile.getAbsolutePath() + File.separator;
     	} else {
-    		tmpDir = settings.getWorkingDirectory() + File.separator + TMP_DIR_DEFAULT_VALUE;
+    		String uuidString = UUID.randomUUID().toString();
+            logger.debug("Generated UUID "  + uuidString);
+    		tmpDir = settings.getWorkingDirectory() + File.separator + TMP_DIR_DEFAULT_VALUE + File.separator + getHashedHexString(uuidString) + File.separator;
+    		needsDeletion = true;
     	}
     	
     	logger.info("TempDirHelper for TempDirectory: " + tmpDir);
@@ -66,6 +71,9 @@ public class TempFileHelper implements IProfileConstants {
         try {
             File tmpdir = new File(tmpDir);
             tmpdir.mkdirs();
+            if(needsDeletion) {
+            	tmpdir.deleteOnExit();
+            }
         } catch (Throwable e) {
             logger.error("Failed to create temporary directory: " + tmpDir, e);
         }
@@ -101,7 +109,7 @@ public class TempFileHelper implements IProfileConstants {
     public String getStaticFilename() {
         String uuidString = UUID.randomUUID().toString();
         logger.debug("Generated UUID "  + uuidString);
-        String tmpFilename = tmpFilePrefix + getHashedHexString(uuidString) + tmpFileSuffix;
+        String tmpFilename = tmpDir + getHashedHexString(uuidString) + tmpFileSuffix;
         logger.info("Temporary filename " + tmpFilename);
         tmpFiles.add(tmpFilename);
         return tmpFilename;

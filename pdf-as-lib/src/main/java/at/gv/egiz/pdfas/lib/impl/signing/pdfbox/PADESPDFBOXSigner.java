@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -52,8 +53,8 @@ public class PADESPDFBOXSigner implements IPdfSigner {
                     new ByteArrayInputStream(pdfObject.getStampedDocument()));
 
             PDSignature signature = new PDSignature();
-            signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE); // default filter
-            signature.setSubFilter(PDSignature.SUBFILTER_ETSI_CADES_DETACHED);
+            signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default filter
+            signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
 
             SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(), 
@@ -62,7 +63,8 @@ public class PADESPDFBOXSigner implements IPdfSigner {
             ValueResolver resolver = new ValueResolver();
             String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"), 
             		signatureProfileSettings, requestedSignature);
-            // TODO: change signature data from certificate
+            
+            
             signature.setName(signerName);
             //signature.setLocation("signer location");
             signature.setReason("PDF-AS Signatur");

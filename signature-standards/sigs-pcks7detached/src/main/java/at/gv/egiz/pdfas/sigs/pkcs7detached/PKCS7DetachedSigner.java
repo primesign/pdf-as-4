@@ -1,4 +1,4 @@
-package at.gv.egiz.pdfas.lib.impl.signing.sig_interface;
+package at.gv.egiz.pdfas.sigs.pkcs7detached;
 
 import iaik.asn1.structures.AlgorithmID;
 import iaik.cms.SignedDataStream;
@@ -19,17 +19,19 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.SignatureException;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 
-public class JKSSigner implements IPlainSigner {
+public class PKCS7DetachedSigner implements IPlainSigner {
 
 	PrivateKey privKey;
 	X509Certificate cert;
 
-	public JKSSigner(String file, String alias, String kspassword,
+	public PKCS7DetachedSigner(String file, String alias, String kspassword,
 			String keypassword, String type) throws PdfAsException {
 		try {
 			IAIK.getInstance();
@@ -73,6 +75,14 @@ public class JKSSigner implements IPlainSigner {
 		} catch (X509ExtensionException e) {
 			throw new SignatureException(e);
 		}
+	}
+
+	public String getPDFSubFilter() {
+		return PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED.getName();
+	}
+	
+	public String getPDFFilter() {
+		return PDSignature.FILTER_ADOBE_PPKLITE.getName();
 	}
 
 }
