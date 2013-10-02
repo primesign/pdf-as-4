@@ -42,7 +42,6 @@ import at.gv.egiz.pdfas.api.verify.VerifyResults;
 import at.gv.egiz.pdfas.api.xmldsig.ReconstructXMLDsigAfterAnalysisParameters;
 import at.gv.egiz.pdfas.api.xmldsig.ReconstructXMLDsigParameters;
 import at.gv.egiz.pdfas.api.xmldsig.ReconstructXMLDsigResult;
-import at.gv.egiz.pdfas.framework.signator.SignatorInformation;
 
 /**
  * The PDF-AS API main interface.
