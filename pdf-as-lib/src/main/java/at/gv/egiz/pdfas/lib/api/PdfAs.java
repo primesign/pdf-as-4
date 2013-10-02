@@ -28,7 +28,7 @@ public interface PdfAs {
 	 * @param parameter The verification parameter
 	 * @return A list of verification Results
 	 */
-	public List<VerifyResult> verify(VerifyParameter parameter);
+	public List<VerifyResult> verify(VerifyParameter parameter) throws PdfAsException;
 	
 	/**
 	 * Gets a copy of the PDF-AS configuration, to allow the application to 

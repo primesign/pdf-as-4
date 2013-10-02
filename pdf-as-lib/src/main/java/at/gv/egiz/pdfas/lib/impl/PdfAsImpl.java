@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.pdfbox.cos.COSArray;
@@ -192,8 +193,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		}
 	}
 
-	public List<VerifyResult> verify(VerifyParameter parameter) {
+	public List<VerifyResult> verify(VerifyParameter parameter) throws PdfAsException {
 		try {
+			List<VerifyResult> result = new ArrayList<VerifyResult>();
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			VerifierDispatcher verifier = new VerifierDispatcher(settings);
 			PDDocument doc = PDDocument.load(new ByteArrayInputStream(parameter
@@ -251,20 +253,12 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					IVerifyFilter verifyFilter = 
 							verifier.getVerifier(dict.getNameAsString("Filter"), dict.getNameAsString("SubFilter"));
 
-					verifyFilter.verify(contentData.toByteArray(), content.getBytes());
+					List<VerifyResult> results = 
+							verifyFilter.verify(contentData.toByteArray(), content.getBytes());
 					
-					/*
-					 * Iterator<Map.Entry<COSName, COSBase>> iterator =
-					 * dict.entrySet().iterator();
-					 * 
-					 * while(iterator.hasNext()) { Map.Entry<COSName, COSBase>
-					 * entry = iterator.next(); System.out.println("Key: "
-					 * +entry.getKey().toString());
-					 * 
-					 * }
-					 */
-
+					result.addAll(results);
 				}
+				return result;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -272,7 +266,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
-		return null;
+		throw new PdfAsException();
 	}
 
 	public Configuration getConfiguration() {
