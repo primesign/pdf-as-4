@@ -13,6 +13,7 @@ import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
+import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
@@ -42,6 +43,34 @@ public class DeveloperMain {
 			parameter.setSignatureProfileId("SIGNATURBLOCK_DE_NEU");
 			parameter.setOutput(bads);
 			parameter.setPlainSigner(signer);
+
+			StatusRequest request = pdfas.startSign(parameter);
+			
+			if(request.needCertificate()) {
+				request.setCertificate(signer.getCertificate().getEncoded());
+			} else {
+				throw new Exception("Invalid status");
+			}
+			
+			request = pdfas.process(request);
+			
+			if(request.needSignature()) {
+				FileOutputStream fos2 = new FileOutputStream("/home/afitzek/devel/pdfas_neu/sign1.pdf");
+				fos2.write(request.getSignatureData());
+				fos2.close();
+				request.setSigature(signer.sign(request.getSignatureData()));
+			} else {
+				throw new Exception("Invalid status");
+			}
+			
+			request = pdfas.process(request);
+			
+			if(request.isReady()) {
+				pdfas.finishSign(request);
+			} else {
+				throw new Exception("Invalid status");
+			}
+			
 			pdfas.sign(parameter);
 			FileOutputStream fos = new FileOutputStream("/home/afitzek/devel/pdfas_neu/simple_out.pdf");
 			fos.write(bads.getData());
@@ -57,6 +86,9 @@ public class DeveloperMain {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}catch (PdfAsException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

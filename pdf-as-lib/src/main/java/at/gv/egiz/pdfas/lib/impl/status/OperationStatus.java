@@ -1,5 +1,7 @@
 package at.gv.egiz.pdfas.lib.impl.status;
 
+import java.io.Serializable;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +12,13 @@ import at.gv.egiz.pdfas.lib.impl.configuration.GlobalConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 
-public class OperationStatus {
+public class OperationStatus implements Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2985007198666388528L;
+	
 	
 	private SignParameter signParamter;
 	private PDFObject pdfObject = new PDFObject(this);
@@ -21,6 +29,8 @@ public class OperationStatus {
 	private Map<String, SignatureProfileConfiguration> signatureProfiles = 
 				new HashMap<String, SignatureProfileConfiguration>();
 	private TempFileHelper helper;
+	private RequestedSignature requestedSignature;
+	private Calendar signingDate;
 	
 	public OperationStatus(ISettings configuration, SignParameter signParameter) {
 		this.configuration = configuration;
@@ -33,8 +43,18 @@ public class OperationStatus {
 		super.finalize();
 	}
 	
+	
+	
 	// ========================================================================
 	
+	public RequestedSignature getRequestedSignature() {
+		return requestedSignature;
+	}
+
+	public void setRequestedSignature(RequestedSignature requestedSignature) {
+		this.requestedSignature = requestedSignature;
+	}
+
 	public PlaceholderConfiguration getPlaceholderConfiguration() {
 		if(this.placeholderConfiguration == null) {
 			this.placeholderConfiguration = 
@@ -87,4 +107,14 @@ public class OperationStatus {
 	public ISettings getSettings() {
 		return this.configuration;
 	}
+
+	public Calendar getSigningDate() {
+		return signingDate;
+	}
+
+	public void setSigningDate(Calendar signingDate) {
+		this.signingDate = signingDate;
+	}
+	
+	
 }

@@ -26,7 +26,6 @@ public class RequestedSignature {
     			throw new PdfAsSettingsException("Failed to determine Signature Profile!");
     		}
     	}
-    	certificate = status.getSignParamter().getPlainSigner().getCertificate();
 		
     	this.signatureProfile = profileID;
     	
@@ -53,4 +52,8 @@ public class RequestedSignature {
     	return this.certificate;
     }
 
+    public void setCertificate(X509Certificate certificate) {
+    	this.certificate = certificate;
+    }
+    
 }

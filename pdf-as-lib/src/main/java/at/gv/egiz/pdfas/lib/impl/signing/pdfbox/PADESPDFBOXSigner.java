@@ -24,6 +24,7 @@ import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.common.utils.TempFileHelper;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
+import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.PDFASSignatureInterface;
 import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
@@ -33,7 +34,8 @@ public class PADESPDFBOXSigner implements IPdfSigner {
 
     private static final Logger logger = LoggerFactory.getLogger(PADESPDFBOXSigner.class);
 
-    public void signPDF(PDFObject pdfObject, RequestedSignature requestedSignature, IPlainSigner signer)
+    public void signPDF(PDFObject pdfObject, RequestedSignature requestedSignature, 
+    		PDFASSignatureInterface signer)
             throws PdfAsException {
         String fisTmpFile = null;
         
@@ -70,10 +72,13 @@ public class PADESPDFBOXSigner implements IPdfSigner {
             signature.setReason("PDF-AS Signatur");
 
 
+            logger.debug("Signing @ " + signer.getSigningDate().getTime().toString());
             // the signing date, needed for valid signature
-            signature.setSignDate(Calendar.getInstance());
+            signature.setSignDate(signer.getSigningDate());
 
-            doc.addSignature(signature, new PdfboxSignerWrapper(signer, signature));
+            signer.setPDSignature(signature);
+            
+            doc.addSignature(signature, signer);
 
             // pdfbox patched (FIS -> IS)
             doc.saveIncremental(fis, fos);

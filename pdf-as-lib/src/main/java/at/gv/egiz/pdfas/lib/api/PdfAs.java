@@ -37,4 +37,8 @@ public interface PdfAs {
 	 * @return A private copy of the pdf as configuration
 	 */
 	public Configuration getConfiguration();
+	
+	public StatusRequest startSign(SignParameter parameter) throws PdfAsException;
+	public StatusRequest process(StatusRequest statusRequest) throws PdfAsException;
+	public SignResult    finishSign(StatusRequest statusRequest) throws PdfAsException;
 }
