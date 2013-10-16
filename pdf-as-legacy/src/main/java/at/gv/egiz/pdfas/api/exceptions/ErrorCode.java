@@ -110,6 +110,6 @@ public final class ErrorCode
   public static final int CORRECTOR_EXCEPTION = 801;
   public static final int EXTERNAL_CORRECTOR_TIMEOUT_REACHED = 802;  
 
-  
+  public static final int WRAPPED_ERROR_CODE = 998;
   public static final int FUNCTION_NOT_AVAILABLE = 999;
 }

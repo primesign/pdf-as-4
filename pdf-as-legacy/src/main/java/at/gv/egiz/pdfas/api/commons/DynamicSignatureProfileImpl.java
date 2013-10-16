@@ -25,14 +25,13 @@ package at.gv.egiz.pdfas.api.commons;
 
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.lang.StringUtils;
-
 import at.gv.egiz.pdfas.api.PdfAs;
-import at.knowcenter.wag.egov.egiz.cfg.PropertyTree;
-import at.knowcenter.wag.egov.egiz.cfg.SettingsReader;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.knowcenter.wag.egov.egiz.sig.SignatureTypes;
 
 // TODO exception types?
@@ -46,22 +45,26 @@ public class DynamicSignatureProfileImpl implements DynamicSignatureProfile {
    private String name;   
    private Properties newProps = new Properties();
    private int dynamicTypeCounter = 0;   
-   private static Map profiles = new HashMap();
-   private static ThreadLocal localProfiles = new ThreadLocal();
+   private static Map<String, DynamicSignatureProfile> profiles = 
+		   new HashMap<String, DynamicSignatureProfile>();
+   private static ThreadLocal<DynamicSignatureProfile> localProfiles = new ThreadLocal<DynamicSignatureProfile>();
    private DynamicSignatureLifetimeEnum lifeMode; 
-   
+   private Configuration configuration;
 
-   private DynamicSignatureProfileImpl(DynamicSignatureLifetimeEnum mode, String name) {
+   private DynamicSignatureProfileImpl(DynamicSignatureLifetimeEnum mode, String name, 
+		   Configuration configuration) {
       if (name != null) {
          this.name = name;
       } else {
          this.name = createDynamicTypeName();
       }
+      this.configuration = configuration;
       this.lifeMode = mode;
    }
    
-   public static DynamicSignatureProfileImpl createFromParent(String myUniqueName, String parentProfile, DynamicSignatureLifetimeEnum mode) {
-      DynamicSignatureProfileImpl res = new DynamicSignatureProfileImpl(mode, myUniqueName);
+   public static DynamicSignatureProfileImpl createFromParent(String myUniqueName, String parentProfile, 
+		   DynamicSignatureLifetimeEnum mode, Configuration configuration) {
+      DynamicSignatureProfileImpl res = new DynamicSignatureProfileImpl(mode, myUniqueName, configuration);
       res.initFromParent(parentProfile);
       return res;
    }
@@ -89,8 +92,9 @@ public class DynamicSignatureProfileImpl implements DynamicSignatureProfile {
       }
    }
    
-   public static DynamicSignatureProfileImpl createEmptyProfile(String myUniqueName, DynamicSignatureLifetimeEnum mode) {
-      return new DynamicSignatureProfileImpl(mode, myUniqueName);      
+   public static DynamicSignatureProfileImpl createEmptyProfile(String myUniqueName, DynamicSignatureLifetimeEnum mode,
+		   Configuration configuration) {
+      return new DynamicSignatureProfileImpl(mode, myUniqueName, configuration);      
    }
    
    public static DynamicSignatureProfileImpl loadProfile(String name) {
@@ -155,21 +159,32 @@ public class DynamicSignatureProfileImpl implements DynamicSignatureProfile {
 
    private void initFromParent(String parentProfile) {
       try {
-         SettingsReader cfg = null;
+         ISettings cfg = null;
 
-         cfg = SettingsReader.getInstance();         
-
-         Properties props = cfg.getProperties();
+         cfg = (ISettings)configuration;         
+         String parentKey = "sig_obj." + parentProfile + ".";
+         Map<String, String> properties = cfg.getValuesPrefix(parentKey);
+         //Properties props = cfg.getProperties();
          // DTI: props.keys() does not support default properties, therefore we should better use props.propertyNames()
 //         for (Enumeration e = props.keys(); e.hasMoreElements();) {
-         for (Enumeration e = props.propertyNames(); e.hasMoreElements();) {
+         /*for (Enumeration e = props.propertyNames(); e.hasMoreElements();) {
             String oldKey = (String) e.nextElement();
             if (oldKey.startsWith("sig_obj." + parentProfile + ".")) {
                String newKey = StringUtils.replace(oldKey, parentProfile, name);
                String val = props.getProperty(oldKey);
                this.newProps.put(newKey, val);
             }
+         }*/
+         
+         Iterator<String> keyIt = properties.keySet().iterator();
+         
+         while(keyIt.hasNext()) {
+        	 String oldKey = keyIt.next();
+        	 String newKey = oldKey.replaceAll(parentProfile, name);
+             String val = properties.get(oldKey);
+             this.newProps.put(newKey, val);
          }
+         
          this.newProps.put("sig_obj.types." + name, "on");
       } catch (Exception e) {
          throw new RuntimeException(e);
@@ -181,16 +196,12 @@ public class DynamicSignatureProfileImpl implements DynamicSignatureProfile {
     */
    public synchronized void apply() {
       try {
-         SettingsReader settings = SettingsReader.getInstance();         
-
-         settings.getProperties().putAll(this.newProps);
-
-         for (Enumeration e = newProps.keys(); e.hasMoreElements();) {
+    	  Configuration cfg = this.configuration;
+         for (Enumeration<Object> e = newProps.keys(); e.hasMoreElements();) {
             String key = (String) e.nextElement();
-            settings.getPTree().setKeyValue(key, newProps.getProperty(key));
+            cfg.setValue(key, newProps.getProperty(key));
          }
      
-         SignatureTypes.getInstance().addSignatureType(this.name);
          store();
       } catch (Exception e) {
          throw new RuntimeException(e);
@@ -202,12 +213,11 @@ public class DynamicSignatureProfileImpl implements DynamicSignatureProfile {
     */
    public synchronized void dispose() {
       try {
-         SettingsReader.getInstance().getProperties().keySet().removeAll(newProps.keySet());
-         
-         PropertyTree root = SettingsReader.getInstance().getPTree();
-         root.getSubTree("sig_obj").removeEntry(this.name);         
-         
-         SignatureTypes.getInstance().removeSignatureType(this.name);
+    	  Configuration cfg = this.configuration;
+    	  for (Enumeration<Object> e = newProps.keys(); e.hasMoreElements();) {
+              String key = (String) e.nextElement();
+              cfg.setValue(key, null);
+           }
          remove();
       } catch (Exception e) {
          throw new RuntimeException(e);

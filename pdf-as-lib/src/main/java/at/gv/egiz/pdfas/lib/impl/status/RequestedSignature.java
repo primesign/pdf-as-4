@@ -3,14 +3,16 @@ package at.gv.egiz.pdfas.lib.impl.status;
 import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 
 
 public class RequestedSignature {
     private String signatureProfile;
-    private TablePos signaturePosition;
+    private TablePos tablePosition;
     private OperationStatus status;
     private X509Certificate certificate;
+    private SignaturePosition signaturePosition = null;
     //private IPlainSigner signer = null;
 
     public RequestedSignature(OperationStatus status) throws PdfAsException {
@@ -30,9 +32,9 @@ public class RequestedSignature {
     	this.signatureProfile = profileID;
     	
     	if(status.getSignParamter().getSignaturePosition() == null) {
-    		this.signaturePosition = new TablePos();
+    		this.tablePosition = new TablePos();
     	} else {
-    		this.signaturePosition = new TablePos(status.getSignParamter().getSignaturePosition());
+    		this.tablePosition = new TablePos(status.getSignParamter().getSignaturePosition());
     	}
     }
     
@@ -41,7 +43,7 @@ public class RequestedSignature {
     }
     
     public TablePos getTablePos() {
-    	return this.signaturePosition;
+    	return this.tablePosition;
     }
     
     public String getSignatureProfileID() {
@@ -55,5 +57,15 @@ public class RequestedSignature {
     public void setCertificate(X509Certificate certificate) {
     	this.certificate = certificate;
     }
+
+	public SignaturePosition getSignaturePosition() {
+		return signaturePosition;
+	}
+
+	public void setSignaturePosition(SignaturePosition signaturePosition) {
+		this.signaturePosition = signaturePosition;
+	}
+    
+    
     
 }
