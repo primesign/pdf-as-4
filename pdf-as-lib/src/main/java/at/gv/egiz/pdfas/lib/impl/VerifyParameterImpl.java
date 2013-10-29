@@ -5,8 +5,19 @@ import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 
 public class VerifyParameterImpl extends PdfAsParameterImpl implements VerifyParameter {
+	
+	protected int which = - 1;
+	
 	public VerifyParameterImpl(Configuration configuration,
 			DataSource dataSource) {
 		super(configuration, dataSource);
+	}
+
+	public int getWhichSignature() {
+		return which;
+	}
+
+	public void setWhichSignature(int which) {
+		this.which = which;
 	}
 }

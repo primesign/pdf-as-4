@@ -46,7 +46,7 @@ public class PdfAsObject implements PdfAs {
 	public SignResult sign(SignParameters signParameters,
 			SignatureDetailInformation signatureDetailInformation)
 			throws PdfAsException {
-
+		
 		// Create the signature ....
 
 		// TODO wait for SL wrapper implementation
