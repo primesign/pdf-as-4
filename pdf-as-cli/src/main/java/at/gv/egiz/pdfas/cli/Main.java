@@ -27,6 +27,8 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
+import at.gv.egiz.sl.util.BKUSLConnector;
 
 public class Main {
 
@@ -55,7 +57,7 @@ public class Main {
 	public static final String CLI_ARG_VERIFY_WHICH = "verify_which";
 
 	public static final String STANDARD_CONFIG_LOCATION = System
-			.getProperty("user.home") + "/.pdfas/cfg/";
+			.getProperty("user.home") + "/.pdfas/";
 
 	public static final String STANDARD_POSITION_STRING = "x:auto;y:auto;w:auto;p:auto;f:0";
 
@@ -148,6 +150,7 @@ public class Main {
 			System.exit(-1);
 		} catch (Exception e) {
 			System.err.println("PDF-AS Error: " + e.getMessage());
+			e.printStackTrace(System.err);
 			System.exit(-1);
 		}
 	}
@@ -202,7 +205,7 @@ public class Main {
 				configuration, dataSource);
 
 		signParameter.setOutput(dataSink);
-
+		signParameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(configuration)));
 		signParameter.setDataSource(dataSource);
 		signParameter.setSignaturePosition(positionString);
 		signParameter.setSignatureProfileId(profilID);

@@ -23,6 +23,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
@@ -47,6 +48,7 @@ import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifierDispatcher;
+import at.knowcenter.wag.egov.egiz.pdf.PDFUtilities;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -83,6 +85,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			RequestedSignature requestedSignature = new RequestedSignature(
 					status);
 
+			status.setRequestedSignature(requestedSignature);
+			
 			requestedSignature.setCertificate(status.getSignParamter()
 					.getPlainSigner().getCertificate());
 
@@ -334,13 +338,25 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 				SignatureDataExtractor signatureDataExtractor = new SignatureDataExtractor(
 						request.getCertificate(), pdfFilter, pdfSubFilter,
 						status.getSigningDate());
-
+				
 				IPdfSigner signer = PdfSignerFactory.createPdfSigner();
 				signer.signPDF(status.getPdfObject(),
 						status.getRequestedSignature(), signatureDataExtractor);
+				
+				StringBuilder sb = new StringBuilder();
+				
+				int[] byteRange = PDFUtils.extractSignatureByteRange(signatureDataExtractor
+						.getSignatureData());
+				
+				for(int i = 0; i < byteRange.length; i++) {
+					sb.append(" " + byteRange[i]);
+				}
+				
+				logger.info("ByteRange: " + sb.toString());
+				
 				request.setSignatureData(signatureDataExtractor
 						.getSignatureData());
-				request.setByteRange(signatureDataExtractor.getByteRange());
+				request.setByteRange(byteRange);
 				request.setNeedSignature(true);
 
 			} catch (Throwable e) {
@@ -349,12 +365,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 		} else if (request.needSignature()) {
 			request.setNeedSignature(false);
-			// TODO: Inject signature byte[] into signedDocument
-			int offset = request.getSignatureData().length;
+			// Inject signature byte[] into signedDocument
+			int offset = request.getSignatureDataByteRange()[1] + 1;
 
-			for (int i = 0; i < request.getSignature().length; i++) {
-				status.getPdfObject().getSignedDocument()[offset + i] = request
-						.getSignature()[i];
+			String signature = new COSString(request.getSignature()).getHexString();
+			byte[] pdfSignature = signature.getBytes();
+			
+			for (int i = 0; i < pdfSignature.length; i++) {
+				status.getPdfObject().getSignedDocument()[offset + i] = pdfSignature[i];
 			}
 			/*
 			 * 

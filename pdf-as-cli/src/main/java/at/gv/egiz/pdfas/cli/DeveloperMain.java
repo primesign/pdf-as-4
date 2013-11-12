@@ -18,7 +18,10 @@ import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
+import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PADESPDFBOXSigner;
+import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
+import at.gv.egiz.sl.util.BKUSLConnector;
 
 public class DeveloperMain {
 
@@ -37,13 +40,13 @@ public class DeveloperMain {
 		byte[] data;
 		try {
 			IPlainSigner signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
-			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/devel/pdfas_neu/simple.pdf"));
+			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/devel/pdfas_neu/simple_out2.pdf"));
 			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
 			ByteArrayDataSink bads = new ByteArrayDataSink();
 			parameter.setSignatureProfileId("SIGNATURBLOCK_DE_NEU");
 			parameter.setOutput(bads);
-			parameter.setPlainSigner(signer);
-
+			parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
+			/*
 			StatusRequest request = pdfas.startSign(parameter);
 			
 			if(request.needCertificate()) {
@@ -58,7 +61,7 @@ public class DeveloperMain {
 				FileOutputStream fos2 = new FileOutputStream("/home/afitzek/devel/pdfas_neu/sign1.pdf");
 				fos2.write(request.getSignatureData());
 				fos2.close();
-				request.setSigature(signer.sign(request.getSignatureData()));
+				request.setSigature(signer.sign(request.getSignatureData(), request.getSignatureDataByteRange()));
 			} else {
 				throw new Exception("Invalid status");
 			}
@@ -70,9 +73,9 @@ public class DeveloperMain {
 			} else {
 				throw new Exception("Invalid status");
 			}
-			
+			*/
 			pdfas.sign(parameter);
-			FileOutputStream fos = new FileOutputStream("/home/afitzek/devel/pdfas_neu/simple_out.pdf");
+			FileOutputStream fos = new FileOutputStream("/home/afitzek/devel/pdfas_neu/simple_out3.pdf");
 			fos.write(bads.getData());
 			fos.close();
 			

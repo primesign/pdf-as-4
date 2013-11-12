@@ -23,7 +23,9 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 
 public class PKCS7DetachedSigner implements IPlainSigner {
@@ -49,7 +51,7 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 		return cert;
 	}
 
-	public byte[] sign(byte[] input) throws SignatureException, IOException {
+	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
 		try {
 			SignedDataStream signed_data_stream = new SignedDataStream(
 					new ByteArrayInputStream(input), SignedDataStream.EXPLICIT);
@@ -71,9 +73,11 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			signed_data_stream.writeTo(baos);
 			return baos.toByteArray();
 		} catch (NoSuchAlgorithmException e) {
-			throw new SignatureException(e);
+			throw new PdfAsSignatureException("", e);
 		} catch (X509ExtensionException e) {
-			throw new SignatureException(e);
+			throw new PdfAsSignatureException("", e);
+		}  catch (IOException e) {
+			throw new PDFIOException("", e);
 		}
 	}
 

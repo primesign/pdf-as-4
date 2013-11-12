@@ -7,9 +7,11 @@ import java.io.IOException;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.SignatureException;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+
 public interface IPlainSigner {
-	public X509Certificate getCertificate();
-    public byte[] sign(byte[] input) throws SignatureException, IOException;
+	public X509Certificate getCertificate() throws PdfAsException;
+    public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException;
     public String getPDFSubFilter();
     public String getPDFFilter();
 }

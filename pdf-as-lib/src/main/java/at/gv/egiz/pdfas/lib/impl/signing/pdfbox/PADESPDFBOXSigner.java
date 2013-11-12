@@ -22,7 +22,6 @@ import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.common.utils.TempFileHelper;
-import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.PDFASSignatureInterface;
 import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
@@ -109,7 +108,7 @@ public class PADESPDFBOXSigner implements IPdfSigner {
         }
     }
 
-
+/*
     public void signPDF(String src, String dst, SignatureInterface signer) throws Exception {
         //ByteArrayOutputStream os = new ByteArrayOutputStream();
         FileInputStream fis = new FileInputStream(new File(src));
@@ -144,5 +143,5 @@ public class PADESPDFBOXSigner implements IPdfSigner {
         fos.close();
        // FileUtils.writeByteArrayToFile(new File(dst), os.toByteArray());
     }
-
+*/
 }
