@@ -29,8 +29,8 @@ public class DeveloperMain {
 	public static final String keyStoreFile = "/home/afitzek/devel/pdfas_neu/test.p12";
 	public static final String keyStoreType = "PKCS12";
     public static final String keyStorePass = "123456";
-    //public static final String keyAlias = "pdf";
-    public static final String keyAlias = "ecc_test";
+    public static final String keyAlias = "pdf";
+    //public static final String keyAlias = "ecc_test";
     public static final String keyPass = "123456";
 	
 	public static void main(String[] args) {		
@@ -44,13 +44,13 @@ public class DeveloperMain {
 			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/qr_2.pdf"));
 			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
 			ByteArrayDataSink bads = new ByteArrayDataSink();
-			parameter.setSignatureProfileId("SIGNATURBLOCK_DE_PDFA");
+			parameter.setSignatureProfileId("SIGNATURBLOCK_DE");
 			parameter.setOutput(bads);
-			//parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
-			parameter.setPlainSigner(signer);
+			parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
+			//parameter.setPlainSigner(signer);
 			//parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
-			
-			/*StatusRequest request = pdfas.startSign(parameter);
+			/*
+			StatusRequest request = pdfas.startSign(parameter);
 			
 			if(request.needCertificate()) {
 				request.setCertificate(signer.getCertificate().getEncoded());
@@ -82,8 +82,8 @@ public class DeveloperMain {
 			fos.write(bads.getData());
 			fos.close();
 			
-			//VerifyParameter verify = new VerifyParameterImpl(config, new ByteArrayDataSource(bads.getData()));
-			//pdfas.verify(verify);
+			VerifyParameter verify = new VerifyParameterImpl(config, new ByteArrayDataSource(bads.getData()));
+			pdfas.verify(verify);
 			
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block

@@ -32,6 +32,7 @@ public class PAdESSigner implements IPlainSigner {
 
 	public String getPDFSubFilter() {
 		return PDSignature.SUBFILTER_ETSI_CADES_DETACHED.getName();
+		//return PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED.getName();
 	}
 
 	public String getPDFFilter() {

@@ -59,7 +59,7 @@ public abstract class BaseSLConnector implements ISLConnector {
 		int currentdataOff = 0;
 		
 		Arrays.fill(data, (byte)0);
-		
+		int[] exclude_range = new int[byteRange.length-2];
 		for(int i = 0; i < byteRange.length; i = i + 2) {
 			int offset = byteRange[i];
 			int size = byteRange[i+1];
@@ -68,7 +68,10 @@ public abstract class BaseSLConnector implements ISLConnector {
 				data[offset + j] = signatureData[currentdataOff];
 				currentdataOff++;
 			}
-			
+			if(i + 2 < byteRange.length) {
+				exclude_range[i] = offset + size; // exclude offset
+				exclude_range[i+1] = byteRange[i+2]; // exclude size
+			}
 		}
 		
 		// == MetaInfoType

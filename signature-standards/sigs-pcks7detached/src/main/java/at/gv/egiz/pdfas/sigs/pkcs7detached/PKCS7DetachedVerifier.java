@@ -1,10 +1,14 @@
 package at.gv.egiz.pdfas.sigs.pkcs7detached;
 
+import iaik.asn1.ObjectID;
+import iaik.asn1.structures.AlgorithmID;
+import iaik.cms.ContentInfo;
 import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
 import iaik.x509.X509Certificate;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,21 +28,38 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 
 	private static final Logger logger = LoggerFactory.getLogger(PKCS7DetachedVerifier.class);
 	
+	public PKCS7DetachedVerifier() {
+	}
+	
 	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent)
 			throws PdfAsException {
 		try {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
-			SignedData signedData = new SignedData(new ByteArrayInputStream(
+			
+			SignedData signedData = new SignedData(contentData, new AlgorithmID[] { 
+					AlgorithmID.sha256
+			});
+			
+			FileOutputStream fos = new FileOutputStream("/tmp/verify.bin");
+			fos.write(signatureContent);
+			fos.close();
+			
+			ContentInfo ci = new ContentInfo(new ByteArrayInputStream(
 					signatureContent));
-			signedData.setContent(contentData);
+			if (!ci.getContentType().equals(ObjectID.cms_signedData)) {
+				throw new PdfAsException("No Signed DATA");
+			}
+			//SignedData signedData = (SignedData)ci.getContent();
+			//signedData.setContent(contentData);
 
+			signedData.decode(ci.getContentInputStream());
+			
 			// get the signer infos
 			SignerInfo[] signerInfos = signedData.getSignerInfos();
 			// verify the signatures
 			for (int i = 0; i < signerInfos.length; i++) {
 				VerifyResultImpl verifyResult = new VerifyResultImpl();
 				try {
-					
 					// verify the signature for SignerInfo at index i
 					X509Certificate signer_cert = signedData.verify(i);
 					// if the signature is OK the certificate of the
@@ -69,6 +90,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	public List<FilterEntry> getFiters() {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
 		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED));
+		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ETSI_CADES_DETACHED));
 		return result;
 	}
 
