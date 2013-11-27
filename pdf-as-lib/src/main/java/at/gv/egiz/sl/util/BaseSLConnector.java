@@ -1,41 +1,19 @@
 package at.gv.egiz.sl.util;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.Buffer;
+import java.math.BigInteger;
 import java.util.Arrays;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.common.exceptions.SLPdfAsException;
-import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PADESPDFBOXSigner;
 import at.gv.egiz.sl.Base64OptRefContentType;
 import at.gv.egiz.sl.CMSDataObjectRequiredMetaType;
 import at.gv.egiz.sl.CreateCMSSignatureRequestType;
-import at.gv.egiz.sl.CreateCMSSignatureResponseType;
-import at.gv.egiz.sl.ErrorResponseType;
+import at.gv.egiz.sl.ExcludedByteRangeType;
 import at.gv.egiz.sl.InfoboxReadParamsAssocArrayType;
-import at.gv.egiz.sl.InfoboxReadRequestType;
-import at.gv.egiz.sl.InfoboxReadResponseType;
-import at.gv.egiz.sl.MetaInfoType;
 import at.gv.egiz.sl.InfoboxReadParamsAssocArrayType.ReadValue;
+import at.gv.egiz.sl.InfoboxReadRequestType;
+import at.gv.egiz.sl.MetaInfoType;
 import at.gv.egiz.sl.ObjectFactory;
 
 public abstract class BaseSLConnector implements ISLConnector {
@@ -106,7 +84,13 @@ public abstract class BaseSLConnector implements ISLConnector {
 		CMSDataObjectRequiredMetaType cmsDataObjectRequiredMetaType = new CMSDataObjectRequiredMetaType();
 		cmsDataObjectRequiredMetaType.setMetaInfo(metaInfoType);
 		cmsDataObjectRequiredMetaType.setContent(base64OptRefContentType);
-		// cmsDataObjectRequiredMetaType.setExcludedByteRange()
+		if(byteRange.length > 0) {
+			ExcludedByteRangeType excludeByteRange = new ExcludedByteRangeType();
+			excludeByteRange.setFrom(new BigInteger(String.valueOf(byteRange[0])));
+			excludeByteRange.setTo(new BigInteger(String.valueOf(byteRange[0]+byteRange[1])));
+			cmsDataObjectRequiredMetaType.setExcludedByteRange(excludeByteRange);
+		}
+		
 		
 		// == CreateCMSSignatureRequestType
 		CreateCMSSignatureRequestType request = new CreateCMSSignatureRequestType();

@@ -111,7 +111,9 @@ public class ITextStamper implements IPDFStamper {
     /**
      * Map the font definitions to IText's font statements
      */
-    private static HashMap<String, Integer> fontMap_ = new HashMap<String, Integer>();
+    private static HashMap<String, Integer> fontStyleMap_ = new HashMap<String, Integer>();
+    
+    private static HashMap<String, Font> fontMap_ = new HashMap<String, Font>();
 
     static  {
         initStyleMaps();
@@ -129,16 +131,17 @@ public class ITextStamper implements IPDFStamper {
         alignMap_.put(Style.LEFT, new Integer(Element.ALIGN_LEFT));
         alignMap_.put(Style.CENTER, new Integer(Element.ALIGN_CENTER));
         alignMap_.put(Style.RIGHT, new Integer(Element.ALIGN_RIGHT));
-
-        fontMap_.put(Style.HELVETICA, new Integer(Font.HELVETICA));
-        fontMap_.put(Style.TIMES_ROMAN, new Integer(Font.TIMES_ROMAN));
-        fontMap_.put(Style.COURIER, new Integer(Font.COURIER));
-        fontMap_.put(Style.NORMAL, new Integer(Font.NORMAL));
-        fontMap_.put(Style.BOLD, new Integer(Font.BOLD));
-        fontMap_.put(Style.ITALIC, new Integer(Font.ITALIC));
-        fontMap_.put(Style.BOLDITALIC, new Integer(Font.BOLDITALIC));
-        fontMap_.put(Style.UNDERLINE, new Integer(Font.UNDERLINE));
-        fontMap_.put(Style.STRIKETHRU, new Integer(Font.STRIKETHRU));
+        
+        //BaseFont.createFont()
+        fontStyleMap_.put(Style.HELVETICA, new Integer(Font.HELVETICA));
+        fontStyleMap_.put(Style.TIMES_ROMAN, new Integer(Font.TIMES_ROMAN));
+        fontStyleMap_.put(Style.COURIER, new Integer(Font.COURIER));
+        fontStyleMap_.put(Style.NORMAL, new Integer(Font.NORMAL));
+        fontStyleMap_.put(Style.BOLD, new Integer(Font.BOLD));
+        fontStyleMap_.put(Style.ITALIC, new Integer(Font.ITALIC));
+        fontStyleMap_.put(Style.BOLDITALIC, new Integer(Font.BOLDITALIC));
+        fontStyleMap_.put(Style.UNDERLINE, new Integer(Font.UNDERLINE));
+        fontStyleMap_.put(Style.STRIKETHRU, new Integer(Font.STRIKETHRU));
     }
 
     /**
@@ -225,26 +228,24 @@ public class ITextStamper implements IPDFStamper {
         }
         logger.debug("TrueType Font detected:"+fontName +" ("+fontSize+")");
 
-        //try {
-
-            Font font = new Font(fontMap_.get(fontString));
-            //Font font = (Font) fontMap_.get(fontString);
+        try {
+            Font font = (Font) fontMap_.get(fontString);
 
             // TODO: implement FONT resources via settings path!
-            /*if (font == null) {
+            if (font == null) {
                 logger.debug("Font \"" + fontString + "\" not in cache. Instantiating font.");
-                String fontPath = SettingsReader.RESOURCES_PATH + "fonts" + File.separator + fontName;
+                String fontPath = this.settings.getWorkingDirectory()  + File.separator + "fonts" + File.separator + fontName;
                 logger.debug("Instantiating \"" + fontPath + "\".");
 
                 font = new Font(BaseFont.createFont(fontPath, BaseFont.WINANSI, true), fontSize);
                 fontMap_.put(fontString, font);
-            }       */
+            }
             return font;
-       // } catch (DocumentException e) {
-        //    throw new PdfAsException(e.getMessage());
-        //} catch (IOException e) {
-        //    throw new PdfAsException(e.getMessage());
-        //}
+       } catch (DocumentException e) {
+           throw new PdfAsException(e.getMessage());
+       } catch (IOException e) {
+           throw new PdfAsException(e.getMessage());
+       }
     }
 
 
@@ -272,12 +273,12 @@ public class ITextStamper implements IPDFStamper {
         {
             return font;
         }
-        Object font_face = fontMap_.get(font_arr[0]);
+        Object font_face = fontStyleMap_.get(font_arr[0]);
         if (font_face == null)
         {
             return font;
         }
-        Object font_weight = fontMap_.get(font_arr[2]);
+        Object font_weight = fontStyleMap_.get(font_arr[2]);
         if (font_weight == null)
         {
             return font;

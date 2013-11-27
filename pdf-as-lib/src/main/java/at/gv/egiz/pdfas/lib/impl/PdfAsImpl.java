@@ -86,7 +86,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					status);
 
 			status.setRequestedSignature(requestedSignature);
-			
+
 			requestedSignature.setCertificate(status.getSignParamter()
 					.getPlainSigner().getCertificate());
 
@@ -256,10 +256,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 							dict.getNameAsString("Filter"),
 							dict.getNameAsString("SubFilter"));
 
-					List<VerifyResult> results = verifyFilter.verify(
-							contentData.toByteArray(), content.getBytes());
-
-					result.addAll(results);
+					if (verifyFilter != null) {
+						List<VerifyResult> results = verifyFilter.verify(
+								contentData.toByteArray(), content.getBytes());
+						if(results != null && !results.isEmpty()) {
+							result.addAll(results);
+						}
+					}
 				}
 			}
 			return result;
@@ -338,22 +341,23 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 				SignatureDataExtractor signatureDataExtractor = new SignatureDataExtractor(
 						request.getCertificate(), pdfFilter, pdfSubFilter,
 						status.getSigningDate());
-				
+
 				IPdfSigner signer = PdfSignerFactory.createPdfSigner();
 				signer.signPDF(status.getPdfObject(),
 						status.getRequestedSignature(), signatureDataExtractor);
-				
+
 				StringBuilder sb = new StringBuilder();
-				
-				int[] byteRange = PDFUtils.extractSignatureByteRange(signatureDataExtractor
-						.getSignatureData());
-				
-				for(int i = 0; i < byteRange.length; i++) {
+
+				int[] byteRange = PDFUtils
+						.extractSignatureByteRange(signatureDataExtractor
+								.getSignatureData());
+
+				for (int i = 0; i < byteRange.length; i++) {
 					sb.append(" " + byteRange[i]);
 				}
-				
+
 				logger.info("ByteRange: " + sb.toString());
-				
+
 				request.setSignatureData(signatureDataExtractor
 						.getSignatureData());
 				request.setByteRange(byteRange);
@@ -368,9 +372,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			// Inject signature byte[] into signedDocument
 			int offset = request.getSignatureDataByteRange()[1] + 1;
 
-			String signature = new COSString(request.getSignature()).getHexString();
+			String signature = new COSString(request.getSignature())
+					.getHexString();
 			byte[] pdfSignature = signature.getBytes();
-			
+
 			for (int i = 0; i < pdfSignature.length; i++) {
 				status.getPdfObject().getSignedDocument()[offset + i] = pdfSignature[i];
 			}

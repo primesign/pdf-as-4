@@ -19,8 +19,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 
-import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;

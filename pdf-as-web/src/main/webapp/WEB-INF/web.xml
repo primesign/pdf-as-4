@@ -45,13 +45,13 @@
 		<servlet-name>ProvidePDF</servlet-name>
 		<display-name>ProvidePDF</display-name>
 		<description></description>
-		<servlet-class>at.gv.egiz.pdfas.web.servlets.ProvidePDF</servlet-class>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.ProvidePDFServlet</servlet-class>
 	</servlet>
 	<servlet>
-		<servlet-name>DataURL</servlet-name>
-		<display-name>DataURL</display-name>
+		<servlet-name>DataURLServlet</servlet-name>
+		<display-name>DataURLServlet</display-name>
 		<description></description>
-		<servlet-class>at.gv.egiz.pdfas.web.servlets.DataURL</servlet-class>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.DataURLServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>VerifyServlet</servlet-name>
@@ -78,7 +78,7 @@
 		<url-pattern>/ProvidePDF</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>DataURL</servlet-name>
+		<servlet-name>DataURLServlet</servlet-name>
 		<url-pattern>/DataURL</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>

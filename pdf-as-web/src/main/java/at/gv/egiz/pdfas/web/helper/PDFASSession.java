@@ -3,6 +3,7 @@ package at.gv.egiz.pdfas.web.helper;
 import java.io.Serializable;
 
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
@@ -13,6 +14,7 @@ public class PDFASSession implements Serializable {
 	private StatusRequest statusRequest;
 	private SignParameter signParameter;
 	private Configuration config;
+	private PdfAs pdfAs;
 	
 	public PDFASSession(SignParameter parameter) {
 		this.signParameter = parameter;

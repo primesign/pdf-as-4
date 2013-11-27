@@ -8,13 +8,14 @@ jar {
 }
 
 repositories {
+	mavenLocal()
     mavenCentral()
 }
 
 dependencies {
 	compile project (':pdf-as-lib')
 	compile project (':pdf-as-common')
-	compile group: 'iaik', name: 'iaik_cms', version: '4.1-moa'
+	compile group: 'iaik', name: 'iaik_cms', version: '4.1'
 	compile group: 'eu.europa.ec.joinup.egovlabs.pdf-as.iaik', name: 'iaik_jce_eval_signed', version: '4.0'
 	compile group: 'eu.europa.ec.joinup.egovlabs.pdf-as.iaik', name: 'iaik_ecc_eval_signed', version: '2.19'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'

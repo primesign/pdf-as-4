@@ -50,7 +50,7 @@ public class VerifyServlet extends HttpServlet {
 		VerifyParameter parameter = PdfAsFactory.createVerifyParameter(conf, new ByteArrayDataSource(pdfData));
 		parameter.setWhichSignature(whichSignature);
 		
-		List<VerifyResult> results = pdfAs.verify(parameter);
+		//List<VerifyResult> results = pdfAs.verify(parameter);
 		
 		// Create HTML Snippet for each Verification Result
 		// Put these results into the web page

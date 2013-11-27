@@ -13,7 +13,7 @@ public class VerifyResultImpl implements VerifyResult {
 	private SignatureCheck certificateCheck;
 	private SignatureCheck valueCheck;
 	private SignatureCheck manifestCheck;
-	
+	private byte[] signatureData;
 	private X509Certificate signerCertificate;
 	
 	public boolean isVerificationDone() {
@@ -70,6 +70,14 @@ public class VerifyResultImpl implements VerifyResult {
 	
 	public void setSignerCertificate(X509Certificate signerCertificate) {
 		this.signerCertificate = signerCertificate;
+	}
+
+	public void setSignatureData(byte[] signaturData) {
+		this.signatureData = signaturData;
+	}
+	
+	public byte[] getSignatureData() {
+		return signatureData;
 	}
 
 }

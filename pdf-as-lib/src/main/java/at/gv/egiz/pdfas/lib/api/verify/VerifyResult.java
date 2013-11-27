@@ -51,4 +51,6 @@ public interface VerifyResult {
 	
 	
 	public X509Certificate getSignerCertificate();
+	
+	public byte[] getSignatureData();
 }

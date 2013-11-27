@@ -22,6 +22,7 @@ import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PADESPDFBOXSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
+import at.gv.egiz.sl.util.MOAConnector;
 
 public class DeveloperMain {
 
@@ -40,12 +41,14 @@ public class DeveloperMain {
 		byte[] data;
 		try {
 			IPlainSigner signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
-			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/devel/pdfas_neu/simple_out2.pdf"));
+			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/tmp/pdf-a problem/TestGhostscriptPdfA.pdf"));
 			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
 			ByteArrayDataSink bads = new ByteArrayDataSink();
-			parameter.setSignatureProfileId("SIGNATURBLOCK_DE_NEU");
+			parameter.setSignatureProfileId("SIGNATURBLOCK_DE_PDFA");
 			parameter.setOutput(bads);
-			parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
+			//parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
+			//parameter.setPlainSigner(signer);
+			parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
 			/*
 			StatusRequest request = pdfas.startSign(parameter);
 			

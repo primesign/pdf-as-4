@@ -46,9 +46,13 @@ public class PdfAsObject implements PdfAs {
 	public SignResult sign(SignParameters signParameters,
 			SignatureDetailInformation signatureDetailInformation)
 			throws PdfAsException {
-		
 		// Create the signature ....
+		SignParameter signParameter4 = PdfAsFactory.createSignParameter(
+				this.configuration, new ByteArrayDataSource(signParameters
+						.getDocument().getAsByteArray()));
 
+		SignParameterWrapper wrapper = new SignParameterWrapper(signParameters, signParameter4);
+		
 		// TODO wait for SL wrapper implementation
 		return null;
 	}
