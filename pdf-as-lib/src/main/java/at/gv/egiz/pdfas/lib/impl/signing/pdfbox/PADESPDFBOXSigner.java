@@ -73,7 +73,7 @@ public class PADESPDFBOXSigner implements IPdfSigner {
 
             logger.debug("Signing @ " + signer.getSigningDate().getTime().toString());
             // the signing date, needed for valid signature
-            signature.setSignDate(signer.getSigningDate());
+            //signature.setSignDate(signer.getSigningDate());
 
             signer.setPDSignature(signature);
             

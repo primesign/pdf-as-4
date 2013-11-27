@@ -18,8 +18,8 @@ public class VerifierDispatcher {
 			.getLogger(VerifierDispatcher.class);
 
 	public static final String[] currentClasses = new String[] {
-			//"at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedVerifier",
-			"at.gv.egiz.pdfas.sigs.pades.PAdESVerifier" };
+			"at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedVerifier"/*,
+			"at.gv.egiz.pdfas.sigs.pades.PAdESVerifier"*/ };
 
 	public Map<String, HashMap<String, IVerifyFilter>> filterMap = new HashMap<String, HashMap<String, IVerifyFilter>>();
 

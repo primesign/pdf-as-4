@@ -10,6 +10,8 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
+
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
@@ -40,7 +42,7 @@ public class PdfboxSignerWrapper implements PDFASSignatureInterface {
 		try {
 			byte[] signature = signer.sign(data, byteRange);
 			logger.debug("Signature Data: "
-					+ StringUtils.bytesToHexString(signature));
+					+ iaik.utils.Util.toBase64String(signature));
 			FileOutputStream fos = new FileOutputStream("/tmp/fos.bin");
 			fos.write(signature);
 			fos.close();

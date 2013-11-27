@@ -40,7 +40,7 @@ public class PAdESVerifier  implements IVerifyFilter  {
 	private String moaEndpoint;
 	private String moaTrustProfile;
 	
-	public PAdESVerifier(Configuration config) {
+	public PAdESVerifier() {
 		IAIK.getInstance();
 		ECCProvider.addAsProvider();
 	}
@@ -140,7 +140,7 @@ public class PAdESVerifier  implements IVerifyFilter  {
 
 	public List<FilterEntry> getFiters() {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
-		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED));
+		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ETSI_CADES_DETACHED));
 		return result;
 	}
 
