@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.stmp.itext;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
@@ -444,7 +445,7 @@ public class ITextStamper implements IPDFStamper {
     }
 
     public byte[] writeVisualObject(IPDFVisualObject visualObject, PositioningInstruction positioningInstruction,
-                                    byte[] pdfData) throws PdfAsException {
+                                    byte[] pdfData, String placeholderName) throws PdfAsException {
         try {
 
             ITextVisualObject object = null;
@@ -479,14 +480,21 @@ public class ITextStamper implements IPDFStamper {
                 throw new PdfAsException("The provided page (=" +
                         positioningInstruction.getPage() + ") is out of range.");
             }
-
+            
+            if(placeholderName != null) {
+            	ITextStamperAccess.replacePlaceholder(stamper, targetPage, placeholderName);
+            }
+            
             PdfContentByte content = stamper.getOverContent(targetPage);
 
             PdfPTable table = object.getTable();
 
+            logger.info("Visual Object: " + visualObject.getWidth() + " x " + visualObject.getHeight());
+            //PdfTemplate table_template = content.createTemplate(visualObject.getWidth(), visualObject.getHeight());
+            
             table.writeSelectedRows(0, -1, positioningInstruction.getX(),
                     positioningInstruction.getY(), content);
-
+            
             stamper.close();
 
             baos.close();

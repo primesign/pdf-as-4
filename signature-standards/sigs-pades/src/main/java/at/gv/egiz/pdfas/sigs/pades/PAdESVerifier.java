@@ -43,8 +43,6 @@ public class PAdESVerifier  implements IVerifyFilter  {
 	public PAdESVerifier(Configuration config) {
 		IAIK.getInstance();
 		ECCProvider.addAsProvider();
-		this.moaEndpoint = config.getValue(MOA_VERIFY_URL);
-		this.moaTrustProfile = config.getValue(MOA_VERIFY_TRUSTPROFILE);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -144,6 +142,11 @@ public class PAdESVerifier  implements IVerifyFilter  {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
 		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED));
 		return result;
+	}
+
+	public void setConfiguration(Configuration config) {
+		this.moaEndpoint = config.getValue(MOA_VERIFY_URL);
+		this.moaTrustProfile = config.getValue(MOA_VERIFY_TRUSTPROFILE);
 	}
 
 }

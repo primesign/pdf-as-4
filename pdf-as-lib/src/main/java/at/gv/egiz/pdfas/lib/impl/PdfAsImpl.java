@@ -3,6 +3,7 @@ package at.gv.egiz.pdfas.lib.impl;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -35,6 +36,8 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
+import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
+import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderExtractor;
 import at.gv.egiz.pdfas.lib.impl.positioning.Positioning;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.PdfSignerFactory;
@@ -105,13 +108,12 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			status.getPdfObject().setOriginalDocument(
 					parameter.getDataSource().getByteData());
 
-			// Placeholder search?
-			if (placeholderConfiguration.isGlobalPlaceholderEnabled()) {
-				// TODO: Do placeholder search
-			}
-
 			this.stampPdf(status);
 
+			FileOutputStream fos = new FileOutputStream("/home/afitzek/qr_2_stamped.pdf");
+			fos.write(status.getPdfObject().getStampedDocument());
+			fos.close();
+			
 			/*
 			 * if (requestedSignature.isVisual()) {
 			 * logger.info("Creating visual siganture block"); //
@@ -259,7 +261,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					if (verifyFilter != null) {
 						List<VerifyResult> results = verifyFilter.verify(
 								contentData.toByteArray(), content.getBytes());
-						if(results != null && !results.isEmpty()) {
+						if (results != null && !results.isEmpty()) {
 							result.addAll(results);
 						}
 					}
@@ -421,6 +423,72 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		}
 	}
 
+	private boolean checkPlaceholderSignature(OperationStatus status)
+			throws PdfAsException, IOException {
+		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
+			SignaturePlaceholderData signaturePlaceholderData = SignaturePlaceholderExtractor
+					.extract(new ByteArrayInputStream(status.getPdfObject()
+							.getOriginalDocument()), null, 1);
+
+			if (signaturePlaceholderData != null) {
+				RequestedSignature requestedSignature = status
+						.getRequestedSignature();
+
+				if (signaturePlaceholderData.getProfile() != null) {
+					requestedSignature
+							.setSignatureProfileID(signaturePlaceholderData
+									.getProfile());
+				}
+
+				String signatureProfileID = requestedSignature
+						.getSignatureProfileID();
+
+				TablePos tablePos = signaturePlaceholderData.getTablePos();
+
+				SignatureProfileSettings signatureProfileSettings = TableFactory
+						.createProfile(signatureProfileID, settings);
+
+				Table main = TableFactory.createSigTable(
+						signatureProfileSettings, MAIN, settings,
+						requestedSignature);
+
+				IPDFStamper stamper = StamperFactory
+						.createDefaultStamper(settings);
+				IPDFVisualObject visualObject = stamper.createVisualPDFObject(
+						status.getPdfObject(), main);
+				
+				PDDocument originalDocument = PDDocument
+						.load(new ByteArrayInputStream(status.getPdfObject()
+								.getOriginalDocument()));
+
+				PositioningInstruction positioningInstruction = Positioning
+						.determineTablePositioning(tablePos, "", originalDocument,
+								visualObject);
+
+				// ================================================================
+				// StampingStage (visual) -> stamp logical signature block to
+				// location (itext)
+
+				byte[] incrementalUpdate = stamper.writeVisualObject(visualObject,
+						positioningInstruction, status.getPdfObject()
+								.getOriginalDocument(), signaturePlaceholderData.getPlaceholderName());
+
+				SignaturePositionImpl position = new SignaturePositionImpl();
+				position.setX(positioningInstruction.getX());
+				position.setY(positioningInstruction.getY());
+				position.setPage(positioningInstruction.getPage());
+				position.setHeight(visualObject.getHeight());
+				position.setWidth(visualObject.getWidth());
+
+				requestedSignature.setSignaturePosition(position);
+
+				status.getPdfObject().setStampedDocument(incrementalUpdate);
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void stampPdf(OperationStatus status) throws PdfAsException,
 			IOException {
 
@@ -428,6 +496,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		String signatureProfileID = requestedSignature.getSignatureProfileID();
 		SignatureProfileConfiguration signatureProfileConfiguration = status
 				.getSignatureProfileConfiguration(signatureProfileID);
+
+		if (checkPlaceholderSignature(status)) {
+			logger.info("Placeholder found for Signature");
+			return;
+		}
 
 		if (requestedSignature.isVisual()) {
 			logger.info("Creating visual siganture block");
@@ -477,7 +550,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			byte[] incrementalUpdate = stamper.writeVisualObject(visualObject,
 					positioningInstruction, status.getPdfObject()
-							.getOriginalDocument());
+							.getOriginalDocument(), null);
 
 			SignaturePositionImpl position = new SignaturePositionImpl();
 			position.setX(positioningInstruction.getX());

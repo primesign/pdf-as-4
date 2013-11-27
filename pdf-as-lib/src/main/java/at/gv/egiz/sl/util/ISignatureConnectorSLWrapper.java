@@ -47,7 +47,7 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 	}
 
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
-		CreateCMSSignatureRequestType request = connector.createCMSRequest(input, byteRange);
+		CreateCMSSignatureRequestType request = connector.createCMSRequest(input, byteRange);		
 		CreateCMSSignatureResponseType response = connector.sendCMSRequest(request);
 		
 		return response.getCMSSignature();

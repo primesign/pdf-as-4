@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.verify.FilterEntry;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
@@ -69,6 +70,11 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
 		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED));
 		return result;
+	}
+
+	public void setConfiguration(Configuration config) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

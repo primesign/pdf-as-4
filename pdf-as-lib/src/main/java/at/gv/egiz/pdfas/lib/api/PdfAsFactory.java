@@ -14,8 +14,8 @@ import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
 public class PdfAsFactory {
 	
 	static {
-		//PropertyConfigurator.configure(ClassLoader.getSystemResourceAsStream("resources/log4j.properties"));
-		BasicConfigurator.configure();
+		PropertyConfigurator.configure(ClassLoader.getSystemResourceAsStream("resources/log4j.properties"));
+		//BasicConfigurator.configure();
 	}
 	
 	public static PdfAs createPdfAs(File configuration) {

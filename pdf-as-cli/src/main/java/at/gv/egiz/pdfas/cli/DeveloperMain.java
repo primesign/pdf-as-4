@@ -41,16 +41,16 @@ public class DeveloperMain {
 		byte[] data;
 		try {
 			IPlainSigner signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
-			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/tmp/pdf-a problem/TestGhostscriptPdfA.pdf"));
+			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/qr_2.pdf"));
 			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
 			ByteArrayDataSink bads = new ByteArrayDataSink();
 			parameter.setSignatureProfileId("SIGNATURBLOCK_DE_PDFA");
 			parameter.setOutput(bads);
 			//parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
-			//parameter.setPlainSigner(signer);
-			parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
-			/*
-			StatusRequest request = pdfas.startSign(parameter);
+			parameter.setPlainSigner(signer);
+			//parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
+			
+			/*StatusRequest request = pdfas.startSign(parameter);
 			
 			if(request.needCertificate()) {
 				request.setCertificate(signer.getCertificate().getEncoded());
@@ -78,12 +78,12 @@ public class DeveloperMain {
 			}
 			*/
 			pdfas.sign(parameter);
-			FileOutputStream fos = new FileOutputStream("/home/afitzek/devel/pdfas_neu/simple_out3.pdf");
+			FileOutputStream fos = new FileOutputStream("/home/afitzek/qr_2_neu.pdf");
 			fos.write(bads.getData());
 			fos.close();
 			
-			VerifyParameter verify = new VerifyParameterImpl(config, new ByteArrayDataSource(bads.getData()));
-			pdfas.verify(verify);
+			//VerifyParameter verify = new VerifyParameterImpl(config, new ByteArrayDataSource(bads.getData()));
+			//pdfas.verify(verify);
 			
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block

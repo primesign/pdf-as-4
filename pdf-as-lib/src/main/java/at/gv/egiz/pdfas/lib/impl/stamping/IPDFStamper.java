@@ -9,7 +9,7 @@ import at.knowcenter.wag.egov.egiz.table.Table;
 public interface IPDFStamper {
     public IPDFVisualObject createVisualPDFObject(PDFObject pdf, Table table);
     public byte[] writeVisualObject(IPDFVisualObject visualObject, PositioningInstruction positioningInstruction,
-                                    byte[] pdfData) throws PdfAsException;
+                                    byte[] pdfData, String placeholderName) throws PdfAsException;
     
     public void setSettings(ISettings settings);
 }

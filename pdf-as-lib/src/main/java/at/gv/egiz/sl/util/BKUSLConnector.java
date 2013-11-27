@@ -130,7 +130,7 @@ public class BKUSLConnector extends BaseSLConnector {
 		try {
 			slRequest = SLMarschaller.marshalToString(of
 					.createCreateCMSSignatureRequest(request));
-			logger.trace(slRequest);
+			logger.debug(slRequest);
 
 			String slResponse = performHttpRequestToBKU(slRequest);
 

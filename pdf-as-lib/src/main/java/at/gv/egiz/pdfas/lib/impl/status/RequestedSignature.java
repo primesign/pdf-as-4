@@ -50,6 +50,10 @@ public class RequestedSignature {
     	return this.signatureProfile;
     }
     
+    public void setSignatureProfileID(String signatureProfile) {
+    	this.signatureProfile = signatureProfile;
+    }
+    
     public X509Certificate getCertificate() {
     	return this.certificate;
     }
