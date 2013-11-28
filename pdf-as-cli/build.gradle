@@ -15,7 +15,7 @@ repositories {
 dependencies {
 	compile project (':pdf-as-lib')
 	compile project (':stamper:stmp-itext')
-	compile project (':signature-standards:sigs-pcks7detached')
+	compile project (':signature-standards:sigs-pkcs7detached')
 	compile project (':signature-standards:sigs-pades')
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 	compile group: 'commons-cli', name: 'commons-cli', version: '1.2'

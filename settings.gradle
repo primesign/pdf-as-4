@@ -1,2 +1,2 @@
 
-include "pdf-as-common", "stamper:stmp-itext", "signature-standards:sigs-pcks7detached", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-cli", "pdf-as-legacy", "pdf-as-web"
+include "pdf-as-common", "stamper:stmp-itext", "signature-standards:sigs-pkcs7detached", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-cli", "pdf-as-legacy", "pdf-as-web"
