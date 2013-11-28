@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.Configuration;
 
 public class VerifierDispatcher {
 
@@ -18,8 +19,9 @@ public class VerifierDispatcher {
 			.getLogger(VerifierDispatcher.class);
 
 	public static final String[] currentClasses = new String[] {
-			"at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedVerifier"/*,
-			"at.gv.egiz.pdfas.sigs.pades.PAdESVerifier"*/ };
+			"at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedVerifier",
+			// Uncomment to verify via MOA conncetor
+			"at.gv.egiz.pdfas.sigs.pades.PAdESVerifier" };
 
 	public Map<String, HashMap<String, IVerifyFilter>> filterMap = new HashMap<String, HashMap<String, IVerifyFilter>>();
 
@@ -30,8 +32,9 @@ public class VerifierDispatcher {
 				String clsName = currentClasses[i];
 				Class<? extends IVerifyFilter> cls = (Class<? extends IVerifyFilter>) Class
 						.forName(clsName);
-				IVerifyFilter fitler = cls.newInstance();
-				List<FilterEntry> entries = fitler.getFiters();
+				IVerifyFilter filter = cls.newInstance();
+				filter.setConfiguration((Configuration)settings);
+				List<FilterEntry> entries = filter.getFiters();
 				Iterator<FilterEntry> it = entries.iterator();
 				while (it.hasNext()) {
 					FilterEntry entry = it.next();
@@ -49,7 +52,7 @@ public class VerifierDispatcher {
 						throw new PdfAsException("Filter allready registered");
 					}
 
-					filters.put(entry.getSubFilter().getName(), fitler);
+					filters.put(entry.getSubFilter().getName(), filter);
 					logger.debug("Registered Filter: " + cls.getName()
 							+ " for " + entry.getFilter().getName() + "/"
 							+ entry.getSubFilter().getName());

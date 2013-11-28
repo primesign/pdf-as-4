@@ -5,6 +5,8 @@ import iaik.asn1.structures.AlgorithmID;
 import iaik.cms.ContentInfo;
 import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
+import iaik.security.ecc.provider.ECCProvider;
+import iaik.security.provider.IAIK;
 import iaik.x509.X509Certificate;
 
 import java.io.ByteArrayInputStream;
@@ -18,10 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.verify.FilterEntry;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
+import at.gv.egiz.pdfas.lib.impl.verify.SignatureCheckImpl;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 
 public class PKCS7DetachedVerifier implements IVerifyFilter {
@@ -29,6 +33,8 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	private static final Logger logger = LoggerFactory.getLogger(PKCS7DetachedVerifier.class);
 	
 	public PKCS7DetachedVerifier() {
+		IAIK.addAsProvider();
+		ECCProvider.addAsProvider();
 	}
 	
 	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent)
@@ -59,6 +65,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 			// verify the signatures
 			for (int i = 0; i < signerInfos.length; i++) {
 				VerifyResultImpl verifyResult = new VerifyResultImpl();
+				verifyResult.setSignatureData(contentData);
 				try {
 					// verify the signature for SignerInfo at index i
 					X509Certificate signer_cert = signedData.verify(i);
@@ -67,6 +74,10 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 					logger.info("Signature OK from signer: "
 							+ signer_cert.getSubjectDN());
 					verifyResult.setSignerCertificate(signer_cert);
+					verifyResult.setValueCheckCode(new SignatureCheckImpl(0, "OK"));
+					verifyResult.setManifestCheckCode(new SignatureCheckImpl(99, "not checked"));
+					verifyResult.setCertificateCheck(new SignatureCheckImpl(99, "not checked"));
+					verifyResult.setVerificationDone(true);
 				} catch (SignatureException ex) {
 					// if the signature is not OK a SignatureException
 					// is thrown
@@ -77,6 +88,11 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 					
 					verifyResult.setSignerCertificate(
 							signedData.getCertificate(signerInfos[i].getSignerIdentifier()));
+					verifyResult.setValueCheckCode(new SignatureCheckImpl(1, "failed to check signature"));
+					verifyResult.setManifestCheckCode(new SignatureCheckImpl(99, "not checked"));
+					verifyResult.setCertificateCheck(new SignatureCheckImpl(99, "not checked"));
+					verifyResult.setVerificationDone(false);
+					verifyResult.setVerificationException(new PdfAsSignatureException("failed to check signature", ex));
 				}
 				result.add(verifyResult);
 			}
@@ -90,7 +106,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	public List<FilterEntry> getFiters() {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
 		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED));
-		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ETSI_CADES_DETACHED));
+		//result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ETSI_CADES_DETACHED));
 		return result;
 	}
 

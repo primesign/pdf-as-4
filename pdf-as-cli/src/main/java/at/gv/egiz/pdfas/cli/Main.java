@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.cli;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -178,6 +179,12 @@ public class Main {
 		if (cli.hasOption(CLI_ARG_PROFILE_SHORT)) {
 			profilID = cli.getOptionValue(CLI_ARG_PROFILE_SHORT);
 		}
+		
+		String outputFile = null;
+		
+		if(cli.hasOption(CLI_ARG_OUTPUT_SHORT)) {
+			outputFile = cli.getOptionValue(CLI_ARG_OUTPUT_SHORT);
+		}
 
 		String pdfFile = null;
 
@@ -189,11 +196,21 @@ public class Main {
 			throw new Exception("Input file does not exists");
 		}
 
+		if(outputFile == null) {
+			if(pdfFile.endsWith(".pdf")) {
+				outputFile = pdfFile.subSequence(0, pdfFile.length() - ".pdf".length()) + "_signed.pdf";
+			} else {
+				outputFile = pdfFile + "_signed.pdf";
+			}
+		}
+		
+		File outputPdfFile = new File(outputFile);
+		
 		DataSource dataSource = new ByteArrayDataSource(
 				StreamUtils.inputStreamToByteArray(new FileInputStream(
 						inputFile)));
 
-		DataSink dataSink = new ByteArrayDataSink();
+		ByteArrayDataSink dataSink = new ByteArrayDataSink();
 
 		PdfAs pdfAs = null;
 
@@ -214,8 +231,13 @@ public class Main {
 		// signParameter.setPlainSigner(signer);
 
 		SignResult result = pdfAs.sign(signParameter);
-
-		// TODO write result to file
+		
+		if(outputPdfFile.exists()) {
+		}
+		
+		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
+		fos.write(dataSink.getData());
+		fos.close();
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {
