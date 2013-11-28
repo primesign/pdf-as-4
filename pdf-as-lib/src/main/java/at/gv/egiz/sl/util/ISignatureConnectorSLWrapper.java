@@ -1,6 +1,7 @@
 package at.gv.egiz.sl.util;
 
 import java.io.ByteArrayInputStream;
+import java.security.MessageDigest;
 import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
@@ -12,6 +13,7 @@ import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
 import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 import at.gv.egiz.sl.CreateCMSSignatureRequestType;
@@ -58,6 +60,14 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 	}
 
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA256", "IAIK");
+			md.update(input);
+			byte[] sha256 = md.digest();
+			logger.info("Message digest should be: " + StringUtils.bytesToHexString(sha256) + " Size: " + input.length);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		CreateCMSSignatureRequestType request = connector.createCMSRequest(
 				input, byteRange);
 		CreateCMSSignatureResponseType response = connector

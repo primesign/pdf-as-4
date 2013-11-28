@@ -10,6 +10,8 @@ import iaik.cms.IssuerAndSerialNumber;
 import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
 import iaik.cms.Utils;
+import iaik.pkcs.PKCSException;
+import iaik.pkcs.pkcs7.Data;
 import iaik.security.ecc.provider.ECCProvider;
 import iaik.security.provider.IAIK;
 import iaik.x509.X509Certificate;
@@ -135,7 +137,8 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 				e.printStackTrace();
 			}
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
-			SignerInfo signer1 = new SignerInfo(issuer, AlgorithmID.sha256,
+			SignerInfo signer1 = new SignerInfo(issuer, AlgorithmID.sha256, 
+					AlgorithmID.ecdsa_plain_With_SHA256, 
 					privKey);
 
 			SignedData si = new SignedData(input, SignedData.EXPLICIT);
@@ -143,11 +146,14 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			Attribute signingTime = new Attribute(ObjectID.signingTime,
 					new ASN1Object[] { new ChoiceOfTime(new Date())
 							.toASN1Object() });
+			Attribute contentType = new Attribute(ObjectID.contentType, new ASN1Object[] {
+					new ObjectID("1.2.840.113549.1.7.1")
+				});
 			// Attribute signingCert = new
 			// Attribute(ObjectID.signingCertificateV2,
 			// new ASN1Object[] { cert.toASN1Object() });
 
-			Attribute[] attributes = new Attribute[] { signingTime };
+			Attribute[] attributes = new Attribute[] { signingTime, contentType };
 			signer1.setSignedAttributes(attributes);
 			si.addSignerInfo(signer1);
 			InputStream dataIs = si.getInputStream();
@@ -164,7 +170,7 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			throw new PdfAsSignatureException("", e);
 		} catch (IOException e) {
 			throw new PdfAsSignatureException("", e);
-		}
+		} 
 	}
 
 	public String getPDFSubFilter() {

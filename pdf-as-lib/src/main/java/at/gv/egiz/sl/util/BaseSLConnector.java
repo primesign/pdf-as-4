@@ -1,11 +1,13 @@
 package at.gv.egiz.sl.util;
 
 import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.gv.egiz.sl.Base64OptRefContentType;
 import at.gv.egiz.sl.CMSDataObjectRequiredMetaType;
 import at.gv.egiz.sl.CreateCMSSignatureRequestType;
@@ -69,10 +71,11 @@ public abstract class BaseSLConnector implements ISLConnector {
 				currentdataOff++;
 			}
 			if(i + 2 < byteRange.length) {
-				exclude_range[i] = offset + size; // exclude offset
-				exclude_range[i+1] = byteRange[i+2]; // exclude size
+				exclude_range[i] = offset + size; // exclude start
+				exclude_range[i+1] = byteRange[i+2] - 1; // exclude end
 			}
 		}
+		logger.info("Exclude Byte Range: " + exclude_range[0] + " " + exclude_range[1]);
 		
 		// == MetaInfoType
 		MetaInfoType metaInfoType = new MetaInfoType();
@@ -89,8 +92,8 @@ public abstract class BaseSLConnector implements ISLConnector {
 		cmsDataObjectRequiredMetaType.setContent(base64OptRefContentType);
 		if(byteRange.length > 0) {
 			ExcludedByteRangeType excludeByteRange = new ExcludedByteRangeType();
-			excludeByteRange.setFrom(new BigInteger(String.valueOf(byteRange[0])));
-			excludeByteRange.setTo(new BigInteger(String.valueOf(byteRange[0]+byteRange[1])));
+			excludeByteRange.setFrom(new BigInteger(String.valueOf(exclude_range[0])));
+			excludeByteRange.setTo(new BigInteger(String.valueOf(exclude_range[1])));
 			cmsDataObjectRequiredMetaType.setExcludedByteRange(excludeByteRange);
 		}
 		

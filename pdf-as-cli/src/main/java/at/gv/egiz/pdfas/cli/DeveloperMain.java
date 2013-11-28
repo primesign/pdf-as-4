@@ -29,8 +29,8 @@ public class DeveloperMain {
 	public static final String keyStoreFile = "/home/afitzek/devel/pdfas_neu/test.p12";
 	public static final String keyStoreType = "PKCS12";
     public static final String keyStorePass = "123456";
-    public static final String keyAlias = "pdf";
-    //public static final String keyAlias = "ecc_test";
+    //public static final String keyAlias = "pdf";
+    public static final String keyAlias = "ecc_test";
     public static final String keyPass = "123456";
 	
 	public static void main(String[] args) {		

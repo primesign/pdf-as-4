@@ -73,7 +73,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 					logger.info("Signature ERROR from signer: "
 							+ signedData.getCertificate(
 									signerInfos[i].getSignerIdentifier())
-									.getSubjectDN());
+									.getSubjectDN(), ex);
 					
 					verifyResult.setSignerCertificate(
 							signedData.getCertificate(signerInfos[i].getSignerIdentifier()));
