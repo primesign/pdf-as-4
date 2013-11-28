@@ -9,6 +9,4 @@ public interface PdfAsParameter {
 	public DataSource getDataSource();
 
 	public void setDataSource(DataSource dataSource);
-	
-	
 }

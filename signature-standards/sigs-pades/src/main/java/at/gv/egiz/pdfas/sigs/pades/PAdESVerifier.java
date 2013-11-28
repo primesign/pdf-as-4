@@ -22,7 +22,6 @@ import at.gv.egiz.moa.SignatureVerificationServiceStub;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.CMSContentBaseType;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.CMSDataObjectOptionalMetaType;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.KeyInfoTypeChoice;
-import at.gv.egiz.moa.SignatureVerificationServiceStub.QualifiedCertificate;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureRequest;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureResponse;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureResponseTypeSequence;
@@ -36,7 +35,6 @@ import at.gv.egiz.pdfas.lib.impl.verify.FilterEntry;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.SignatureCheckImpl;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
-import at.gv.egiz.sl.util.BKUSLConnector;
 
 public class PAdESVerifier implements IVerifyFilter {
 
@@ -125,7 +123,7 @@ public class PAdESVerifier implements IVerifyFilter {
 				KeyInfoTypeChoice[] keyInfo = verifySequence[i].getSignerInfo()
 						.getKeyInfoTypeChoice();
 				KeyInfoTypeChoice choice = keyInfo[0];
-				result.setSignatureData(signatureContent);
+				result.setSignatureData(data);
 				
 				// extract certificate
 				if (choice.isX509DataSpecified()) {

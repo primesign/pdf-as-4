@@ -128,14 +128,6 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			// }
 			// }
 			// SubjectKeyID subjectKeyId = new SubjectKeyID(cert);
-			try {
-				MessageDigest md = MessageDigest.getInstance("SHA256", "IAIK");
-				md.update(input);
-				byte[] sha256 = md.digest();
-				logger.info("Message digest: " + StringUtils.bytesToHexString(sha256));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 			SignerInfo signer1 = new SignerInfo(issuer, AlgorithmID.sha256, 
 					AlgorithmID.ecdsa_plain_With_SHA256, 

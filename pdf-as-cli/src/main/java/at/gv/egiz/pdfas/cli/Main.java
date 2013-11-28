@@ -24,12 +24,16 @@ import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
+import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
+import at.gv.egiz.sl.util.ISLConnector;
+import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
+import at.gv.egiz.sl.util.MOAConnector;
 
 public class Main {
 
@@ -179,13 +183,19 @@ public class Main {
 		if (cli.hasOption(CLI_ARG_PROFILE_SHORT)) {
 			profilID = cli.getOptionValue(CLI_ARG_PROFILE_SHORT);
 		}
-		
+
 		String outputFile = null;
-		
-		if(cli.hasOption(CLI_ARG_OUTPUT_SHORT)) {
+
+		if (cli.hasOption(CLI_ARG_OUTPUT_SHORT)) {
 			outputFile = cli.getOptionValue(CLI_ARG_OUTPUT_SHORT);
 		}
 
+		String connector = null;
+		
+		if(cli.hasOption(CLI_ARG_CONNECTOR_SHORT)) {
+			connector = cli.getOptionValue(CLI_ARG_CONNECTOR_SHORT);
+		}
+		
 		String pdfFile = null;
 
 		pdfFile = cli.getArgs()[cli.getArgs().length - 1];
@@ -196,16 +206,18 @@ public class Main {
 			throw new Exception("Input file does not exists");
 		}
 
-		if(outputFile == null) {
-			if(pdfFile.endsWith(".pdf")) {
-				outputFile = pdfFile.subSequence(0, pdfFile.length() - ".pdf".length()) + "_signed.pdf";
+		if (outputFile == null) {
+			if (pdfFile.endsWith(".pdf")) {
+				outputFile = pdfFile.subSequence(0,
+						pdfFile.length() - ".pdf".length())
+						+ "_signed.pdf";
 			} else {
 				outputFile = pdfFile + "_signed.pdf";
 			}
 		}
-		
+
 		File outputPdfFile = new File(outputFile);
-		
+
 		DataSource dataSource = new ByteArrayDataSource(
 				StreamUtils.inputStreamToByteArray(new FileInputStream(
 						inputFile)));
@@ -221,23 +233,31 @@ public class Main {
 		SignParameter signParameter = PdfAsFactory.createSignParameter(
 				configuration, dataSource);
 
+		IPlainSigner slConnector = null;
+		
+		if(connector != null) {
+			if(connector.equalsIgnoreCase("bku")) {
+				slConnector = new PAdESSigner(new BKUSLConnector(configuration));
+			} else if(connector.equalsIgnoreCase("moa")) {
+				slConnector = new PAdESSigner(new MOAConnector(configuration));
+			}
+		} 
+		if(slConnector == null) {
+			slConnector = new PAdESSigner(new BKUSLConnector(configuration));
+		}
+		
 		signParameter.setOutput(dataSink);
-		signParameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(configuration)));
+		signParameter.setPlainSigner(slConnector);
 		signParameter.setDataSource(dataSource);
 		signParameter.setSignaturePosition(positionString);
 		signParameter.setSignatureProfileId(profilID);
-
-		// Set SL Signer! This will need connector value from cli
-		// signParameter.setPlainSigner(signer);
-
+		System.out.println("Starting signature for " + pdfFile);
 		SignResult result = pdfAs.sign(signParameter);
-		
-		if(outputPdfFile.exists()) {
-		}
-		
+
 		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
 		fos.write(dataSink.getData());
 		fos.close();
+		System.out.println("Signed document " + outputFile);
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {
@@ -249,14 +269,14 @@ public class Main {
 		} else {
 			configurationFile = STANDARD_CONFIG_LOCATION;
 		}
-		
+
 		int which = -1;
 
 		if (cli.hasOption(CLI_ARG_VERIFY_WHICH_SHORT)) {
 			String whichValue = cli.getOptionValue(CLI_ARG_VERIFY_WHICH_SHORT);
 			which = Integer.parseInt(whichValue);
-		} 
-		
+		}
+
 		String pdfFile = null;
 
 		pdfFile = cli.getArgs()[cli.getArgs().length - 1];
@@ -276,35 +296,63 @@ public class Main {
 		pdfAs = PdfAsFactory.createPdfAs(new File(configurationFile));
 
 		Configuration configuration = pdfAs.getConfiguration();
-		
-		VerifyParameter verifyParameter = 
-				PdfAsFactory.createVerifyParameter(configuration, dataSource);
-		
+
+		VerifyParameter verifyParameter = PdfAsFactory.createVerifyParameter(
+				configuration, dataSource);
+
 		verifyParameter.setDataSource(dataSource);
 		verifyParameter.setConfiguration(configuration);
 		verifyParameter.setWhichSignature(which);
-		
+
 		List<VerifyResult> results = pdfAs.verify(verifyParameter);
-		
+
 		Iterator<VerifyResult> resultIterator = results.iterator();
-		
-		while(resultIterator.hasNext()) {
+
+		int idx = 0;
+		while (resultIterator.hasNext()) {
 			VerifyResult verifyResult = resultIterator.next();
-			dumpVerifyResult(verifyResult);
+			dumpVerifyResult(verifyResult, pdfFile, idx);
+			idx++;
 		}
 	}
-	
-	private static void dumpVerifyResult(VerifyResult verifyResult) {
+
+	private static void dumpVerifyResult(VerifyResult verifyResult,
+			String inputFile, int idx) {
 		System.out.println("Verification Result:");
-		System.out.println("\tValue Check: " + 
-				verifyResult.getValueCheckCode().getMessage() + 
-				" [" + verifyResult.getValueCheckCode().getCode() + "]");
-		System.out.println("\tCertificate Check: " + 
-				verifyResult.getCertificateCheck().getMessage() + 
-				" [" + verifyResult.getCertificateCheck().getCode() + "]");
-		System.out.println("\tQualified Certificate: " + 
-				verifyResult.isQualifiedCertificate());
-		System.out.println("\tVerification done: " + 
-				verifyResult.isVerificationDone());
+		System.out.println("\tValue Check: "
+				+ verifyResult.getValueCheckCode().getMessage() + " ["
+				+ verifyResult.getValueCheckCode().getCode() + "]");
+		System.out.println("\tCertificate Check: "
+				+ verifyResult.getCertificateCheck().getMessage() + " ["
+				+ verifyResult.getCertificateCheck().getCode() + "]");
+		System.out.println("\tQualified Certificate: "
+				+ verifyResult.isQualifiedCertificate());
+		System.out.println("\tVerification done: "
+				+ verifyResult.isVerificationDone());
+		try {
+			if (verifyResult.isVerificationDone()
+					&& verifyResult.getValueCheckCode().getCode() == 0) {
+				String outputFile = null;
+
+				if (inputFile.endsWith(".pdf")) {
+					outputFile = inputFile.subSequence(0, inputFile.length()
+							- ".pdf".length())
+							+ "_verified_" + idx + ".pdf";
+				} else {
+					outputFile = inputFile + "_verified_" + idx + ".pdf";
+				}
+
+				File outputPdfFile = new File(outputFile);
+				FileOutputStream fos = new FileOutputStream(outputPdfFile,
+						false);
+				fos.write(verifyResult.getSignatureData());
+				fos.close();
+				System.out.println("\tSigned PDF: "
+						+ outputFile);
+			}			
+		} catch (Exception e) {
+			System.out.println("\tFailed to save signed PDF! [" + e.getMessage() + "]");
+			e.printStackTrace();
+		}
 	}
 }

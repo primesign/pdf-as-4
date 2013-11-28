@@ -60,14 +60,6 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 	}
 
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
-		try {
-			MessageDigest md = MessageDigest.getInstance("SHA256", "IAIK");
-			md.update(input);
-			byte[] sha256 = md.digest();
-			logger.info("Message digest should be: " + StringUtils.bytesToHexString(sha256) + " Size: " + input.length);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		CreateCMSSignatureRequestType request = connector.createCMSRequest(
 				input, byteRange);
 		CreateCMSSignatureResponseType response = connector

@@ -41,11 +41,11 @@ public class PdfboxSignerWrapper implements PDFASSignatureInterface {
 		byteRange = PDFUtils.extractSignatureByteRange(data);
 		try {
 			byte[] signature = signer.sign(data, byteRange);
-			logger.debug("Signature Data: "
+			/*logger.debug("Signature Data: "
 					+ iaik.utils.Util.toBase64String(signature));
 			FileOutputStream fos = new FileOutputStream("/tmp/fos.bin");
 			fos.write(signature);
-			fos.close();
+			fos.close();*/
 			return signature;
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);

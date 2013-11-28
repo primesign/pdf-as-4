@@ -110,10 +110,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			this.stampPdf(status);
 
-			FileOutputStream fos = new FileOutputStream("/home/afitzek/qr_2_stamped.pdf");
-			fos.write(status.getPdfObject().getStampedDocument());
-			fos.close();
-			
 			/*
 			 * if (requestedSignature.isVisual()) {
 			 * logger.info("Creating visual siganture block"); //

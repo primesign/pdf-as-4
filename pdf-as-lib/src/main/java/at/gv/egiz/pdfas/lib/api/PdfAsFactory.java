@@ -1,5 +1,8 @@
 package at.gv.egiz.pdfas.lib.api;
 
+import iaik.security.ecc.provider.ECCProvider;
+import iaik.security.provider.IAIK;
+
 import java.io.File;
 
 import org.apache.log4j.BasicConfigurator;
@@ -16,6 +19,9 @@ public class PdfAsFactory {
 	static {
 		PropertyConfigurator.configure(ClassLoader.getSystemResourceAsStream("resources/log4j.properties"));
 		//BasicConfigurator.configure();
+		
+		IAIK.getInstance();
+		ECCProvider.addAsProvider();
 	}
 	
 	public static PdfAs createPdfAs(File configuration) {
