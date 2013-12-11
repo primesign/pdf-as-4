@@ -14,6 +14,8 @@ public class SignatureProfileSettings implements IProfileConstants {
     private Map<String, String> profileSettings = new HashMap<String, String>();
 
     private String profileID;
+    
+    private ISettings configuration;
 
     public SignatureProfileSettings(String profileID, ISettings configuration) {
         this.profileID = profileID;
@@ -21,6 +23,7 @@ public class SignatureProfileSettings implements IProfileConstants {
         String keysPrefix = profilePrefix + PROFILE_KEY;
         String valuesPrefix = profilePrefix + PROFILE_VALUE;
         String tablePrefix = profilePrefix + TABLE;
+        this.configuration = configuration;
 
         logger.debug("Reading Profile: " + profileID);
         logger.debug("Keys Prefix: " + keysPrefix);
@@ -100,22 +103,39 @@ public class SignatureProfileSettings implements IProfileConstants {
         return null;
     }
 
+    protected String getDefaultValue(String key) {
+    	String profilePrefix = SIG_OBJ + profileID + KEY_SEPARATOR;
+    	logger.debug("Searching default value for: " + key);
+    	if(key.startsWith(profilePrefix)) {
+    		key = key.substring(profilePrefix.length());
+    	}
+    	key = "default." + key;
+		logger.debug("Searching default value for: " + key);
+    	return this.configuration.getValue(key);
+    }
+    
     public String getValue(String key) {
+    	logger.debug("Searching: " + key);
         SignatureProfileEntry entry = profileInformations.get(key);
         if(entry != null) {
             String value = entry.getValue();
 
             if(value == null) {
                 // TODO: try to find default value for key!
+            	return getDefaultValue(key);
             }
 
             return value;
         }
         // TODO: try to find default value for key!
-        return null;
+        return getDefaultValue(key);
     }
 
     public String getProfileID() {
         return profileID;
+    }
+    
+    public String getSigningReason() {
+    	return this.getValue(SIGNING_REASON);
     }
 }

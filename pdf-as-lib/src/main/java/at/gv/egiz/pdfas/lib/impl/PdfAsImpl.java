@@ -459,7 +459,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 				PositioningInstruction positioningInstruction = Positioning
 						.determineTablePositioning(tablePos, "", originalDocument,
-								visualObject);
+								visualObject, false);
 
 				// ================================================================
 				// StampingStage (visual) -> stamp logical signature block to
@@ -524,6 +524,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						.getDefaultPositioning();
 			}
 
+			boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
+			
 			TablePos tablePos = null;
 
 			if (posString == null) {
@@ -538,7 +540,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			PositioningInstruction positioningInstruction = Positioning
 					.determineTablePositioning(tablePos, "", originalDocument,
-							visualObject);
+							visualObject, legacy32Position);
 
 			// ================================================================
 			// StampingStage (visual) -> stamp logical signature block to

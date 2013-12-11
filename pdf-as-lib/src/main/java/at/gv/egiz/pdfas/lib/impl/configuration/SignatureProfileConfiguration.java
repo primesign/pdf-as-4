@@ -23,4 +23,15 @@ public class SignatureProfileConfiguration extends SpecificBaseConfiguration
 		String key = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + TABLE + SEPERATOR + POS;
 		return this.configuration.getValue(key);
 	}
+	
+	public boolean getLegacy32Positioning() {
+		String key = SIG_OBJECT + SEPERATOR + profileID + LEGACY_POSITIONING;
+		String value = this.configuration.getValue(key);
+		if(value != null) {
+			if(value.equalsIgnoreCase(TRUE)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

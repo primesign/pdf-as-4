@@ -47,39 +47,8 @@ public class Positioning {
      *           F.e.
      */
     public static PositioningInstruction determineTablePositioning(TablePos pos, String signature_type,
-            PDDocument pdfDataSource, IPDFVisualObject pdf_table) throws PdfAsException
+            PDDocument pdfDataSource, IPDFVisualObject pdf_table, boolean legacy32) throws PdfAsException
     {
-        boolean legacy32 = false;
-
-        //TODO: settings reader ...
-
-        /*
-        if (pos == null)
-        {
-            String pos_string = SettingsReader.getInstance().getSetting(SignatureTypes.SIG_OBJ + signature_type + ".pos", null);
-            if (pos_string != null)
-            {
-                pos = PdfAS.parsePositionFromPosString(pos_string);
-            }
-        }
-        if (pos == null)
-        {
-            // The default algorithm. x,y,w =auto ,p=lastpage, f:ignored because
-            // y:auto
-            pos = new TablePos();
-        }
-
-        // afitzek
-        // Allow legacy positioning (3.2) for BRZ Templates ...
-        boolean legacy32 = false;
-        String leg = SettingsReader.getInstance().getSetting(SignatureTypes.SIG_OBJ + signature_type + ".legacy.pos", "false");
-        if (leg != null) {
-            if ("true".equals(leg.trim())) {
-                legacy32 = true;
-            }
-        }
-        */
-        // System.out.println("Tablepos="+pos);
         return adjustSignatureTableandCalculatePosition(pdfDataSource, pdf_table, pos, legacy32);
     }
 

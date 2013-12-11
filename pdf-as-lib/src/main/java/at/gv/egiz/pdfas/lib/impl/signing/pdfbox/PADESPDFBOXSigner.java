@@ -65,11 +65,16 @@ public class PADESPDFBOXSigner implements IPdfSigner {
             String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"), 
             		signatureProfileSettings, requestedSignature);
             
-            
             signature.setName(signerName);
-            //signature.setLocation("signer location");
-            signature.setReason("PDF-AS Signatur");
-
+            signature.setSignDate(Calendar.getInstance());
+            String signerReason = signatureProfileSettings.getSigningReason();
+            
+            if(signerReason == null) {
+            	signerReason = "PAdES Signature";
+            }
+            
+            signature.setReason(signerReason);
+            logger.debug("Signing reason: " + signerReason);
 
             logger.debug("Signing @ " + signer.getSigningDate().getTime().toString());
             // the signing date, needed for valid signature

@@ -47,9 +47,9 @@ public class Settings implements ISettings, IProfileConstants{
             }
             
             logger.debug("Configured Properties:");
-            if(logger.isDebugEnabled()) {
+            /*if(logger.isDebugEnabled()) {
             	properties.list(System.out);
-            }
+            }*/
             
         } catch (IOException e) {
             throw new PdfAsSettingsException("Failed to read settings!", e);

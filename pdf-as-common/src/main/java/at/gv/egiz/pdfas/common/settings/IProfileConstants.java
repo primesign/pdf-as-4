@@ -64,4 +64,6 @@ public interface IProfileConstants {
     
     public final static String TMP_DIR = "default.pdfastmp_dir";
     public final static String TMP_DIR_DEFAULT_VALUE = "pdfastmp";
+    
+    public final static String SIGNING_REASON = "adobeSignReasonValue";
 }
