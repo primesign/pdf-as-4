@@ -46,9 +46,9 @@ public class DeveloperMain {
 			ByteArrayDataSink bads = new ByteArrayDataSink();
 			parameter.setSignatureProfileId("SIGNATURBLOCK_DE");
 			parameter.setOutput(bads);
-			parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
+			//parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
 			//parameter.setPlainSigner(signer);
-			//parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
+			parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
 			/*
 			StatusRequest request = pdfas.startSign(parameter);
 			

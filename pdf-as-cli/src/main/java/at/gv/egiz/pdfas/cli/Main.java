@@ -3,8 +3,6 @@ package at.gv.egiz.pdfas.cli;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
@@ -20,7 +18,6 @@ import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
@@ -30,9 +27,8 @@ import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
+import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
-import at.gv.egiz.sl.util.ISLConnector;
-import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
 import at.gv.egiz.sl.util.MOAConnector;
 
 public class Main {
@@ -58,8 +54,26 @@ public class Main {
 	public static final String CLI_ARG_CONF_SHORT = "conf";
 	public static final String CLI_ARG_CONF = "configuration";
 
+	public static final String CLI_ARG_DEPLOY_SHORT = "d";
+	public static final String CLI_ARG_DEPLOY = "deploy";
+
 	public static final String CLI_ARG_VERIFY_WHICH_SHORT = "vw";
 	public static final String CLI_ARG_VERIFY_WHICH = "verify_which";
+	
+	public static final String CLI_ARG_KEYSTORE_FILE_SHORT = "ksf";
+	public static final String CLI_ARG_KEYSTORE_FILE = "ks_file";
+	
+	public static final String CLI_ARG_KEYSTORE_ALIAS = "ks_alias";
+	public static final String CLI_ARG_KEYSTORE_ALIAS_SHORT = "ksa";
+	
+	public static final String CLI_ARG_KEYSTORE_TYPE = "ks_type";
+	public static final String CLI_ARG_KEYSTORE_TYPE_SHORT = "kst";
+	
+	public static final String CLI_ARG_KEYSTORE_STOREPASS = "ks_storepass";
+	public static final String CLI_ARG_KEYSTORE_STOREPASS_SHORT = "kssp";
+	
+	public static final String CLI_ARG_KEYSTORE_KEYPASS = "ks_keypass";
+	public static final String CLI_ARG_KEYSTORE_KEYPASS_SHORT = "kskp";
 
 	public static final String STANDARD_CONFIG_LOCATION = System
 			.getProperty("user.home") + "/.pdfas/";
@@ -70,17 +84,42 @@ public class Main {
 		Options cliOptions = new Options();
 
 		Option modeOption = new Option(CLI_ARG_MODE_SHORT, CLI_ARG_MODE, true,
-				"Mode of operation");
+				"Mode of operation (sign | verify)");
 		// modeOption.setRequired(true);
 		cliOptions.addOption(modeOption);
+
+		Option deployOption = new Option(CLI_ARG_DEPLOY_SHORT, CLI_ARG_DEPLOY,
+				false, "Deploys default configuration");
+		// modeOption.setRequired(true);
+		cliOptions.addOption(deployOption);
 
 		Option helpOption = new Option(CLI_ARG_HELP_SHORT, CLI_ARG_HELP, false,
 				"Shows this help message");
 		cliOptions.addOption(helpOption);
 
 		Option connectorOption = new Option(CLI_ARG_CONNECTOR_SHORT,
-				CLI_ARG_CONNECTOR, true, "Connector to use");
+				CLI_ARG_CONNECTOR, true, "Connector to use (bku | ks (Keystore) | moa(not available yet))");
 		cliOptions.addOption(connectorOption);
+		
+		Option keystoreFileOption = new Option(CLI_ARG_KEYSTORE_FILE_SHORT,
+				CLI_ARG_KEYSTORE_FILE, true, "Software keystore file");
+		cliOptions.addOption(keystoreFileOption);
+		
+		Option keystoreTypeOption = new Option(CLI_ARG_KEYSTORE_TYPE_SHORT,
+				CLI_ARG_KEYSTORE_TYPE, true, "Software keystore type (PKCS12 | JKS ...)");
+		cliOptions.addOption(keystoreTypeOption);
+		
+		Option keystoreAliasOption = new Option(CLI_ARG_KEYSTORE_ALIAS_SHORT,
+				CLI_ARG_KEYSTORE_ALIAS, true, "Key Alias in keystore");
+		cliOptions.addOption(keystoreAliasOption);
+		
+		Option keystoreStorePassOption = new Option(CLI_ARG_KEYSTORE_STOREPASS_SHORT,
+				CLI_ARG_KEYSTORE_STOREPASS, true, "Password for keystore");
+		cliOptions.addOption(keystoreStorePassOption);
+		
+		Option keystoreKeyPassOption = new Option(CLI_ARG_KEYSTORE_KEYPASS_SHORT,
+				CLI_ARG_KEYSTORE_KEYPASS, true, "Password for key");
+		cliOptions.addOption(keystoreKeyPassOption);
 
 		Option profileOption = new Option(CLI_ARG_PROFILE_SHORT,
 				CLI_ARG_PROFILE, true, "Signature profile to use");
@@ -123,6 +162,11 @@ public class Main {
 		try {
 			CommandLine cli = parser.parse(createOptions(), args);
 
+			if (cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
+				PdfAsFactory.deployDefaultConfiguration(new File(
+						STANDARD_CONFIG_LOCATION));
+			}
+
 			if (cli.hasOption(CLI_ARG_MODE_SHORT)) {
 				String modevalue = cli.getOptionValue(CLI_ARG_MODE_SHORT);
 				if (modevalue.toLowerCase().trim().equals("sign")) {
@@ -140,7 +184,7 @@ public class Main {
 				System.exit(0);
 			}
 
-			if (mode == ModeOfOperation.INVALID) {
+			if (mode == ModeOfOperation.INVALID && !cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
 				throw new ParseException("Missing required option: "
 						+ CLI_ARG_MODE_SHORT);
 			} else if (mode == ModeOfOperation.SIGN) {
@@ -160,6 +204,19 @@ public class Main {
 		}
 	}
 
+	private static void deployConfigIfNotexisting() {
+		File configurationLocation = new File(STANDARD_CONFIG_LOCATION);
+		try {
+			if (!configurationLocation.exists()) {
+				PdfAsFactory.deployDefaultConfiguration(configurationLocation);
+			}
+		} catch (Exception e) {
+			System.out.println("Failed to deploy default confiuration to " + 
+					configurationLocation.getAbsolutePath());
+			e.printStackTrace();
+		}
+	}
+
 	private static void perform_sign(CommandLine cli) throws Exception {
 
 		String configurationFile = null;
@@ -168,6 +225,7 @@ public class Main {
 			configurationFile = cli.getOptionValue(CLI_ARG_CONF_SHORT);
 		} else {
 			configurationFile = STANDARD_CONFIG_LOCATION;
+			deployConfigIfNotexisting();
 		}
 
 		String positionString = null;
@@ -191,11 +249,11 @@ public class Main {
 		}
 
 		String connector = null;
-		
-		if(cli.hasOption(CLI_ARG_CONNECTOR_SHORT)) {
+
+		if (cli.hasOption(CLI_ARG_CONNECTOR_SHORT)) {
 			connector = cli.getOptionValue(CLI_ARG_CONNECTOR_SHORT);
 		}
-		
+
 		String pdfFile = null;
 
 		pdfFile = cli.getArgs()[cli.getArgs().length - 1];
@@ -234,18 +292,63 @@ public class Main {
 				configuration, dataSource);
 
 		IPlainSigner slConnector = null;
-		
-		if(connector != null) {
-			if(connector.equalsIgnoreCase("bku")) {
+
+		if (connector != null) {
+			if (connector.equalsIgnoreCase("bku")) {
 				slConnector = new PAdESSigner(new BKUSLConnector(configuration));
-			} else if(connector.equalsIgnoreCase("moa")) {
+			} else if (connector.equalsIgnoreCase("moa")) {
 				slConnector = new PAdESSigner(new MOAConnector(configuration));
+			} else if(connector.equalsIgnoreCase("ks")) {
+				String keystoreFilename = null;
+				String keystoreAlias = null;
+				String keystoreType = null;
+				String keystoreStorepass = null;
+				String keystoreKeypass = null;
+				
+				if(cli.hasOption(CLI_ARG_KEYSTORE_FILE_SHORT)) {
+					keystoreFilename = cli.getOptionValue(CLI_ARG_KEYSTORE_FILE_SHORT);
+				} 
+
+				if(cli.hasOption(CLI_ARG_KEYSTORE_ALIAS_SHORT)) {
+					keystoreAlias = cli.getOptionValue(CLI_ARG_KEYSTORE_ALIAS_SHORT);
+				}
+				if(cli.hasOption(CLI_ARG_KEYSTORE_TYPE_SHORT)) {
+					keystoreType = cli.getOptionValue(CLI_ARG_KEYSTORE_TYPE_SHORT);
+				}
+				if(cli.hasOption(CLI_ARG_KEYSTORE_STOREPASS_SHORT)) {
+					keystoreStorepass = cli.getOptionValue(CLI_ARG_KEYSTORE_STOREPASS_SHORT);
+				}
+				if(cli.hasOption(CLI_ARG_KEYSTORE_KEYPASS_SHORT)) {
+					keystoreKeypass = cli.getOptionValue(CLI_ARG_KEYSTORE_KEYPASS_SHORT);
+				}
+				
+				if(keystoreFilename == null){
+					throw new Exception("You need to provide a keystore file if using ks connector");
+				}
+				if(keystoreAlias == null){
+					throw new Exception("You need to provide a key alias if using ks connector");
+				}
+				if(keystoreType == null){
+					keystoreType = "PKCS12";
+					System.out.println("Defaulting to " + keystoreType + " keystore type.");
+				}
+				
+				if(keystoreStorepass == null){
+					keystoreStorepass = "";
+				}
+				
+				if(keystoreKeypass == null){
+					keystoreKeypass = "";
+				}
+				
+				slConnector = new PKCS7DetachedSigner(keystoreFilename, 
+						keystoreAlias, keystoreStorepass, keystoreKeypass, keystoreType);
 			}
-		} 
-		if(slConnector == null) {
+		}
+		if (slConnector == null) {
 			slConnector = new PAdESSigner(new BKUSLConnector(configuration));
 		}
-		
+
 		signParameter.setOutput(dataSink);
 		signParameter.setPlainSigner(slConnector);
 		signParameter.setDataSource(dataSource);
@@ -268,6 +371,7 @@ public class Main {
 			configurationFile = cli.getOptionValue(CLI_ARG_CONF_SHORT);
 		} else {
 			configurationFile = STANDARD_CONFIG_LOCATION;
+			deployConfigIfNotexisting();
 		}
 
 		int which = -1;
@@ -347,11 +451,11 @@ public class Main {
 						false);
 				fos.write(verifyResult.getSignatureData());
 				fos.close();
-				System.out.println("\tSigned PDF: "
-						+ outputFile);
-			}			
+				System.out.println("\tSigned PDF: " + outputFile);
+			}
 		} catch (Exception e) {
-			System.out.println("\tFailed to save signed PDF! [" + e.getMessage() + "]");
+			System.out.println("\tFailed to save signed PDF! ["
+					+ e.getMessage() + "]");
 			e.printStackTrace();
 		}
 	}
