@@ -9,11 +9,6 @@ import iaik.cms.ContentInfo;
 import iaik.cms.IssuerAndSerialNumber;
 import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
-import iaik.cms.Utils;
-import iaik.pkcs.PKCSException;
-import iaik.pkcs.pkcs7.Data;
-import iaik.security.ecc.provider.ECCProvider;
-import iaik.security.provider.IAIK;
 import iaik.x509.X509Certificate;
 
 import java.io.FileInputStream;
@@ -21,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -30,13 +24,11 @@ import java.util.Date;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSProcessable;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
-import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 
 public class PKCS7DetachedSigner implements IPlainSigner {
@@ -50,8 +42,6 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 	public PKCS7DetachedSigner(String file, String alias, String kspassword,
 			String keypassword, String type) throws PdfAsException {
 		try {
-			IAIK.addAsProvider();
-			ECCProvider.addAsProvider();
 			KeyStore ks = KeyStore.getInstance(type);
 			ks.load(new FileInputStream(file), kspassword.toCharArray());
 			privKey = (PrivateKey) ks.getKey(alias, keypassword.toCharArray());
@@ -88,49 +78,11 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 		}
 	}
 
-	private static BouncyCastleProvider provider = new BouncyCastleProvider();
-
-	/*
-	 * public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
-	 * CMSProcessableInputStream content = new CMSProcessableInputStream(new
-	 * ByteArrayInputStream(input)); CMSSignedDataGenerator gen = new
-	 * CMSSignedDataGenerator(); // CertificateChain List<X509Certificate>
-	 * certList = Arrays.asList(cert);
-	 * 
-	 * CertStore certStore = null; try { certStore =
-	 * CertStore.getInstance("Collection", new
-	 * CollectionCertStoreParameters(certList), provider);
-	 * gen.addSigner(privKey, (X509Certificate)certList.get(0),
-	 * CMSSignedGenerator.DIGEST_SHA256); gen.addCertificatesAndCRLs(certStore);
-	 * CMSSignedData signedData = gen.generate(content, false, provider); return
-	 * signedData.getEncoded(); } catch (Exception e) { // should be handled
-	 * e.printStackTrace(); } throw new
-	 * RuntimeException("Problem while preparing signature"); }
-	 */
-
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
 		try {
-			// SignedDataStream signed_data_stream = new SignedDataStream(
-			// new ByteArrayInputStream(input), SignedDataStream.EXPLICIT);
-			// ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			// signed_data_stream.addCertificates(new Certificate[] { cert });
-			//
-			// SubjectKeyID subjectKeyId = new SubjectKeyID(cert);
-			// SignerInfo signer1 = new SignerInfo(subjectKeyId,
-			// AlgorithmID.sha256, privKey);
-			// signed_data_stream.addSignerInfo(signer1);
-			// InputStream data_is = signed_data_stream.getInputStream();
-			// if (signed_data_stream.getMode() == SignedDataStream.EXPLICIT) {
-			// byte[] buf = new byte[1024];
-			// int r;
-			// while ((r = data_is.read(buf)) > 0) {
-			// // do something useful
-			// }
-			// }
-			// SubjectKeyID subjectKeyId = new SubjectKeyID(cert);
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 			SignerInfo signer1 = new SignerInfo(issuer, AlgorithmID.sha256, 
-					AlgorithmID.ecdsa_plain_With_SHA256, 
+					AlgorithmID.ecdsa_With_SHA256, 
 					privKey);
 
 			SignedData si = new SignedData(input, SignedData.EXPLICIT);

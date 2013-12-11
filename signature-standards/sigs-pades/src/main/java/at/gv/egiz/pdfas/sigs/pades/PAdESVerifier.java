@@ -1,6 +1,5 @@
 package at.gv.egiz.pdfas.sigs.pades;
 
-import iaik.security.ecc.provider.ECCProvider;
 import iaik.security.provider.IAIK;
 import iaik.x509.X509Certificate;
 
@@ -48,8 +47,6 @@ public class PAdESVerifier implements IVerifyFilter {
 	private String moaTrustProfile;
 
 	public PAdESVerifier() {
-		IAIK.getInstance();
-		ECCProvider.addAsProvider();
 	}
 
 	@SuppressWarnings("rawtypes")

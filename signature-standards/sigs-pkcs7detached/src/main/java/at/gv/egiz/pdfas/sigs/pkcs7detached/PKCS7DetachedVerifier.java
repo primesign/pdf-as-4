@@ -5,8 +5,6 @@ import iaik.asn1.structures.AlgorithmID;
 import iaik.cms.ContentInfo;
 import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
-import iaik.security.ecc.provider.ECCProvider;
-import iaik.security.provider.IAIK;
 import iaik.x509.X509Certificate;
 
 import java.io.ByteArrayInputStream;
@@ -33,8 +31,6 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	private static final Logger logger = LoggerFactory.getLogger(PKCS7DetachedVerifier.class);
 	
 	public PKCS7DetachedVerifier() {
-		IAIK.addAsProvider();
-		ECCProvider.addAsProvider();
 	}
 	
 	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent)
@@ -69,6 +65,9 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 				try {
 					// verify the signature for SignerInfo at index i
 					X509Certificate signer_cert = signedData.verify(i);
+					logger.info("Signature Algo: {}, Digest {}",  
+							signedData.getSignerInfos()[i].getSignatureAlgorithm(),
+							signedData.getSignerInfos()[i].getDigestAlgorithm());
 					// if the signature is OK the certificate of the
 					// signer is returned
 					logger.info("Signature OK from signer: "
