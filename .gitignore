@@ -1,6 +1,7 @@
 # for gradle
 .gradle/
 build/
+**/bin/**
 
 # for java/groovy
 *.class
