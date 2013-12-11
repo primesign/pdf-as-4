@@ -1,5 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'application'
+
+mainClassName = "at.gv.egiz.pdfas.cli.Main"
 
 jar {
     manifest {

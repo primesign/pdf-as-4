@@ -1,0 +1,161 @@
+######################################################################
+# PDF-AS Konfiguration
+#
+# Diese Datei enthaelt empfohlene Einstellungen fuer PDF-AS.
+# 
+# Hinweis: Hier werden die wichtigsten Einstellungsmoeglichkeiten
+# angeboten. Eine fortgeschrittene Konfiguration ist ueber die Datei
+# advancedconfig.properties moeglich, die mit der Include-Anweisung:
+#   include.advancedconfig = advancedconfig.properties eingebunden
+# eingebunden werden kann.
+######################################################################
+
+
+
+##################
+# Signaturdienste
+# Hier werden die verwendbaren Signaturdienste (Lokale BKU, Online BKU, Handy-Signatur, MOA)
+# angefuehrt.
+
+## 
+# Lokal installierte Buergerkartensoftware
+#    ohne SSL:  http://127.0.0.1:3495/http-security-layer-request
+#    mit SSL :  https://127.0.0.1:3496/https-security-layer-request
+# Signatur
+bku.sign.url=http://127.0.0.1:3495/http-security-layer-request
+# Verifikation
+bku.verify.url=http://127.0.0.1:3495/http-security-layer-request
+
+##
+# Online BKU (MOCCA)
+# Signatur
+moc.sign.url=http://127.0.0.1:8080/bkuonline/http-security-layer-request
+
+##
+# Handy-Signatur
+# Signaturservice URL
+mobile.sign.url=https://www.handy-signatur.at/mobile/https-security-layer-request/default.aspx
+
+##
+# Handy Signatur (Test)
+# Signaturservice URL
+mobiletest.sign.url=https://test1.a-trust.at/https-security-layer-request/default.aspx
+
+##
+# MOA Signatur
+# Signaturservice URL
+# moa.sign.url=http://localhost:8080/moa-spss/services/SignatureCreation
+moa.sign.url=http://atauber-PC.iaik.tugraz.at:8081/moa-spss/services/SignatureCreation
+# Identifier fuer den zu verwendenden serverseitig hinterlegten Signaturschluessel.
+# Siehe auch http://joinup.ec.europa.eu/site/moa-idspss/moa-spss-1.5.1/doc/handbook/config/config.html#konfigurationsparameter_ss
+# moa.sign.KeyIdentifier=KG_allgemein
+moa.sign.KeyIdentifier=KG_test
+
+##
+# MOA Verifikation
+# Verifikationsservice URL
+#moa.verify.url=http://atauber-PC.iaik.tugraz.at:8081/moa-spss/services/SignatureVerification
+moa.verify.url=http://localhost:8980/moa-spss/services/SignatureVerification
+# Identifier des zu verwendenden Vertrauensprofils fuer die Signaturpruefung.
+# Siehe auch http://joinup.ec.europa.eu/site/moa-idspss/moa-spss-1.5.1/doc/handbook/config/config.html#konfigurationsparameter_sp_certificatevalidation_pathvalidation_trustprofile
+moa.verify.TrustProfileID=SecureSignature
+
+
+#########################################################
+# Standardfeldlaengen der Felder fuer die Binaersignatur
+# Bei Binaersignaturen werden Daten, die sich erst nach dem Ausloesen der Signatur ergeben, wie
+# z.B. Unterzeichnername, Signaturzeitpunkt etc., NACH Aufbringen der Signatur in das Dokument
+# eingefuegt. Hierfuer muss jedoch VOR der Signatur bereits der erforderliche Platz reserviert
+# werden. Dies erfolgt ueber die *phlength.SIG_* Parameter.
+# Hinweis: Je groesser der Wert eines im Signaturblock dargestellten Feldes gewaehlt wird, desto
+#          groesser wird auch der Signaturblock. Ein zu kleiner Wert kann dazu fuehren, dass
+#          einzelne Daten keinen Platz finden und der Signaturvorgang scheitert.
+
+# Reservierte Anzahl an Zeichen fuer den Signaturzeitpunkt (z.B. 2013-02-08T10:52:26+01:00)
+defaults.phlength.SIG_DATE=70
+
+# Reservierte Anzahl an Zeichen fuer die Seriennummer des Zertifikats.
+defaults.phlength.SIG_NUMBER=70
+
+# Reservierte Anzahl an Zeichen fuer den Aussteller-Namen 
+defaults.phlength.SIG_ISSUER=170
+
+# Reservierte Anzahl an Zeichen fuer den Signaturwert
+defaults.phlength.SIG_VALUE=350
+
+# Reservierte Anzahl an Zeichen fuer den Unterzeichnernamen
+# Es moeglich, den Namen des Signators dynamisch aus Informationen des verwendeten Zertifikats
+# zusammenzusetzen. Konkret kann auf die einzelnen RDN Teile des Issuer DN und des Subject DN
+# des Signaturzertifikats wie im folgenden Beispiel illustriert zugegriffen werden:
+#
+# (1) sig_obj.PROFIL.value.SIG_SUBJECT= ${subject.CN}${subject.O != null ? ("\n" + subject.O) : ""}
+# (2) sig_obj.PROFIL.value.SIG_SUBJECT= ${subject.T \!\= null ? (subject.T + " ") \: ""}${subject.CN}
+#
+# Beispiel (1) gibt die Organisation des Unterzeichners an, Beispiel (2) Titel und Name.
+#
+# Die Notation ${..} ermoeglicht die dynamische Auswertung eines Ausdrucks. Verfuegbar sind "subject"
+# und "issuer" und die im Zertifikat-DN vorhandenen RDNs.
+#
+# Achtung:
+# Fuer die binaere Signatur muss die maximale Anzahl zu erwartender Zeichen in der globalen Einstellung
+#    defaults.phlength.SIG_SUBJECT=...
+# bzw. profileweise via
+#    sig_obj.PROFIL.phlength.SIG_SUBJECT=...
+# festgelegt werden.
+defaults.phlength.SIG_SUBJECT=128
+
+# Bietet die Moeglichkeit, eine fortgeschrittene Konfiguration einzubinden. 
+include.advancedconfig = advancedconfig.properties
+
+
+#####################################################################################################
+# Unterstuetzte Signaturprofile
+# Hinweise zum Include-Mechanismus:
+#   - Pfade sind relativ zu dieser Konfigurationsdatei zu setzen.
+#   - Es koennen Wildcards verwendet werden.
+#     z.B. include = profiles/*AMTSSIGNATURBLOCK*.properties
+#   - Bei mehrfachen Include-Anweisungen ist darauf zu achten, dass die Include-Keys eindeutig sind.
+#     Dazu sollte ein beliebiger Bezeichner an "include." angehaengt werden.
+#     z.B. include.standard = profiles/SIGNATURBLOCK*.properties
+#          include.amtssignatur = profiles/*AMTSSIGNATUR*.properties 
+#   - Include-Keys werden lexikografisch sortiert, bevor die Include-Anweisungen ausgefuehrt werden.
+#     Dadurch kann eine Reihenfolge der Includes vorgegeben werden.
+#
+# Anm.: profiles/SIGNATURBLOCK_DE.properties enthaelt Erlaeuterungen in Hinblick auf die
+#       Konfiguration einzelner Profile.
+
+# Standard-Profile
+include.01 = profiles/INVISIBLE.properties
+include.02 = profiles/SIGNATURBLOCK_DE.properties
+include.03 = profiles/SIGNATURBLOCK_DE_DEPRECATED.properties
+include.04 = profiles/SIGNATURBLOCK_DE_NOTE.properties
+include.05 = profiles/SIGNATURBLOCK_DE_PDFA.properties
+include.06 = profiles/SIGNATURBLOCK_DE_PDFA_NOTE.properties
+include.07 = profiles/SIGNATURBLOCK_EN.properties
+include.08 = profiles/SIGNATURBLOCK_EN_DEPRECATED.properties
+include.09 = profiles/SIGNATURBLOCK_EN_NOTE.properties
+include.10 = profiles/SIGNATURBLOCK_EN_PDFA.properties
+include.11 = profiles/SIGNATURBLOCK_EN_PDFA_NOTE.properties
+include.12 = profiles/SIGNATURBLOCK_MINIMAL_DE.properties
+include.13 = profiles/SIGNATURBLOCK_MINIMAL_EN.properties
+include.14 = profiles/SIGNATURBLOCK_SMALL_DE.properties
+include.15 = profiles/SIGNATURBLOCK_SMALL_DE_NOTE.properties
+include.16 = profiles/SIGNATURBLOCK_SMALL_EN.properties
+include.17 = profiles/SIGNATURBLOCK_SMALL_EN_NOTE.properties
+
+# Amtssignatur-Profile
+include.18 = profiles/AMTSSIGNATURBLOCK_DE.properties
+include.19 = profiles/AMTSSIGNATURBLOCK_DE_DEPRECATED.properties
+include.20 = profiles/AMTSSIGNATURBLOCK_EN.properties
+include.21 = profiles/AMTSSIGNATURBLOCK_EN_DEPRECATED.properties
+include.22 = profiles/VARIABLER_AMTSSIGNATURBLOCK_DE.properties
+
+# BAIK-Profile
+include.23 = profiles/BAIK_ARCHIV_SIGNATUR.properties
+include.24 = profiles/BAIK_URKUNDE_SIGNATUR.properties
+
+include.25 = profiles/justizsignatur.properties
+include.26 = profiles/SIGNATURBLOCK_DE_NEU.properties
+
+# Legt das Standard-Signaturprofil fest
+sig_obj.type.default=SIGNATURBLOCK_DE_NEU

@@ -21,6 +21,14 @@ configurations {
 	generateJavaFromWsdlDeps
 }
 
+task createConf(type: Zip, dependsOn: JavaPlugin.PROCESS_RESOURCES_TASK_NAME) {
+	from 'src/configuration'
+	archiveName 'config.zip'
+	destinationDir new File(projectDir, 'src/main/resources/config')
+}
+
+compileJava.dependsOn(createConf)
+
 /*task generateJavaFromWsdl(type: JavaExec) {
 	classpath configurations.generateJavaFromWsdlDeps
 	//main "org.apache.cxf.tools.wsdlto.WSDLToJava"
@@ -64,7 +72,9 @@ dependencies {
 	compile group: 'ognl', name: 'ognl', version: '3.0.6'
 	compile group: 'iaik', name: 'iaik_cms', version: '4.1'
 	compile group: 'eu.europa.ec.joinup.egovlabs.pdf-as.iaik', name: 'iaik_jce_eval_signed', version: '4.0'
-	compile group: 'eu.europa.ec.joinup.egovlabs.pdf-as.iaik', name: 'iaik_ecc_eval_signed', version: '2.19'
+	//compile group: 'eu.europa.ec.joinup.egovlabs.pdf-as.iaik', name: 'iaik_ecc_eval_signed', version: '2.19'
+	compile files('libs/iaik_eccelerate_cms.jar')
+	compile files('libs/iaik_eccelerate.jar')
 	compile group: 'log4j', name: 'log4j', version: '1.2.17'
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
 	compile group: 'com.google.zxing', name: 'core', version: '2.2'
