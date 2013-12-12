@@ -186,8 +186,7 @@ public class Main {
 			}
 
 			if (mode == ModeOfOperation.INVALID && !cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
-				throw new ParseException("Missing required option: "
-						+ CLI_ARG_MODE_SHORT);
+				usage();
 			} else if (mode == ModeOfOperation.SIGN) {
 				perform_sign(cli);
 			} else if (mode == ModeOfOperation.VERIFY) {
@@ -284,7 +283,7 @@ public class Main {
 		ByteArrayDataSink dataSink = new ByteArrayDataSink();
 
 		PdfAs pdfAs = null;
-
+		
 		pdfAs = PdfAsFactory.createPdfAs(new File(configurationFile));
 
 		Configuration configuration = pdfAs.getConfiguration();

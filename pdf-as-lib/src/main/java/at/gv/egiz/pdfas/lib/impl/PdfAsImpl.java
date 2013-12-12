@@ -139,11 +139,12 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 	public List<VerifyResult> verify(VerifyParameter parameter)
 			throws PdfAsException {
+		PDDocument doc = null;
 		try {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			VerifierDispatcher verifier = new VerifierDispatcher(settings);
-			PDDocument doc = PDDocument.load(new ByteArrayInputStream(parameter
+			doc = PDDocument.load(new ByteArrayInputStream(parameter
 					.getDataSource().getByteData()));
 
 			COSDictionary trailer = doc.getDocument().getTrailer();
@@ -210,6 +211,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		} catch (PdfAsException e) {
 			logger.error("Failed to verify document", e);
 			throw new PdfAsException("error.pdf.verify.02", e);
+		} finally {
+			if(doc != null) {
+				try {
+					doc.close();
+				} catch (IOException e) {
+					logger.info("Failed to close doc");
+				}
+			}
 		}
 	}
 
@@ -236,7 +245,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					status);
 
 			status.setRequestedSignature(requestedSignature);
-
+ 
 			request.setStatus(status);
 
 			request.setNeedCertificate(true);

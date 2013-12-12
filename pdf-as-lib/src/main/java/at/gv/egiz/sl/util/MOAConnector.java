@@ -9,9 +9,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.security.cert.CertificateException;
 
 import javax.activation.DataHandler;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.axis2.databinding.types.Token;
 import org.apache.commons.codec.binary.Base64;
@@ -24,6 +28,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import at.gv.egiz.moa.ByteArrayDataSource;
 import at.gv.egiz.moa.SignatureCreationServiceStub;
@@ -39,6 +48,7 @@ import at.gv.egiz.moa.SignatureCreationServiceStub.MimeTypeType;
 import at.gv.egiz.moa.SignatureCreationServiceStub.SingleSignatureInfo_type1;
 import at.gv.egiz.moa.SignatureCreationServiceStub.Structure_type1;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 
@@ -46,6 +56,8 @@ public class MOAConnector implements ISignatureConnector {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MOAConnector.class);
+	
+	private static final Logger moalogger = LoggerFactory.getLogger("at.knowcenter.wag.egov.egiz.sig.connectors.MOASSRepsonseLogger");
 
 	public static final String MOA_SIGN_URL = "moa.sign.url";
 	public static final String MOA_SIGN_KEY_ID = "moa.sign.KeyIdentifier";
@@ -53,6 +65,12 @@ public class MOAConnector implements ISignatureConnector {
 
 	public static final String KEY_ID_PATTERN = "##KEYID##";
 	public static final String CONTENT_PATTERN = "##CONTENT##";
+
+	public static final String FAULTCODE = "faultcode";
+	public static final String FAULTSTRING = "faultstring";
+	public static final String ERRORRESPONSE = "ErrorResponse";
+	public static final String ERRORCODE = "ErrorCode";
+	public static final String CMSSIGNATURE = "CMSSignature";
 
 	public static final String CMS_REQUEST = "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://reference.e-government.gv.at/namespace/moa/20020822#\">"
 			+ "<soapenv:Header/><soapenv:Body><ns:CreateCMSSignatureRequest><ns:KeyIdentifier>"
@@ -72,6 +90,7 @@ public class MOAConnector implements ISignatureConnector {
 
 	public MOAConnector(Configuration config) throws CertificateException,
 			FileNotFoundException, IOException {
+		logger.info("Loading certificate: " + config.getValue(MOA_SIGN_CERTIFICATE));
 		this.certificate = new X509Certificate(new FileInputStream(new File(
 				config.getValue(MOA_SIGN_CERTIFICATE))));
 		this.moaEndpoint = config.getValue(MOA_SIGN_URL);
@@ -104,20 +123,18 @@ public class MOAConnector implements ISignatureConnector {
 			request = request
 					.replace(KEY_ID_PATTERN, this.keyIdentifier.trim());
 
-				//SOAPAction: "urn:CreateCMSSignatureAction"
+			// SOAPAction: "urn:CreateCMSSignatureAction"
 			post.setHeader("SOAPAction", "urn:CreateCMSSignatureAction");
-			
+
 			EntityBuilder entityBuilder = EntityBuilder.create();
-			
+
 			entityBuilder.setContentType(ContentType.TEXT_XML);
 			entityBuilder.setContentEncoding("UTF-8");
 			entityBuilder.setText(request);
-			
-			post.setEntity(entityBuilder.build());
 
+			post.setEntity(entityBuilder.build());
+			moalogger.debug(">>> " + request);
 			HttpResponse response = client.execute(post);
-			logger.debug("Response Code : "
-					+ response.getStatusLine().getStatusCode());
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(
 					response.getEntity().getContent()));
@@ -128,27 +145,78 @@ public class MOAConnector implements ISignatureConnector {
 				result.append(line);
 			}
 
-			logger.trace(result.toString());
-			return new byte[] {};
+			moalogger.debug("<<< " + result.toString());
+
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
+					.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			Document doc = dBuilder.parse(new InputSource(new StringReader(
+					result.toString())));
+			doc.getDocumentElement().normalize();
+
+			if (response.getStatusLine().getStatusCode() != 200) {
+				String faultCode = "";
+				String faultString = "";
+				String errorResponse = "";
+				String errorCode = "";
+				NodeList nodeList = doc.getElementsByTagName("*");
+				for (int i = 0; i < nodeList.getLength(); i++) {
+					Node node = nodeList.item(i);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						if (node.getNodeName().equals(FAULTCODE)) {
+							faultCode = node.getTextContent();
+						} else if (node.getNodeName().equals(FAULTSTRING)) {
+							faultString = node.getTextContent();
+						} else if (node.getNodeName().equals(ERRORCODE)) {
+							errorCode = node.getTextContent();
+						} else if (node.getNodeName().equals(ERRORRESPONSE)) {
+							errorResponse = node.getTextContent();
+						}
+					}
+				}
+				throw new PdfAsMOAException(faultCode, faultString,
+						errorResponse, errorCode);
+			} else {
+				String cmsSignature = null;
+				NodeList nodeList = doc.getElementsByTagName("*");
+				for (int i = 0; i < nodeList.getLength(); i++) {
+					Node node = nodeList.item(i);
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						if (node.getNodeName().equals(CMSSIGNATURE)) {
+							cmsSignature = node.getTextContent();
+							break;
+						}
+					}
+				}
+
+				if (cmsSignature != null) {
+					try {
+						return base64.decode(cmsSignature);
+					} catch(Exception e) {
+						throw new PdfAsException("error.pdf.io.07", e);
+					}
+				} else {
+					throw new PdfAsException("error.pdf.io.07");
+				}
+			}
 		} catch (IllegalStateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PdfAsException("error.pdf.io.08", e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PdfAsException("error.pdf.io.08", e);
+		} catch (SAXException e) {
+			throw new PdfAsException("error.pdf.io.08", e);
+		} catch (ParserConfigurationException e) {
+			throw new PdfAsException("error.pdf.io.08", e);
 		} finally {
 			if (client != null) {
 				try {
 					client.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.warn("Failed to close client", e);
 				}
 			}
 		}
-		return new byte[] {};
 	}
-
 	/*
 	 * public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
 	 * try {
