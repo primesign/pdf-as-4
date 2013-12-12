@@ -27,6 +27,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
+import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
 import at.gv.egiz.sl.util.MOAConnector;
@@ -341,7 +342,7 @@ public class Main {
 					keystoreKeypass = "";
 				}
 				
-				slConnector = new PKCS7DetachedSigner(keystoreFilename, 
+				slConnector = new PAdESSignerKeystore(keystoreFilename, 
 						keystoreAlias, keystoreStorepass, keystoreKeypass, keystoreType);
 			}
 		}
