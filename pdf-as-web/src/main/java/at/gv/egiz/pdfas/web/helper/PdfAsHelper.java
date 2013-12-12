@@ -1,9 +1,5 @@
 package at.gv.egiz.pdfas.web.helper;
 
-import iaik.cms.ecc.IaikEccProvider;
-import iaik.security.ecc.provider.ECCProvider;
-import iaik.security.provider.IAIK;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
@@ -44,8 +40,6 @@ public class PdfAsHelper {
 
 	static {
 		pdfAs = PdfAsFactory.createPdfAs(new File("/home/afitzek/.pdfas"));
-		IAIK.getInstance();
-		ECCProvider.addAsProvider();
 	}
 
 	public static void startSignature(HttpServletRequest request,
