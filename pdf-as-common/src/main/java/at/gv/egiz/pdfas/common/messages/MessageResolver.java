@@ -18,7 +18,8 @@ public class MessageResolver {
         ResourceBundle bundle = ResourceBundle.getBundle(messageResource);
         if(bundle == null) {
             logger.error("Failed to load resource bundle!!");
-            Runtime.getRuntime().exit(-1);
+            System.err.println("Failed to load resource bundle!!");
+            //Runtime.getRuntime().exit(-1);
         }
     }
 

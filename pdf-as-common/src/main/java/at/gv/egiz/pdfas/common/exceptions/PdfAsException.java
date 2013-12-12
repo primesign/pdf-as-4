@@ -3,6 +3,11 @@ package at.gv.egiz.pdfas.common.exceptions;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 
 public class PdfAsException extends Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 933244024555676174L;
+
 	public PdfAsException() {
         super();
     }

@@ -128,13 +128,11 @@ public class SignatureProfileSettings implements IProfileConstants {
 			String value = entry.getValue();
 
 			if (value == null) {
-				// TODO: try to find default value for key!
 				return getDefaultValue(key);
 			}
 
 			return value;
 		}
-		// TODO: try to find default value for key!
 		return getDefaultValue(key);
 	}
 

@@ -9,7 +9,13 @@ package at.gv.egiz.pdfas.common.exceptions;
  */
 public class PDFIOException extends PdfAsException {
 
-    public PDFIOException(String msgId) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 461085759398146094L;
+
+
+	public PDFIOException(String msgId) {
         super(msgId);
     }
 

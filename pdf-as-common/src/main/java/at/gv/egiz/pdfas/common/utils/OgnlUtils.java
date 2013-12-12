@@ -30,8 +30,7 @@ public class OgnlUtils {
 			}
 			return valueString;
 		} catch (OgnlException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("OGNL resolver failed!", e);
 		}
         return expression;
     }
