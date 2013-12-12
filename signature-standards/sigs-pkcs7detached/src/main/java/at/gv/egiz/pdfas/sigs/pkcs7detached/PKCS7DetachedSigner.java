@@ -31,6 +31,10 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 
+/**
+ * Creates a PKCS7 detached PDF signature
+ *
+ */
 public class PKCS7DetachedSigner implements IPlainSigner {
 
 	private static final Logger logger = LoggerFactory
@@ -55,29 +59,6 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 		return cert;
 	}
 
-	class CMSProcessableInputStream implements CMSProcessable {
-
-		InputStream in;
-
-		public CMSProcessableInputStream(InputStream is) {
-			in = is;
-		}
-
-		public Object getContent() {
-			return null;
-		}
-
-		public void write(OutputStream out) throws IOException, CMSException {
-			// read the content only one time
-			byte[] buffer = new byte[8 * 1024];
-			int read;
-			while ((read = in.read(buffer)) != -1) {
-				out.write(buffer, 0, read);
-			}
-			in.close();
-		}
-	}
-
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
 		try {
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
@@ -93,9 +74,6 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			Attribute contentType = new Attribute(ObjectID.contentType, new ASN1Object[] {
 					new ObjectID("1.2.840.113549.1.7.1")
 				});
-			// Attribute signingCert = new
-			// Attribute(ObjectID.signingCertificateV2,
-			// new ASN1Object[] { cert.toASN1Object() });
 
 			Attribute[] attributes = new Attribute[] { signingTime, contentType };
 			signer1.setSignedAttributes(attributes);
