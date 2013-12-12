@@ -15,7 +15,7 @@ public class StamperFactory {
 			stamper.setSettings(settings);
 			return stamper;
 		} catch (Throwable e) {
-			throw new PdfAsException("NO STAMPER!", e);
+			throw new PdfAsException("error.pdf.stamp.10", e);
 		}
 	}
 }

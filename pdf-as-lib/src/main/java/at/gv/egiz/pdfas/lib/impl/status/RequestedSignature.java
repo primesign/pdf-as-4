@@ -25,7 +25,7 @@ public class RequestedSignature {
     		profileID = status.getGlobalConfiguration().getDefaultSignatureProfile();
     		
     		if(profileID == null) {
-    			throw new PdfAsSettingsException("Failed to determine Signature Profile!");
+    			throw new PdfAsSettingsException("error.pdf.sig.07");
     		}
     	}
 		

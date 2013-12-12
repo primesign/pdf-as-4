@@ -1,13 +1,11 @@
 package at.gv.egiz.sl.util;
 
 import java.math.BigInteger;
-import java.security.MessageDigest;
 import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.gv.egiz.sl.Base64OptRefContentType;
 import at.gv.egiz.sl.CMSDataObjectRequiredMetaType;
 import at.gv.egiz.sl.CreateCMSSignatureRequestType;
@@ -25,7 +23,7 @@ public abstract class BaseSLConnector implements ISLConnector {
 	public static final String SecureSignatureKeypair = "SecureSignatureKeypair";
 	
 	public static final String PDF_MIME_TYPE = "application/pdf";
-	public static final String PDF_MIME_TYPE_DESC = "Adobe PDF-Dateien";
+	public static final String PDF_MIME_TYPE_DESC = "Adobe PDF-File";
 	
 	public static final String DETACHED = "detached";
 	
@@ -80,7 +78,6 @@ public abstract class BaseSLConnector implements ISLConnector {
 		// == MetaInfoType
 		MetaInfoType metaInfoType = new MetaInfoType();
 		metaInfoType.setMimeType(PDF_MIME_TYPE);
-		metaInfoType.setDescription(PDF_MIME_TYPE_DESC);
 		
 		// == Base64OptRefContentType
 		Base64OptRefContentType base64OptRefContentType = new Base64OptRefContentType();

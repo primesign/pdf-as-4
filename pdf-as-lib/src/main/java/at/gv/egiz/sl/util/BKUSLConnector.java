@@ -99,15 +99,15 @@ public class BKUSLConnector extends BaseSLConnector {
 					.unmarshalFromString(slResponse);
 
 		} catch (JAXBException e) {
-			throw new PDFIOException("SL_COM", e);
+			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (ClientProtocolException e) {
-			throw new PDFIOException("SL_COM", e);
+			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (IOException e) {
-			throw new PDFIOException("SL_COM", e);
+			throw new PDFIOException("error.pdf.io.03", e);
 		}
 
 		if (element == null) {
-			throw new PDFIOException("SL ELEMENT NOT AVAILABLE");
+			throw new PDFIOException("error.pdf.io.04");
 		}
 
 		if (element.getValue() instanceof InfoboxReadResponseType) {
@@ -120,7 +120,7 @@ public class BKUSLConnector extends BaseSLConnector {
 			throw new SLPdfAsException(errorResponseType.getErrorCode(),
 					errorResponseType.getInfo());
 		}
-		throw new PdfAsException("Invalid SL Repsonse");
+		throw new PdfAsException("error.pdf.io.03");
 	}
 
 	public CreateCMSSignatureResponseType sendCMSRequest(
@@ -137,15 +137,15 @@ public class BKUSLConnector extends BaseSLConnector {
 			element = (JAXBElement) SLMarschaller
 					.unmarshalFromString(slResponse);
 		} catch (JAXBException e) {
-			throw new PDFIOException("SL_COM", e);
+			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (ClientProtocolException e) {
-			throw new PDFIOException("SL_COM", e);
+			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (IOException e) {
-			throw new PDFIOException("SL_COM", e);
+			throw new PDFIOException("error.pdf.io.03", e);
 		}
 
 		if (element == null) {
-			throw new PDFIOException("SL ELEMENT NOT AVAILABLE");
+			throw new PDFIOException("error.pdf.io.05");
 		}
 
 		if (element.getValue() instanceof CreateCMSSignatureResponseType) {
@@ -159,7 +159,7 @@ public class BKUSLConnector extends BaseSLConnector {
 			throw new SLPdfAsException(errorResponseType.getErrorCode(),
 					errorResponseType.getInfo());
 		}
-		throw new PdfAsException("Invalid SL Repsonse");
+		throw new PdfAsException("error.pdf.io.03");
 
 	}
 }

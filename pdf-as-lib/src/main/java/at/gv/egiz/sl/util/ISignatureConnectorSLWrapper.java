@@ -104,13 +104,13 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 					verifyResult.setSignerCertificate(signedData
 							.getCertificate(signerInfos[i]
 									.getSignerIdentifier()));
-					throw new PdfAsSignatureException("Invalid Signature", ex);
+					throw new PdfAsSignatureException("error.pdf.sig.08", ex);
 				}
 			}
 		} catch (CMSException e) {
-			throw new PdfAsSignatureException("Invalid Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.08", e);
 		} catch (IOException e) {
-			throw new PdfAsSignatureException("Invalid Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.08", e);
 		}
 
 		return response.getCMSSignature();

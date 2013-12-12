@@ -8,12 +8,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 
-public interface PdfAs {
-
-	// Sign
-	// Verify
-	// Get Configuration
-	
+public interface PdfAs {	
 	/**
 	 * Signs a PDF document using PDF-AS.
 	 * 

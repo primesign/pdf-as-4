@@ -1,19 +1,20 @@
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.common.utils.DNUtils;
-import at.gv.egiz.pdfas.common.utils.OgnlUtils;
-import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import iaik.x509.X509Certificate;
+
+import java.util.Map;
+
+import javax.naming.InvalidNameException;
+
 import ognl.OgnlContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-
-import java.util.Map;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.common.utils.DNUtils;
+import at.gv.egiz.pdfas.common.utils.OgnlUtils;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 public class CertificateResolver implements IResolver {
 

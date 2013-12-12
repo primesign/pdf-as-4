@@ -13,7 +13,6 @@ import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,41 +111,4 @@ public class PADESPDFBOXSigner implements IPdfSigner {
             throw new PdfAsException("error.pdf.sig.01", e);
         }
     }
-
-/*
-    public void signPDF(String src, String dst, SignatureInterface signer) throws Exception {
-        //ByteArrayOutputStream os = new ByteArrayOutputStream();
-        FileInputStream fis = new FileInputStream(new File(src));
-        FileOutputStream fos = new FileOutputStream(new File(dst));
-        byte[] buffer = new byte[8 * 1024];
-        byte[] outbuffer;
-        int c;
-        while ((c = fis.read(buffer)) != -1)
-        {
-            fos.write(buffer, 0, c);
-        }
-        fis.close();
-        PDDocument doc = PDDocument.load(src);
-        fis = new FileInputStream(new File(dst));
-
-        PDSignature signature = new PDSignature();
-        signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE); // default filter
-
-        signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
-        signature.setName("Andraes Fitzek");
-        signature.setLocation("signer location");
-        signature.setReason("Test Signature");
-
-        // the signing date, needed for valid signature
-        signature.setSignDate(Calendar.getInstance());
-
-        doc.addSignature(signature, signer);
-
-        // pdfbox patched (FIS -> IS)
-        doc.saveIncremental(fis, fos);
-
-        fos.close();
-       // FileUtils.writeByteArrayToFile(new File(dst), os.toByteArray());
-    }
-*/
 }

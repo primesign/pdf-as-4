@@ -65,7 +65,7 @@ public abstract class PDFUtilities
         }
         catch (IOException e)
         {
-            throw new PDFIOException("calculatePageLength", e);
+            throw new PDFIOException("error.pdf.stamp.11", e);
         }
     }
 

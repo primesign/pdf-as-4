@@ -30,11 +30,6 @@ public class ValueResolver implements IProfileConstants, IResolver {
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
 
-	// TODO: Currently just for proof of concept ...
-	// Should support Reading Fields from Certificate and DATETIME
-
-	// TODO: Use status in real implementation to get currently needed
-	// informations...
 	public String resolve(String key, String value,
 			SignatureProfileSettings settings, RequestedSignature signature) {
 
@@ -61,13 +56,6 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			} else {
 				result = value;
 			}
-			/*
-			 * if (value.startsWith(EXP_START) && value.endsWith(EXP_END)) { //
-			 * TODO: handle OGNL expression for key and value // TODO: Here we
-			 * need the certificate
-			 * 
-			 * String exp = value.replace('$', ' '); return }
-			 */
 			return result;
 		}
 

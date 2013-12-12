@@ -68,12 +68,10 @@ public class StatusRequestImpl implements StatusRequest {
 	}
 
 	public byte[] getSignatureData() {
-		// TODO Auto-generated method stub
 		return signatureData;
 	}
 
 	public int[] getSignatureDataByteRange() {
-		// TODO Auto-generated method stub
 		return byteRange;
 	}
 

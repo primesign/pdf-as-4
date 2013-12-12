@@ -111,14 +111,14 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
          try {
             doc = PDDocument.load(inputStream);
          } catch (IOException e) {
-            throw new PDFIOException("failed to read document", e);
+            throw new PDFIOException("error.pdf.io.04", e);
          }
          SignaturePlaceholderExtractor extractor;
          try
          {
             extractor = new SignaturePlaceholderExtractor(placeholderId, matchMode);
          } catch (IOException e2) {
-            throw new PDFIOException("failed to read document", e2);
+            throw new PDFIOException("error.pdf.io.04", e2);
          }
          List pages = doc.getDocumentCatalog().getAllPages();
          Iterator iter = pages.iterator();
@@ -135,7 +135,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
                   return ret;
                }
             } catch (IOException e1) {
-            	throw new PDFIOException("failed to read document", e1);
+            	throw new PDFIOException("error.pdf.io.04", e1);
             }
 
          }
@@ -146,7 +146,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
          }
          // no placeholders found, apply strict mode if set
          if (matchMode == PLACEHOLDER_MATCH_MODE_STRICT) {
-            throw new PlaceholderExtractionException("no suitable placeholder found and STRICT matching mode requested.");
+            throw new PlaceholderExtractionException("error.pdf.stamp.09");
          }
 
          return null;
@@ -165,7 +165,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
          List placeholders, String placeholderId, int matchMode) throws PlaceholderExtractionException {
 
       if (matchMode == PLACEHOLDER_MATCH_MODE_STRICT)
-         throw new PlaceholderExtractionException("no suitable placeholder found and STRICT matching mode requested.");
+         throw new PlaceholderExtractionException("error.pdf.stamp.09");
 
       if (placeholders.size() == 0)
          return null;

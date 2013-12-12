@@ -15,7 +15,7 @@ public class MessageResolver {
     private static ResourceBundle bundle;
 
     static {
-        ResourceBundle bundle = ResourceBundle.getBundle(messageResource);
+        bundle = ResourceBundle.getBundle(messageResource);
         if(bundle == null) {
             logger.error("Failed to load resource bundle!!");
             System.err.println("Failed to load resource bundle!!");

@@ -33,12 +33,7 @@ public class PdfAsFactory {
 	static {
 		PropertyConfigurator.configure(ClassLoader
 				.getSystemResourceAsStream("resources/log4j.properties"));
-		// BasicConfigurator.configure();
-
-		// iaik.security.ecc.provider.ECCProvider.addAsProvider();
 		IAIK.addAsProvider();
-		// ECCProvider.addAsProvider();
-		// install security provider
 		ECCelerate.addAsProvider();
 	}
 
@@ -89,6 +84,14 @@ public class PdfAsFactory {
 		return param;
 	}
 
+	/**
+	 * Deploy default configuration to targetDirectory
+	 * 
+	 * The targetDirectory will be deleted and 
+	 * 
+	 * @param targetDirectory 
+	 * @throws Exception
+	 */
 	public static void deployDefaultConfiguration(File targetDirectory)
 			throws Exception {
 		if (targetDirectory.exists()) {
@@ -100,10 +103,6 @@ public class PdfAsFactory {
 		}
 		InputStream is = ClassLoader
 				.getSystemResourceAsStream(DEFAULT_CONFIG_RES);
-		// URL zipUrl = ClassLoader.getSystemResource(DEFAULT_CONFIG_RES);
-		// logger.debug("CONFIG URI: " + zipUrl.toURI().toString());
-		// File zipFile = new File(zipUrl.toURI());
-		// ZipFile zip = null;
 		ZipInputStream zip = null;
 		try {
 			zip = new ZipInputStream(is);

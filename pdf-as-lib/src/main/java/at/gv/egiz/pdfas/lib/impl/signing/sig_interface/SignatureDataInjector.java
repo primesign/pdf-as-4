@@ -28,10 +28,6 @@ public class SignatureDataInjector extends SignatureDataExtractor {
 			IOException {
 		byte[] signatureData = StreamUtils.inputStreamToByteArray(content);
 		
-		FileOutputStream fos2 = new FileOutputStream("/home/afitzek/devel/pdfas_neu/sign2.pdf");
-		fos2.write(signatureData);
-		fos2.close();
-		
 		if(signatureData.length != this.oldSignatureData.length) {
 			throw new SignatureException("Signature Data missmatch!");
 		}
