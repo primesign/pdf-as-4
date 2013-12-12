@@ -17,8 +17,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.org.apache.bcel.internal.generic.NEW;
-
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
@@ -39,7 +37,6 @@ public class PdfAsFactory {
 
 		// iaik.security.ecc.provider.ECCProvider.addAsProvider();
 		IAIK.addAsProvider();
-		;
 		// ECCProvider.addAsProvider();
 		// install security provider
 		ECCelerate.addAsProvider();
