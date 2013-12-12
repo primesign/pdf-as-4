@@ -26,6 +26,8 @@ public class CertificateResolver implements IResolver {
         this.certificate = certificate;
         this.ctx = new OgnlContext();
 
+        this.ctx.put("sn", this.certificate.getSerialNumber().toString());
+        
         try {
             Map<String, String> issuerDNMap = DNUtils.dnToMap(certificate.getIssuerDN().getName());
             this.ctx.put("issuer", issuerDNMap);

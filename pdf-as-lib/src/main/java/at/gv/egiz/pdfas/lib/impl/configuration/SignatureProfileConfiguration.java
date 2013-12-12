@@ -20,7 +20,7 @@ public class SignatureProfileConfiguration extends SpecificBaseConfiguration
 	}
 	
 	public String getDefaultPositioning() {
-		String key = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + TABLE + SEPERATOR + POS;
+		String key = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + POS;
 		return this.configuration.getValue(key);
 	}
 	

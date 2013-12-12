@@ -524,6 +524,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						.getDefaultPositioning();
 			}
 
+			logger.debug("using Positioning: " + posString);
+			
 			boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
 			
 			TablePos tablePos = null;
