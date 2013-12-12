@@ -29,6 +29,7 @@ package at.gv.egiz.pdfas.api.commons;
  *
  * @author wprinz
  */
+@Deprecated
 public final class Constants
 {
 

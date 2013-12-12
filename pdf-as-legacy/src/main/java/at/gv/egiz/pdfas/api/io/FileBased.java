@@ -34,6 +34,7 @@ import java.io.File;
  * 
  * @author wprinz
  */
+@Deprecated
 public interface FileBased
 {
   

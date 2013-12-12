@@ -37,6 +37,7 @@ package at.gv.egiz.pdfas.api.io;
  * 
  * @author wprinz
  */
+@Deprecated
 public interface TextBased
 {
 

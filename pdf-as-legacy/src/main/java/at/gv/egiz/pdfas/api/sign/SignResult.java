@@ -35,6 +35,7 @@ import at.gv.egiz.pdfas.api.sign.pos.SignaturePosition;
  * 
  * @author wprinz
  */
+@Deprecated
 public interface SignResult
 {
 

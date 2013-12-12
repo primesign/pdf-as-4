@@ -32,6 +32,7 @@ import at.knowcenter.wag.egov.egiz.sig.SignatureTypes.State;
  * 
  * @author wprinz
  */
+@Deprecated
 public interface SignatureProfile {
 
    // TODO: implement full profile support

@@ -37,6 +37,7 @@ import at.knowcenter.wag.egov.egiz.sig.SignatureTypes;
  *
  * @author wprinz
  */
+@Deprecated
 public class SignParameters
 {
 // 23.11.2010 changed by exthex - added parameters for placeholder handling

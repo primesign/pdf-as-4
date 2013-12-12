@@ -32,6 +32,7 @@ package at.gv.egiz.pdfas.api.exceptions;
  * 
  * @author wprinz
  */
+@Deprecated
 public final class ErrorCode
 {
   public static final int EXTERNAL_ERROR = 0;

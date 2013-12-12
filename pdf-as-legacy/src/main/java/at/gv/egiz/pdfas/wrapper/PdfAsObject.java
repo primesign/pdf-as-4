@@ -1,6 +1,10 @@
 package at.gv.egiz.pdfas.wrapper;
 
+import iaik.x509.X509Certificate;
+
 import java.io.File;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,38 +50,62 @@ public class PdfAsObject implements PdfAs {
 	public SignResult sign(SignParameters signParameters,
 			SignatureDetailInformation signatureDetailInformation)
 			throws PdfAsException {
-		// Create the signature ....
-		SignParameter signParameter4 = PdfAsFactory.createSignParameter(
-				this.configuration, new ByteArrayDataSource(signParameters
-						.getDocument().getAsByteArray()));
 
-		SignParameterWrapper wrapper = new SignParameterWrapper(signParameters, signParameter4);
-		
-		// TODO wait for SL wrapper implementation
-		return null;
+		if (!(signatureDetailInformation instanceof SignatureDetailInformationWrapper)) {
+			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+					"Invalid state");
+		}
+
+		SignatureDetailInformationWrapper sdi = (SignatureDetailInformationWrapper) signatureDetailInformation;
+		StatusRequest request = sdi.getStatus();
+
+		if (request.needSignature()) {
+			try {
+				byte[] signature = sdi.wrapper.getSignParameter4().getPlainSigner().sign(
+						request.getSignatureData(), request.getSignatureDataByteRange());
+				request.setSigature(signature);
+				request = this.pdfas4.process(request);
+				if(request.isReady()) {
+					at.gv.egiz.pdfas.lib.api.sign.SignResult result = this.pdfas4.finishSign(request);
+					sdi.wrapper.syncNewToOld();
+					SignResultImpl oldresult = new SignResultImpl(sdi.wrapper.getSignParameters().getOutput(), 
+							sdi.getX509Certificate());
+					return oldresult;
+				} else {
+					throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+							"Invalid state");
+				}
+			} catch (at.gv.egiz.pdfas.common.exceptions.PdfAsException e) {
+				throw new PdfAsException(
+						ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
+			}
+		} else {
+			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+					"Invalid state");
+		}
 	}
 
 	public VerifyResults verify(VerifyParameters verifyParameters)
 			throws PdfAsException {
 		try {
-			VerifyParameter newParameter = VerifyParameterWrapper.toNewParameters(verifyParameters);
-		
+			VerifyParameter newParameter = VerifyParameterWrapper
+					.toNewParameters(verifyParameters, this.pdfas4.getConfiguration());
+
 			List<VerifyResult> results = this.pdfas4.verify(newParameter);
-		
+
 			Iterator<VerifyResult> it = results.iterator();
-			
-			List<at.gv.egiz.pdfas.api.verify.VerifyResult> resultList = 
-					new ArrayList<at.gv.egiz.pdfas.api.verify.VerifyResult>();
-			
-			while(it.hasNext()) {
+
+			List<at.gv.egiz.pdfas.api.verify.VerifyResult> resultList = new ArrayList<at.gv.egiz.pdfas.api.verify.VerifyResult>();
+
+			while (it.hasNext()) {
 				VerifyResult newResult = it.next();
-				at.gv.egiz.pdfas.api.verify.VerifyResult oldResult = 
-						new VerifyResultWrapper(newResult);
+				at.gv.egiz.pdfas.api.verify.VerifyResult oldResult = new VerifyResultWrapper(
+						newResult);
 				resultList.add(oldResult);
 			}
-			
+
 			return new VerifyResultsImpl(resultList);
-		} catch(at.gv.egiz.pdfas.common.exceptions.PdfAsException e) {
+		} catch (at.gv.egiz.pdfas.common.exceptions.PdfAsException e) {
 			throw new PdfAsException(0, e.getMessage());
 		}
 	}
@@ -166,15 +194,39 @@ public class PdfAsObject implements PdfAs {
 					this.configuration, new ByteArrayDataSource(signParameters
 							.getDocument().getAsByteArray()));
 
-			SignParameterWrapper wrapper = new SignParameterWrapper(signParameters, signParameter4);
-			
-			// TODO: wrapper sync old to new
-			StatusRequest request = this.pdfas4.startSign(wrapper.getSignParameter4());
-			// TODO: wait for SL implementation wrapper
-			return null;
+			SignParameterWrapper wrapper = new SignParameterWrapper(
+					signParameters, signParameter4);
+			SignatureDetailInformationWrapper sdi = null;
 
+			wrapper.syncOldToNew();
+
+			StatusRequest request = this.pdfas4.startSign(wrapper
+					.getSignParameter4());
+
+			if (request.needCertificate()) {
+				X509Certificate certificate = signParameter4.getPlainSigner()
+						.getCertificate();
+				sdi = new SignatureDetailInformationWrapper(certificate);
+				request.setCertificate(certificate.getEncoded());
+				request = this.pdfas4.process(request);
+				if (request.needSignature()) {
+					sdi.setDataSource(new ByteArrayDataSource_OLD(request
+							.getSignatureData()));
+				}
+				sdi.wrapper = wrapper;
+				sdi.setStatus(request);
+			}
+
+			return sdi;
 		} catch (at.gv.egiz.pdfas.common.exceptions.PdfAsException e) {
-			throw new PdfAsException(0, e.getMessage());
+			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+					e.getMessage());
+		} catch (CertificateEncodingException e) {
+			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+					e.getMessage());
+		} catch (CertificateException e) {
+			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+					e.getMessage());
 		}
 	}
 

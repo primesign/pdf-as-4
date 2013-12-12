@@ -37,6 +37,7 @@ import at.gv.egiz.pdfas.api.sign.pos.SignaturePosition;
  * 
  * @author exthex
  */
+@Deprecated
 public interface SignatureDetailInformation
 {
   public DataSource getSignatureData();

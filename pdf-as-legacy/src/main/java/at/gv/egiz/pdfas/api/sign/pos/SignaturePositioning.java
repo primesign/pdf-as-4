@@ -291,6 +291,47 @@ public class SignaturePositioning implements Serializable
          }
       }
    }
+   
+   public String getPositionString() {
+	   StringBuilder sb = new StringBuilder();
+	   AxisAlgorithm xAlgo = getXAlgorithm();
+	   
+	   if(xAlgo instanceof AutoAxisAlgorithm) {
+		   sb.append("x:auto;");
+	   } else if(xAlgo instanceof AbsoluteAxisAlgorithm) {
+		   sb.append("x:" + ((AbsoluteAxisAlgorithm)xAlgo).getAbsoluteValue() + ";");
+	   }
+	   
+	   AxisAlgorithm yAlgo = getXAlgorithm();
+	   
+	   if(yAlgo instanceof AutoAxisAlgorithm) {
+		   sb.append("y:auto;");
+	   } else if(yAlgo instanceof AbsoluteAxisAlgorithm) {
+		   sb.append("y:" + ((AbsoluteAxisAlgorithm)yAlgo).getAbsoluteValue() + ";");
+	   }
+	   
+	   AxisAlgorithm wAlgo = getWidthAlgorithm();
+	   
+	   if(wAlgo instanceof AutoAxisAlgorithm) {
+		   sb.append("w:auto;");
+	   } else if(wAlgo instanceof AbsoluteAxisAlgorithm) {
+		   sb.append("w:" + ((AbsoluteAxisAlgorithm)wAlgo).getAbsoluteValue() + ";");
+	   }
+	   
+	   PageAlgorithm pAlgo = getPageAlgorithm();
+	   
+	   if(pAlgo instanceof AutoPageAlgorithm) {
+		   sb.append("p:auto;");
+	   } else if(pAlgo instanceof NewPageAlgorithm) {
+		   sb.append("p:new;");
+	   }
+	   
+	   float footerLine = getFooterLine();
+	   
+	   sb.append("f:" + + footerLine);
+	   
+	   return sb.toString();
+   }
   
 
 }

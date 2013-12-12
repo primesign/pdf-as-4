@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.api.exceptions;
 
+@Deprecated
 public class PdfAsWrappedException extends PdfAsException {
 
 	/**

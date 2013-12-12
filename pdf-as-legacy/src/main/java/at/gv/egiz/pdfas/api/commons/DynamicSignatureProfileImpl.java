@@ -41,6 +41,7 @@ import at.knowcenter.wag.egov.egiz.sig.SignatureTypes;
  * @author exthex
  *
  */
+@Deprecated
 public class DynamicSignatureProfileImpl implements DynamicSignatureProfile {
    private String name;   
    private Properties newProps = new Properties();

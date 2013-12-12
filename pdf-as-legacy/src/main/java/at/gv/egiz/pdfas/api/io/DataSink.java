@@ -37,6 +37,7 @@ import java.io.OutputStream;
  * 
  * @author wprinz
  */
+@Deprecated
 public interface DataSink
 {
   /**

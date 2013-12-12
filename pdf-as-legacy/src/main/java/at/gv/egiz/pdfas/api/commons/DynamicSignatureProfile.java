@@ -71,6 +71,7 @@ import at.gv.egiz.pdfas.api.sign.SignParameters;
  * @author exthex
  *
  */
+@Deprecated
 public interface DynamicSignatureProfile {
 
    /**

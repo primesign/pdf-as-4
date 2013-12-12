@@ -29,6 +29,7 @@ package at.gv.egiz.pdfas.api.analyze;
  * @author dferbas
  *
  */
+@Deprecated
 public class NonTextObjectInfo {
    public static final String TYPE_IMAGE = "image";
    public static final String TYPE_ANNOTATION = "annotation";

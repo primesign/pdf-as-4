@@ -36,6 +36,7 @@ import at.gv.egiz.pdfas.wrapper.PdfAsObject;
  * 
  * @author wprinz
  */
+@Deprecated
 public class PdfAsFactory
 {
    /**
@@ -54,9 +55,10 @@ public class PdfAsFactory
     *           if the config file is invalid.
     * @see PdfAS#USERHOME_CONFIG_FOLDER          
     */
+	@Deprecated
    public static PdfAs createPdfAs(File workDirectory) throws PdfAsException
    {
-      return createPdfAs(workDirectory);
+      return new PdfAsObject(workDirectory);
    }
    
    /**
@@ -79,6 +81,7 @@ public class PdfAsFactory
     *           if the config file is invalid.
     * @see PdfAS#USERHOME_CONFIG_FOLDER          
     */
+	@Deprecated
    public static PdfAs createPdfAs(File workDirectory, boolean registerProvider) throws PdfAsException
    {
      return new PdfAsObject(workDirectory);
@@ -96,9 +99,10 @@ public class PdfAsFactory
     *           if the config file is invalid.
     * @see PdfAS#USERHOME_CONFIG_FOLDER          
     */
+	@Deprecated
    public static PdfAs createPdfAs() throws PdfAsException
    {
-      return createPdfAs(null);
+      return createPdfAs(new File(System.getProperty("user.home") + "/.pdfas/"));
    }
    
    /**
@@ -118,6 +122,7 @@ public class PdfAsFactory
     *           if the config file is invalid.
     * @see PdfAS#USERHOME_CONFIG_FOLDER          
     */
+	@Deprecated
    public static PdfAs createPdfAs(boolean registerProvider) throws PdfAsException
    {
      return createPdfAs(null, registerProvider);

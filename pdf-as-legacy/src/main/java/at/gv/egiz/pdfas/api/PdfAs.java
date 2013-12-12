@@ -53,6 +53,7 @@ import at.gv.egiz.pdfas.api.xmldsig.ReconstructXMLDsigResult;
  * @author wprinz
  * @author exthex
  */
+@Deprecated
 public interface PdfAs
 {
 // 23.11.2010 changed by exthex - added:
@@ -77,6 +78,7 @@ public interface PdfAs
    * @see SignParameters
    * @see SignResult
    */
+	@Deprecated
   public SignResult sign(SignParameters signParameters) throws PdfAsException;
 
   /**
@@ -94,6 +96,7 @@ public interface PdfAs
    * @see SignParameters
    * @see SignResult
    */
+	@Deprecated
   public SignResult sign(SignParameters signParameters, SignatureDetailInformation signatureDetailInformation) throws PdfAsException;
 
   /**
@@ -109,6 +112,7 @@ public interface PdfAs
    * @see VerifyResults
    * @see VerifyResult
    */
+	@Deprecated
   public VerifyResults verify(VerifyParameters verifyParameters) throws PdfAsException;
 
   /**
@@ -125,6 +129,7 @@ public interface PdfAs
    * @see AnalyzeResult
    * @see {@link #verify(AnalyzeResult)}
    */
+	@Deprecated
   public AnalyzeResult analyze(AnalyzeParameters analyzeParameters) throws PdfAsException;
 
   /**
@@ -135,6 +140,7 @@ public interface PdfAs
    * @return a list of xmldsigs, one for each signature in the document
    * @throws PdfAsException if the reconstruction fails
    */
+	@Deprecated
   public ReconstructXMLDsigResult reconstructXMLDSIG(ReconstructXMLDsigParameters reconstructXMLDsigParameters) throws PdfAsException;
 
   /**
@@ -145,6 +151,7 @@ public interface PdfAs
    * @return a list of xmldsigs, one for each signature in the document
    * @throws PdfAsException
    */
+	@Deprecated
   public ReconstructXMLDsigResult reconstructXMLDSIG(ReconstructXMLDsigAfterAnalysisParameters reconstructXMLDsigParameters) throws PdfAsException;
   
   /**
@@ -162,6 +169,7 @@ public interface PdfAs
    * @see VerifyResult
    * @see {@link #analyze(AnalyzeParameters)}
    */
+	@Deprecated
   public VerifyResults verify(VerifyAfterAnalysisParameters verifyAfterAnalysisParameters) throws PdfAsException;
 
   /**
@@ -173,6 +181,7 @@ public interface PdfAs
    * @throws PdfAsException
    *           Thrown on error.
    */
+	@Deprecated
   public VerifyResults verify(VerifyAfterReconstructXMLDsigParameters verifyAfterReconstructXMLDsigParameters) throws PdfAsException;
   
   /**
@@ -181,6 +190,7 @@ public interface PdfAs
    * @throws PdfAsException
    *           Thrown, if an error occurs.
    */
+	@Deprecated
   public void reloadConfig() throws PdfAsException;
 
   /**
@@ -204,6 +214,7 @@ public interface PdfAs
    * 
    * @see SignatureProfile
    */
+	@Deprecated
   public List getProfileInformation() throws PdfAsException;
 
   /**
@@ -212,6 +223,7 @@ public interface PdfAs
    * @param mode lifetime mode
    * @return the created signature profile to work with.
    */
+	@Deprecated
   public DynamicSignatureProfile createDynamicSignatureProfile(String parentProfile, DynamicSignatureLifetimeEnum mode);
 
   /**
@@ -224,6 +236,7 @@ public interface PdfAs
    * @param mode lifetime mode
    * @return the created signature profile to work with.
    */
+	@Deprecated
   public DynamicSignatureProfile createDynamicSignatureProfile(String myUniqueName, String parentProfile, DynamicSignatureLifetimeEnum mode);
   
   /**
@@ -235,6 +248,7 @@ public interface PdfAs
    * @return the created signature profile to work with.
    * @see DynamicSignatureProfile
    */
+	@Deprecated
   public DynamicSignatureProfile createEmptyDynamicSignatureProfile(DynamicSignatureLifetimeEnum mode);
   
   /**
@@ -246,6 +260,7 @@ public interface PdfAs
    * @param mode lifetime mode
    * @return the created signature profile to work with.
    */
+	@Deprecated
   public DynamicSignatureProfile createEmptyDynamicSignatureProfile(String myUniqueName, DynamicSignatureLifetimeEnum mode);
 
   /**
@@ -255,6 +270,7 @@ public interface PdfAs
    * @return the signature profile or <code>null</code> if not found.
    * @see DynamicSignatureProfile
    */
+	@Deprecated
   public DynamicSignatureProfile loadDynamicSignatureProfile(String profileName);
   
   /**
@@ -266,6 +282,7 @@ public interface PdfAs
    * @return Only the {@link SignatureDetailInformation#getSignaturePosition()}, {@link SignatureDetailInformation#getNonTextualObjects()}, {@link SignatureDetailInformation#getSignatureData()} are filled.
    * @throws PdfAsException if something goes wrong during the process
    */
+	@Deprecated
   public SignatureDetailInformation prepareSign(SignParameters signParameters) throws PdfAsException;
   
   /**
@@ -279,6 +296,7 @@ public interface PdfAs
    * @return
    * @throws PdfAsException
    */
+	@Deprecated
   public SignResult finishSign(SignParameters signParameters, SignatureDetailInformation signatureDetailInformation) throws PdfAsException;
 
 }

@@ -34,6 +34,7 @@ import at.gv.egiz.pdfas.api.exceptions.PdfAsException;
  * @author wprinz
  * 
  */
+@Deprecated
 public interface AnalyzeResult
 {
   /**

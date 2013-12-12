@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.api.exceptions;
 /**
  * @author <a href="mailto:thomas.knall@egiz.gv.at">Thomas Knall</a>
  */
+@Deprecated
 public class ConfigUtilsException extends Exception {
 
    /**

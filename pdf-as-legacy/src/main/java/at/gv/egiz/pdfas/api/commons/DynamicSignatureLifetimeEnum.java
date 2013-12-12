@@ -31,6 +31,7 @@ import java.io.Serializable;
  * @author exthex
  *
  */
+@Deprecated
 public final class DynamicSignatureLifetimeEnum implements Serializable {
    private static final long serialVersionUID = 1L;
    

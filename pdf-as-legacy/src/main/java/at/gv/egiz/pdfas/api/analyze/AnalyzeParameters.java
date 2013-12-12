@@ -31,6 +31,7 @@ import at.gv.egiz.pdfas.api.io.DataSource;
  * 
  * @author wprinz
  */
+@Deprecated
 public class AnalyzeParameters
 {
 

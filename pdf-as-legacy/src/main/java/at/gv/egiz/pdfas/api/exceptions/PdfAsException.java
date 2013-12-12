@@ -32,6 +32,7 @@ package at.gv.egiz.pdfas.api.exceptions;
  * 
  * @author wprinz
  */
+@Deprecated
 public class PdfAsException extends Exception
 {
   /**

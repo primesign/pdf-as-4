@@ -35,6 +35,7 @@ import java.io.InputStream;
  * @author wprinz
  * 
  */
+@Deprecated
 public interface DataSource
 {
   /**
