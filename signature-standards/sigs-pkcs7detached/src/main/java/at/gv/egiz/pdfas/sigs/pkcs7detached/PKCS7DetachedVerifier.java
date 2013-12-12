@@ -40,16 +40,11 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 			
 			SignedData signedData = new SignedData(contentData, new AlgorithmID[] { 
 					AlgorithmID.sha256
-			});
-			
-			FileOutputStream fos = new FileOutputStream("/tmp/verify.bin");
-			fos.write(signatureContent);
-			fos.close();
-			
+			});			
 			ContentInfo ci = new ContentInfo(new ByteArrayInputStream(
 					signatureContent));
 			if (!ci.getContentType().equals(ObjectID.cms_signedData)) {
-				throw new PdfAsException("No Signed DATA");
+				throw new PdfAsException("error.pdf.verify.01");
 			}
 			//SignedData signedData = (SignedData)ci.getContent();
 			//signedData.setContent(contentData);
@@ -98,7 +93,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 
 			return result;
 		} catch (Throwable e) {
-			throw new PdfAsException("Verify failed", e);
+			throw new PdfAsException("error.pdf.verify.02", e);
 		}
 	}
 

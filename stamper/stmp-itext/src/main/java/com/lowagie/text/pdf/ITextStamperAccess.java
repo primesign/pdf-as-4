@@ -6,6 +6,7 @@ import java.net.MalformedURLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.stmp.itext.ITextStamper;
 
@@ -35,12 +36,12 @@ public class ITextStamperAccess {
            }
            else
            {
-              throw new PdfAsException("failed to write PDF", new NullPointerException("Image dictionary not found in document structure!"));
+              throw new PDFIOException("error.pdf.io.02", new NullPointerException("Image dictionary not found in document structure!"));
            }
         }
         else
         {
-           throw new PdfAsException("failed to write PDF", new NullPointerException("Resource dictionary not found in document structure!"));
+           throw new PDFIOException("error.pdf.io.02", new NullPointerException("Resource dictionary not found in document structure!"));
         }
      }
 	

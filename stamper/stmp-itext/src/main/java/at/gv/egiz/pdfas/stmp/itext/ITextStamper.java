@@ -1,8 +1,18 @@
 package at.gv.egiz.pdfas.stmp.itext;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
@@ -11,18 +21,20 @@ import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
 
-import com.lowagie.text.*;
-import com.lowagie.text.pdf.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import com.lowagie.text.BadElementException;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.Image;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.ITextStamperAccess;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
 
 public class ITextStamper implements IPDFStamper {
 
@@ -52,7 +64,7 @@ public class ITextStamper implements IPDFStamper {
     {
         if (abstractTable == null)
         {
-            PdfAsException pde = new PdfAsException("Table is not defined.");
+            PdfAsException pde = new PdfAsException("error.pdf.stamp.03");
             throw pde;
         }
         PdfPTable pdf_table = null;
@@ -72,10 +84,12 @@ public class ITextStamper implements IPDFStamper {
         Style table_style = abstractTable.getStyle();
         setCellStyle(pdf_table.getDefaultCell(), table_style, Entry.TYPE_TABLE);
 
-        ArrayList rows = abstractTable.getRows();
+        @SuppressWarnings("rawtypes")
+		ArrayList rows = abstractTable.getRows();
         for (int row_idx = 0; row_idx < rows.size(); row_idx++)
         {
-            ArrayList row = (ArrayList) rows.get(row_idx);
+            @SuppressWarnings("rawtypes")
+			ArrayList row = (ArrayList) rows.get(row_idx);
             logger.debug("## Row:" + row_idx + " ## of table:" + abstractTable.getName());
             for (int entry_idx = 0; entry_idx < row.size(); entry_idx++)
             {
@@ -243,9 +257,9 @@ public class ITextStamper implements IPDFStamper {
             }
             return font;
        } catch (DocumentException e) {
-           throw new PdfAsException(e.getMessage());
+           throw new PdfAsException("error.pdf.stamp.01", e);
        } catch (IOException e) {
-           throw new PdfAsException(e.getMessage());
+           throw new PdfAsException("error.pdf.stamp.01", e);
        }
     }
 
@@ -345,7 +359,7 @@ public class ITextStamper implements IPDFStamper {
                 else
                 {
                     if (pdfaValid) {
-                        throw new PdfAsException("PDF/A modus requires an embedable true type font");
+                        throw new PdfAsException("error.pdf.stamp.02");
                     }
                     cell_font = getCellFont(font_string);
 
@@ -367,17 +381,15 @@ public class ITextStamper implements IPDFStamper {
                     File img_file = new File(img_ref);
                     if (!img_file.isAbsolute()) {
                         logger.debug("Image file declaration is relative. Prepending path of resources directory.");
-                        //TODO: implement settings ....
                         img_file = new File(settings.getWorkingDirectory() + File.separator + img_ref);
                     } else {
                         logger.debug("Image file declaration is absolute. Skipping file relocation.");
                     }
-//        String img_location = SettingsReader.relocateFile(img_ref);
-//        File img_file = new File (img_location);
+
                     if (!img_file.exists())
                     {
                         logger.debug("Image file \"" + img_file.getCanonicalPath() + "\" doesn't exist.");
-                        throw new PdfAsException("Image file \"" + img_file.getCanonicalPath() + "\" doesn't exist.");
+                        throw new PdfAsException("error.pdf.stamp.04");
                     }
                     Image image = Image.getInstance(img_file.getCanonicalPath());
                     logger.debug("Using image file \"" + img_file.getCanonicalPath() + "\".");
@@ -396,19 +408,19 @@ public class ITextStamper implements IPDFStamper {
                 catch (BadElementException e)
                 {
                     logger.error("BadElementException:" + e.getMessage());
-                    PdfAsException pde = new PdfAsException("Unable to create PDF table.");
+                    PdfAsException pde = new PdfAsException("error.pdf.stamp.05", e);
                     throw pde;
                 }
                 catch (MalformedURLException e)
                 {
                     logger.error("MalformedURLException:" + e.getMessage());
-                    PdfAsException pde = new PdfAsException("Unable to create PDF table.");
+                    PdfAsException pde = new PdfAsException("error.pdf.stamp.05", e);
                     throw pde;
                 }
                 catch (IOException e)
                 {
-                    logger.error("Error Code: 222, IOException:" + e.getMessage());
-                    PdfAsException pde = new PdfAsException("Unable to create PDF table, unable to load image.");
+                    logger.error("IOException:" + e.getMessage());
+                    PdfAsException pde = new PdfAsException("error.pdf.stamp.05", e);
                     throw pde;
                 }
                 break;
@@ -454,8 +466,7 @@ public class ITextStamper implements IPDFStamper {
             }
 
             if(object == null) {
-                //TODO: exception!
-                return null;
+                throw new PdfAsException("error.pdf.stamp.06");
             }
 
             PdfReader reader = new PdfReader(pdfData);
@@ -477,8 +488,9 @@ public class ITextStamper implements IPDFStamper {
             if (positioningInstruction.getPage() < 1 ||
                     positioningInstruction.getPage() > stamper.getReader().getNumberOfPages())
             {
-                throw new PdfAsException("The provided page (=" +
+            	logger.error("The provided page (=" +
                         positioningInstruction.getPage() + ") is out of range.");
+                throw new PdfAsException("error.pdf.stamp.07");
             }
             
             if(placeholderName != null) {
@@ -503,10 +515,11 @@ public class ITextStamper implements IPDFStamper {
 
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
+            throw new PDFIOException("error.pdf.stamp.08", e);
         } catch (DocumentException e) {
             logger.error(e.getMessage(), e);
+            throw new PdfAsException("error.pdf.stamp.08", e);
         }
-        return null;
     }
 
 	public void setSettings(ISettings settings) {

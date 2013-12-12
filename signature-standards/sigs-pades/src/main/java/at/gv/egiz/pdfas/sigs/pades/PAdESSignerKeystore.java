@@ -53,7 +53,7 @@ public class PAdESSignerKeystore implements IPlainSigner {
 			privKey = (PrivateKey) ks.getKey(alias, keypassword.toCharArray());
 			cert = new X509Certificate(ks.getCertificate(alias).getEncoded());
 		} catch (Throwable e) {
-			throw new PdfAsException("Failed to get KeyStore", e);
+			throw new PdfAsException("error.pdf.sig.02", e);
 		}
 	}
 
@@ -124,6 +124,7 @@ public class PAdESSignerKeystore implements IPlainSigner {
 			si.addSignerInfo(signer1);
 			InputStream dataIs = si.getInputStream();
 			byte[] buf = new byte[1024];
+			@SuppressWarnings("unused")
 			int r;
 			while ((r = dataIs.read(buf)) > 0)
 				; // skip data
@@ -131,15 +132,15 @@ public class PAdESSignerKeystore implements IPlainSigner {
 
 			return ci.getEncoded();
 		} catch (NoSuchAlgorithmException e) {
-			throw new PdfAsSignatureException("Failed to generate Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (iaik.cms.CMSException e) {
-			throw new PdfAsSignatureException("Failed to generate Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (IOException e) {
-			throw new PdfAsSignatureException("Failed to generate Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (CertificateException e) {
-			throw new PdfAsSignatureException("Failed to generate Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (CodingException e) {
-			throw new PdfAsSignatureException("Failed to generate Signature", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		}
 	}
 

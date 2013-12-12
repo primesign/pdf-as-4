@@ -1,6 +1,5 @@
 package at.gv.egiz.pdfas.sigs.pades;
 
-import iaik.security.provider.IAIK;
 import iaik.x509.X509Certificate;
 
 import java.util.ArrayList;
@@ -174,7 +173,7 @@ public class PAdESVerifier implements IVerifyFilter {
 				resultList.add(result);
 			}
 		} catch (Throwable e) {
-			e.printStackTrace();
+			throw new PdfAsException("error.pdf.verify.02", e);
 		}
 		return resultList;
 	}

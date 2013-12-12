@@ -14,7 +14,6 @@ import iaik.x509.X509Certificate;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -22,8 +21,6 @@ import java.security.cert.Certificate;
 import java.util.Date;
 
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.cms.CMSProcessable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +48,7 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			privKey = (PrivateKey) ks.getKey(alias, keypassword.toCharArray());
 			cert = new X509Certificate(ks.getCertificate(alias).getEncoded());
 		} catch (Throwable e) {
-			throw new PdfAsException("Failed to get KeyStore", e);
+			throw new PdfAsException("error.pdf.sig.02", e);
 		}
 	}
 
@@ -61,6 +58,7 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
 		try {
+			logger.info("Creating PKCS7 signature.");
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 			SignerInfo signer1 = new SignerInfo(issuer, AlgorithmID.sha256, 
 					AlgorithmID.ecdsa_With_SHA256, 
@@ -84,14 +82,14 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			while ((r = dataIs.read(buf)) > 0)
 				; // skip data
 			ContentInfo ci = new ContentInfo(si);
-
+			logger.info("PKCS7 signature done.");
 			return ci.getEncoded();
 		} catch (NoSuchAlgorithmException e) {
-			throw new PdfAsSignatureException("", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (iaik.cms.CMSException e) {
-			throw new PdfAsSignatureException("", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (IOException e) {
-			throw new PdfAsSignatureException("", e);
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} 
 	}
 
