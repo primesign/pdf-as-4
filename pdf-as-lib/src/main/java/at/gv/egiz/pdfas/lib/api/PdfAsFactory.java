@@ -5,6 +5,8 @@ import iaik.security.provider.IAIK;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +16,8 @@ import java.util.zip.ZipInputStream;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.org.apache.bcel.internal.generic.NEW;
 
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
@@ -33,14 +37,45 @@ public class PdfAsFactory {
 				.getSystemResourceAsStream("resources/log4j.properties"));
 		// BasicConfigurator.configure();
 
-		//iaik.security.ecc.provider.ECCProvider.addAsProvider();
-		IAIK.addAsProvider();;
-		//ECCProvider.addAsProvider();
+		// iaik.security.ecc.provider.ECCProvider.addAsProvider();
+		IAIK.addAsProvider();
+		;
+		// ECCProvider.addAsProvider();
 		// install security provider
 		ECCelerate.addAsProvider();
 	}
 
+	private static boolean log_configured = false;
+	private static Object log_mutex = new Object();
+
+	public static void dontConfigureLog4j() {
+		synchronized (log_mutex) {
+			log_configured = true;
+		}
+	}
+
 	public static PdfAs createPdfAs(File configuration) {
+		if (!log_configured) {
+			synchronized (log_mutex) {
+				if (!log_configured) {
+					File log4j = new File(configuration.getAbsolutePath()
+							+ File.separator + "cfg" + File.separator
+							+ "log4j.properties");
+					logger.info("Loading log4j configuration: " + log4j.getAbsolutePath());
+					if (log4j.exists()) {
+						try {
+							System.setProperty("pdf-as.work-dir", configuration.getAbsolutePath());
+							PropertyConfigurator.configure(new FileInputStream(
+									log4j));
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						}
+					}
+					log_configured = true;
+				}
+			}
+		}
+
 		return new PdfAsImpl(configuration);
 	}
 
