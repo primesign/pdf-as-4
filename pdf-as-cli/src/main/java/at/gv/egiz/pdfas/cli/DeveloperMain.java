@@ -35,20 +35,20 @@ public class DeveloperMain {
 	
 	public static void main(String[] args) {		
 		String user_home = System.getProperty("user.home");
-		String pdfas_dir = user_home + File.separator + "PDF-AS";
+		String pdfas_dir = user_home + File.separator + ".pdfas";
 		PdfAs pdfas = PdfAsFactory.createPdfAs(new File(pdfas_dir));
 		Configuration config = pdfas.getConfiguration();
 		byte[] data;
 		try {
 			IPlainSigner signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
-			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/qr_2.pdf"));
+			data = StreamUtils.inputStreamToByteArray(new FileInputStream("/home/afitzek/simple.pdf"));
 			SignParameter parameter = PdfAsFactory.createSignParameter(config, new ByteArrayDataSource(data));
 			ByteArrayDataSink bads = new ByteArrayDataSink();
-			parameter.setSignatureProfileId("SIGNATURBLOCK_DE");
+			parameter.setSignatureProfileId("AMTSSIGNATURBLOCK_DE");
 			parameter.setOutput(bads);
 			//parameter.setPlainSigner(new PAdESSigner(new BKUSLConnector(config)));
-			//parameter.setPlainSigner(signer);
-			parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
+			parameter.setPlainSigner(signer);
+			//parameter.setPlainSigner(new PAdESSigner(new MOAConnector(config)));
 			/*
 			StatusRequest request = pdfas.startSign(parameter);
 			
@@ -78,7 +78,7 @@ public class DeveloperMain {
 			}
 			*/
 			pdfas.sign(parameter);
-			FileOutputStream fos = new FileOutputStream("/home/afitzek/qr_2_neu.pdf");
+			FileOutputStream fos = new FileOutputStream("/home/afitzek/simple_signed.pdf");
 			fos.write(bads.getData());
 			fos.close();
 			
