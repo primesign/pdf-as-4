@@ -233,7 +233,7 @@ public class Main {
 		if (cli.hasOption(CLI_ARG_POSITION_SHORT)) {
 			positionString = cli.getOptionValue(CLI_ARG_POSITION_SHORT);
 		} else {
-			positionString = STANDARD_POSITION_STRING;
+			positionString = null;
 		}
 
 		String profilID = null;
@@ -355,6 +355,7 @@ public class Main {
 		signParameter.setSignaturePosition(positionString);
 		signParameter.setSignatureProfileId(profilID);
 		System.out.println("Starting signature for " + pdfFile);
+		System.out.println("Selected signature Profile " + profilID);
 		SignResult result = pdfAs.sign(signParameter);
 
 		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
