@@ -7,6 +7,12 @@ public class SignatureProfileEntry {
 
     public SignatureProfileEntry() {
     }
+    
+    public SignatureProfileEntry(String key, String caption, String value) {
+    	this.key = key;
+    	this.caption = caption;
+    	this.value = value;
+    }
 
     public String getKey() {
         return key;

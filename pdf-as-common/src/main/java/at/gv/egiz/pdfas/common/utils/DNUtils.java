@@ -28,6 +28,9 @@ public class DNUtils {
             logger.debug(rdn.getType() + " = " + rdn.getValue().toString());
             map.put(rdn.getType(), rdn.getValue().toString());
         }
+        
+        map.put("DN", dn);
+        logger.debug("DN = " + dn);
 
         return map;
     }

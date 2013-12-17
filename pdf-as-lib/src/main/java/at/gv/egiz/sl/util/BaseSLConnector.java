@@ -58,7 +58,7 @@ public abstract class BaseSLConnector implements ISLConnector {
 		byte[] data = new byte[dataSize];
 		int currentdataOff = 0;
 		
-		Arrays.fill(data, (byte)0);
+		Arrays.fill(data, (byte)0x0);
 		int[] exclude_range = new int[byteRange.length-2];
 		for(int i = 0; i < byteRange.length; i = i + 2) {
 			int offset = byteRange[i];

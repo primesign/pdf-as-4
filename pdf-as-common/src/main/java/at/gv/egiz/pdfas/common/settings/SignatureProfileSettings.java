@@ -46,6 +46,15 @@ public class SignatureProfileSettings implements IProfileConstants {
 				String valueValue = values.get(valuesPrefix + KEY_SEPARATOR
 						+ key);
 
+				// Lookup default values
+				if(valueKey == null) {
+					valueKey = DefaultSignatureProfileSettings.getDefaultKeyCaption(key);
+				}
+				
+				if(valueValue == null) {
+					valueValue = DefaultSignatureProfileSettings.getDefaultKeyValue(key);
+				}
+				
 				SignatureProfileEntry entry = new SignatureProfileEntry();
 				entry.setKey(key);
 				entry.setCaption(valueKey);
@@ -66,6 +75,11 @@ public class SignatureProfileSettings implements IProfileConstants {
 				String valueValue = values.get(valuesPrefix + KEY_SEPARATOR
 						+ key);
 
+				// Lookup default values			
+				if(valueValue == null) {
+					valueValue = DefaultSignatureProfileSettings.getDefaultKeyValue(key);
+				}
+				
 				SignatureProfileEntry entry = profileInformations.get(key);
 				if (entry == null) {
 					entry = new SignatureProfileEntry();
@@ -99,6 +113,16 @@ public class SignatureProfileSettings implements IProfileConstants {
 			profileSettings.put(key, others.get(value));
 
 			logger.debug("   Settings: " + key + " : " + value);
+		}
+		
+		
+		Iterator<SignatureProfileEntry> dumpIterator = 
+				profileInformations.values().iterator();
+		
+		logger.debug("Settings for profile {}", profileID);
+		while(dumpIterator.hasNext()) {
+			SignatureProfileEntry entry = dumpIterator.next();
+			logger.debug("  " + entry.toString());
 		}
 	}
 
