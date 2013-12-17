@@ -42,7 +42,11 @@ public class Settings implements ISettings, IProfileConstants{
             	while(includeIterator.hasNext()) {
             		String includeFile = configDir + File.separator + includeIterator.next();
             		logger.debug("Loading included cfg file: " + includeFile);
-            		properties.load(new FileInputStream(includeFile));
+            		try {
+            			properties.load(new FileInputStream(includeFile));
+            		} catch(Throwable e) {
+            			logger.error("Failed to load cfg file " + includeFile, e);
+            		}
             	}
             }
             

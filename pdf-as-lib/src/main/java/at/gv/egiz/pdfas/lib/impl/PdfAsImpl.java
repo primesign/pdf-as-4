@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -69,11 +70,40 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		this.settings = new Settings(cfgFile);
 	}
 
+	private void verifySignParameter(SignParameter parameter)
+			throws PdfAsException {
+		// Status initialization
+		if (!(parameter.getConfiguration() instanceof ISettings)) {
+			throw new PdfAsSettingsException("Invalid settings object!");
+		}
+		
+		ISettings settings = (ISettings) parameter.getConfiguration();
+		
+		String signatureProfile = parameter.getSignatureProfileId();
+		if(signatureProfile != null) {
+			if(!settings.hasPrefix("sig_obj." + signatureProfile + ".key")) {
+				throw new PdfAsValidationException("error.pdf.sig.09", signatureProfile);
+			}
+		}
+		
+		// TODO: verify Sign Parameter
+	}
+	
+	private void verifyVerifyParameter(VerifyParameter parameter)
+			throws PdfAsException {
+		// Status initialization
+		if (!(parameter.getConfiguration() instanceof ISettings)) {
+			throw new PdfAsSettingsException("Invalid settings object!");
+		}
+		
+		// TODO: verify Verify Parameter
+	}
+
 	public SignResult sign(SignParameter parameter) throws PdfAsException {
 
 		logger.trace("sign started");
 
-		// TODO: verify signParameter
+		verifySignParameter(parameter);
 
 		try {
 			// Status initialization
@@ -130,7 +160,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			return result;
 		} catch (Throwable e) {
-			logger.error("Failed to create signature [" + e.getMessage() + "]", e);
+			logger.error("Failed to create signature [" + e.getMessage() + "]",
+					e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
 			logger.trace("sign done");
@@ -139,6 +170,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 	public List<VerifyResult> verify(VerifyParameter parameter)
 			throws PdfAsException {
+		
+		verifyVerifyParameter(parameter);
+		
 		PDDocument doc = null;
 		try {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
@@ -212,7 +246,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			logger.error("Failed to verify document", e);
 			throw new PdfAsException("error.pdf.verify.02", e);
 		} finally {
-			if(doc != null) {
+			if (doc != null) {
 				try {
 					doc.close();
 				} catch (IOException e) {
@@ -228,7 +262,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 	public StatusRequest startSign(SignParameter parameter)
 			throws PdfAsException {
-		
+
 		// TODO: VERIFY PARAMETERS
 		StatusRequestImpl request = new StatusRequestImpl();
 
@@ -245,7 +279,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					status);
 
 			status.setRequestedSignature(requestedSignature);
- 
+
 			request.setStatus(status);
 
 			request.setNeedCertificate(true);
@@ -388,22 +422,23 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						.createDefaultStamper(settings);
 				IPDFVisualObject visualObject = stamper.createVisualPDFObject(
 						status.getPdfObject(), main);
-				
+
 				PDDocument originalDocument = PDDocument
 						.load(new ByteArrayInputStream(status.getPdfObject()
 								.getOriginalDocument()));
 
 				PositioningInstruction positioningInstruction = Positioning
-						.determineTablePositioning(tablePos, "", originalDocument,
-								visualObject, false);
+						.determineTablePositioning(tablePos, "",
+								originalDocument, visualObject, false);
 
 				// ================================================================
 				// StampingStage (visual) -> stamp logical signature block to
 				// location (itext)
 
-				byte[] incrementalUpdate = stamper.writeVisualObject(visualObject,
-						positioningInstruction, status.getPdfObject()
-								.getOriginalDocument(), signaturePlaceholderData.getPlaceholderName());
+				byte[] incrementalUpdate = stamper.writeVisualObject(
+						visualObject, positioningInstruction, status
+								.getPdfObject().getOriginalDocument(),
+						signaturePlaceholderData.getPlaceholderName());
 
 				SignaturePositionImpl position = new SignaturePositionImpl();
 				position.setX(positioningInstruction.getX());
@@ -461,9 +496,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 
 			logger.debug("using Positioning: " + posString);
-			
-			boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
-			
+
+			boolean legacy32Position = signatureProfileConfiguration
+					.getLegacy32Positioning();
+
 			TablePos tablePos = null;
 
 			if (posString == null) {
