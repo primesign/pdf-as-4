@@ -1,18 +1,16 @@
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
-import at.gv.egiz.pdfas.common.settings.IProfileConstants;
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
-import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import at.gv.egiz.pdfas.common.settings.IProfileConstants;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 9/11/13 Time: 11:11 AM To
