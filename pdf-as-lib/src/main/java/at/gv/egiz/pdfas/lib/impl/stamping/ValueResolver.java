@@ -25,7 +25,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 	public static final String PatternRegex = "\\$(\\{[^\\$]*\\})";
 
-	private static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
@@ -36,6 +36,16 @@ public class ValueResolver implements IProfileConstants, IResolver {
 		logger.debug("Resolving value for key: " + key);
 		logger.debug("Resolving value with value: " + value);
 
+		if (key.equals(SIG_DATE)) {
+			if (value == null) {
+				value = defaultDateFormat;
+			}
+			// Value holds the date format!
+			SimpleDateFormat formater = new SimpleDateFormat(value);
+			Calendar cal = Calendar.getInstance();
+			return formater.format(cal.getTime());
+		}
+		
 		if (value != null) {
 
 			Pattern pattern = Pattern.compile(PatternRegex);
@@ -57,16 +67,6 @@ public class ValueResolver implements IProfileConstants, IResolver {
 				result = value;
 			}
 			return result;
-		}
-
-		if (key.equals(SIG_DATE)) {
-			if (value == null) {
-				value = defaultDateFormat;
-			}
-			// Value holds the date format!
-			SimpleDateFormat formater = new SimpleDateFormat(value);
-			Calendar cal = Calendar.getInstance();
-			return formater.format(cal.getTime());
 		}
 
 		return value;
