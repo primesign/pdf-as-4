@@ -26,7 +26,6 @@ public class VerifyServlet extends HttpServlet {
      */
     public VerifyServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
 	/**

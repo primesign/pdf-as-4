@@ -27,7 +27,6 @@ public class DataURLServlet extends HttpServlet {
 	 */
 	public DataURLServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -51,7 +50,7 @@ public class DataURLServlet extends HttpServlet {
 	protected void process(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		try {
-
+			PdfAsHelper.setFromDataUrl(request);
 			String xmlResponse = request.getParameter("XMLResponse");
 			
 			System.out.println(xmlResponse);
@@ -59,10 +58,10 @@ public class DataURLServlet extends HttpServlet {
 			JAXBElement jaxbObject = (JAXBElement) SLMarschaller.unmarshalFromString(xmlResponse);
 			if(jaxbObject.getValue() instanceof InfoboxReadResponseType) {
 				InfoboxReadResponseType infoboxReadResponseType = (InfoboxReadResponseType)jaxbObject.getValue();
-				PdfAsHelper.injectCertificate(request, response, infoboxReadResponseType);
+				PdfAsHelper.injectCertificate(request, response, infoboxReadResponseType, getServletContext());
 			} else if(jaxbObject.getValue() instanceof CreateCMSSignatureResponseType) {
 				CreateCMSSignatureResponseType createCMSSignatureResponseType = (CreateCMSSignatureResponseType)jaxbObject.getValue();
-				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType);
+				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType, getServletContext());
 			} else if(jaxbObject.getValue() instanceof ErrorResponseType) {
 				ErrorResponseType errorResponseType = (ErrorResponseType)jaxbObject.getValue();
 				// TODO: store error and redirect user

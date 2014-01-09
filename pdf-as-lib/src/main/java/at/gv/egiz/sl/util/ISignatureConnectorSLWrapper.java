@@ -54,8 +54,7 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 				}
 			}
 		} catch (CertificateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		}
 		return certificate;
 	}

@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="de">
+<head>
+<title></title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+div.frameT {
+	width: 100%;
+	padding: 0;
+	display: table;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 0;
+}
+
+div.frameTC {
+	padding: 0;
+	vertical-align: middle;
+	display: table-cell;
+	margin: 0;
+}
+
+div.content {
+	width: 600px;
+	background-color: #fff;
+	margin: 0 auto;
+	text-align: left;
+	padding: 10px;
+}
+</style>
+<script language="javascript" type="text/javascript">
+                        function onAnmeldeSubmit() {
+                                document.CustomizedForm.submit();
+                                document.CustomizedForm.Senden.disabled=true;
+                                document.CustomizedForm.Senden.hidden = "hidden";
+                        }
+                </script>
+</head>
+<body onload="onAnmeldeSubmit()">
+	<div class="frameT">
+		<div class="frameTC">
+			<div class="content">
+				<form name="CustomizedForm" action="##ERROR_URL##" method="GET">
+					<input type="submit" value="Weiter"
+						name="Senden"> <input type="hidden"
+						name="cause" value="##CAUSE##"> <input
+						type="hidden" name="error" value="##ERROR##">
+				</form>
+			</div>
+		</div>
+	</div>
+	
+</body>
+</html>

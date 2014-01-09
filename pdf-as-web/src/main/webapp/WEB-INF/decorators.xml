@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<decorators defaultdir="/WEB-INF/decorators">
+    <excludes>
+        <pattern>/assets/*</pattern>
+    </excludes>
+ 
+    <decorator name="layout" page="default_layout.jsp">
+        <pattern>/*</pattern>
+        <pattern>/Sign</pattern>
+        <pattern>/ProvidePDF</pattern>
+        <pattern>/ErrorPage</pattern>
+    </decorator>
+</decorators>

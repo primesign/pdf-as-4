@@ -9,36 +9,32 @@
 	<description>
 		PDF-AS-WEB Application
 	</description>
+	<filter>
+		<filter-name>ExceptionCatchFilter</filter-name>
+		<display-name>ExceptionCatchFilter</display-name>
+		<description></description>
+		<filter-class>at.gv.egiz.pdfas.web.filter.ExceptionCatchFilter</filter-class>
+	</filter>
+	<filter>
+		<filter-name>sitemesh</filter-name>
+		<filter-class>com.opensymphony.sitemesh.webapp.SiteMeshFilter</filter-class>
+	</filter>
 
-
-	<!-- Context initialization parameters that define shared String constants 
-		used within your application, which can be customized by the system administrator 
-		who is installing your application. The values actually assigned to these 
-		parameters can be retrieved in a servlet or JSP page by calling: String value 
-		= getServletContext().getInitParameter("name"); where "name" matches the 
-		<param-name> element of one of these initialization parameters. You can define 
-		any number of context initialization parameters, including zero. <context-param> 
-		<param-name>webmaster</param-name> <param-value>myaddress@mycompany.com</param-value> 
-		<description> The EMAIL address of the administrator to whom questions and 
-		comments about this application should be addressed. </description> </context-param> -->
-
-	<!-- Servlet definitions for the servlets that make up your web application, 
-		including initialization parameters. With Tomcat, you can also send requests 
-		to servlets not listed here with a request like this: http://localhost:8080/{context-path}/servlet/{classname} 
-		but this usage is not guaranteed to be portable. It also makes relative references 
-		to images and other resources required by your servlet more complicated, 
-		so defining all of your servlets (and defining a mapping to them with a servlet-mapping 
-		element) is recommended. Servlet initialization parameters can be retrieved 
-		in a servlet or JSP page by calling: String value = getServletConfig().getInitParameter("name"); 
-		where "name" matches the <param-name> element of one of these initialization 
-		parameters. You can define any number of servlets, including zero. -->
+	<filter-mapping>
+		<filter-name>sitemesh</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>ExceptionCatchFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
 	<servlet>
 		<servlet-name>SignServlet</servlet-name>
 		<description>
 			The Sign Servlet allows Users to Sign PDF Documents ...
 		</description>
-		<servlet-class>at.gv.egiz.pdfas.web.servlets.SignServlet</servlet-class>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.ExternSignServlet</servlet-class>
 		<load-on-startup>5</load-on-startup>
 	</servlet>
 	<servlet>
@@ -58,6 +54,24 @@
 		<display-name>VerifyServlet</display-name>
 		<description></description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.VerifyServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>PDFData</servlet-name>
+		<display-name>PDFData</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFData</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>ErrorPage</servlet-name>
+		<display-name>ErrorPage</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.ErrorPage</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>TestServlet</servlet-name>
+		<display-name>TestServlet</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.TestServlet</servlet-class>
 	</servlet>
 
 	<!-- Define mappings that are used by the servlet container to translate 
@@ -85,6 +99,18 @@
 		<servlet-name>VerifyServlet</servlet-name>
 		<url-pattern>/VerifyServlet</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>PDFData</servlet-name>
+		<url-pattern>/PDFData</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ErrorPage</servlet-name>
+		<url-pattern>/ErrorPage</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>TestServlet</servlet-name>
+		<url-pattern>/TestServlet</url-pattern>
+	</servlet-mapping>
 
 	<!-- Define the default session timeout for your application, in minutes. 
 		From a servlet or JSP page, you can modify the timeout for a particular session 
@@ -95,7 +121,7 @@
 	</session-config>
 
 	<welcome-file-list>
-        <welcome-file>signstart.jsp</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
 </web-app>

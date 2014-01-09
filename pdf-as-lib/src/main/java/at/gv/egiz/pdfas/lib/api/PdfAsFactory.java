@@ -31,8 +31,8 @@ public class PdfAsFactory {
 	private static final String DEFAULT_CONFIG_RES = "config/config.zip";
 
 	static {
-		PropertyConfigurator.configure(ClassLoader
-				.getSystemResourceAsStream("resources/log4j.properties"));
+		/*PropertyConfigurator.configure(ClassLoader
+				.getSystemResourceAsStream("resources/log4j.properties"));*/
 		IAIK.addAsProvider();
 		ECCelerate.addAsProvider();
 	}
