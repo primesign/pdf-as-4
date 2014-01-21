@@ -60,19 +60,19 @@ public class Main {
 
 	public static final String CLI_ARG_VERIFY_WHICH_SHORT = "vw";
 	public static final String CLI_ARG_VERIFY_WHICH = "verify_which";
-	
+
 	public static final String CLI_ARG_KEYSTORE_FILE_SHORT = "ksf";
 	public static final String CLI_ARG_KEYSTORE_FILE = "ks_file";
-	
+
 	public static final String CLI_ARG_KEYSTORE_ALIAS = "ks_alias";
 	public static final String CLI_ARG_KEYSTORE_ALIAS_SHORT = "ksa";
-	
+
 	public static final String CLI_ARG_KEYSTORE_TYPE = "ks_type";
 	public static final String CLI_ARG_KEYSTORE_TYPE_SHORT = "kst";
-	
+
 	public static final String CLI_ARG_KEYSTORE_STOREPASS = "ks_storepass";
 	public static final String CLI_ARG_KEYSTORE_STOREPASS_SHORT = "kssp";
-	
+
 	public static final String CLI_ARG_KEYSTORE_KEYPASS = "ks_keypass";
 	public static final String CLI_ARG_KEYSTORE_KEYPASS_SHORT = "kskp";
 
@@ -99,27 +99,31 @@ public class Main {
 		cliOptions.addOption(helpOption);
 
 		Option connectorOption = new Option(CLI_ARG_CONNECTOR_SHORT,
-				CLI_ARG_CONNECTOR, true, "Connector to use (bku | ks (Keystore) | moa(not available yet))");
+				CLI_ARG_CONNECTOR, true,
+				"Connector to use (bku | ks (Keystore) | moa(not available yet))");
 		cliOptions.addOption(connectorOption);
-		
+
 		Option keystoreFileOption = new Option(CLI_ARG_KEYSTORE_FILE_SHORT,
 				CLI_ARG_KEYSTORE_FILE, true, "Software keystore file");
 		cliOptions.addOption(keystoreFileOption);
-		
+
 		Option keystoreTypeOption = new Option(CLI_ARG_KEYSTORE_TYPE_SHORT,
-				CLI_ARG_KEYSTORE_TYPE, true, "Software keystore type (PKCS12 | JKS ...)");
+				CLI_ARG_KEYSTORE_TYPE, true,
+				"Software keystore type (PKCS12 | JKS ...)");
 		cliOptions.addOption(keystoreTypeOption);
-		
+
 		Option keystoreAliasOption = new Option(CLI_ARG_KEYSTORE_ALIAS_SHORT,
 				CLI_ARG_KEYSTORE_ALIAS, true, "Key Alias in keystore");
 		cliOptions.addOption(keystoreAliasOption);
-		
-		Option keystoreStorePassOption = new Option(CLI_ARG_KEYSTORE_STOREPASS_SHORT,
-				CLI_ARG_KEYSTORE_STOREPASS, true, "Password for keystore");
+
+		Option keystoreStorePassOption = new Option(
+				CLI_ARG_KEYSTORE_STOREPASS_SHORT, CLI_ARG_KEYSTORE_STOREPASS,
+				true, "Password for keystore");
 		cliOptions.addOption(keystoreStorePassOption);
-		
-		Option keystoreKeyPassOption = new Option(CLI_ARG_KEYSTORE_KEYPASS_SHORT,
-				CLI_ARG_KEYSTORE_KEYPASS, true, "Password for key");
+
+		Option keystoreKeyPassOption = new Option(
+				CLI_ARG_KEYSTORE_KEYPASS_SHORT, CLI_ARG_KEYSTORE_KEYPASS, true,
+				"Password for key");
 		cliOptions.addOption(keystoreKeyPassOption);
 
 		Option profileOption = new Option(CLI_ARG_PROFILE_SHORT,
@@ -185,7 +189,8 @@ public class Main {
 				System.exit(0);
 			}
 
-			if (mode == ModeOfOperation.INVALID && !cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
+			if (mode == ModeOfOperation.INVALID
+					&& !cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
 				usage();
 			} else if (mode == ModeOfOperation.SIGN) {
 				perform_sign(cli);
@@ -211,8 +216,8 @@ public class Main {
 				PdfAsFactory.deployDefaultConfiguration(configurationLocation);
 			}
 		} catch (Exception e) {
-			System.out.println("Failed to deploy default confiuration to " + 
-					configurationLocation.getAbsolutePath());
+			System.out.println("Failed to deploy default confiuration to "
+					+ configurationLocation.getAbsolutePath());
 			e.printStackTrace();
 		}
 	}
@@ -283,7 +288,7 @@ public class Main {
 		ByteArrayDataSink dataSink = new ByteArrayDataSink();
 
 		PdfAs pdfAs = null;
-		
+
 		pdfAs = PdfAsFactory.createPdfAs(new File(configurationFile));
 
 		Configuration configuration = pdfAs.getConfiguration();
@@ -298,51 +303,60 @@ public class Main {
 				slConnector = new PAdESSigner(new BKUSLConnector(configuration));
 			} else if (connector.equalsIgnoreCase("moa")) {
 				slConnector = new PAdESSigner(new MOAConnector(configuration));
-			} else if(connector.equalsIgnoreCase("ks")) {
+			} else if (connector.equalsIgnoreCase("ks")) {
 				String keystoreFilename = null;
 				String keystoreAlias = null;
 				String keystoreType = null;
 				String keystoreStorepass = null;
 				String keystoreKeypass = null;
-				
-				if(cli.hasOption(CLI_ARG_KEYSTORE_FILE_SHORT)) {
-					keystoreFilename = cli.getOptionValue(CLI_ARG_KEYSTORE_FILE_SHORT);
-				} 
 
-				if(cli.hasOption(CLI_ARG_KEYSTORE_ALIAS_SHORT)) {
-					keystoreAlias = cli.getOptionValue(CLI_ARG_KEYSTORE_ALIAS_SHORT);
+				if (cli.hasOption(CLI_ARG_KEYSTORE_FILE_SHORT)) {
+					keystoreFilename = cli
+							.getOptionValue(CLI_ARG_KEYSTORE_FILE_SHORT);
 				}
-				if(cli.hasOption(CLI_ARG_KEYSTORE_TYPE_SHORT)) {
-					keystoreType = cli.getOptionValue(CLI_ARG_KEYSTORE_TYPE_SHORT);
+
+				if (cli.hasOption(CLI_ARG_KEYSTORE_ALIAS_SHORT)) {
+					keystoreAlias = cli
+							.getOptionValue(CLI_ARG_KEYSTORE_ALIAS_SHORT);
 				}
-				if(cli.hasOption(CLI_ARG_KEYSTORE_STOREPASS_SHORT)) {
-					keystoreStorepass = cli.getOptionValue(CLI_ARG_KEYSTORE_STOREPASS_SHORT);
+				if (cli.hasOption(CLI_ARG_KEYSTORE_TYPE_SHORT)) {
+					keystoreType = cli
+							.getOptionValue(CLI_ARG_KEYSTORE_TYPE_SHORT);
 				}
-				if(cli.hasOption(CLI_ARG_KEYSTORE_KEYPASS_SHORT)) {
-					keystoreKeypass = cli.getOptionValue(CLI_ARG_KEYSTORE_KEYPASS_SHORT);
+				if (cli.hasOption(CLI_ARG_KEYSTORE_STOREPASS_SHORT)) {
+					keystoreStorepass = cli
+							.getOptionValue(CLI_ARG_KEYSTORE_STOREPASS_SHORT);
 				}
-				
-				if(keystoreFilename == null){
-					throw new Exception("You need to provide a keystore file if using ks connector");
+				if (cli.hasOption(CLI_ARG_KEYSTORE_KEYPASS_SHORT)) {
+					keystoreKeypass = cli
+							.getOptionValue(CLI_ARG_KEYSTORE_KEYPASS_SHORT);
 				}
-				if(keystoreAlias == null){
-					throw new Exception("You need to provide a key alias if using ks connector");
+
+				if (keystoreFilename == null) {
+					throw new Exception(
+							"You need to provide a keystore file if using ks connector");
 				}
-				if(keystoreType == null){
+				if (keystoreAlias == null) {
+					throw new Exception(
+							"You need to provide a key alias if using ks connector");
+				}
+				if (keystoreType == null) {
 					keystoreType = "PKCS12";
-					System.out.println("Defaulting to " + keystoreType + " keystore type.");
+					System.out.println("Defaulting to " + keystoreType
+							+ " keystore type.");
 				}
-				
-				if(keystoreStorepass == null){
+
+				if (keystoreStorepass == null) {
 					keystoreStorepass = "";
 				}
-				
-				if(keystoreKeypass == null){
+
+				if (keystoreKeypass == null) {
 					keystoreKeypass = "";
 				}
-				
-				slConnector = new PAdESSignerKeystore(keystoreFilename, 
-						keystoreAlias, keystoreStorepass, keystoreKeypass, keystoreType);
+
+				slConnector = new PAdESSignerKeystore(keystoreFilename,
+						keystoreAlias, keystoreStorepass, keystoreKeypass,
+						keystoreType);
 			}
 		}
 		if (slConnector == null) {
@@ -382,6 +396,12 @@ public class Main {
 			which = Integer.parseInt(whichValue);
 		}
 
+		String confOutputFile = null;
+		
+		if (cli.hasOption(CLI_ARG_OUTPUT_SHORT)) {
+			confOutputFile = cli.getOptionValue(CLI_ARG_OUTPUT_SHORT);
+		}
+		
 		String pdfFile = null;
 
 		pdfFile = cli.getArgs()[cli.getArgs().length - 1];
@@ -416,13 +436,13 @@ public class Main {
 		int idx = 0;
 		while (resultIterator.hasNext()) {
 			VerifyResult verifyResult = resultIterator.next();
-			dumpVerifyResult(verifyResult, pdfFile, idx);
+			dumpVerifyResult(verifyResult, pdfFile, idx, confOutputFile);
 			idx++;
 		}
 	}
 
 	private static void dumpVerifyResult(VerifyResult verifyResult,
-			String inputFile, int idx) {
+			String inputFile, int idx, String confOutputFile) {
 		System.out.println("Verification Result:");
 		System.out.println("\tValue Check: "
 				+ verifyResult.getValueCheckCode().getMessage() + " ["
@@ -439,12 +459,22 @@ public class Main {
 					&& verifyResult.getValueCheckCode().getCode() == 0) {
 				String outputFile = null;
 
-				if (inputFile.endsWith(".pdf")) {
-					outputFile = inputFile.subSequence(0, inputFile.length()
-							- ".pdf".length())
-							+ "_verified_" + idx + ".pdf";
+				if (confOutputFile == null) {
+					if (inputFile.endsWith(".pdf")) {
+						outputFile = inputFile.subSequence(0,
+								inputFile.length() - ".pdf".length())
+								+ "_verified_" + idx + ".pdf";
+					} else {
+						outputFile = inputFile + "_verified_" + idx + ".pdf";
+					}
 				} else {
-					outputFile = inputFile + "_verified_" + idx + ".pdf";
+					if (confOutputFile.endsWith(".pdf")) {
+						outputFile = confOutputFile.subSequence(0,
+								inputFile.length() - ".pdf".length())
+								+ "_" + idx + ".pdf";
+					} else {
+						outputFile = confOutputFile + "_" + idx + ".pdf";
+					}
 				}
 
 				File outputPdfFile = new File(outputFile);
