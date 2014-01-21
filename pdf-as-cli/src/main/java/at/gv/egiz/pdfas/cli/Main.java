@@ -470,7 +470,7 @@ public class Main {
 				} else {
 					if (confOutputFile.endsWith(".pdf")) {
 						outputFile = confOutputFile.subSequence(0,
-								inputFile.length() - ".pdf".length())
+								confOutputFile.length() - ".pdf".length())
 								+ "_" + idx + ".pdf";
 					} else {
 						outputFile = confOutputFile + "_" + idx + ".pdf";
