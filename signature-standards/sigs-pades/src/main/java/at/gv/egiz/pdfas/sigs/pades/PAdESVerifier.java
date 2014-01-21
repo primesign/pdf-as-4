@@ -3,6 +3,8 @@ package at.gv.egiz.pdfas.sigs.pades;
 import iaik.x509.X509Certificate;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.activation.DataHandler;
@@ -49,9 +51,9 @@ public class PAdESVerifier implements IVerifyFilter {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent)
+	public List<VerifyResult> verify(byte[] contentData,
+			byte[] signatureContent, Date verificationTime)
 			throws PdfAsException {
-
 
 		List<VerifyResult> resultList = new ArrayList<VerifyResult>();
 		try {
@@ -77,7 +79,11 @@ public class PAdESVerifier implements IVerifyFilter {
 			verifyCMSSignatureRequest.setCMSSignature(cmsSignature);
 			verifyCMSSignatureRequest
 					.setDataObject(cmsDataObjectOptionalMetaType);
-
+			if (verificationTime != null) {
+				Calendar cal = Calendar.getInstance();
+				cal.setTime(verificationTime);
+				verifyCMSSignatureRequest.setDateTime(cal);
+			}
 			// cmsDataObjectOptionalMetaType.
 			VerifyCMSSignatureResponse response = service
 					.verifyCMSSignature(verifyCMSSignatureRequest);
@@ -120,25 +126,35 @@ public class PAdESVerifier implements IVerifyFilter {
 						.getKeyInfoTypeChoice();
 				KeyInfoTypeChoice choice = keyInfo[0];
 				result.setSignatureData(data);
-				
+
 				// extract certificate
 				if (choice.isX509DataSpecified()) {
-					byte[] certData  = null;
-					X509DataTypeSequence[] x509Sequence = choice.getX509Data().getX509DataTypeSequence();
-					for(int k = 0; k < x509Sequence.length; k++) {
+					byte[] certData = null;
+					X509DataTypeSequence[] x509Sequence = choice.getX509Data()
+							.getX509DataTypeSequence();
+					for (int k = 0; k < x509Sequence.length; k++) {
 						X509DataTypeSequence x509Data = x509Sequence[k];
-						if(x509Data.getX509DataTypeChoice_type0().isX509CertificateSpecified()) {
-							DataHandler handler  = x509Data.getX509DataTypeChoice_type0().getX509Certificate();
-							certData = StreamUtils.inputStreamToByteArray(handler.getInputStream());
-						} else if(x509Data.getX509DataTypeChoice_type0().isExtraElementSpecified()) {
-							if(x509Data.getX509DataTypeChoice_type0().getExtraElement().getLocalName().equals(
-									SignatureVerificationServiceStub.QualifiedCertificate.MY_QNAME.getLocalPart())) {
+						if (x509Data.getX509DataTypeChoice_type0()
+								.isX509CertificateSpecified()) {
+							DataHandler handler = x509Data
+									.getX509DataTypeChoice_type0()
+									.getX509Certificate();
+							certData = StreamUtils
+									.inputStreamToByteArray(handler
+											.getInputStream());
+						} else if (x509Data.getX509DataTypeChoice_type0()
+								.isExtraElementSpecified()) {
+							if (x509Data
+									.getX509DataTypeChoice_type0()
+									.getExtraElement()
+									.getLocalName()
+									.equals(SignatureVerificationServiceStub.QualifiedCertificate.MY_QNAME
+											.getLocalPart())) {
 								result.setQualifiedCertificate(true);
 							}
 						}
 					}
-					X509Certificate certificate = new X509Certificate(
-							certData);
+					X509Certificate certificate = new X509Certificate(certData);
 					result.setSignerCertificate(certificate);
 				} else if (choice.isExtraElementSpecified()) {
 					String xmldisg = choice.getExtraElement().toString();

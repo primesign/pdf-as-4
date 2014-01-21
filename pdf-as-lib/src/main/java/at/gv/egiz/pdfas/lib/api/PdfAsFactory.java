@@ -10,6 +10,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -30,9 +34,20 @@ public class PdfAsFactory {
 
 	private static final String DEFAULT_CONFIG_RES = "config/config.zip";
 
+	private static final String MAN_ATTRIBUTE = "JARMANIFEST";
+	private static final String PDF_AS_LIB = "PDF-AS-LIB";
+	private static final String IMPL_VERSION = "Implementation-Version";
+	
+
 	static {
-		/*PropertyConfigurator.configure(ClassLoader
-				.getSystemResourceAsStream("resources/log4j.properties"));*/
+		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		System.out.println("+ PDF-AS: " + getVersion());
+		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		
+		/*
+		 * PropertyConfigurator.configure(ClassLoader
+		 * .getSystemResourceAsStream("resources/log4j.properties"));
+		 */
 		IAIK.addAsProvider();
 		ECCelerate.addAsProvider();
 	}
@@ -53,10 +68,12 @@ public class PdfAsFactory {
 					File log4j = new File(configuration.getAbsolutePath()
 							+ File.separator + "cfg" + File.separator
 							+ "log4j.properties");
-					logger.info("Loading log4j configuration: " + log4j.getAbsolutePath());
+					logger.info("Loading log4j configuration: "
+							+ log4j.getAbsolutePath());
 					if (log4j.exists()) {
 						try {
-							System.setProperty("pdf-as.work-dir", configuration.getAbsolutePath());
+							System.setProperty("pdf-as.work-dir",
+									configuration.getAbsolutePath());
 							PropertyConfigurator.configure(new FileInputStream(
 									log4j));
 						} catch (FileNotFoundException e) {
@@ -87,9 +104,9 @@ public class PdfAsFactory {
 	/**
 	 * Deploy default configuration to targetDirectory
 	 * 
-	 * The targetDirectory will be deleted and 
+	 * The targetDirectory will be deleted and
 	 * 
-	 * @param targetDirectory 
+	 * @param targetDirectory
 	 * @throws Exception
 	 */
 	public static void deployDefaultConfiguration(File targetDirectory)
@@ -156,5 +173,36 @@ public class PdfAsFactory {
 				System.out.println("Error while closing zip file" + ioe);
 			}
 		}
+	}
+
+	public static String getVersion() {
+		Package pack = PdfAsFactory.class.getPackage();
+		return pack.getImplementationVersion();
+		/*
+		try {
+			
+			
+			Enumeration<URL> resources = PdfAsFactory.class.getClassLoader()
+					.getResources("META-INF/MANIFEST.MF");
+			while (resources.hasMoreElements()) {
+				Manifest manifest = new Manifest(resources.nextElement()
+						.openStream());
+				Attributes attributes = manifest.getAttributes(MAN_ATTRIBUTE);
+				if (attributes != null) {
+					if(attributes.isEmpty()) {
+						String value = attributes.getValue(new Attributes.Name(MAN_ATTRIBUTE));
+						if(value != null && value.equals(PDF_AS_LIB)) {
+							// Got my manifest
+							return manifest.getAttributes(IMPL_VERSION).getValue(IMPL_VERSION);
+						}
+					}
+				}
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			logger.error("Failed to read Version!");
+			return "0.0.0";
+		}
+		return "0.0.0";*/
 	}
 }

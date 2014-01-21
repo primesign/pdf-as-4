@@ -32,6 +32,7 @@ package at.gv.egiz.pdfas.api.sign.pos;
  * 
  * @author wprinz
  */
+@Deprecated
 public interface SignaturePosition
 {
   /**

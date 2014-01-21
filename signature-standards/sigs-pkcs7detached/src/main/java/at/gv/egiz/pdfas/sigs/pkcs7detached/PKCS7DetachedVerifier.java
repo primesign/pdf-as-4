@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -33,7 +34,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	public PKCS7DetachedVerifier() {
 	}
 	
-	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent)
+	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent, Date verificationTime)
 			throws PdfAsException {
 		try {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();

@@ -4,12 +4,6 @@ apply plugin: 'application'
 
 mainClassName = "at.gv.egiz.pdfas.cli.Main"
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'PDF-AS CLI', 'Implementation-Version': version
-    }
-}
-
 repositories {
 	mavenLocal()
     mavenCentral()
@@ -17,6 +11,7 @@ repositories {
 
 dependencies {
 	compile project (':pdf-as-lib')
+	compile project (':pdf-as-legacy')
 	compile project (':stamper:stmp-itext')
 	compile project (':signature-standards:sigs-pkcs7detached')
 	compile project (':signature-standards:sigs-pades')

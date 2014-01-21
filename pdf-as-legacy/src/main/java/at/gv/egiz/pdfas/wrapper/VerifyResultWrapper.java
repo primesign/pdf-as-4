@@ -1,9 +1,11 @@
 package at.gv.egiz.pdfas.wrapper;
 
+import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
 
+import at.gv.egiz.pdfas.api.commons.Constants;
 import at.gv.egiz.pdfas.api.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.api.exceptions.PdfAsWrappedException;
 import at.gv.egiz.pdfas.api.io.DataSource;
@@ -20,13 +22,11 @@ public class VerifyResultWrapper implements VerifyResult {
 	}
 
 	public String getSignatureType() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public DataSource getSignedData() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ByteArrayDataSource_OLD(this.newResult.getSignatureData());
 	}
 
 	public X509Certificate getSignerCertificate() {
@@ -34,17 +34,14 @@ public class VerifyResultWrapper implements VerifyResult {
 	}
 
 	public Date getSigningTime() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object getInternalSignatureInformation() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public String getTimeStampValue() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -76,22 +73,18 @@ public class VerifyResultWrapper implements VerifyResult {
 	}
 
 	public boolean isPublicAuthority() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	public String getPublicAuthorityCode() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public List getPublicProperties() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Date getVerificationTime() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

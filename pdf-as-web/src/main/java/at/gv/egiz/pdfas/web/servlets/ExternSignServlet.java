@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
+import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
@@ -33,6 +34,8 @@ public class ExternSignServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
 
+	public static final String PDF_AS_WEB_CONF = "pdf-as-web.conf";
+	
 	private static final String UPLOAD_PDF_DATA = "pdfFile";
 	private static final String UPLOAD_DIRECTORY = "upload";
 	private static final int THRESHOLD_SIZE = 1024 * 1024 * 3; // 3MB
@@ -46,6 +49,15 @@ public class ExternSignServlet extends HttpServlet {
 	 * Default constructor.
 	 */
 	public ExternSignServlet() {
+		String webconfig = System.getProperty(PDF_AS_WEB_CONF);
+		
+		if(webconfig == null) {
+			logger.error("No web configuration provided! Please specify: " + PDF_AS_WEB_CONF);
+			throw new RuntimeException("No web configuration provided! Please specify: " + PDF_AS_WEB_CONF);
+		}
+		
+		WebConfiguration.configure(webconfig);
+		PdfAsHelper.init();
 	}
 
 	protected void doGet(HttpServletRequest request,
@@ -142,7 +154,12 @@ public class ExternSignServlet extends HttpServlet {
 							FileItem item = (FileItem) obj;
 							if(item.getFieldName().equals(UPLOAD_PDF_DATA)) {
 								filecontent = item.get();
-								logger.debug("Found pdf Data!");
+								
+								if(filecontent.length < 10) {
+									filecontent = null;
+								} else {
+									logger.debug("Found pdf Data! Size: " + filecontent.length);
+								}
 							} else {
 								request.setAttribute(item.getFieldName(), item.getString());
 								logger.debug("Setting " + item.getFieldName() + " = " + item.getString());
@@ -161,6 +178,15 @@ public class ExternSignServlet extends HttpServlet {
 			}
 
 			if(filecontent == null) {
+				Object sourceObj = request.getAttribute("source");
+				if(sourceObj != null) {
+					String source = sourceObj.toString();
+					if(source.equals("internal")) {
+						request.setAttribute("FILEERR", true);
+						request.getRequestDispatcher("index.jsp").forward(request, response);
+						return;
+					}
+				}
 				throw new PdfAsException("No Signature data available");
 			}
 			

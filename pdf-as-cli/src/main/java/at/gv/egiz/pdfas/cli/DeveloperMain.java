@@ -34,10 +34,16 @@ public class DeveloperMain {
     public static final String keyPass = "123456";
 	
 	public static void main(String[] args) {		
+		
+		
+		
 		String user_home = System.getProperty("user.home");
 		String pdfas_dir = user_home + File.separator + ".pdfas";
 		PdfAs pdfas = PdfAsFactory.createPdfAs(new File(pdfas_dir));
-		Configuration config = pdfas.getConfiguration();
+		System.out.println(PdfAsFactory.getVersion());
+		return;
+		
+		/*Configuration config = pdfas.getConfiguration();
 		byte[] data;
 		try {
 			IPlainSigner signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias, keyStorePass, keyPass, keyStoreType);
@@ -76,7 +82,7 @@ public class DeveloperMain {
 			} else {
 				throw new Exception("Invalid status");
 			}
-			*/
+			/
 			pdfas.sign(parameter);
 			FileOutputStream fos = new FileOutputStream("/home/afitzek/simple_signed.pdf");
 			fos.write(bads.getData());
@@ -93,7 +99,7 @@ public class DeveloperMain {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 }

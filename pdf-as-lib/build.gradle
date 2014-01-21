@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'PDF-AS-4 Library', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'PDF-AS-4 Library', 'Implementation-Version': version, 'JARMANIFEST': 'PDF-AS-LIB'
     }
 }
 

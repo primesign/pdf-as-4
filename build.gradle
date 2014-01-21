@@ -1,20 +1,16 @@
 subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
 
-    repositories {
-       mavenCentral()
-    }
+	repositories {
+		mavenCentral()
+	}
 
-    dependencies {
-        testCompile 'junit:junit:4.8.2'
-    }
+	dependencies { testCompile 'junit:junit:4.8.2' }
 
 	sourceCompatibility = 1.5
-	
-    version = '4.0'
 
-    jar {
-        manifest.attributes provider: 'EGIZ'
-    }
+	version = '4.0.0-SNAPSHOT'
+
+	jar { manifest.attributes provider: 'EGIZ' }
 }

@@ -11,10 +11,12 @@ public class SignResultImpl implements SignResult {
 
 	private DataSink sink;
 	private X509Certificate certificate;
+	private SignaturePosition position;
 	
-	public SignResultImpl(DataSink data, X509Certificate cert) {
+	public SignResultImpl(DataSink data, X509Certificate cert, SignaturePosition position) {
 		this.certificate = cert;
 		this.sink = data; 
+		this.position = position;
 	}
 	
 	public DataSink getOutputDocument() {
@@ -26,7 +28,7 @@ public class SignResultImpl implements SignResult {
 	}
 
 	public SignaturePosition getSignaturePosition() {
-		return null;
+		return position;
 	}
 
 	public List getNonTextualObjects() {

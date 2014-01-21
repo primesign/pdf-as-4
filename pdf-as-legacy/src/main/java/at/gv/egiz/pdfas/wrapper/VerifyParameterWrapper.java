@@ -9,8 +9,12 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 public class VerifyParameterWrapper {
 
 	public static VerifyParameter toNewParameters(VerifyParameters oldParameters, Configuration config) {
-		return PdfAsFactory.createVerifyParameter(config, 
+		VerifyParameter parameter = PdfAsFactory.createVerifyParameter(config, 
 				new ByteArrayDataSource(oldParameters.getDocument().getAsByteArray()));
+		
+		parameter.setWhichSignature(oldParameters.getSignatureToVerify());
+		parameter.setVerificationTime(oldParameters.getVerificationTime());
+		return parameter;
 	}
 	
 }

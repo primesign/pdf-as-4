@@ -76,26 +76,27 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		if (!(parameter.getConfiguration() instanceof ISettings)) {
 			throw new PdfAsSettingsException("Invalid settings object!");
 		}
-		
+
 		ISettings settings = (ISettings) parameter.getConfiguration();
-		
+
 		String signatureProfile = parameter.getSignatureProfileId();
-		if(signatureProfile != null) {
-			if(!settings.hasPrefix("sig_obj." + signatureProfile + ".key")) {
-				throw new PdfAsValidationException("error.pdf.sig.09", signatureProfile);
+		if (signatureProfile != null) {
+			if (!settings.hasPrefix("sig_obj." + signatureProfile + ".key")) {
+				throw new PdfAsValidationException("error.pdf.sig.09",
+						signatureProfile);
 			}
 		}
-		
+
 		// TODO: verify Sign Parameter
 	}
-	
+
 	private void verifyVerifyParameter(VerifyParameter parameter)
 			throws PdfAsException {
 		// Status initialization
 		if (!(parameter.getConfiguration() instanceof ISettings)) {
 			throw new PdfAsSettingsException("Invalid settings object!");
 		}
-		
+
 		// TODO: verify Verify Parameter
 	}
 
@@ -170,9 +171,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 	public List<VerifyResult> verify(VerifyParameter parameter)
 			throws PdfAsException {
-		
+
 		verifyVerifyParameter(parameter);
-		
+
+		int signatureToVerify = parameter.getWhichSignature();
+		int currentSignature = 0;
 		PDDocument doc = null;
 		try {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
@@ -192,50 +195,63 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 				COSDictionary field = (COSDictionary) fields.getObject(i);
 				String type = field.getNameAsString("FT");
 				if ("Sig".equals(type)) {
-					logger.trace("Found Signature: ");
-					COSBase base = field.getDictionaryObject("V");
-					COSDictionary dict = (COSDictionary) base;
+					boolean verifyThis = true;
 
-					logger.debug("Signer: " + dict.getNameAsString("Name"));
-					logger.debug("SubFilter: "
-							+ dict.getNameAsString("SubFilter"));
-					logger.debug("Filter: " + dict.getNameAsString("Filter"));
-					logger.debug("Modified: " + dict.getNameAsString("M"));
-					COSArray byteRange = (COSArray) dict
-							.getDictionaryObject("ByteRange");
-
-					StringBuilder sb = new StringBuilder();
-					int[] bytes = new int[byteRange.size()];
-					for (int j = 0; j < byteRange.size(); j++) {
-						bytes[j] = byteRange.getInt(j);
-						sb.append(" " + bytes[j]);
+					if (signatureToVerify >= 0) {
+						// verify only specific siganture!
+						verifyThis = signatureToVerify == currentSignature;
 					}
 
-					logger.debug("ByteRange" + sb.toString());
+					if (verifyThis) {
+						logger.trace("Found Signature: ");
+						COSBase base = field.getDictionaryObject("V");
+						COSDictionary dict = (COSDictionary) base;
 
-					COSString content = (COSString) dict
-							.getDictionaryObject("Contents");
+						logger.debug("Signer: " + dict.getNameAsString("Name"));
+						logger.debug("SubFilter: "
+								+ dict.getNameAsString("SubFilter"));
+						logger.debug("Filter: "
+								+ dict.getNameAsString("Filter"));
+						logger.debug("Modified: " + dict.getNameAsString("M"));
+						COSArray byteRange = (COSArray) dict
+								.getDictionaryObject("ByteRange");
 
-					ByteArrayOutputStream contentData = new ByteArrayOutputStream();
-					for (int j = 0; j < bytes.length; j = j + 2) {
-						int offset = bytes[j];
-						int length = bytes[j + 1];
-						contentData.write(parameter.getDataSource()
-								.getByteData(), offset, length);
-					}
-					contentData.close();
+						StringBuilder sb = new StringBuilder();
+						int[] bytes = new int[byteRange.size()];
+						for (int j = 0; j < byteRange.size(); j++) {
+							bytes[j] = byteRange.getInt(j);
+							sb.append(" " + bytes[j]);
+						}
 
-					IVerifyFilter verifyFilter = verifier.getVerifier(
-							dict.getNameAsString("Filter"),
-							dict.getNameAsString("SubFilter"));
+						logger.debug("ByteRange" + sb.toString());
 
-					if (verifyFilter != null) {
-						List<VerifyResult> results = verifyFilter.verify(
-								contentData.toByteArray(), content.getBytes());
-						if (results != null && !results.isEmpty()) {
-							result.addAll(results);
+						COSString content = (COSString) dict
+								.getDictionaryObject("Contents");
+
+						ByteArrayOutputStream contentData = new ByteArrayOutputStream();
+						for (int j = 0; j < bytes.length; j = j + 2) {
+							int offset = bytes[j];
+							int length = bytes[j + 1];
+							contentData.write(parameter.getDataSource()
+									.getByteData(), offset, length);
+						}
+						contentData.close();
+
+						IVerifyFilter verifyFilter = verifier.getVerifier(
+								dict.getNameAsString("Filter"),
+								dict.getNameAsString("SubFilter"));
+
+						if (verifyFilter != null) {
+							List<VerifyResult> results = verifyFilter.verify(
+									contentData.toByteArray(),
+									content.getBytes(), 
+									parameter.getVerificationTime());
+							if (results != null && !results.isEmpty()) {
+								result.addAll(results);
+							}
 						}
 					}
+					currentSignature++;
 				}
 			}
 			return result;

@@ -20,6 +20,7 @@ import at.gv.egiz.pdfas.api.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.api.sign.SignParameters;
 import at.gv.egiz.pdfas.api.sign.SignResult;
 import at.gv.egiz.pdfas.api.sign.SignatureDetailInformation;
+import at.gv.egiz.pdfas.api.sign.pos.SignaturePosition;
 import at.gv.egiz.pdfas.api.verify.VerifyAfterAnalysisParameters;
 import at.gv.egiz.pdfas.api.verify.VerifyAfterReconstructXMLDsigParameters;
 import at.gv.egiz.pdfas.api.verify.VerifyParameters;
@@ -34,6 +35,7 @@ import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
 
 public class PdfAsObject implements PdfAs {
 
@@ -69,15 +71,18 @@ public class PdfAsObject implements PdfAs {
 					at.gv.egiz.pdfas.lib.api.sign.SignResult result = this.pdfas4.finishSign(request);
 					sdi.wrapper.syncNewToOld();
 					SignResultImpl oldresult = new SignResultImpl(sdi.wrapper.getSignParameters().getOutput(), 
-							sdi.getX509Certificate());
+							sdi.getX509Certificate(), new at.gv.egiz.pdfas.wrapper.SignaturePositionImpl(
+									result.getSignaturePosition()));
 					return oldresult;
 				} else {
 					throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
 							"Invalid state");
 				}
 			} catch (at.gv.egiz.pdfas.common.exceptions.PdfAsException e) {
+				e.printStackTrace();
 				throw new PdfAsException(
 						ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
+				
 			}
 		} else {
 			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,

@@ -66,14 +66,6 @@ public class PdfAsHelper {
 	private static final String PDF_INVOKE_URL = "PDF_INVOKE_URL";
 	private static final String REQUEST_FROM_DU = "REQ_DATA_URL";
 
-	// For development only:
-	public static final String keyStoreFile = "/home/afitzek/devel/pdfas_neu/test.p12";
-	public static final String keyStoreType = "PKCS12";
-	public static final String keyStorePass = "123456";
-	// public static final String keyAlias = "pdf";
-	public static final String keyAlias = "ecc_test";
-	public static final String keyPass = "123456";
-
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
 
@@ -83,9 +75,14 @@ public class PdfAsHelper {
 	static {
 		// TODO: read from config file
 		logger.debug("Creating PDF-AS");
-		pdfAs = PdfAsFactory.createPdfAs(new File("/home/afitzek/.pdfas"));
+		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration.getPdfASDir()));
 		logger.debug("Creating PDF-AS done");
 	}
+	
+	public static void init() {
+		logger.debug("PDF-AS Helper initialized");
+	}
+	
 
 	private static void validatePdfSize(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData)
@@ -218,11 +215,10 @@ public class PdfAsHelper {
 		if (connector.equals("moa")) {
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else {
-			// TODO:
-			// signer = new PAdESSignerKeystore(file, alias, kspassword,
-			// keypassword, type)
-			signer = new PKCS7DetachedSigner(keyStoreFile, keyAlias,
-					keyStorePass, keyPass, keyStoreType);
+			signer = new PKCS7DetachedSigner(WebConfiguration.getKeystoreFile(), 
+					WebConfiguration.getKeystoreAlias(),
+					WebConfiguration.getKeystorePass(), WebConfiguration.getKeystoreKeyPass(), 
+					WebConfiguration.getKeystoreType());
 		}
 
 		signParameter.setPlainSigner(signer);

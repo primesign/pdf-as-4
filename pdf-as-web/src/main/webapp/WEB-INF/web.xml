@@ -35,7 +35,7 @@
 			The Sign Servlet allows Users to Sign PDF Documents ...
 		</description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.ExternSignServlet</servlet-class>
-		<load-on-startup>5</load-on-startup>
+		<load-on-startup>0</load-on-startup>
 	</servlet>
 	<servlet>
 		<servlet-name>ProvidePDF</servlet-name>

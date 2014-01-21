@@ -12,6 +12,7 @@ import javax.swing.text.html.HTML;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
+import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.HTMLFormater;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 
@@ -64,7 +65,7 @@ public class ErrorPage extends HttpServlet {
 				String template = PdfAsHelper.getErrorRedirectTemplateSL();
 				template = template.replace("##ERROR_URL##",
 						errorURL);
-				if (e != null) {
+				if (e != null && WebConfiguration.isShowErrorDetails()) {
 					template = template.replace("##CAUSE##",
 							URLEncoder.encode(e.getMessage(), "UTF-8"));
 				} else {
@@ -88,7 +89,7 @@ public class ErrorPage extends HttpServlet {
 					pw.write("<p>" + message + "</p>");
 				}
 
-				if (e != null) {
+				if (e != null && WebConfiguration.isShowErrorDetails()) {
 					pw.write("<p>"
 							+ HTMLFormater.formatStackTrace(e.getStackTrace())
 							+ "</p>");
