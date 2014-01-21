@@ -8,7 +8,6 @@ import iaik.cms.SignerInfo;
 import iaik.x509.X509Certificate;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +39,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
 			
 			SignedData signedData = new SignedData(contentData, new AlgorithmID[] { 
-					AlgorithmID.sha256
+					AlgorithmID.sha256, AlgorithmID.sha1, AlgorithmID.ripeMd160,  AlgorithmID.ripeMd160_ISO
 			});			
 			ContentInfo ci = new ContentInfo(new ByteArrayInputStream(
 					signatureContent));
