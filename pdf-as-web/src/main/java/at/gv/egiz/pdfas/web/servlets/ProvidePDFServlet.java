@@ -8,7 +8,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 
 /**
@@ -17,6 +21,9 @@ import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 public class ProvidePDFServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(ProvidePDFServlet.class);
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -47,7 +54,12 @@ public class ProvidePDFServlet extends HttpServlet {
 		try {
 			String invokeURL = PdfAsHelper.getInvokeURL(request, response);
 
-			if (invokeURL == null) {
+			if (invokeURL == null || WebConfiguration.isProvidePdfURLinWhitelist(invokeURL)) {
+				
+				if(!WebConfiguration.isProvidePdfURLinWhitelist(invokeURL)) {
+					logger.warn(invokeURL + " is not allowed by whitelist");
+				}
+				
 				// Deliver to Browser directly!
 				response.setContentType("text/html");
 				PrintWriter pw = response.getWriter();

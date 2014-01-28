@@ -8,9 +8,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.swing.text.html.HTML;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.HTMLFormater;
@@ -21,7 +21,10 @@ import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
  */
 public class ErrorPage extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(ErrorPage.class);
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -61,7 +64,7 @@ public class ErrorPage extends HttpServlet {
 					.getSessionException(request, response);
 			String message = PdfAsHelper.getSessionErrMessage(request,
 					response);
-			if (errorURL != null) {
+			if (errorURL != null && WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {
 				String template = PdfAsHelper.getErrorRedirectTemplateSL();
 				template = template.replace("##ERROR_URL##",
 						errorURL);
@@ -81,6 +84,9 @@ public class ErrorPage extends HttpServlet {
 				response.getWriter().write(template);
 				response.getWriter().close();
 			} else {
+				if(!WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {
+					logger.warn(errorURL + " is not allowed by whitelist");
+				}
 				response.setContentType("text/html");
 				PrintWriter pw = response.getWriter();
 		

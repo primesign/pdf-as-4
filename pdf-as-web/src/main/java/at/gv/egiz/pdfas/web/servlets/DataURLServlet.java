@@ -6,10 +6,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.xml.bind.JAXBElement;
 
-import at.gv.egiz.pdfas.lib.api.StatusRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.gv.egiz.pdfas.web.exception.PdfAsSecurityLayerException;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.sl.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.ErrorResponseType;
@@ -22,6 +24,9 @@ import at.gv.egiz.sl.util.SLMarschaller;
 public class DataURLServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(DataURLServlet.class);
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -64,11 +69,18 @@ public class DataURLServlet extends HttpServlet {
 				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType, getServletContext());
 			} else if(jaxbObject.getValue() instanceof ErrorResponseType) {
 				ErrorResponseType errorResponseType = (ErrorResponseType)jaxbObject.getValue();
-				// TODO: store error and redirect user
-				System.out.println("ERROR: " + errorResponseType.getErrorCode() + " " + errorResponseType.getInfo());
+				logger.error("SecurityLayer: " + errorResponseType.getErrorCode() + " " + errorResponseType.getInfo());
+				throw new PdfAsSecurityLayerException(errorResponseType.getInfo(), 
+						errorResponseType.getErrorCode());
+				
+			} else {
+				throw new PdfAsSecurityLayerException("Unknown SL response", 
+						9999);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			PdfAsHelper.setSessionException(request, response, e.getMessage(),
+					e);
+			PdfAsHelper.gotoError(getServletContext(), request, response);
 		}
 	}
 

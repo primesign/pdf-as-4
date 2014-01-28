@@ -76,7 +76,6 @@ public class PdfAsHelper {
 	private static ObjectFactory of = new ObjectFactory();
 
 	static {
-		// TODO: read from config file
 		logger.debug("Creating PDF-AS");
 		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration.getPdfASDir()));
 		logger.debug("Creating PDF-AS done");
