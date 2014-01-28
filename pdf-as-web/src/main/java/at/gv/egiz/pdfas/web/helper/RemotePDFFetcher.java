@@ -17,6 +17,7 @@ public class RemotePDFFetcher {
 			throw new PdfAsWebException("Not a valid URL!", e);
 		}
 		if(url.getProtocol().equals("http") || url.getProtocol().equals("https")) {
+			
 			try {
 				InputStream is = url.openStream();
 				return StreamUtils.inputStreamToByteArray(is);

@@ -2,7 +2,6 @@ package at.gv.egiz.pdfas.web.servlets;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -18,14 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
-import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
+import at.gv.egiz.pdfas.web.helper.DigestHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.helper.RemotePDFFetcher;
-import at.gv.egiz.sl.util.BKUSLConnector;
-import at.gv.egiz.sl.util.MOAConnector;
 
 /**
  * Servlet implementation class Sign
@@ -208,6 +205,15 @@ public class ExternSignServlet extends HttpServlet {
 		
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
+		
+		if(pdfData == null) {
+			throw new PdfAsException("No Signature data available");
+		}
+		
+		String pdfDataHash = DigestHelper.getHexEncodedHash(pdfData);
+		
+		PdfAsHelper.setSignatureDataHash(request, pdfDataHash);
+		logger.debug("Storing signatures data hash: " + pdfDataHash);
 		
 		logger.debug("Starting signature creation with: " + connector);
 		

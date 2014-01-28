@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.lib.api;
 
+import iaik.cms.IaikCCProvider;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
 
@@ -40,16 +41,18 @@ public class PdfAsFactory {
 	
 
 	static {
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-		System.out.println("+ PDF-AS: " + getVersion());
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-		
 		/*
 		 * PropertyConfigurator.configure(ClassLoader
 		 * .getSystemResourceAsStream("resources/log4j.properties"));
 		 */
 		IAIK.addAsProvider();
 		ECCelerate.addAsProvider();
+		
+		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		System.out.println("+ PDF-AS: " + getVersion());
+		System.out.println("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
+		System.out.println("+ ECCelerate Version: " + ECCelerate.getInstance().getVersion());
+		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 	}
 
 	private static boolean log_configured = false;

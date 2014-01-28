@@ -87,6 +87,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 		}
 
+		if(parameter.getDataSource() == null || parameter.getDataSource().getByteData() == null) {
+			throw new PdfAsValidationException("error.pdf.sig.10", null);
+		}
+		
+		if(parameter.getOutput() == null) {
+			throw new PdfAsValidationException("error.pdf.sig.11", null);
+		}
+		
 		// TODO: verify Sign Parameter
 	}
 
@@ -95,6 +103,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		// Status initialization
 		if (!(parameter.getConfiguration() instanceof ISettings)) {
 			throw new PdfAsSettingsException("Invalid settings object!");
+		}
+		
+		if(parameter.getDataSource() == null || parameter.getDataSource().getByteData() == null) {
+			throw new PdfAsValidationException("error.pdf.verify.01", null);
 		}
 
 		// TODO: verify Verify Parameter
@@ -279,7 +291,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 	public StatusRequest startSign(SignParameter parameter)
 			throws PdfAsException {
 
-		// TODO: VERIFY PARAMETERS
+		verifySignParameter(parameter);
+		
 		StatusRequestImpl request = new StatusRequestImpl();
 
 		try {

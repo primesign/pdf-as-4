@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.lowagie.text.html.WebColors;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -65,6 +66,8 @@ public class PdfAsHelper {
 	private static final String PDF_ERR_URL = "PDF_ERR_URL";
 	private static final String PDF_INVOKE_URL = "PDF_INVOKE_URL";
 	private static final String REQUEST_FROM_DU = "REQ_DATA_URL";
+	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
+	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
@@ -110,7 +113,7 @@ public class PdfAsHelper {
 			}
 		}
 	}
-
+	
 	private static String buildPosString(HttpServletRequest request,
 			HttpServletResponse response) throws PdfAsWebException {
 		String posP = PdfAsParameterExtractor.getSigPosP(request);
@@ -177,11 +180,6 @@ public class PdfAsHelper {
 		return sb.toString();
 	}
 
-	public static void doSignature(HttpServletRequest request,
-			HttpServletResponse response, byte[] pdfData) throws Exception {
-
-	}
-
 	/**
 	 * Create synchronous PDF Signature
 	 * 
@@ -242,6 +240,13 @@ public class PdfAsHelper {
 			HttpServletResponse response, ServletContext context, byte[] pdfData)
 			throws Exception {
 
+		// TODO: Protect session so that only one PDF can be signed during one session
+		/*if(PdfAsHelper.isSignatureActive(request)) {
+			throw new PdfAsException("Signature is active in this session");
+		}
+		
+		PdfAsHelper.setSignatureActive(request, true);*/
+		
 		validatePdfSize(request, response, pdfData);
 
 		HttpSession session = request.getSession();
@@ -602,6 +607,32 @@ public class PdfAsHelper {
 
 	public static boolean getFromDataUrl(HttpServletRequest request) {
 		Object obj = request.getAttribute(REQUEST_FROM_DU);
+		if (obj != null) {
+			if (obj instanceof Boolean) {
+				return ((Boolean) obj).booleanValue();
+			}
+		}
+		return false;
+	}
+	
+	public static void setSignatureDataHash(HttpServletRequest request, String value) {
+		request.setAttribute(SIGNATURE_DATA_HASH, value);
+	}
+
+	public static String getSignatureDataHash(HttpServletRequest request) {
+		Object obj = request.getAttribute(SIGNATURE_DATA_HASH);
+		if (obj != null) {
+			return obj.toString();
+		}
+		return "";
+	}
+	
+	public static void setSignatureActive(HttpServletRequest request, boolean value) {
+		request.setAttribute(SIGNATURE_ACTIVE, new Boolean(value));
+	}
+
+	public static boolean isSignatureActive(HttpServletRequest request) {
+		Object obj = request.getAttribute(SIGNATURE_ACTIVE);
 		if (obj != null) {
 			if (obj instanceof Boolean) {
 				return ((Boolean) obj).booleanValue();

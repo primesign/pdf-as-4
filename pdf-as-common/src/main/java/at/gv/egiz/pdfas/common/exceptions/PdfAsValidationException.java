@@ -18,6 +18,9 @@ public class PdfAsValidationException extends PdfAsException {
 	
 	@Override
 	protected String localizeMessage(String msgId) {
-        return String.format(MessageResolver.resolveMessage(msgId), parameter);
+		if(parameter != null) {
+			return String.format(MessageResolver.resolveMessage(msgId), parameter);
+		} 
+		return MessageResolver.resolveMessage(msgId);
     }
 }

@@ -108,4 +108,8 @@ public class WebConfiguration {
 		return false;
 	}
 
+	public static boolean isProvidePdfURLinWhitelist(String url) {
+		//TODO implement whitelisting for pdfURLS
+		return false;
+	}
 }

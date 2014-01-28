@@ -70,16 +70,4 @@ public class PdfAsParameterExtractor {
 	public static String getSigPosW(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_SIG_POS_W);
 	}
-	
-	// legacy Parameter
-	public static final String PARAM_PDF_ID = "pdf-id";
-	public static final String PARAM_SESSION_ID = "session-id";
-	
-	public static String getPdfId(HttpServletRequest request) {
-		return (String)request.getAttribute(PARAM_PDF_ID);
-	}
-	
-	public static String getSessionId(HttpServletRequest request) {
-		return (String)request.getAttribute(PARAM_SESSION_ID);
-	}
 }
