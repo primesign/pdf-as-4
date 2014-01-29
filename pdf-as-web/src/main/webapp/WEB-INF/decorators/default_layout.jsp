@@ -16,17 +16,13 @@
 <decorator:head></decorator:head>
 </head>
 
-<body>
+<body onload="<decorator:getProperty property="body.onload" />">
 	<p>
 	<h3>PDF-Signatur</h3>
 	</p>
 
 	<p>
 		<decorator:body></decorator:body>
-	</p>
-
-	<p>
-		<p>&copy; EGIZ 2014</p>
 	</p>
 </body>
 </html>

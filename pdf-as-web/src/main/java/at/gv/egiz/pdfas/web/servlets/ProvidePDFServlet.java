@@ -2,12 +2,14 @@ package at.gv.egiz.pdfas.web.servlets;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,8 @@ public class ProvidePDFServlet extends HttpServlet {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ProvidePDFServlet.class);
+	
+	private static final String PDF_DATA_URL = "##PDFDATAURL##";
 	
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -56,18 +60,16 @@ public class ProvidePDFServlet extends HttpServlet {
 
 			if (invokeURL == null || WebConfiguration.isProvidePdfURLinWhitelist(invokeURL)) {
 				
-				if(!WebConfiguration.isProvidePdfURLinWhitelist(invokeURL)) {
+				if(invokeURL != null) {
 					logger.warn(invokeURL + " is not allowed by whitelist");
 				}
 				
+				String template = PdfAsHelper.getProvideTemplate();
+				template = template.replace(PDF_DATA_URL, PdfAsHelper.generatePdfURL(request, response));
 				// Deliver to Browser directly!
 				response.setContentType("text/html");
-				PrintWriter pw = response.getWriter();
-				pw.write("<html><body>PDF ready @: <a href='"
-						+ PdfAsHelper.generatePdfURL(request, response)
-						+ "' download>here</a></body></html>");
-				pw.close();
-
+				response.getWriter().write(template);
+				response.getWriter().close();
 			} else {
 				// Redirect Browser
 				String template = PdfAsHelper.getInvokeRedirectTemplateSL();
@@ -82,7 +84,8 @@ public class ProvidePDFServlet extends HttpServlet {
 				}
 
 				template = template.replace("##PDFURL##",
-						PdfAsHelper.generatePdfURL(request, response));
+						URLEncoder.encode(PdfAsHelper.generatePdfURL(request, response), 
+								"UTF-8"));
 				response.setContentType("text/html");
 				response.getWriter().write(template);
 				response.getWriter().close();

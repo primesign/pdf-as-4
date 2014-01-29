@@ -1,7 +1,6 @@
 package at.gv.egiz.pdfas.web.servlets;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
@@ -25,12 +24,14 @@ public class ErrorPage extends HttpServlet {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ErrorPage.class);
 	
+	private static final String ERROR_STACK = "##ERROR_STACK##";
+	private static final String ERROR_MESSAGE = "##ERROR_MESSAGE##";
+	
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
 	public ErrorPage() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
@@ -84,24 +85,26 @@ public class ErrorPage extends HttpServlet {
 				response.getWriter().write(template);
 				response.getWriter().close();
 			} else {
-				if(!WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {
+				if(errorURL != null) {
 					logger.warn(errorURL + " is not allowed by whitelist");
 				}
-				response.setContentType("text/html");
-				PrintWriter pw = response.getWriter();
-		
-				pw.write("<html><body>Error Page:");
+				
+				String template = PdfAsHelper.getErrorTemplate();
 				if (message != null) {
-					pw.write("<p>" + message + "</p>");
+					template = template.replace(ERROR_MESSAGE, message);
+				} else {
+					template = template.replace(ERROR_MESSAGE, "Unbekannter Fehler");
 				}
-
+				
 				if (e != null && WebConfiguration.isShowErrorDetails()) {
-					pw.write("<p>"
-							+ HTMLFormater.formatStackTrace(e.getStackTrace())
-							+ "</p>");
+					template = template.replace(ERROR_STACK,  HTMLFormater.formatStackTrace(e.getStackTrace()));
+				} else {
+					template = template.replace(ERROR_STACK,  "");
 				}
-				pw.write("</body></html>");
-				pw.close();
+				
+				response.setContentType("text/html");
+				response.getWriter().write(template);
+				response.getWriter().close();
 			}
 		}
 	}

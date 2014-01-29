@@ -437,6 +437,18 @@ public class PdfAsHelper {
 		return xml;
 	}
 	
+	public static String getProvideTemplate() throws IOException {
+		String xml = FileUtils.readFileToString(FileUtils
+				.toFile(PdfAsHelper.class.getResource("/template_provide.html")));
+		return xml;
+	}
+	
+	public static String getErrorTemplate() throws IOException {
+		String xml = FileUtils.readFileToString(FileUtils
+				.toFile(PdfAsHelper.class.getResource("/template_error.html")));
+		return xml;
+	}
+	
 	public static String getInvokeRedirectTemplateSL() throws IOException {
 		String xml = FileUtils.readFileToString(FileUtils
 				.toFile(PdfAsHelper.class.getResource("/template_invoke_redirect.html")));
