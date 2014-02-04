@@ -16,6 +16,11 @@ public class PdfAsValidationException extends PdfAsException {
 		this.parameter = parameter;
 	}
 	
+	public PdfAsValidationException(String msgId, String parameter, Throwable e) {
+		super(msgId, e);
+		this.parameter = parameter;
+	}
+	
 	@Override
 	protected String localizeMessage(String msgId) {
 		if(parameter != null) {

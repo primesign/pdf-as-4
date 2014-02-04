@@ -16,6 +16,7 @@ import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +94,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		
 		if(parameter.getOutput() == null) {
 			throw new PdfAsValidationException("error.pdf.sig.11", null);
+		}
+		
+		try {
+			PDDocument doc = PDDocument.load(new ByteArrayInputStream(parameter.getDataSource().getByteData()));
+			PDFUtils.checkPDFPermissions(doc);
+			doc.close();
+		} catch(IOException e) {
+			throw new PdfAsValidationException("error.pdf.sig.12", null, e);
 		}
 		
 		// TODO: verify Sign Parameter
