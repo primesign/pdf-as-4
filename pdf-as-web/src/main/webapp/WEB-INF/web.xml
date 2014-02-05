@@ -67,12 +67,6 @@
 		<description></description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.ErrorPage</servlet-class>
 	</servlet>
-	<servlet>
-		<servlet-name>TestServlet</servlet-name>
-		<display-name>TestServlet</display-name>
-		<description></description>
-		<servlet-class>at.gv.egiz.pdfas.web.servlets.TestServlet</servlet-class>
-	</servlet>
 
 	<!-- Define mappings that are used by the servlet container to translate 
 		a particular request URI (context-relative) to a particular servlet. The 
@@ -106,10 +100,6 @@
 	<servlet-mapping>
 		<servlet-name>ErrorPage</servlet-name>
 		<url-pattern>/ErrorPage</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>TestServlet</servlet-name>
-		<url-pattern>/TestServlet</url-pattern>
 	</servlet-mapping>
 
 	<!-- Define the default session timeout for your application, in minutes. 
