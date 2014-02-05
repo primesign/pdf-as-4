@@ -7,23 +7,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.security.cert.CertificateException;
 
-import javax.activation.DataHandler;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.axis2.databinding.types.Token;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
@@ -34,22 +30,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import at.gv.egiz.moa.ByteArrayDataSource;
-import at.gv.egiz.moa.SignatureCreationServiceStub;
-import at.gv.egiz.moa.SignatureCreationServiceStub.CMSContentBaseType;
-import at.gv.egiz.moa.SignatureCreationServiceStub.CreateCMSSignatureRequest;
-import at.gv.egiz.moa.SignatureCreationServiceStub.CreateCMSSignatureResponse;
-import at.gv.egiz.moa.SignatureCreationServiceStub.CreateSignatureInfo_type0;
-import at.gv.egiz.moa.SignatureCreationServiceStub.DataObjectInfo_type1;
-import at.gv.egiz.moa.SignatureCreationServiceStub.DataObject_type1;
-import at.gv.egiz.moa.SignatureCreationServiceStub.KeyIdentifierType;
-import at.gv.egiz.moa.SignatureCreationServiceStub.MetaInfoType;
-import at.gv.egiz.moa.SignatureCreationServiceStub.MimeTypeType;
-import at.gv.egiz.moa.SignatureCreationServiceStub.SingleSignatureInfo_type1;
-import at.gv.egiz.moa.SignatureCreationServiceStub.Structure_type1;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
-import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 
 public class MOAConnector implements ISignatureConnector {

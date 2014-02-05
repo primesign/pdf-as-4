@@ -51,6 +51,14 @@
 		<%
 			}
 		%>
+		<%
+			if (WebConfiguration.getMOASSEnabled()) {
+		%>
+			<button type="submit" value="moa" name="connector"
+				id="moa">MOA-SS</button>
+		<%
+			}
+		%>
 	</form>
 </body>
 </html>

@@ -235,9 +235,41 @@ public class ExternSignServlet extends HttpServlet {
 		IPlainSigner signer;
 		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")) {
 			// start asynchronous signature creation
+			
+			if(connector.equals("bku")) {
+				if(WebConfiguration.getLocalBKUURL() == null) {
+					throw new PdfAsWebException("Invalid connector bku is not supported");
+				}
+			}
+			
+			if(connector.equals("onlinebku")) {
+				if(WebConfiguration.getLocalBKUURL() == null) {
+					throw new PdfAsWebException("Invalid connector onlinebku is not supported");
+				}
+			}
+			
+			if(connector.equals("mobilebku")) {
+				if(WebConfiguration.getLocalBKUURL() == null) {
+					throw new PdfAsWebException("Invalid connector mobilebku is not supported");
+				}
+			}
+			
 			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData);
 		} else if (connector.equals("jks") || connector.equals("moa")) {
 			// start synchronous siganture creation
+			
+			if(connector.equals("jks")) {
+				if(!WebConfiguration.getKeystoreEnabled()) {
+					throw new PdfAsWebException("Invalid connector jks is not supported");
+				}
+			}
+			
+			if(connector.equals("moa")) {
+				if(!WebConfiguration.getMOASSEnabled()) {
+					throw new PdfAsWebException("Invalid connector moa is not supported");
+				}
+			}
+			
 			byte[] pdfSignedData = PdfAsHelper.synchornousSignature(request,
 					response, pdfData);
 			PdfAsHelper.setSignedPdf(request, response, pdfSignedData);

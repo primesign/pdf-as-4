@@ -20,6 +20,8 @@ public class WebConfiguration {
 	public static final String ERROR_DETAILS = "error.showdetails";
 	public static final String PDF_AS_WORK_DIR = "pdfas.dir";
 	
+	public static final String MOA_SS_ENABLED = "moa.enabled";
+	
 	public static final String KEYSTORE_ENABLED = "ks.enabled";
 	public static final String KEYSTORE_FILE = "ks.file";
 	public static final String KEYSTORE_TYPE = "ks.type";
@@ -116,6 +118,15 @@ public class WebConfiguration {
 		return properties.getProperty(KEYSTORE_KEY_PASS);
 	}
 	
+	public static boolean getMOASSEnabled() {
+		String value = properties.getProperty(MOA_SS_ENABLED);
+		if(value != null) {
+			if(value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
 	
 	public static boolean getKeystoreEnabled() {
 		String value = properties.getProperty(KEYSTORE_ENABLED);

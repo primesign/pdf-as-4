@@ -100,7 +100,7 @@ public class Main {
 
 		Option connectorOption = new Option(CLI_ARG_CONNECTOR_SHORT,
 				CLI_ARG_CONNECTOR, true,
-				"Connector to use (bku | ks (Keystore) | moa(not available yet))");
+				"Connector to use (bku | ks (Keystore) | moa)");
 		cliOptions.addOption(connectorOption);
 
 		Option keystoreFileOption = new Option(CLI_ARG_KEYSTORE_FILE_SHORT,
