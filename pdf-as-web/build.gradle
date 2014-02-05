@@ -8,7 +8,7 @@ sourceCompatibility = 1.5
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'PDF-AS-WEB', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'PDF-AS-WEB'
     }
 }
 

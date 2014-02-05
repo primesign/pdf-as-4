@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Signature Standard PKCS7 Detached', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'Signature Standard PKCS7 Detached'
     }
 }
 

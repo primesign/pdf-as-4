@@ -2,9 +2,9 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 
 jar {
-    manifest {
-        attributes 'Implementation-Title': 'PDF-AS-4 Library', 'Implementation-Version': version, 'JARMANIFEST': 'PDF-AS-LIB'
-    }
+	manifest {
+		attributes 'Implementation-Title': 'PDF-AS-4 Library', 'JARMANIFEST': 'PDF-AS-LIB'
+	}
 }
 
 buildscript {
@@ -12,13 +12,13 @@ buildscript {
 		mavenLocal()
 		mavenCentral()
 	}
-	dependencies {
-		classpath("commons-io:commons-io:2.4")
-	}
+	dependencies { classpath("commons-io:commons-io:2.4") }
 }
 
-configurations {
-	generateJavaFromWsdlDeps
+configurations { 
+	generateJavaFromWsdlDeps 
+	
+	pdfDoclet { extendsFrom compile }
 }
 
 task createConf(type: Zip, dependsOn: JavaPlugin.PROCESS_RESOURCES_TASK_NAME) {
@@ -29,33 +29,11 @@ task createConf(type: Zip, dependsOn: JavaPlugin.PROCESS_RESOURCES_TASK_NAME) {
 
 compileJava.dependsOn(createConf)
 
-/*task generateJavaFromWsdl(type: JavaExec) {
-	classpath configurations.generateJavaFromWsdlDeps
-	//main "org.apache.cxf.tools.wsdlto.WSDLToJava"
-	main "org.apache.axis.wsdl.WSDL2Java"
-	args "-o "  + projectDir + "/src/main/java", "-v", "" + projectDir + "/src/main/resources/wsdl/MOA-SPSS-1.3.wsdl"
- 
-	compileJava.dependsOn += name
- 
-	def branch = new org.apache.commons.io.output.ByteArrayOutputStream()
-	errorOutput = new org.apache.commons.io.output.TeeOutputStream(System.err, branch)
-	doLast {
-		def str = branch.toString()
-		if (str.contains('Usage : wsdl2java') || str.contains('WSDLToJava Error')) {
-			throw new TaskExecutionException(
-				tasks[name],
-				new IOException("WSDLToJava has failed, please see output")
-			)
-		}
-	}
-}*/
 
 repositories {
 	mavenLocal()
-    mavenCentral()
-	maven {
-		url "http://nexus.iaik.tugraz.at/nexus/content/groups/internal"
-	}
+	mavenCentral()
+	maven { url "http://nexus.iaik.tugraz.at/nexus/content/groups/internal" }
 }
 
 dependencies {
@@ -65,7 +43,7 @@ dependencies {
 	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.2'
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
 	compile group: 'org.apache.commons', name: 'commons-io', version: '1.3.2'
-    compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+	compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 	compile group: 'org.apache.axis2', name: 'axis2', version: '1.6.2'
 	compile group: 'org.apache.axis2', name: 'axis2-jaxws', version: '1.6.2'
 	compile group: 'org.apache.axis2', name: 'axis2-transport-local', version: '1.6.2'
@@ -79,17 +57,65 @@ dependencies {
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
 	compile group: 'com.google.zxing', name: 'core', version: '2.2'
 	compile group: 'com.google.zxing', name: 'javase', version: '2.2'
-    testCompile group: 'junit', name: 'junit', version: '4.+'
+	pdfDoclet files('libs/pdfdoclet-1.0.3-all.jar')
+	testCompile group: 'junit', name: 'junit', version: '4.+'
+}
+
+/*javadoc {
+	revision = getCheckedOutGitCommitHash()
+	project.configure(options) {
+		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+		charSet = "ISO-8859-1"
+		docTitle = "PDF-AS 4.0 Library"
+		exclude = '/**'
+		include = 'at/gv/egiz/pdfas/lib/api/**'
+		windowTitle = "PDF-AS 4.0 Library"
+		header = "<b>PDF-AS 4.0 Library $version [$revision]</b>"
+		use = "true"
+		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
+	}
+}*/
+
+task apidocs(type: Javadoc) {
+	classpath = configurations.compile
+	source = sourceSets.main.allJava
+	project.configure(options) {
+		destinationDir = new File(projectDir, '../docs')
+		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+		charSet = "ISO-8859-1"
+		docTitle = "PDF-AS " + pdfasversion + " Documentation"
+		version = pdfasversion
+		include = include('at/gv/egiz/pdfas/lib/api/**')
+		windowTitle = "PDF-AS " + pdfasversion + " Library"
+		header = "<b>PDF-AS " + pdfasversion + " Library  " + pdfasversion + " [" + revision + "]</b>"
+		use = "true"
+		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
+	}
+}
+
+/*task apidocspdf(type: Javadoc) {
+	classpath = configurations.compile
+	source = sourceSets.main.allJava
+	options.docletpath = configurations.pdfDoclet.files.asType(List)
+	options.doclet = "com.tarsec.javadoc.pdfdoclet.PDFDoclet"
+	options.addStringOption("pdf", "../docs/api.pdf")
+}*/
+
+task apidocspdf << {
+	def proc = "./doc.sh".execute()
+	proc.in.eachLine {line -> println line}
+	proc.err.eachLine {line -> println 'ERROR: ' + line}
+	proc.waitFor()
 }
 
 test {
-    systemProperties 'property': 'value'
+	systemProperties 'property': 'value'
 }
 
 uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
-    }
+	repositories {
+		flatDir {
+			dirs 'repos'
+		}
+	}
 }

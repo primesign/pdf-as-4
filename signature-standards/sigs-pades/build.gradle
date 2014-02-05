@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Signature Standard PAdES', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'Signature Standard PAdES'
     }
 }
 

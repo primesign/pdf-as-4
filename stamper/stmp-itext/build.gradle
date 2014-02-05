@@ -3,7 +3,7 @@ apply plugin: 'eclipse'
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'PDF-AS Stamper with itext', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'PDF-AS Stamper with itext'
     }
 }
 
