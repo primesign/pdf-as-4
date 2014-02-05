@@ -1,6 +1,5 @@
 package at.gv.egiz.pdfas.lib.api;
 
-import iaik.cms.IaikCCProvider;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
 
@@ -38,6 +37,7 @@ public class PdfAsFactory {
 	private static final String MAN_ATTRIBUTE = "JARMANIFEST";
 	private static final String PDF_AS_LIB = "PDF-AS-LIB";
 	private static final String IMPL_VERSION = "Implementation-Version";
+	private static final String SCM_REVISION = "SCMREVISION";
 	
 
 	static {
@@ -50,6 +50,7 @@ public class PdfAsFactory {
 		
 		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 		System.out.println("+ PDF-AS: " + getVersion());
+		System.out.println("+ PDF-AS SCM Revision: " + getSCMRevision());
 		System.out.println("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
 		System.out.println("+ ECCelerate Version: " + ECCelerate.getInstance().getVersion());
 		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -64,6 +65,11 @@ public class PdfAsFactory {
 		}
 	}
 
+	/**
+	 * Create a new instance of PDF-AS
+	 * @param configuration The PDF-AS configuration 
+	 * @return
+	 */
 	public static PdfAs createPdfAs(File configuration) {
 		if (!log_configured) {
 			synchronized (log_mutex) {
@@ -91,12 +97,24 @@ public class PdfAsFactory {
 		return new PdfAsImpl(configuration);
 	}
 
+	/**
+	 * Creates a sign parameter
+	 * @param configuration The configuration to be used
+	 * @param dataSource The data source to be used
+	 * @return
+	 */
 	public static SignParameter createSignParameter(
 			Configuration configuration, DataSource dataSource) {
 		SignParameter param = new SignParameterImpl(configuration, dataSource);
 		return param;
 	}
 
+	/**
+	 * Creates a verification parameter
+	 * @param configuration The configuration to be used
+	 * @param dataSource The data source to be used
+	 * @return
+	 */
 	public static VerifyParameter createVerifyParameter(
 			Configuration configuration, DataSource dataSource) {
 		VerifyParameter param = new VerifyParameterImpl(configuration,
@@ -177,35 +195,22 @@ public class PdfAsFactory {
 			}
 		}
 	}
-
+	
+	/**
+	 * Gets the PDF-AS SCM Revision
+	 * @return
+	 */
+	public static String getSCMRevision() {
+		Package pack = PdfAsFactory.class.getPackage();
+		return pack.getSpecificationVersion();
+	}
+	
+	/** 
+	 * Gets the PDF-AS Version 
+	 * @return PDF-AS Verison string
+	 */
 	public static String getVersion() {
 		Package pack = PdfAsFactory.class.getPackage();
 		return pack.getImplementationVersion();
-		/*
-		try {
-			
-			
-			Enumeration<URL> resources = PdfAsFactory.class.getClassLoader()
-					.getResources("META-INF/MANIFEST.MF");
-			while (resources.hasMoreElements()) {
-				Manifest manifest = new Manifest(resources.nextElement()
-						.openStream());
-				Attributes attributes = manifest.getAttributes(MAN_ATTRIBUTE);
-				if (attributes != null) {
-					if(attributes.isEmpty()) {
-						String value = attributes.getValue(new Attributes.Name(MAN_ATTRIBUTE));
-						if(value != null && value.equals(PDF_AS_LIB)) {
-							// Got my manifest
-							return manifest.getAttributes(IMPL_VERSION).getValue(IMPL_VERSION);
-						}
-					}
-				}
-			}
-		} catch (Throwable e) {
-			e.printStackTrace();
-			logger.error("Failed to read Version!");
-			return "0.0.0";
-		}
-		return "0.0.0";*/
 	}
 }

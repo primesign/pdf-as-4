@@ -1,5 +1,8 @@
 package at.gv.egiz.pdfas.lib.api;
 
+/**
+ * A simple byte array data source
+ */
 public class ByteArrayDataSource implements DataSource {
 
     private byte[] byteData;

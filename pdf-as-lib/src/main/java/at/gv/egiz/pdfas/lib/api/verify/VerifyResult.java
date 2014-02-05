@@ -49,8 +49,15 @@ public interface VerifyResult {
 	 */
 	public boolean isQualifiedCertificate();
 	
-	
+	/**
+	 * Gets the signer certificate
+	 * @return
+	 */
 	public X509Certificate getSignerCertificate();
 	
+	/**
+	 * Gets the signed data for the signature
+	 * @return
+	 */
 	public byte[] getSignatureData();
 }

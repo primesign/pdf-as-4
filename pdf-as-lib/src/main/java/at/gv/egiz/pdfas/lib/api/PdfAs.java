@@ -33,7 +33,32 @@ public interface PdfAs {
 	 */
 	public Configuration getConfiguration();
 	
+	/**
+	 * Starts a signature process
+	 * 
+	 * After the process has to be startet the status request has to be services by the user application
+	 * 
+	 * @param parameter The sign parameter
+	 * @return A status request
+	 * @throws PdfAsException
+	 */
 	public StatusRequest startSign(SignParameter parameter) throws PdfAsException;
+	
+	/**
+	 * Continues an ongoing signature process 
+	 * 
+	 * @param statusRequest The current status
+	 * @return A status request
+	 * @throws PdfAsException
+	 */
 	public StatusRequest process(StatusRequest statusRequest) throws PdfAsException;
+	
+	/**
+	 * Finishes a signature process
+	 * 
+	 * @param statusRequest The current status
+	 * @return A signature result
+	 * @throws PdfAsException
+	 */
 	public SignResult    finishSign(StatusRequest statusRequest) throws PdfAsException;
 }
