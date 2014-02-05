@@ -80,12 +80,29 @@ task apidocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava
 	project.configure(options) {
-		destinationDir = new File(projectDir, '../docs')
+		destinationDir = new File(projectDir, '../docs/api')
 		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 		charSet = "ISO-8859-1"
 		docTitle = "PDF-AS " + pdfasversion + " Documentation"
 		version = pdfasversion
 		include = include('at/gv/egiz/pdfas/lib/api/**')
+		windowTitle = "PDF-AS " + pdfasversion + " Library"
+		header = "<b>PDF-AS " + pdfasversion + " Library  " + pdfasversion + " [" + revision + "]</b>"
+		use = "true"
+		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
+	}
+}
+
+task fulldocs(type: Javadoc) {
+	classpath = configurations.compile
+	source = sourceSets.main.allJava
+	project.configure(options) {
+		destinationDir = new File(projectDir, '../docs/full')
+		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+		charSet = "ISO-8859-1"
+		docTitle = "PDF-AS " + pdfasversion + " Documentation"
+		version = pdfasversion
+		include = include('at/gv/egiz/**')
 		windowTitle = "PDF-AS " + pdfasversion + " Library"
 		header = "<b>PDF-AS " + pdfasversion + " Library  " + pdfasversion + " [" + revision + "]</b>"
 		use = "true"
