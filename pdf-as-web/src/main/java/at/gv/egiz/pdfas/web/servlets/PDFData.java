@@ -70,6 +70,7 @@ public class PDFData extends HttpServlet {
 					return;
 				}
 			}
+			response.setHeader("Content-Disposition", "inline;filename=" + PdfAsHelper.getPDFFileName(request));
 			response.setContentType("application/pdf");
 			OutputStream os = response.getOutputStream();
 			os.write(signedData);

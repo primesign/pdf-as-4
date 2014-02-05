@@ -64,6 +64,7 @@ public class PdfAsHelper {
 	private static final String PDF_PDFDATA_PAGE = "/PDFData";
 	private static final String PDF_DATAURL_PAGE = "/DataURL";
 	private static final String PDF_ERR_URL = "PDF_ERR_URL";
+	private static final String PDF_FILE_NAME = "PDF_FILE_NAME";
 	private static final String PDF_INVOKE_URL = "PDF_INVOKE_URL";
 	private static final String REQUEST_FROM_DU = "REQ_DATA_URL";
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
@@ -627,15 +628,31 @@ public class PdfAsHelper {
 	}
 	
 	public static void setSignatureDataHash(HttpServletRequest request, String value) {
-		request.setAttribute(SIGNATURE_DATA_HASH, value);
+		HttpSession session = request.getSession();
+		session.setAttribute(SIGNATURE_DATA_HASH, value);
 	}
 
 	public static String getSignatureDataHash(HttpServletRequest request) {
-		Object obj = request.getAttribute(SIGNATURE_DATA_HASH);
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(SIGNATURE_DATA_HASH);
 		if (obj != null) {
 			return obj.toString();
 		}
 		return "";
+	}
+	
+	public static void setPDFFileName(HttpServletRequest request, String value) {
+		HttpSession session = request.getSession();
+		session.setAttribute(PDF_FILE_NAME, value);
+	}
+
+	public static String getPDFFileName(HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(PDF_FILE_NAME);
+		if (obj != null) {
+			return obj.toString();
+		}
+		return "document.pdf";
 	}
 	
 	public static void setSignatureActive(HttpServletRequest request, boolean value) {

@@ -151,7 +151,22 @@ public class ExternSignServlet extends HttpServlet {
 							FileItem item = (FileItem) obj;
 							if(item.getFieldName().equals(UPLOAD_PDF_DATA)) {
 								filecontent = item.get();
-								
+								try {
+									File f = new File(item.getName());
+									String name = f.getName();
+									logger.debug("Got upload: " + item.getName());
+									if(name != null) {
+										if(!(name.endsWith(".pdf") || name.endsWith(".PDF"))) {
+											name += ".pdf";
+										}
+										
+										logger.debug("Setting Filename in session: " + name);
+										PdfAsHelper.setPDFFileName(request, name);
+									}
+								}
+								catch(Throwable e) {
+									logger.error("In resolving filename", e);
+								}
 								if(filecontent.length < 10) {
 									filecontent = null;
 								} else {
@@ -162,7 +177,7 @@ public class ExternSignServlet extends HttpServlet {
 								logger.debug("Setting " + item.getFieldName() + " = " + item.getString());
 							}
 						} else {
-							logger.info(obj.getClass().getName() +  " - " + obj.toString());
+							logger.debug(obj.getClass().getName() +  " - " + obj.toString());
 						}
 					}
 				}
