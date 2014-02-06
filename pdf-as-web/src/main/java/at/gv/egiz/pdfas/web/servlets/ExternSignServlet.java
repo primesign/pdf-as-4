@@ -60,6 +60,8 @@ public class ExternSignServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		
+		//PdfAsHelper.regenerateSession(request);
+		
 		System.out.println("Get signing request");
 		logger.info("Get signing request");
 		
@@ -92,6 +94,8 @@ public class ExternSignServlet extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
+		
+		//PdfAsHelper.regenerateSession(request);
 		
 		System.out.println("Post signing request");
 		logger.info("Post signing request");

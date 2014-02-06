@@ -18,24 +18,19 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.lowagie.text.html.WebColors;
-
-import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
-import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
-import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
-import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
-import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
@@ -69,6 +64,7 @@ public class PdfAsHelper {
 	private static final String REQUEST_FROM_DU = "REQ_DATA_URL";
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
 	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
+	private static final String VERIFICATION_RESULT = "VERIFICATION_RESULT";
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
@@ -78,14 +74,14 @@ public class PdfAsHelper {
 
 	static {
 		logger.debug("Creating PDF-AS");
-		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration.getPdfASDir()));
+		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration
+				.getPdfASDir()));
 		logger.debug("Creating PDF-AS done");
 	}
-	
+
 	public static void init() {
 		logger.debug("PDF-AS Helper initialized");
 	}
-	
 
 	private static void validatePdfSize(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData)
@@ -113,7 +109,7 @@ public class PdfAsHelper {
 			}
 		}
 	}
-	
+
 	private static String buildPosString(HttpServletRequest request,
 			HttpServletResponse response) throws PdfAsWebException {
 		String posP = PdfAsParameterExtractor.getSigPosP(request);
@@ -180,6 +176,38 @@ public class PdfAsHelper {
 		return sb.toString();
 	}
 
+	public static List<VerifyResult> synchornousVerify(
+			HttpServletRequest request, HttpServletResponse response,
+			byte[] pdfData) throws Exception {
+		String signidxString = PdfAsParameterExtractor.getSigIdx(request);
+		int signIdx = -1;
+		if (signidxString != null) {
+			try {
+				signIdx = Integer.parseInt(signidxString);
+			} catch (Throwable e) {
+				logger.error("Failed to parse Signature Index: "
+						+ signidxString);
+			}
+		}
+
+		logger.error("Verifing Signature index: " + signIdx);
+
+		Configuration config = pdfAs.getConfiguration();
+
+		ByteArrayDataSource dataSource = new ByteArrayDataSource(pdfData);
+
+		VerifyParameter verifyParameter = PdfAsFactory.createVerifyParameter(
+				config, dataSource);
+
+		verifyParameter.setDataSource(dataSource);
+		verifyParameter.setConfiguration(config);
+		verifyParameter.setWhichSignature(signIdx);
+
+		List<VerifyResult> results = pdfAs.verify(verifyParameter);
+
+		return results;
+	}
+
 	/**
 	 * Create synchronous PDF Signature
 	 * 
@@ -213,9 +241,11 @@ public class PdfAsHelper {
 		if (connector.equals("moa")) {
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else {
-			signer = new PKCS7DetachedSigner(WebConfiguration.getKeystoreFile(), 
+			signer = new PKCS7DetachedSigner(
+					WebConfiguration.getKeystoreFile(),
 					WebConfiguration.getKeystoreAlias(),
-					WebConfiguration.getKeystorePass(), WebConfiguration.getKeystoreKeyPass(), 
+					WebConfiguration.getKeystorePass(),
+					WebConfiguration.getKeystoreKeyPass(),
 					WebConfiguration.getKeystoreType());
 		}
 
@@ -240,17 +270,21 @@ public class PdfAsHelper {
 			HttpServletResponse response, ServletContext context, byte[] pdfData)
 			throws Exception {
 
-		// TODO: Protect session so that only one PDF can be signed during one session
-		/*if(PdfAsHelper.isSignatureActive(request)) {
-			throw new PdfAsException("Signature is active in this session");
-		}
-		
-		PdfAsHelper.setSignatureActive(request, true);*/
-		
+		// TODO: Protect session so that only one PDF can be signed during one
+		// session
+		/*
+		 * if(PdfAsHelper.isSignatureActive(request)) { throw new
+		 * PdfAsException("Signature is active in this session"); }
+		 * 
+		 * PdfAsHelper.setSignatureActive(request, true);
+		 */
+
 		validatePdfSize(request, response, pdfData);
 
 		HttpSession session = request.getSession();
 
+		logger.info("Starting signature in session: " + session.getId());
+		
 		Configuration config = pdfAs.getConfiguration();
 		session.setAttribute(PDF_CONFIG, config);
 
@@ -262,12 +296,14 @@ public class PdfAsHelper {
 		String connector = PdfAsParameterExtractor.getConnector(request);
 
 		IPlainSigner signer;
-		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")) {
+		if (connector.equals("bku") || connector.equals("onlinebku")
+				|| connector.equals("mobilebku")) {
 			BKUSLConnector conn = new BKUSLConnector(config);
 			signer = new PAdESSigner(conn);
 			session.setAttribute(PDF_SL_CONNECTOR, conn);
 		} else {
-			throw new PdfAsWebException("Invalid connector (bku | onlinebku | mobilebku | moa | jks)");
+			throw new PdfAsWebException(
+					"Invalid connector (bku | onlinebku | mobilebku | moa | jks)");
 		}
 
 		signParameter.setPlainSigner(signer);
@@ -318,6 +354,10 @@ public class PdfAsHelper {
 		StatusRequest statusRequest = (StatusRequest) session
 				.getAttribute(PDF_STATUS);
 
+		if(statusRequest == null) {
+			throw new PdfAsWebException("No Signature running in session:" + session.getId());
+		}
+		
 		statusRequest.setCertificate(getCertificate(infoboxReadResponseType));
 		statusRequest = pdfAs.process(statusRequest);
 		session.setAttribute(PDF_STATUS, statusRequest);
@@ -336,12 +376,21 @@ public class PdfAsHelper {
 		StatusRequest statusRequest = (StatusRequest) session
 				.getAttribute(PDF_STATUS);
 
+		if(statusRequest == null) {
+			throw new PdfAsWebException("No Signature running in session:" + session.getId());
+		}
+		
 		statusRequest.setSigature(createCMSSignatureResponseType
 				.getCMSSignature());
 		statusRequest = pdfAs.process(statusRequest);
 		session.setAttribute(PDF_STATUS, statusRequest);
 
 		PdfAsHelper.process(request, response, context);
+	}
+	
+	public static void logAccess(HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		logger.debug("Access to " + request.getServletPath() + " in Session: " + session.getId());
 	}
 
 	public static void process(HttpServletRequest request,
@@ -356,7 +405,8 @@ public class PdfAsHelper {
 
 		String connector = (String) session.getAttribute(PDF_SL_INTERACTIVE);
 
-		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")) {
+		if (connector.equals("bku") || connector.equals("onlinebku")
+				|| connector.equals("mobilebku")) {
 			BKUSLConnector bkuSLConnector = (BKUSLConnector) session
 					.getAttribute(PDF_SL_CONNECTOR);
 
@@ -374,18 +424,14 @@ public class PdfAsHelper {
 				JAXBElement<InfoboxReadRequestType> readRequest = of
 						.createInfoboxReadRequest(readCertificateRequest);
 
-				String url = request.getContextPath() + "/DataURL;jsessionid="
-						+ session.getId();
-				String fullurl = request.getScheme() + "://"
-						+ request.getServerName() + ":"
-						+ request.getServerPort() + url;
+				String url = generateDataURL(request, response);
 				String slRequest = SLMarschaller.marshalToString(readRequest);
 				String template = getTemplateSL();
 				template = template.replace("##BKU##",
 						generateBKUURL(connector));
 				template = template.replace("##XMLRequest##",
 						StringEscapeUtils.escapeHtml4(slRequest));
-				template = template.replace("##DataURL##", fullurl);
+				template = template.replace("##DataURL##", url);
 				response.getWriter().write(template);
 				response.getWriter().close();
 			} else if (statusRequest.needSignature()) {
@@ -431,28 +477,31 @@ public class PdfAsHelper {
 				.toFile(PdfAsHelper.class.getResource("/template_sl.html")));
 		return xml;
 	}
-	
+
 	public static String getErrorRedirectTemplateSL() throws IOException {
 		String xml = FileUtils.readFileToString(FileUtils
-				.toFile(PdfAsHelper.class.getResource("/template_error_redirect.html")));
+				.toFile(PdfAsHelper.class
+						.getResource("/template_error_redirect.html")));
 		return xml;
 	}
-	
+
 	public static String getProvideTemplate() throws IOException {
-		String xml = FileUtils.readFileToString(FileUtils
-				.toFile(PdfAsHelper.class.getResource("/template_provide.html")));
+		String xml = FileUtils
+				.readFileToString(FileUtils.toFile(PdfAsHelper.class
+						.getResource("/template_provide.html")));
 		return xml;
 	}
-	
+
 	public static String getErrorTemplate() throws IOException {
 		String xml = FileUtils.readFileToString(FileUtils
 				.toFile(PdfAsHelper.class.getResource("/template_error.html")));
 		return xml;
 	}
-	
+
 	public static String getInvokeRedirectTemplateSL() throws IOException {
 		String xml = FileUtils.readFileToString(FileUtils
-				.toFile(PdfAsHelper.class.getResource("/template_invoke_redirect.html")));
+				.toFile(PdfAsHelper.class
+						.getResource("/template_invoke_redirect.html")));
 		return xml;
 	}
 
@@ -542,7 +591,7 @@ public class PdfAsHelper {
 		Object obj = session.getAttribute(PDF_ERR_URL);
 		return obj == null ? null : obj.toString();
 	}
-	
+
 	public static void setInvokeURL(HttpServletRequest request,
 			HttpServletResponse response, String url) {
 		HttpSession session = request.getSession();
@@ -582,6 +631,11 @@ public class PdfAsHelper {
 		return dataURL;
 	}
 	
+	public static void regenerateSession(HttpServletRequest request) {
+		request.getSession(false).invalidate();
+		request.getSession(true);
+	}
+
 	public static String generateDataURL(HttpServletRequest request,
 			HttpServletResponse response) {
 		return generateURL(request, response, PDF_DATAURL_PAGE);
@@ -591,7 +645,7 @@ public class PdfAsHelper {
 			HttpServletResponse response) {
 		return generateURL(request, response, PDF_PROVIDE_PAGE);
 	}
-	
+
 	public static String generateErrorURL(HttpServletRequest request,
 			HttpServletResponse response) {
 		return generateURL(request, response, PDF_ERROR_PAGE);
@@ -601,13 +655,13 @@ public class PdfAsHelper {
 			HttpServletResponse response) {
 		return generateURL(request, response, PDF_PDFDATA_PAGE);
 	}
-	
+
 	public static String generateBKUURL(String connector) {
-		if(connector.equals("bku")) {
+		if (connector.equals("bku")) {
 			return WebConfiguration.getLocalBKUURL();
-		} else if(connector.equals("onlinebku")) {
+		} else if (connector.equals("onlinebku")) {
 			return WebConfiguration.getOnlineBKUURL();
-		} else if(connector.equals("mobilebku")) {
+		} else if (connector.equals("mobilebku")) {
 			return WebConfiguration.getHandyBKUURL();
 		}
 		return WebConfiguration.getLocalBKUURL();
@@ -626,8 +680,9 @@ public class PdfAsHelper {
 		}
 		return false;
 	}
-	
-	public static void setSignatureDataHash(HttpServletRequest request, String value) {
+
+	public static void setSignatureDataHash(HttpServletRequest request,
+			String value) {
 		HttpSession session = request.getSession();
 		session.setAttribute(SIGNATURE_DATA_HASH, value);
 	}
@@ -640,7 +695,7 @@ public class PdfAsHelper {
 		}
 		return "";
 	}
-	
+
 	public static void setPDFFileName(HttpServletRequest request, String value) {
 		HttpSession session = request.getSession();
 		session.setAttribute(PDF_FILE_NAME, value);
@@ -654,13 +709,36 @@ public class PdfAsHelper {
 		}
 		return "document.pdf";
 	}
-	
-	public static void setSignatureActive(HttpServletRequest request, boolean value) {
-		request.setAttribute(SIGNATURE_ACTIVE, new Boolean(value));
+
+	public static void setVerificationResult(HttpServletRequest request,
+			List<VerifyResult> value) {
+		HttpSession session = request.getSession();
+		session.setAttribute(VERIFICATION_RESULT, value);
+	}
+
+	public static List<VerifyResult> getVerificationResult(
+			HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(VERIFICATION_RESULT);
+		if (obj != null) {
+			try {
+				return (List<VerifyResult>) obj;
+			} catch (Throwable e) {
+				logger.error("Invalid object type");
+			}
+		}
+		return null;
+	}
+
+	public static void setSignatureActive(HttpServletRequest request,
+			boolean value) {
+		HttpSession session = request.getSession();
+		session.setAttribute(SIGNATURE_ACTIVE, new Boolean(value));
 	}
 
 	public static boolean isSignatureActive(HttpServletRequest request) {
-		Object obj = request.getAttribute(SIGNATURE_ACTIVE);
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(SIGNATURE_ACTIVE);
 		if (obj != null) {
 			if (obj instanceof Boolean) {
 				return ((Boolean) obj).booleanValue();

@@ -58,26 +58,28 @@ public class DataURLServlet extends HttpServlet {
 			PdfAsHelper.setFromDataUrl(request);
 			String xmlResponse = request.getParameter("XMLResponse");
 			
-			System.out.println(xmlResponse);
+			//System.out.println(xmlResponse);
 			
 			JAXBElement jaxbObject = (JAXBElement) SLMarschaller.unmarshalFromString(xmlResponse);
 			if(jaxbObject.getValue() instanceof InfoboxReadResponseType) {
 				InfoboxReadResponseType infoboxReadResponseType = (InfoboxReadResponseType)jaxbObject.getValue();
+				logger.info("Got InfoboxReadResponseType");
 				PdfAsHelper.injectCertificate(request, response, infoboxReadResponseType, getServletContext());
 			} else if(jaxbObject.getValue() instanceof CreateCMSSignatureResponseType) {
 				CreateCMSSignatureResponseType createCMSSignatureResponseType = (CreateCMSSignatureResponseType)jaxbObject.getValue();
+				logger.info("Got CreateCMSSignatureResponseType");
 				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType, getServletContext());
 			} else if(jaxbObject.getValue() instanceof ErrorResponseType) {
 				ErrorResponseType errorResponseType = (ErrorResponseType)jaxbObject.getValue();
 				logger.error("SecurityLayer: " + errorResponseType.getErrorCode() + " " + errorResponseType.getInfo());
 				throw new PdfAsSecurityLayerException(errorResponseType.getInfo(), 
 						errorResponseType.getErrorCode());
-				
 			} else {
 				throw new PdfAsSecurityLayerException("Unknown SL response", 
 						9999);
 			}
 		} catch (Exception e) {
+			logger.error("Error in DataURL Servlet. " , e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
