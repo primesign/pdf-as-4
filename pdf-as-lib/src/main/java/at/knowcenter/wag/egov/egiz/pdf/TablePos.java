@@ -68,6 +68,11 @@ public class TablePos implements Serializable
    * The top y position of the footer line.
    */
   public float footer_line = 0.0f;
+  
+  /**
+   * The rotation of the signature block
+   */
+  public float rotation = 0.0f;
 
   /**
    * The y position.
@@ -134,7 +139,7 @@ public class TablePos implements Serializable
    * Constructor.
    * 
    * @param pos_string The pos instruction.
-   *        format : [x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo]
+   *        format : [x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo];[r:r_algo]
    *        x_algo:='auto'     ... automatic positioning x
    *                floatvalue ... absolute x
    *        y_algo:='auto'     ... automatic positioning y
@@ -145,6 +150,7 @@ public class TablePos implements Serializable
    *                'new'      ... new page  
    *                intvalue   ... pagenumber
    *        f_algo  floatvalue ... consider footerline (only if y_algo is auto and p_algo is not 'new')
+   *        r_algo  floatvalue ... rotate the table arround the lower left corner anti clockwise in degree
    * @throws PdfAsException
    */
   public TablePos(String pos_string) throws PdfAsException
@@ -241,6 +247,15 @@ public class TablePos implements Serializable
 	     				this.footer_line = flval;
 	     				break;
 	     			  }
+	     	case 'r': {
+ 		        		float flval=Float.parseFloat(commandval);
+ 		        		if (flval<0)
+ 		        		{
+ 		        			throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
+ 		        		} 	     		        
+ 		        		this.rotation = flval;
+ 		        		break;
+ 			  }
 	     	default : {
 		                throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
 	                  }
@@ -255,7 +270,7 @@ public class TablePos implements Serializable
   }
   public String toString()
   {  
-	 String thatsme = "cmd:"+this.myposstring+" pos_x:"+this.pos_x+" pos_y:"+this.pos_y+" page:"+this.page+" width:"+this.width+" footer:"+this.footer_line+"\n "+" autoX:"+this.autoX+" autoY:"+this.autoY+" autoW:"+this.autoW+" Newpage:"+this.newpage+" autoP:"+this.autoP; 
+	 String thatsme = "cmd:"+this.myposstring+" pos_x:"+this.pos_x+" pos_y:"+this.pos_y+" page:"+this.page+" width:"+this.width+" footer:"+this.footer_line+" rotation:"+this.rotation+"\n "+" autoX:"+this.autoX+" autoY:"+this.autoY+" autoW:"+this.autoW+" Newpage:"+this.newpage+" autoP:"+this.autoP; 
 	 return thatsme;
   }
 }

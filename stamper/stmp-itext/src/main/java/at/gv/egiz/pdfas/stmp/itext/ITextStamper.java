@@ -35,6 +35,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfReader;
 import com.lowagie.text.pdf.PdfStamper;
+import com.lowagie.text.pdf.PdfTemplate;
 
 public class ITextStamper implements IPDFStamper {
 
@@ -501,11 +502,39 @@ public class ITextStamper implements IPDFStamper {
 
             PdfPTable table = object.getTable();
 
-            logger.info("Visual Object: " + visualObject.getWidth() + " x " + visualObject.getHeight());
-            //PdfTemplate table_template = content.createTemplate(visualObject.getWidth(), visualObject.getHeight());
             
-            table.writeSelectedRows(0, -1, positioningInstruction.getX(),
+            logger.info("Positioning: X " + positioningInstruction.getX() + " Y " + positioningInstruction.getY());
+            logger.info("Positioning: P " + positioningInstruction.getPage());
+            logger.info("Visual Object: " + visualObject.getWidth() + " x " + visualObject.getHeight());
+            
+            PdfTemplate table_template = content.createTemplate(table.getTotalWidth(), table.getTotalHeight());
+            
+           /* table.writeSelectedRows(0, -1, positioningInstruction.getX(),
                     positioningInstruction.getY(), content);
+            */
+            table.writeSelectedRows(0, -1, 0,
+            		table.getTotalHeight(), table_template);
+            //table_template.
+            
+            float rotate = positioningInstruction.getRotation();
+            
+            if(rotate != 0) {
+            	//set up the affine transform 
+                float angle   = (float)(-rotate * (Math.PI / 180)); 
+                float fxScale = (float)(Math.cos(angle)); 
+                float fyScale = (float)(Math.cos(angle)); 
+                float fxRote  = (float)(-Math.sin(angle)); 
+                float fyRote  = (float)(Math.sin(angle)); 
+                
+                content.addTemplate(table_template, fxScale, fxRote, fyRote, fyScale, 
+                		positioningInstruction.getX(),
+                        positioningInstruction.getY() - table.getTotalHeight());
+            } else {
+            	content.addTemplate(table_template, positioningInstruction.getX(),
+                        positioningInstruction.getY() - table.getTotalHeight());
+            }
+            
+            
             
             stamper.close();
 

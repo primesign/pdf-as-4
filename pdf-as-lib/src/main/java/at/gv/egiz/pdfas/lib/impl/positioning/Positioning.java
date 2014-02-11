@@ -156,7 +156,7 @@ public class Positioning {
                 {
                     page++;
                 }
-                return new PositioningInstruction(make_new_page, page, pos_x, pos_y);
+                return new PositioningInstruction(make_new_page, page, pos_x, pos_y, pos.rotation);
             }
             // pos_y is auto
             if (make_new_page)
@@ -164,7 +164,7 @@ public class Positioning {
                 // ignore footer in new page
                 page++;
                 pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
-                return new PositioningInstruction(make_new_page, page, pos_x, pos_y);
+                return new PositioningInstruction(make_new_page, page, pos_x, pos_y, pos.rotation);
             }
             // up to here no checks have to be made if Tablesize and Pagesize are fit
             // Now we have to getfreespace in page and reguard footerline
@@ -188,7 +188,7 @@ public class Positioning {
                     // no text --> SIGNATURE_BORDER
                     pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
                 }
-                return new PositioningInstruction(make_new_page, page, pos_x, pos_y);
+                return new PositioningInstruction(make_new_page, page, pos_x, pos_y, pos.rotation);
             }
             final float page_length = pre_page_length;
             // we do have text take SIGNATURE_MARGIN
@@ -206,7 +206,7 @@ public class Positioning {
                 // no text --> SIGNATURE_BORDER
                 pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
             }
-            return new PositioningInstruction(make_new_page, page, pos_x, pos_y);
+            return new PositioningInstruction(make_new_page, page, pos_x, pos_y, pos.rotation);
         } finally {
             if (pdfDataSource != null) {
                 try {

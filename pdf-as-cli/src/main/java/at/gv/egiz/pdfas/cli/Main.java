@@ -134,7 +134,7 @@ public class Main {
 				CLI_ARG_POSITION_SHORT,
 				CLI_ARG_POSITION,
 				true,
-				"Position string: position has the format [x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo]");
+				"Position string: position has the format [x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo];[r:r_algo]");
 		cliOptions.addOption(positionOption);
 
 		Option confOption = new Option(CLI_ARG_CONF_SHORT, CLI_ARG_CONF, true,

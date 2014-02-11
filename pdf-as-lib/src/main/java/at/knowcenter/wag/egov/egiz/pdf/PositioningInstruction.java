@@ -66,6 +66,11 @@ public class PositioningInstruction
    * be placed.
    */
   protected float y = 0.0f;
+  
+  /**
+   * The rotation of the signature block
+   */
+  protected float rotation = 0.0f;
 
   /**
    * 
@@ -84,12 +89,13 @@ public class PositioningInstruction
    *          The y coordinate where the upper left corner of the signature
    *          block should be placed.
    */
-  public PositioningInstruction(boolean make_new_page, int page, float x, float y)
+  public PositioningInstruction(boolean make_new_page, int page, float x, float y, float rotation)
   {
     this.make_new_page = make_new_page;
     this.page = page;
     this.x = x;
     this.y = y;
+    this.rotation = rotation;
   }
 
   /**
@@ -135,6 +141,11 @@ public class PositioningInstruction
   {
     return this.y;
   }
+  
+  public float getRotation()
+  {
+    return this.rotation;
+  }
 
 	public int hashCode() {
 		final int prime = 31;
@@ -143,6 +154,7 @@ public class PositioningInstruction
 		result = prime * result + page;
 		result = prime * result + Float.floatToIntBits(x);
 		result = prime * result + Float.floatToIntBits(y);
+		result = prime * result + Float.floatToIntBits(rotation);
 		return result;
 	}
 
@@ -162,6 +174,8 @@ public class PositioningInstruction
 			return false;
 		if (Float.floatToIntBits(y) != Float.floatToIntBits(other.y))
 			return false;
+		if (Float.floatToIntBits(rotation) != Float.floatToIntBits(other.rotation))
+			return false;
 		return true;
 	}
 
@@ -175,6 +189,8 @@ public class PositioningInstruction
 		buffer.append(x);
 		buffer.append(", y=");
 		buffer.append(y);
+		buffer.append(", r=");
+		buffer.append(rotation);
 		buffer.append("]");
 		return buffer.toString();
 	}
