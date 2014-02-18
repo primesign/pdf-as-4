@@ -1,5 +1,6 @@
 package at.gv.egiz.sl.util;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.sl.CreateCMSSignatureRequestType;
 import at.gv.egiz.sl.CreateCMSSignatureResponseType;
@@ -10,6 +11,6 @@ public interface ISLConnector {
 
 	public InfoboxReadRequestType createInfoboxReadRequest();
 	public InfoboxReadResponseType sendInfoboxReadRequest(InfoboxReadRequestType request)  throws PdfAsException;
-	public CreateCMSSignatureRequestType createCMSRequest(byte[] signatureData, int[] byteRange);
+	public CreateCMSSignatureRequestType createCMSRequest(byte[] signatureData, int[] byteRange) throws PDFIOException;
 	public CreateCMSSignatureResponseType sendCMSRequest(CreateCMSSignatureRequestType request) throws PdfAsException;
 }

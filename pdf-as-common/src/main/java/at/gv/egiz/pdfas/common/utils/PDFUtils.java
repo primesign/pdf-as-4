@@ -1,6 +1,7 @@
 package at.gv.egiz.pdfas.common.utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -8,6 +9,7 @@ import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsValidationException;
 
 public class PDFUtils {
@@ -28,6 +30,52 @@ public class PDFUtils {
 	private static final byte range_seperation = (byte) 0x20;
 	private static final byte range_end = (byte) 0x5D;
 
+	public static int[] buildExcludeRange(int[] byteRange) throws PDFIOException {
+		
+		if(byteRange.length % 2 != 0) {
+			throw new PDFIOException("error.pdf.io.09");
+		}
+	
+		int[] exclude_range = new int[byteRange.length-2];
+		
+		for(int i = 0; i < byteRange.length; i = i + 2) {
+			int offset = byteRange[i];
+			int size = byteRange[i+1];
+			if(i + 2 < byteRange.length) {
+				exclude_range[i] = offset + size; // exclude start
+				exclude_range[i+1] = byteRange[i+2] - 1; // exclude end
+			}
+		}
+		return exclude_range;
+	}
+	
+	public static byte[] blackOutSignature(byte[] signatureData, int[] byteRange) throws PDFIOException {
+		if(byteRange.length % 2 != 0) {
+			throw new PDFIOException("error.pdf.io.09");
+		}
+		
+		int lastOffset = byteRange[byteRange.length - 2];
+		int lastSize = byteRange[byteRange.length - 1];
+		
+		int dataSize = lastOffset + lastSize;
+		
+		byte[] data = new byte[dataSize];
+		int currentdataOff = 0;
+		
+		Arrays.fill(data, (byte)0x0);
+		
+		for(int i = 0; i < byteRange.length; i = i + 2) {
+			int offset = byteRange[i];
+			int size = byteRange[i+1];
+			
+			for(int j = 0; j < size; j++) {
+				data[offset + j] = signatureData[currentdataOff];
+				currentdataOff++;
+			}
+		}
+		return data;
+	}
+	
 	private static int extractASCIIInteger(byte[] data, int offset) {
 		int nextsepp = nextSeperator(data, offset);
 
