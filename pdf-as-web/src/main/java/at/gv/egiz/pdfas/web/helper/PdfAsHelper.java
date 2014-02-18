@@ -164,13 +164,17 @@ public class PdfAsHelper {
 
 		if (posP != null) {
 			if (!(posP.equals("auto") || posP.equals("new"))) {
-				throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_P
-								+ " has invalid value! (auto | new )");
+				try {
+					Integer.parseInt(posP);
+				} catch (NumberFormatException e) {
+					throw new PdfAsWebException(
+							PdfAsParameterExtractor.PARAM_SIG_POS_P
+									+ " has invalid value! (auto | new )");
+				}
 			}
 			sb.append("p:" + posP.trim() + ";");
 		} else {
-			sb.append("P:auto;");
+			sb.append("p:auto;");
 		}
 
 		return sb.toString();
@@ -284,7 +288,7 @@ public class PdfAsHelper {
 		HttpSession session = request.getSession();
 
 		logger.info("Starting signature in session: " + session.getId());
-		
+
 		Configuration config = pdfAs.getConfiguration();
 		session.setAttribute(PDF_CONFIG, config);
 
@@ -354,10 +358,11 @@ public class PdfAsHelper {
 		StatusRequest statusRequest = (StatusRequest) session
 				.getAttribute(PDF_STATUS);
 
-		if(statusRequest == null) {
-			throw new PdfAsWebException("No Signature running in session:" + session.getId());
+		if (statusRequest == null) {
+			throw new PdfAsWebException("No Signature running in session:"
+					+ session.getId());
 		}
-		
+
 		statusRequest.setCertificate(getCertificate(infoboxReadResponseType));
 		statusRequest = pdfAs.process(statusRequest);
 		session.setAttribute(PDF_STATUS, statusRequest);
@@ -376,10 +381,11 @@ public class PdfAsHelper {
 		StatusRequest statusRequest = (StatusRequest) session
 				.getAttribute(PDF_STATUS);
 
-		if(statusRequest == null) {
-			throw new PdfAsWebException("No Signature running in session:" + session.getId());
+		if (statusRequest == null) {
+			throw new PdfAsWebException("No Signature running in session:"
+					+ session.getId());
 		}
-		
+
 		statusRequest.setSigature(createCMSSignatureResponseType
 				.getCMSSignature());
 		statusRequest = pdfAs.process(statusRequest);
@@ -387,10 +393,11 @@ public class PdfAsHelper {
 
 		PdfAsHelper.process(request, response, context);
 	}
-	
+
 	public static void logAccess(HttpServletRequest request) {
 		HttpSession session = request.getSession();
-		logger.debug("Access to " + request.getServletPath() + " in Session: " + session.getId());
+		logger.debug("Access to " + request.getServletPath() + " in Session: "
+				+ session.getId());
 	}
 
 	public static void process(HttpServletRequest request,
@@ -630,7 +637,7 @@ public class PdfAsHelper {
 		logger.info("Generated URL: " + dataURL);
 		return dataURL;
 	}
-	
+
 	public static void regenerateSession(HttpServletRequest request) {
 		request.getSession(false).invalidate();
 		request.getSession(true);
