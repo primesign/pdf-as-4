@@ -9,6 +9,6 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 
 public interface IVerifyFilter {
 	public void setConfiguration(Configuration config);
-	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent, Date verificationTime) throws PdfAsException;
+	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent, Date verificationTime, int[] byteRange) throws PdfAsException;
 	public List<FilterEntry> getFiters();
 }

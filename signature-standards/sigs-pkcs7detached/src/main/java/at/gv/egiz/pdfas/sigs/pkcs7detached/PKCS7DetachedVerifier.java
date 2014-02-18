@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.verify.FilterEntry;
@@ -33,7 +34,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	public PKCS7DetachedVerifier() {
 	}
 	
-	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent, Date verificationTime)
+	public List<VerifyResult> verify(byte[] contentData, byte[] signatureContent, Date verificationTime, int[] byteRange)
 			throws PdfAsException {
 		try {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
@@ -56,7 +57,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 			// verify the signatures
 			for (int i = 0; i < signerInfos.length; i++) {
 				VerifyResultImpl verifyResult = new VerifyResultImpl();
-				verifyResult.setSignatureData(contentData);
+				verifyResult.setSignatureData(PDFUtils.blackOutSignature(contentData, byteRange));
 				try {
 					// verify the signature for SignerInfo at index i
 					X509Certificate signer_cert = signedData.verify(i);

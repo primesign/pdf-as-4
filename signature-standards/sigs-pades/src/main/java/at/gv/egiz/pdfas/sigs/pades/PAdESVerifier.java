@@ -27,6 +27,7 @@ import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureRespons
 import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureResponseTypeSequence;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.X509DataTypeSequence;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.verify.SignatureCheck;
@@ -52,7 +53,7 @@ public class PAdESVerifier implements IVerifyFilter {
 
 	@SuppressWarnings("rawtypes")
 	public List<VerifyResult> verify(byte[] contentData,
-			byte[] signatureContent, Date verificationTime)
+			byte[] signatureContent, Date verificationTime, int[] byteRange)
 			throws PdfAsException {
 
 		List<VerifyResult> resultList = new ArrayList<VerifyResult>();
@@ -125,7 +126,7 @@ public class PAdESVerifier implements IVerifyFilter {
 				KeyInfoTypeChoice[] keyInfo = verifySequence[i].getSignerInfo()
 						.getKeyInfoTypeChoice();
 				KeyInfoTypeChoice choice = keyInfo[0];
-				result.setSignatureData(data);
+				result.setSignatureData(PDFUtils.blackOutSignature(data, byteRange));
 
 				// extract certificate
 				if (choice.isX509DataSpecified()) {

@@ -266,7 +266,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 							List<VerifyResult> results = verifyFilter.verify(
 									contentData.toByteArray(),
 									content.getBytes(), 
-									parameter.getVerificationTime());
+									parameter.getVerificationTime(), bytes);
 							if (results != null && !results.isEmpty()) {
 								result.addAll(results);
 							}
