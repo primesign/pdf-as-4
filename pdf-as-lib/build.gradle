@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'java-library-distribution'
 
 jar {
 	manifest {
@@ -127,6 +128,17 @@ task apidocspdf << {
 
 test {
 	systemProperties 'property': 'value'
+}
+
+distributions {
+    main {
+        contents {
+            from { '../docs' }
+	    from('../doc/') {
+	       include '*.pdf'
+	    } 
+        }
+    }
 }
 
 uploadArchives {
