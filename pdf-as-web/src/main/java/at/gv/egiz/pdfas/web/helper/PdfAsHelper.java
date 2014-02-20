@@ -118,7 +118,7 @@ public class PdfAsHelper {
 		String posW = PdfAsParameterExtractor.getSigPosW(request);
 		String posR = PdfAsParameterExtractor.getSigPosR(request);
 
-		if (posP == null && posW == null && posX == null && posY == null) {
+		if (posP == null && posW == null && posX == null && posY == null && posR == null) {
 			return null;
 		}
 
