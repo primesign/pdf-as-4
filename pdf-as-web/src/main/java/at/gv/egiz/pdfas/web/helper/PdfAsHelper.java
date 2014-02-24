@@ -140,8 +140,9 @@ public class PdfAsHelper {
 		String posY = PdfAsParameterExtractor.getSigPosY(request);
 		String posW = PdfAsParameterExtractor.getSigPosW(request);
 		String posR = PdfAsParameterExtractor.getSigPosR(request);
+		String posF = PdfAsParameterExtractor.getSigPosF(request);
 
-		if (posP == null && posW == null && posX == null && posY == null && posR == null) {
+		if (posP == null && posW == null && posX == null && posY == null && posR == null && posF == null) {
 			return null;
 		}
 
@@ -212,6 +213,19 @@ public class PdfAsHelper {
 			sb.append("r:" + posR.trim() + ";");
 		} else {
 			sb.append("r:0;");
+		}
+		
+		if (posF != null) {
+			try {
+				Float.parseFloat(posF);
+			} catch (NumberFormatException e) {
+				throw new PdfAsWebException(
+						PdfAsParameterExtractor.PARAM_SIG_POS_F
+								+ " has invalid value!", e);
+			}
+			sb.append("f:" + posF.trim() + ";");
+		} else {
+			sb.append("f:0;");
 		}
 
 		return sb.toString();

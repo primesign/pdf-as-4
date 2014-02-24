@@ -42,6 +42,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_SIG_POS_X = "sig-pos-x";
 	public static final String PARAM_SIG_POS_W = "sig-pos-w";
 	public static final String PARAM_SIG_POS_R = "sig-pos-r";
+	public static final String PARAM_SIG_POS_F = "sig-pos-f";
 	public static final String PARAM_SIG_IDX = "sig-idx";
 	
 	public static String getConnector(HttpServletRequest request) {
@@ -98,6 +99,10 @@ public class PdfAsParameterExtractor {
 	
 	public static String getSigPosR(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_SIG_POS_R);
+	}
+	
+	public static String getSigPosF(HttpServletRequest request) {
+		return (String)request.getAttribute(PARAM_SIG_POS_F);
 	}
 	
 	public static String getSigIdx(HttpServletRequest request) {
