@@ -81,7 +81,7 @@ public class ProvidePDFServlet extends HttpServlet {
 		try {
 			String invokeURL = PdfAsHelper.getInvokeURL(request, response);
 
-			if (invokeURL == null || WebConfiguration.isProvidePdfURLinWhitelist(invokeURL)) {
+			if (invokeURL == null || !WebConfiguration.isProvidePdfURLinWhitelist(invokeURL)) {
 				
 				if(invokeURL != null) {
 					logger.warn(invokeURL + " is not allowed by whitelist");
