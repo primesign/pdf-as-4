@@ -61,7 +61,7 @@ public class VerifyServlet extends HttpServlet {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ExternSignServlet.class);
 
-	private static final String UPLOAD_PDF_DATA = "pdfFile";
+	private static final String UPLOAD_PDF_DATA = "pdf-file";
 	private static final String UPLOAD_DIRECTORY = "upload";
 	private static final int THRESHOLD_SIZE = 1024 * 1024 * 3; // 3MB
 	private static final int MAX_FILE_SIZE = 1024 * 1024 * 40; // 40MB

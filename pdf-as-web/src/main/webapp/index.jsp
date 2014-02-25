@@ -7,7 +7,7 @@
 	<form role="form" action="Sign" method="POST"
 		enctype="multipart/form-data">
 		<input type="hidden" name="source" id="source" value="internal" /> <input
-			type="file" name="pdfFile" id="pdfFile" accept="application/pdf">
+			type="file" name="pdf-file" id="pdf-file" accept="application/pdf">
 		<%
 			if (request.getAttribute("FILEERR") != null) {
 		%>
