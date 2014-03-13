@@ -525,7 +525,6 @@ public class ITextStamper implements IPDFStamper {
 
             PdfPTable table = object.getTable();
 
-            
             logger.info("Positioning: X " + positioningInstruction.getX() + " Y " + positioningInstruction.getY());
             logger.info("Positioning: P " + positioningInstruction.getPage());
             logger.info("Visual Object: " + visualObject.getWidth() + " x " + visualObject.getHeight());

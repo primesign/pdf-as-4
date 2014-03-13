@@ -530,7 +530,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			return;
 		}
 
-		if (requestedSignature.isVisual()) {
+		if (requestedSignature.isVisual() && false) {
 			logger.info("Creating visual siganture block");
 			// ================================================================
 			// SignBlockCreationStage (visual) -> create visual signature

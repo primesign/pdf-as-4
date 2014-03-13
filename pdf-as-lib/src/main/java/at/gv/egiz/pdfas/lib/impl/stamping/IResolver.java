@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 /**
@@ -35,5 +36,5 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
  */
 public interface IResolver {
     public String resolve(String key, String value, SignatureProfileSettings settings,
-    		RequestedSignature signature);
+    		ICertificateProvider signature);
 }

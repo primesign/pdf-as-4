@@ -30,7 +30,7 @@ import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 
 
-public class RequestedSignature {
+public class RequestedSignature implements ICertificateProvider {
     private String signatureProfile;
     private TablePos tablePosition;
     private OperationStatus status;

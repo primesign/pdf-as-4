@@ -36,6 +36,7 @@ import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +49,7 @@ import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.PDFASSignatureInterface;
 import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
@@ -103,8 +105,15 @@ public class PADESPDFBOXSigner implements IPdfSigner {
             //signature.setSignDate(signer.getSigningDate());
 
             signer.setPDSignature(signature);
+            SignatureOptions options = new SignatureOptions();
             
-            doc.addSignature(signature, signer);
+            // FOR DEVELOPING: Call custom visual signature creation
+            PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
+            		pdfObject.getStatus().getSettings(), pdfObject);
+            properties.buildSignature();
+            options.setVisualSignature(properties.getVisibleSignature());
+            
+            doc.addSignature(signature, signer, options);
 
             // pdfbox patched (FIS -> IS)
             doc.saveIncremental(fis, fos);

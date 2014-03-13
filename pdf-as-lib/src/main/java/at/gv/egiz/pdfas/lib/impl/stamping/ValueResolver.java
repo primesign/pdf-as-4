@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 /**
@@ -52,7 +53,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 	public static final String EXP_END = "}";
 
 	public String resolve(String key, String value,
-			SignatureProfileSettings settings, RequestedSignature signature) {
+			SignatureProfileSettings settings, ICertificateProvider certProvider) {
 
 		logger.debug("Resolving value for key: " + key);
 		logger.debug("Resolving value with value: " + value);
@@ -72,7 +73,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			Pattern pattern = Pattern.compile(PatternRegex);
 			Matcher matcher = pattern.matcher(value);
 			CertificateResolver certificateResolver = new CertificateResolver(
-					signature.getCertificate());
+					certProvider.getCertificate());
 			String result = "";
 			int curidx = 0;
 			if (matcher.find()) {
@@ -82,7 +83,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 					result += value.substring(curidx, idx);
 					curidx = idxe;
 					result += certificateResolver.resolve(key,
-							matcher.group(1), settings, signature);
+							matcher.group(1), settings, certProvider);
 				} while (matcher.find());
 			} else {
 				result = value;

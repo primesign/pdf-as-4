@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.sig.SignatureEntry;
 import at.knowcenter.wag.egov.egiz.table.Entry;
@@ -96,7 +97,7 @@ public class TableFactory implements IProfileConstants {
      * @see at.knowcenter.wag.egov.egiz.table.Entry
      */
     public static Table createSigTable(SignatureProfileSettings profile, String tableID, ISettings configuration,
-    		RequestedSignature requestedSignature)
+    		ICertificateProvider certProvider)
     {
         String table_key_prefix = SIG_OBJ + profile.getProfileID() + "." + TABLE;
         String table_key = table_key_prefix + tableID;
@@ -160,7 +161,7 @@ public class TableFactory implements IProfileConstants {
                     if (TYPE_TABLE.equals(key))
                     {
                         // add a table entry
-                        Table table = createSigTable(profile, type, configuration, requestedSignature);
+                        Table table = createSigTable(profile, type, configuration, certProvider);
                         if (table != null)
                         {
                             Entry entry = new Entry(Entry.TYPE_TABLE, table, key);
@@ -188,7 +189,7 @@ public class TableFactory implements IProfileConstants {
                     	 ValueResolver resolver = new ValueResolver();
                         String value = profile.getValue(key);
                         Entry entry = new Entry(Entry.TYPE_VALUE, 
-                        		resolver.resolve(key, value, profile, requestedSignature), key);
+                        		resolver.resolve(key, value, profile, certProvider), key);
                         if (entry != null)
                         {
                             entry.setColSpan(2);
@@ -210,7 +211,7 @@ public class TableFactory implements IProfileConstants {
                             c_entry.setStyle(defaultCaptionStyle_);
                             ValueResolver resolver = new ValueResolver();
                             Entry v_entry = new Entry(Entry.TYPE_VALUE, 
-                            		resolver.resolve(key, value, profile, requestedSignature), key);
+                            		resolver.resolve(key, value, profile, certProvider), key);
                             v_entry.setStyle(defaultValueStyle_);
                             if (c_entry != null && v_entry != null)
                             {
@@ -226,7 +227,7 @@ public class TableFactory implements IProfileConstants {
                             ValueResolver resolver = new ValueResolver();
 
                             Entry v_entry = new Entry(Entry.TYPE_VALUE,
-                                    resolver.resolve(key, value, profile, requestedSignature), key);
+                                    resolver.resolve(key, value, profile, certProvider), key);
                             v_entry.setStyle(defaultValueStyle_);
                             if (c_entry != null && v_entry != null)
                             {
