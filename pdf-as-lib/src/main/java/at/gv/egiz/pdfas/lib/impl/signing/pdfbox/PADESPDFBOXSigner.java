@@ -111,7 +111,16 @@ public class PADESPDFBOXSigner implements IPdfSigner {
             PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
             		pdfObject.getStatus().getSettings(), pdfObject);
             properties.buildSignature();
-            options.setVisualSignature(properties.getVisibleSignature());
+            
+            ByteArrayOutputStream sigbos = new ByteArrayOutputStream();
+            sigbos.write(StreamUtils.inputStreamToByteArray(properties.getVisibleSignature()));
+            sigbos.close();
+            
+            FileOutputStream fos2 = new FileOutputStream("/tmp/apsig.pdf");
+            fos2.write(sigbos.toByteArray());
+            fos2.close();
+            
+            options.setVisualSignature(new ByteArrayInputStream(sigbos.toByteArray()));
             
             doc.addSignature(signature, signer, options);
 

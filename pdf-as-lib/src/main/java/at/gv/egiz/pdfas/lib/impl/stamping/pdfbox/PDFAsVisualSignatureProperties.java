@@ -24,6 +24,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	private ISettings settings;
 
 	private Table main;
+	
+	private PDFAsVisualSignatureDesigner designer;
 
 	public PDFAsVisualSignatureProperties(ISettings settings, PDFObject object) {
 		this.settings = settings;
@@ -32,7 +34,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 					.createProfile("SIGNATURBLOCK_DE", settings);
 
 			X509Certificate cert = new X509Certificate(new FileInputStream(
-					"/home/afitzek/qualified.cer"));
+					"/home/andy/certificates/test.crt"));
 
 			CertificateHolderRequest request = new CertificateHolderRequest(
 					cert);
@@ -47,10 +49,10 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		try {
 			PDDocument origDoc = PDDocument.load(new ByteArrayInputStream(
 					object.getStampedDocument()));
-			PDVisibleSignDesigner designer = new PDVisibleSignDesigner(origDoc,
-					new FileInputStream("/home/afitzek/.pdfas/images/signatur-logo_de.png"), 1);
 
-			this.setPdVisibleSignature(designer);
+			designer = new PDFAsVisualSignatureDesigner(origDoc, 1);
+			
+			//this.setPdVisibleSignature(designer);
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
@@ -58,13 +60,14 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 
 	@Override
 	public void buildSignature() throws IOException {
-		PDFTemplateBuilder builder = new PDFAsVisualSignatureBuilder(this);
-		PDFTemplateCreator creator = new PDFTemplateCreator(builder);
-		setVisibleSignature(creator.buildPDF(getPdVisibleSignature()));
+		PDFAsVisualSignatureBuilder builder = new PDFAsVisualSignatureBuilder(this);
+		PDFAsTemplateCreator creator = new PDFAsTemplateCreator(builder);
+		setVisibleSignature(creator.buildPDF(designer));
 	}
 
 	public Table getMainTable() {
 		return main;
 	}
 
+	
 }
