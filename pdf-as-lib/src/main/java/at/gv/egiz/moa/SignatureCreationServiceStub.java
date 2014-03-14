@@ -36,6 +36,7 @@
         */
 
         
+        @SuppressWarnings({"rawtypes", "unchecked", "unused", "serial"})
         public class SignatureCreationServiceStub extends org.apache.axis2.client.Stub
         {
         protected org.apache.axis2.description.AxisOperation[] _operations;
