@@ -66,9 +66,9 @@
 <!--[if IE 8]>		<link rel="stylesheet" href="http://www.egiz.gv.at/templates/egiz/css/ie8.css" />		<![endif]-->
 <script type="text/javascript">var _gaq = _gaq || [];          _gaq.push(['_setAccount', 'UA-38726304-2']);          _gaq.push(['_trackPageview']);          (function() {            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);          })();          </script>
 
-<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-<meta content="text/css" http-equiv="Content-Style-Type">
-<link rel="stylesheet" type="text/css" href="css/index.css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<meta content="text/css" http-equiv="Content-Style-Type" />
+<link rel="stylesheet" type="text/css" href="css/index.css" />
 <script type="text/javascript" src="./js/common.js"></script>
 <decorator:head></decorator:head>
 </head>

@@ -4,7 +4,7 @@
 <title>PDF-Signatur</title>
 </head>
 <body>
-	<form role="form" action="Sign" method="POST"
+	<form action="Sign" method="POST"
 		enctype="multipart/form-data">
 		<input type="hidden" name="source" id="source" value="internal" /> <input
 			type="file" name="pdf-file" id="pdf-file" accept="application/pdf">
@@ -20,7 +20,7 @@
 		<%
 			if (WebConfiguration.getLocalBKUURL() != null) {
 		%>
-		<img src="assets/img/onlineBKU.png" /> <input type="submit"
+		<img src="assets/img/onlineBKU.png" /> <button type="submit"
 			value="bku" name="connector" id="bku">Lokale BKU
 		</button>
 		<%
