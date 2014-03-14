@@ -38,6 +38,7 @@ import com.lowagie.text.Image;
 
 public class ITextStamperAccess {
 
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory.getLogger(ITextStamperAccess.class);
 	
 	public static void replacePlaceholder(PdfStamper stamper, int pageNr, String placeholderName) 

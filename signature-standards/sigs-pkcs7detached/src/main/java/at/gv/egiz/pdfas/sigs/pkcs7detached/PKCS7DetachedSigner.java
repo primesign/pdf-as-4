@@ -101,8 +101,7 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			si.addSignerInfo(signer1);
 			InputStream dataIs = si.getInputStream();
 			byte[] buf = new byte[1024];
-			int r;
-			while ((r = dataIs.read(buf)) > 0)
+			while ((dataIs.read(buf)) > 0)
 				; // skip data
 			ContentInfo ci = new ContentInfo(si);
 			logger.info("PKCS7 signature done.");

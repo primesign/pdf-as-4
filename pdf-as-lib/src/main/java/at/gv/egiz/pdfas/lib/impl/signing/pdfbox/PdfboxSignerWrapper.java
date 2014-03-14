@@ -45,7 +45,8 @@ public class PdfboxSignerWrapper implements PDFASSignatureInterface {
 			.getLogger(PdfboxSignerWrapper.class);
 
 	private IPlainSigner signer;
-	private PDSignature signature;
+	@SuppressWarnings("unused")
+  private PDSignature signature;
 	private int[] byteRange;
 	private Calendar date;
 

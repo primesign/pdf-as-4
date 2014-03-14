@@ -24,28 +24,8 @@
 package at.gv.egiz.pdfas.cli;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
-import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
-import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
-import at.gv.egiz.pdfas.lib.api.StatusRequest;
-import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
-import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
-import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
-import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PADESPDFBOXSigner;
-import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
-import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
-import at.gv.egiz.sl.util.BKUSLConnector;
-import at.gv.egiz.sl.util.MOAConnector;
 
 public class DeveloperMain {
 
@@ -62,7 +42,7 @@ public class DeveloperMain {
 		
 		String user_home = System.getProperty("user.home");
 		String pdfas_dir = user_home + File.separator + ".pdfas";
-		PdfAs pdfas = PdfAsFactory.createPdfAs(new File(pdfas_dir));
+		/*PdfAs pdfas = */PdfAsFactory.createPdfAs(new File(pdfas_dir));
 		System.out.println(PdfAsFactory.getVersion());
 		return;
 		

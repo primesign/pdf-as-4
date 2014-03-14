@@ -48,8 +48,11 @@
  */
 package at.knowcenter.wag.egov.egiz.pdf;
 
-import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.*;
-import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.*;
+import java.awt.Rectangle;
+import java.awt.geom.GeneralPath;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.pdfbox.cos.COSName;
@@ -68,12 +71,21 @@ import org.apache.pdfbox.util.operator.OperatorProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
-import java.awt.geom.GeneralPath;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.List;
-import java.util.Map;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.ClosePath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.CurveTo;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.CurveToReplicateFinalPoint;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.CurveToReplicateInitialPoint;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.LineTo;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.construction.MoveTo;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.CloseAndStrokePath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.CloseFillEvenOddAndStrokePath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.CloseFillNonZeroAndStrokePath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.EndPath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.FillEvenOddAndStrokePath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.FillNonZeroAndStrokePath;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.FillPathEvenOddRule;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.FillPathNonZeroWindingNumberRule;
+import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.StrokePath;
 
 /**
  * PDFPage is an inner class that is used to calculate the page length of a PDF

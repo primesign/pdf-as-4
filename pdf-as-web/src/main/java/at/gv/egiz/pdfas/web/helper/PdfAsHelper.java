@@ -458,8 +458,8 @@ public class PdfAsHelper {
 		HttpSession session = request.getSession();
 		StatusRequest statusRequest = (StatusRequest) session
 				.getAttribute(PDF_STATUS);
-		IPlainSigner plainSigner = (IPlainSigner) session
-				.getAttribute(PDF_SIGNER);
+//		IPlainSigner plainSigner = (IPlainSigner) session
+//				.getAttribute(PDF_SIGNER);
 
 		String connector = (String) session.getAttribute(PDF_SL_INTERACTIVE);
 
@@ -470,8 +470,8 @@ public class PdfAsHelper {
 
 			// TODO Handle logic for BKU interaction
 
-			Configuration config = (Configuration) session
-					.getAttribute(PDF_CONFIG);
+//			Configuration config = (Configuration) session
+//					.getAttribute(PDF_CONFIG);
 
 			if (statusRequest.needCertificate()) {
 				logger.info("Needing Certificate from BKU");

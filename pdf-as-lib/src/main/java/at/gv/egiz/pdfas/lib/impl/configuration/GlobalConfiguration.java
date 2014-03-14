@@ -24,7 +24,6 @@
 package at.gv.egiz.pdfas.lib.impl.configuration;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 
 public class GlobalConfiguration extends SpecificBaseConfiguration 

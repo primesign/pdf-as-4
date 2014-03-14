@@ -23,25 +23,29 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
+import static at.gv.egiz.pdfas.common.utils.StringUtils.extractLastID;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
-import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.sig.SignatureEntry;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-
-import static at.gv.egiz.pdfas.common.utils.StringUtils.extractLastID;
-
 public class TableFactory implements IProfileConstants {
 
+    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(TableFactory.class);
 
     /**
@@ -120,7 +124,7 @@ public class TableFactory implements IProfileConstants {
             String table_def_key = table_def_iter.next();
             int dot_idx = (table_def_key.lastIndexOf(".") > 0 ? table_def_key.lastIndexOf(".") + 1 : table_def_key.length());
             String table_def = table_def_key.substring(dot_idx);
-            String table_def_keys_prefix = table_def_key.substring(0, dot_idx-1);
+            //String table_def_keys_prefix = table_def_key.substring(0, dot_idx-1);
             String table_def_string = configuration.getValue(table_def_key);
             if (table_def.matches("\\D*"))
             {
@@ -294,6 +298,7 @@ public class TableFactory implements IProfileConstants {
      *          the key to get the caption for
      * @return a caption for the given key
      */
+    @SuppressWarnings("unused")
     private static String getSigCaption(String key)
     {
 

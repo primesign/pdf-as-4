@@ -24,7 +24,6 @@
 package at.gv.egiz.sl.util;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

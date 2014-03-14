@@ -24,7 +24,7 @@
 package at.gv.egiz.pdfas.stmp.itext;
 
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
-import at.knowcenter.wag.egov.egiz.pdf.Pos;
+
 import com.lowagie.text.pdf.PdfPTable;
 
 public class ITextVisualObject implements IPDFVisualObject {

@@ -285,38 +285,38 @@ public class PDFBoxTable {
 		return lines.toArray(new String[0]);
 	}
 	
-	private String[] breakString(String value, PDFont f, float maxwidth) throws IOException {
-		String[] words = value.split(" ");
-		List<String> lines = new ArrayList<String>();
-		int cLine = 0;
-		String cLineValue = "";
-		for (int i = 0; i < words.length; i++) {
-			String word = words[i];
-			String[] lineBreaks = word.split("\n");
-			if (lineBreaks.length > 1) {
-				for (int j = 0; j < lineBreaks.length; j++) {
-					String subword = lineBreaks[j];
-					// if (cLine + subword.length() > maxline) {
-					lines.add(cLineValue.trim());
-					cLineValue = "";
-					cLine = 0;
-					// }
-					cLineValue += subword + " ";
-					cLine += subword.length();
-				}
-			} else {
-				if (f.getStringWidth(cLineValue + word) > maxwidth && cLineValue.length() != 0) {
-					lines.add(cLineValue.trim());
-					cLineValue = "";
-					cLine = 0;
-				}
-				cLineValue += word + " ";
-				cLine += word.length();
-			}
-		}
-		lines.add(cLineValue.trim());
-		return lines.toArray(new String[0]);
-	}
+//	private String[] breakString(String value, PDFont f, float maxwidth) throws IOException {
+//		String[] words = value.split(" ");
+//		List<String> lines = new ArrayList<String>();
+//		int cLine = 0;
+//		String cLineValue = "";
+//		for (int i = 0; i < words.length; i++) {
+//			String word = words[i];
+//			String[] lineBreaks = word.split("\n");
+//			if (lineBreaks.length > 1) {
+//				for (int j = 0; j < lineBreaks.length; j++) {
+//					String subword = lineBreaks[j];
+//					// if (cLine + subword.length() > maxline) {
+//					lines.add(cLineValue.trim());
+//					cLineValue = "";
+//					cLine = 0;
+//					// }
+//					cLineValue += subword + " ";
+//					cLine += subword.length();
+//				}
+//			} else {
+//				if (f.getStringWidth(cLineValue + word) > maxwidth && cLineValue.length() != 0) {
+//					lines.add(cLineValue.trim());
+//					cLineValue = "";
+//					cLine = 0;
+//				}
+//				cLineValue += word + " ";
+//				cLine += word.length();
+//			}
+//		}
+//		lines.add(cLineValue.trim());
+//		return lines.toArray(new String[0]);
+//	}
 
 	private float getCellHeight(Entry cell, float width) throws IOException {
 		boolean isValue = true;

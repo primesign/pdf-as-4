@@ -39,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.helper.DigestHelper;
@@ -259,7 +258,7 @@ public class ExternSignServlet extends HttpServlet {
 		
 		logger.debug("Starting signature creation with: " + connector);
 		
-		IPlainSigner signer;
+		//IPlainSigner signer;
 		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")) {
 			// start asynchronous signature creation
 			

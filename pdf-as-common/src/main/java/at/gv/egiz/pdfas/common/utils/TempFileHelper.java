@@ -41,7 +41,7 @@ public class TempFileHelper implements IProfileConstants {
 
     private static final Logger logger = LoggerFactory.getLogger(TempFileHelper.class);
 
-    private final String tmpFilePrefix = "/tmp/";
+    //private final String tmpFilePrefix = "/tmp/";
     private static final String tmpFileSuffix = ".tmppdf";
 
     private String tmpDir = "tmp";

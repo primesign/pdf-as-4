@@ -62,6 +62,7 @@ import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 
 public class PAdESSignerKeystore implements IPlainSigner {
 
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESSignerKeystore.class);
 

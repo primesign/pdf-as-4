@@ -6,7 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -14,17 +13,11 @@ import javax.imageio.ImageIO;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSignDesigner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class PDFAsVisualSignatureDesigner {
 
-    private static final Logger logger = LoggerFactory.getLogger(PDFAsVisualSignatureDesigner.class);
-	
+//	private static final Logger logger = LoggerFactory.getLogger(PDFAsVisualSignatureDesigner.class);
+
 	private Float sigImgWidth;
 	private Float sigImgHeight;
 	private float xAxis;
@@ -36,7 +29,7 @@ public class PDFAsVisualSignatureDesigner {
 	private float[] formaterRectangleParams = { 0, 0, 100, 50 }; // default
 	private byte[] AffineTransformParams = { 1, 0, 0, 1, 0, 0 }; // default
 	private float imageSizeInPercents;
-	private PDDocument document = null;
+//	private PDDocument document = null;
 	PDFAsVisualSignatureProperties properties;
 
 	/**

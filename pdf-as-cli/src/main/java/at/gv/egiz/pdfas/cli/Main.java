@@ -46,12 +46,10 @@ import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
-import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
 import at.gv.egiz.sl.util.MOAConnector;
 
@@ -393,7 +391,7 @@ public class Main {
 		signParameter.setSignatureProfileId(profilID);
 		System.out.println("Starting signature for " + pdfFile);
 		System.out.println("Selected signature Profile " + profilID);
-		SignResult result = pdfAs.sign(signParameter);
+		/*SignResult result = */pdfAs.sign(signParameter);
 
 		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
 		fos.write(dataSink.getData());

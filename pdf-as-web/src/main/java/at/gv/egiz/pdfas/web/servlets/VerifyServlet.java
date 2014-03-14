@@ -23,8 +23,6 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.servlets;
 
-import iaik.x509.X509Certificate;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -41,12 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
-import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.PdfAs;
-import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;

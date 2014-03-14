@@ -33,10 +33,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -57,10 +53,10 @@ public class PdfAsFactory {
 
 	private static final String DEFAULT_CONFIG_RES = "config/config.zip";
 
-	private static final String MAN_ATTRIBUTE = "JARMANIFEST";
-	private static final String PDF_AS_LIB = "PDF-AS-LIB";
-	private static final String IMPL_VERSION = "Implementation-Version";
-	private static final String SCM_REVISION = "SCMREVISION";
+//	private static final String MAN_ATTRIBUTE = "JARMANIFEST";
+//	private static final String PDF_AS_LIB = "PDF-AS-LIB";
+//	private static final String IMPL_VERSION = "Implementation-Version";
+//	private static final String SCM_REVISION = "SCMREVISION";
 	
 
 	static {

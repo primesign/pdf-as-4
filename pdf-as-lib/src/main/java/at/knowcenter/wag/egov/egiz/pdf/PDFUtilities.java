@@ -51,12 +51,12 @@ package at.knowcenter.wag.egov.egiz.pdf;
 import java.io.IOException;
 import java.util.List;
 
-import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.interactive.pagenavigation.PDThreadBead;
+
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 
 
 /**

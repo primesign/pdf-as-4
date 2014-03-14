@@ -32,11 +32,15 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
 public class PDFASSession implements Serializable {
 
+	private static final long serialVersionUID = 1L;
+
 	public static final String SESSION_TAG = "PDFASSession";
-	
+
 	private StatusRequest statusRequest;
 	private SignParameter signParameter;
+	@SuppressWarnings("unused")
 	private Configuration config;
+	@SuppressWarnings("unused")
 	private PdfAs pdfAs;
 	
 	public PDFASSession(SignParameter parameter) {

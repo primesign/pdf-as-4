@@ -25,7 +25,6 @@ package at.gv.egiz.pdfas.lib.impl.signing.sig_interface;
 
 import iaik.x509.X509Certificate;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;

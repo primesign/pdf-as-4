@@ -1,11 +1,8 @@
 package at.gv.egiz.pdfas.lib.test.mains;
 import iaik.x509.X509Certificate;
 
-import java.awt.Graphics;
-import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -13,9 +10,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,7 +175,7 @@ public class TestPDFBoxTable {
 			
 			renderTable(main);
 			
-			PDStream stream1;
+//			PDStream stream1;
 			
 			PDDocument document = new PDDocument();
 			PDPage page = new PDPage();

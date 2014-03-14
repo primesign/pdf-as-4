@@ -254,7 +254,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 	private PDFAsVisualSignatureProperties properties;
 	private ISettings settings;
-	private List<PDFont> addedFonts = new ArrayList<PDFont>();
+//	private List<PDFont> addedFonts = new ArrayList<PDFont>();
 	private PDResources innerFormResources;
 	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
 
