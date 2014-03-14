@@ -188,7 +188,7 @@ public class Table implements Serializable
 
   /**
    * This method returns a sorted row list beginning with the row number 1. The
-   * entrys in a row also stored in a <code>{@link java.util.ArrayList}</code>.
+   * entries in a row also stored in a <code>{@link java.util.ArrayList}</code>.
    * 
    * @return Returns the sorted (by row number) table rows.
    */
@@ -204,7 +204,7 @@ public class Table implements Serializable
   }
 
   /**
-   * Add a comlete table row to the current table. Be carefull usding the
+   * Add a complete table row to the current table. Be careful using the
    * correct row number because no check is done if a row with the given row
    * number does exist! In that case the stored row would be replaced!
    * 
