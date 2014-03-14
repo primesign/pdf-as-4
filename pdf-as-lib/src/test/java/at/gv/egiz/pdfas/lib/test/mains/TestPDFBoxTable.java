@@ -90,9 +90,9 @@ public class TestPDFBoxTable {
         float textx = x+cellMargin;
         float texty = y-15;
         for(int i = 0; i < abstractTable.getRows().size(); i++){
-        	ArrayList row = (ArrayList) abstractTable.getRows().get(i);
+            ArrayList<Entry> row = abstractTable.getRows().get(i);
             for(int j = 0 ; j < row.size(); j++) {
-            	Entry cell = (Entry) row.get(j);
+                Entry cell = row.get(j);
                 String text = cell.toString();
                 text = "Hallo";
                 COSName name = COSName.getPDFName("ANDI_TAG!");
@@ -125,16 +125,15 @@ public class TestPDFBoxTable {
 	
 	private static void renderTable(Table abstractTable) {
 		
-		ArrayList rows = abstractTable.getRows();
+		ArrayList<ArrayList<Entry>> rows = abstractTable.getRows();
 		Style table_style = abstractTable.getStyle();
         for (int row_idx = 0; row_idx < rows.size(); row_idx++)
         {
-            @SuppressWarnings("rawtypes")
-			ArrayList row = (ArrayList) rows.get(row_idx);
+            ArrayList<Entry> row = rows.get(row_idx);
             logger.info("## Row:" + row_idx + " ## of table:" + abstractTable.getName());
             for (int entry_idx = 0; entry_idx < row.size(); entry_idx++)
             {
-                Entry cell = (Entry) row.get(entry_idx);
+                Entry cell = row.get(entry_idx);
                 // 03.11.2010 changed by exthex - swapped the two params, was probably a bug
                 Style inherit_style = Style.doInherit(table_style, cell.getStyle());
                 cell.setStyle(inherit_style);

@@ -83,7 +83,7 @@ public class DataURLServlet extends HttpServlet {
 			
 			//System.out.println(xmlResponse);
 			
-			JAXBElement jaxbObject = (JAXBElement) SLMarschaller.unmarshalFromString(xmlResponse);
+			JAXBElement<?> jaxbObject = (JAXBElement<?>) SLMarschaller.unmarshalFromString(xmlResponse);
 			if(jaxbObject.getValue() instanceof InfoboxReadResponseType) {
 				InfoboxReadResponseType infoboxReadResponseType = (InfoboxReadResponseType)jaxbObject.getValue();
 				logger.info("Got InfoboxReadResponseType");

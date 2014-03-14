@@ -104,10 +104,9 @@ public class BKUSLConnector extends BaseSLConnector {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	public InfoboxReadResponseType sendInfoboxReadRequest(
 			InfoboxReadRequestType request) throws PdfAsException {
-		JAXBElement element = null;
+		JAXBElement<?> element = null;
 		String slRequest;
 		try {
 			slRequest = SLMarschaller.marshalToString(of
@@ -116,7 +115,7 @@ public class BKUSLConnector extends BaseSLConnector {
 
 			String slResponse = performHttpRequestToBKU(slRequest);
 
-			element = (JAXBElement) SLMarschaller
+			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
 
 		} catch (JAXBException e) {
@@ -146,7 +145,7 @@ public class BKUSLConnector extends BaseSLConnector {
 
 	public CreateCMSSignatureResponseType sendCMSRequest(
 			CreateCMSSignatureRequestType request) throws PdfAsException {
-		JAXBElement element = null;
+		JAXBElement<?> element = null;
 		String slRequest;
 		try {
 			slRequest = SLMarschaller.marshalToString(of
@@ -155,7 +154,7 @@ public class BKUSLConnector extends BaseSLConnector {
 
 			String slResponse = performHttpRequestToBKU(slRequest);
 
-			element = (JAXBElement) SLMarschaller
+			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
 		} catch (JAXBException e) {
 			throw new PDFIOException("error.pdf.io.03", e);

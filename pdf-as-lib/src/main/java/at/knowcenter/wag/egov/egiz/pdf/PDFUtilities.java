@@ -69,7 +69,7 @@ public abstract class PDFUtilities
 {
     public static float calculatePageLength(PDDocument document, int page, float effectivePageHeight, /*int pagerotation,*/ boolean legacy32) throws PDFIOException {
 	    //int last_page_id = document.getNumberOfPages();
-	    List allPages = document.getDocumentCatalog().getAllPages();
+	    List<?> allPages = document.getDocumentCatalog().getAllPages();
 	    PDPage pdpage = (PDPage) allPages.get(page);
 	    //pdpage.setRotation(pagerotation);
 	    return calculatePageLength(pdpage, effectivePageHeight, legacy32);

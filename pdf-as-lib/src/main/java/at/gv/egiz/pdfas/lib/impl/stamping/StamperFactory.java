@@ -33,9 +33,11 @@ public class StamperFactory {
 
 	public static IPDFStamper createDefaultStamper(ISettings settings) throws PdfAsException {
 		try {
-			Class<? extends IPDFStamper> cls = (Class<? extends IPDFStamper>) 
-					Class.forName(DEFAULT_STAMPER_CLASS);
-			IPDFStamper stamper = cls.newInstance();
+			Class<?> cls = Class.forName(DEFAULT_STAMPER_CLASS);
+			Object st = cls.newInstance();
+			if (!(st instanceof IPDFStamper))
+				throw new ClassCastException();
+			IPDFStamper stamper = (IPDFStamper) st;
 			stamper.setSettings(settings);
 			return stamper;
 		} catch (Throwable e) {

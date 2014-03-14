@@ -157,7 +157,7 @@ public class ExternSignServlet extends HttpServlet {
 					uploadDir.mkdir();
 				}
 
-				List formItems = upload.parseRequest(request);
+				List<?> formItems = upload.parseRequest(request);
 				logger.debug(formItems.size() + " Items in form data");
 				if (formItems.size() < 1) {
 					// No Uploaded data!

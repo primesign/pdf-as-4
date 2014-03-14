@@ -66,7 +66,7 @@ public class TableFactory implements IProfileConstants {
     /**
      * Reference from signature key to there corresponding value
      */
-    private static Hashtable sigEntries_ = new Hashtable(8);
+    private static Hashtable<String, SignatureEntry> sigEntries_ = new Hashtable<String, SignatureEntry>(8);
 
     static {
         setDefaultStyles();
@@ -151,7 +151,7 @@ public class TableFactory implements IProfileConstants {
             {
                 // analyse the row definition
                 String[] elems = table_def_string.split("\\|");
-                ArrayList row = new ArrayList();
+                ArrayList<Entry> row = new ArrayList<Entry>();
                 for (int elem_idx = 0; elem_idx < elems.length; elem_idx++)
                 {
                     String elem = elems[elem_idx];
@@ -268,7 +268,7 @@ public class TableFactory implements IProfileConstants {
         SignatureEntry sigEntry = null;
         if (sigEntries_.containsKey(key))
         {
-            sigEntry = (SignatureEntry) sigEntries_.get(key);
+            sigEntry = sigEntries_.get(key);
             value = sigEntry.getValue();
         }
         /*
@@ -305,7 +305,7 @@ public class TableFactory implements IProfileConstants {
         String caption = null;
         if (sigEntries_.containsKey(key))
         {
-            caption = ((SignatureEntry) sigEntries_.get(key)).getCaption();
+            caption = sigEntries_.get(key).getCaption();
             if (caption == null)
             {
                 caption = key;

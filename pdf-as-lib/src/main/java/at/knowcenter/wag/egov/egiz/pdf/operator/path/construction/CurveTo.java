@@ -50,6 +50,7 @@ import at.knowcenter.wag.egov.egiz.pdf.PDFPage;
 import at.knowcenter.wag.egov.egiz.pdf.operator.path.PathConstructionOperatorProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSNumber;
 import org.apache.pdfbox.util.PDFOperator;
 
@@ -74,7 +75,7 @@ public class CurveTo extends PathConstructionOperatorProcessor {
 	}
 
 	@Override
-	public void process(PDFOperator operator, List operands) throws IOException {
+	public void process(PDFOperator operator, List<COSBase> operands) throws IOException {
 		try {
 			PDFPage pdfPage = (PDFPage) context;
 

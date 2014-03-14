@@ -197,7 +197,7 @@ public class Table implements Serializable
     ArrayList<ArrayList<Entry>> rows = new ArrayList<ArrayList<Entry>>();
     for (int row_idx = 1; row_idx <= rows_.size(); row_idx++)
     {
-      ArrayList<Entry> row = (ArrayList<Entry>) rows_.get("" + row_idx);
+      ArrayList<Entry> row = rows_.get(String.valueOf(row_idx));
       rows.add(row);
     }
     return rows;
@@ -237,7 +237,7 @@ public class Table implements Serializable
       String row_prefix = "\n ++ ROW " + row_idx + " ++ ";
       for (int entry_idx = 0; entry_idx < row.size(); entry_idx++)
       {
-        the_string += row_prefix + ((Entry) row.get(entry_idx)).toString();
+        the_string += row_prefix + row.get(entry_idx).toString();
       }
     }
     the_string += "\n#### TABLE " + name_ + " END #####";

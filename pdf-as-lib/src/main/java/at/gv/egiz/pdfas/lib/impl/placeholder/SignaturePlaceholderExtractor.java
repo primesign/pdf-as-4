@@ -59,6 +59,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -107,7 +108,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
    public static final int PLACEHOLDER_MATCH_MODE_MODERATE = 1;
    public static final int PLACEHOLDER_MATCH_MODE_LENIENT = 2;
    
-   private List placeholders = new Vector();
+   private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
    private int currentPage = 0;
 
    private SignaturePlaceholderExtractor(String placeholderId, int placeholderMatchMode) throws IOException {
@@ -143,8 +144,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
          } catch (IOException e2) {
             throw new PDFIOException("error.pdf.io.04", e2);
          }
-         List pages = doc.getDocumentCatalog().getAllPages();
-         Iterator iter = pages.iterator();
+         List<?> pages = doc.getDocumentCatalog().getAllPages();
+         Iterator<?> iter = pages.iterator();
          int pageNr = 0;
          while (iter.hasNext()) {
             pageNr++;
@@ -185,7 +186,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
    }
 
    private static SignaturePlaceholderData matchPlaceholderDocument(
-         List placeholders, String placeholderId, int matchMode) throws PlaceholderExtractionException {
+         List<SignaturePlaceholderData> placeholders, String placeholderId, int matchMode) throws PlaceholderExtractionException {
 
       if (matchMode == PLACEHOLDER_MATCH_MODE_STRICT)
          throw new PlaceholderExtractionException("error.pdf.stamp.09");
@@ -195,24 +196,24 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 
       for (int i = 0; i < placeholders.size(); i++)
       {
-         SignaturePlaceholderData spd = (SignaturePlaceholderData)placeholders.get(i);
+         SignaturePlaceholderData spd = placeholders.get(i);
          if (spd.getId() == null)
             return spd;
       }
 
       if (matchMode == PLACEHOLDER_MATCH_MODE_LENIENT)
-         return (SignaturePlaceholderData)placeholders.get(0);
+         return placeholders.get(0);
 
       return null;
    }
 
-   private static SignaturePlaceholderData matchPlaceholderPage(List placeholders,
+   private static SignaturePlaceholderData matchPlaceholderPage(List<SignaturePlaceholderData> placeholders,
          String placeholderId, int matchMode) {
       if (placeholders.size() == 0)
          return null;
       for (int i = 0; i < placeholders.size(); i++)
       {
-         SignaturePlaceholderData data = (SignaturePlaceholderData)placeholders.get(i);
+         SignaturePlaceholderData data = placeholders.get(i);
          if (placeholderId != null && placeholderId.equals(data.getId()))
             return data;
          if (placeholderId == null && data.getId() == null)
@@ -225,13 +226,14 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
       this.currentPage = pageNr;
    }
 
-   protected void processOperator( PDFOperator operator, List arguments ) throws IOException
+   @Override
+   protected void processOperator(PDFOperator operator, List<COSBase> arguments) throws IOException
    {
 	   String operation = operator.getOperation();
 	  if( operation.equals( "Do" ) )
        {
 		   COSName objectName = (COSName)arguments.get( 0 );
-           Map xobjects = getResources().getXObjects();
+           Map<?, ?> xobjects = getResources().getXObjects();
            PDXObject xobject = (PDXObject)xobjects.get( objectName.getName() );
            if( xobject instanceof PDXObjectImage )
            {
@@ -278,7 +280,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
        }
        else
        {
-    	   super.processOperator( operator, arguments );
+           super.processOperator(operator, arguments);
        }
    }
 
@@ -311,8 +313,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
       Result result;
       long before = System.currentTimeMillis();
       try {
-    	 Hashtable hints = new Hashtable();
-         Vector formats = new Vector();
+         Hashtable<DecodeHintType, Vector<BarcodeFormat>> hints = new Hashtable<DecodeHintType, Vector<BarcodeFormat>>();
+         Vector<BarcodeFormat> formats = new Vector<BarcodeFormat>();
          formats.add(BarcodeFormat.QR_CODE);
          hints.put(DecodeHintType.POSSIBLE_FORMATS, formats);
          result = new MultiFormatReader().decode(bitmap, hints);
@@ -326,7 +328,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
             if (text.startsWith(QR_PLACEHOLDER_IDENTIFIER)) {
                String[] data = text.split(";");
                if (data.length > 1) {
-            	  for (int i = 1; i < data.length; i++) {
+                  for (int i = 1; i < data.length; i++) {
                      String kvPair = data[i];
                      String[] kv = kvPair.split("=");
                      if (kv.length != 2) {

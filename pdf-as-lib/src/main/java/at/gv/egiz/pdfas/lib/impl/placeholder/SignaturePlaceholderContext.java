@@ -54,7 +54,7 @@ package at.gv.egiz.pdfas.lib.impl.placeholder;
  */
 public class SignaturePlaceholderContext {
    
-   private ThreadLocal sigHolder = new ThreadLocal();
+   private ThreadLocal<SignaturePlaceholderData> sigHolder = new ThreadLocal<SignaturePlaceholderData>();
    
    private static SignaturePlaceholderContext instance = new SignaturePlaceholderContext();
    
@@ -72,7 +72,7 @@ public class SignaturePlaceholderContext {
     * @return
     */
    public static SignaturePlaceholderData getSignaturePlaceholderData(){
-      return (SignaturePlaceholderData)instance.sigHolder.get();
+      return instance.sigHolder.get();
    }
 
    /**

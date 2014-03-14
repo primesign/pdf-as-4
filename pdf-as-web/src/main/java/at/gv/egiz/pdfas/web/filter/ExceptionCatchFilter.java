@@ -70,6 +70,7 @@ public class ExceptionCatchFilter implements Filter {
 			logger.debug("Processing Parameters into Attributes");
 			HttpServletRequest httpRequest = (HttpServletRequest)request;
 			PdfAsHelper.logAccess(httpRequest);
+			@SuppressWarnings("unchecked")
 			Enumeration<String> parameterNames = httpRequest.getParameterNames();
 			while(parameterNames.hasMoreElements()) {
 				String name = parameterNames.nextElement();

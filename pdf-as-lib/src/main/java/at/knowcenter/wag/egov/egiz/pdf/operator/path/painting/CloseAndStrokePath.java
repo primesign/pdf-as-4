@@ -50,6 +50,7 @@ import at.knowcenter.wag.egov.egiz.pdf.PDFPage;
 import at.knowcenter.wag.egov.egiz.pdf.operator.path.PathPaintingOperatorProcessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.util.PDFOperator;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class CloseAndStrokePath extends PathPaintingOperatorProcessor {
 	}
 
 	@Override
-	public void process(PDFOperator operator, List operands) throws IOException {
+	public void process(PDFOperator operator, List<COSBase> operands) throws IOException {
 		if (log.isTraceEnabled()) {
 			log.trace("Closing and stroking path.");
 		}

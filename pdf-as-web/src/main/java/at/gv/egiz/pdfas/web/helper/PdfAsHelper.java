@@ -774,12 +774,17 @@ public class PdfAsHelper {
 		session.setAttribute(VERIFICATION_RESULT, value);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static List<VerifyResult> getVerificationResult(
 			HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		Object obj = session.getAttribute(VERIFICATION_RESULT);
 		if (obj != null) {
 			try {
+				if (!(obj instanceof List<?>)) {
+					logger.error("Invalid object type");
+					return null;
+				}
 				return (List<VerifyResult>) obj;
 			} catch (Throwable e) {
 				logger.error("Invalid object type");

@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -158,7 +159,6 @@ public class PDFPage extends PDFTextStripper {
 	 * 
 	 * @author Datentechnik Innovation GmbH
 	 */
-	@SuppressWarnings("unchecked")
 	private void registerCustomPathOperators() {
 
 		// *** path construction
@@ -281,7 +281,7 @@ public class PDFPage extends PDFTextStripper {
 		}
 	}
 
-	protected void processOperator(PDFOperator operator, List arguments)
+	protected void processOperator(PDFOperator operator, List<COSBase> arguments)
 			throws IOException {
 		logger.trace("operator = " + operator);
 		super.processOperator(operator, arguments);
@@ -366,14 +366,14 @@ public class PDFPage extends PDFTextStripper {
             this.mypage = page;
         }
 
-		public void process(PDFOperator operator, List arguments)
+		public void process(PDFOperator operator, List<COSBase> arguments)
 				throws IOException {
 			COSName name = (COSName) arguments.get(0);
 
 			// PDResources res = context.getResources();
 
-			Map xobjects = context.getXObjects();
-			PDXObject xobject = (PDXObject) xobjects.get(name.getName());
+			Map<String, PDXObject> xobjects = context.getXObjects();
+			PDXObject xobject = xobjects.get(name.getName());
 
 			PDStream stream = xobject.getPDStream();
 			COSStream cos_stream = stream.getStream();
