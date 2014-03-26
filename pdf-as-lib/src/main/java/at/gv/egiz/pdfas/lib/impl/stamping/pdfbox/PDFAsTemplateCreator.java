@@ -2,9 +2,11 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.geom.AffineTransform;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -123,7 +125,12 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         ByteArrayInputStream in = null;
         try
         {
-            in = pdfStructure.getTemplateAppearanceStream();
+        	//COSDocument doc = pdfStructure.getVisualSignature();
+        	//doc.
+            //in = pdfStructure.getTemplateAppearanceStream();
+        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        	template.save(baos);
+        	in = new ByteArrayInputStream(baos.toByteArray());
         }
         catch (COSVisitorException e)
         {

@@ -14,10 +14,17 @@ import javax.imageio.ImageIO;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSignDesigner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class PDFAsVisualSignatureDesigner {
 
+    private static final Logger logger = LoggerFactory.getLogger(PDFAsVisualSignatureDesigner.class);
+	
 	private Float sigImgWidth;
 	private Float sigImgHeight;
 	private float xAxis;
@@ -26,10 +33,11 @@ public class PDFAsVisualSignatureDesigner {
 	private float pageWidth;
 	private InputStream imgageStream;
 	private String signatureFieldName = "sig"; // default
-	private byte[] formaterRectangleParams = { 0, 0, 100, 50 }; // default
+	private float[] formaterRectangleParams = { 0, 0, 100, 50 }; // default
 	private byte[] AffineTransformParams = { 1, 0, 0, 1, 0, 0 }; // default
 	private float imageSizeInPercents;
 	private PDDocument document = null;
+	PDFAsVisualSignatureProperties properties;
 
 	/**
 	 * 
@@ -40,8 +48,9 @@ public class PDFAsVisualSignatureDesigner {
 	 * @throws IOException
 	 *             - If we can't read, flush, or can't close stream
 	 */
-	public PDFAsVisualSignatureDesigner(PDDocument doc, 
-			int page) throws IOException {
+	public PDFAsVisualSignatureDesigner(PDDocument doc, int page,
+			PDFAsVisualSignatureProperties properties) throws IOException {
+		this.properties = properties;
 		calculatePageSize(doc, page);
 	}
 
@@ -69,7 +78,6 @@ public class PDFAsVisualSignatureDesigner {
 		this.pageWidth = this.pageWidth + y;
 		float tPercent = (100 * y / (x + y));
 		this.imageSizeInPercents = 100 - tPercent;
-
 	}
 
 	/**
@@ -79,7 +87,8 @@ public class PDFAsVisualSignatureDesigner {
 	 * @return image Stream
 	 * @throws IOException
 	 */
-	public PDFAsVisualSignatureDesigner signatureImage(String path) throws IOException {
+	public PDFAsVisualSignatureDesigner signatureImage(String path)
+			throws IOException {
 		InputStream fin = new FileInputStream(path);
 		return signatureImageStream(fin);
 	}
@@ -153,7 +162,7 @@ public class PDFAsVisualSignatureDesigner {
 	 * @return signature image width
 	 */
 	public float getWidth() {
-		return 400;
+		return this.properties.getMainTable().getWidth();
 	}
 
 	/**
@@ -172,7 +181,7 @@ public class PDFAsVisualSignatureDesigner {
 	 * @return signature image height
 	 */
 	public float getHeight() {
-		return 300;
+		return this.properties.getMainTable().getHeight();
 	}
 
 	/**
@@ -217,7 +226,8 @@ public class PDFAsVisualSignatureDesigner {
 	 * @param signatureFieldName
 	 * @return Visible Signature Configuration Object
 	 */
-	public PDFAsVisualSignatureDesigner signatureFieldName(String signatureFieldName) {
+	public PDFAsVisualSignatureDesigner signatureFieldName(
+			String signatureFieldName) {
 		this.signatureFieldName = signatureFieldName;
 		return this;
 	}
@@ -238,8 +248,8 @@ public class PDFAsVisualSignatureDesigner {
 	 * @throws IOException
 	 *             - If we can't read, flush, or close stream of image
 	 */
-	private PDFAsVisualSignatureDesigner signatureImageStream(InputStream imageStream)
-			throws IOException {
+	private PDFAsVisualSignatureDesigner signatureImageStream(
+			InputStream imageStream) throws IOException {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		byte[] buffer = new byte[1024];
@@ -308,7 +318,7 @@ public class PDFAsVisualSignatureDesigner {
 	 * 
 	 * @return formatter PDRectanle parameters
 	 */
-	public byte[] getFormaterRectangleParams() {
+	public float[] getFormaterRectangleParams() {
 		return formaterRectangleParams;
 	}
 
@@ -319,7 +329,7 @@ public class PDFAsVisualSignatureDesigner {
 	 * @return Visible Signature Configuration Object
 	 */
 	public PDFAsVisualSignatureDesigner formaterRectangleParams(
-			byte[] formaterRectangleParams) {
+			float[] formaterRectangleParams) {
 		this.formaterRectangleParams = formaterRectangleParams;
 		return this;
 	}
