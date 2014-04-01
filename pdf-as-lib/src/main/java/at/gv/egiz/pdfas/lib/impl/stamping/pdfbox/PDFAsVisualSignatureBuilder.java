@@ -1,16 +1,15 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -19,13 +18,13 @@ import javax.imageio.ImageIO;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
@@ -45,7 +44,6 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.test.mains.TestPDFBoxTable;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
-import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
@@ -53,14 +51,16 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			.getLogger(TestPDFBoxTable.class);
 
 	private void drawTable(PDPage page, PDPageContentStream contentStream,
-			float x, float y, PDFBoxTable abstractTable, PDDocument doc, boolean subtable)
-			throws IOException, PdfAsException {
+			float x, float y, PDFBoxTable abstractTable, PDDocument doc,
+			boolean subtable) throws IOException, PdfAsException {
 
 		final int rows = abstractTable.getRowCount();
 		final int cols = abstractTable.getColCount();
 		float[] colsSizes = abstractTable.getColsRelativeWith();
 		int max_cols = abstractTable.getColCount();
 		float padding = abstractTable.getPadding();
+		float fontSize = PDFBoxFont.defaultFontSize;
+		PDFont textFont = PDFBoxFont.defaultFont;
 		if (colsSizes == null) {
 			colsSizes = new float[max_cols];
 			// set the column ratio for all columns to 1
@@ -71,11 +71,13 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 		logger.info("Drawing Table:");
 		abstractTable.dumpTable();
-		
-		contentStream.setNonStrokingColor(Color.blue);
-		contentStream.fillRect(x, y, abstractTable.getWidth(), abstractTable.getHeight());
-		contentStream.setNonStrokingColor(Color.BLACK);
-		
+
+		if(abstractTable.getBGColor() != null) {
+			contentStream.setNonStrokingColor(abstractTable.getBGColor());
+			contentStream.fillRect(x, y, abstractTable.getWidth(),
+				abstractTable.getHeight());
+			contentStream.setNonStrokingColor(Color.BLACK);
+		}
 		float total = 0;
 
 		for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
@@ -91,15 +93,16 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			logger.info("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
 		}
 
-		contentStream.setLineWidth(0.1f);
+		float border = abstractTable.style.getBorder();
+		contentStream.setLineWidth(border);
 
 		float tableHeight = abstractTable.getHeight();
 		float tableWidth = abstractTable.getWidth();
 		final float colWidth = tableWidth / (float) cols;
 
-		// TODO: check boarder width
-		if (1 != 0) {
-			
+		// draw if boarder > 0
+		if (border != 0) {
+
 			// draw the rows
 			float nexty = y + tableHeight;
 			for (int i = 0; i <= rows; i++) {
@@ -109,7 +112,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				if (i < abstractTable.getRowHeights().length) {
 					nexty -= abstractTable.getRowHeights()[i] + padding * 2;
 				}
-				if(subtable && i+1 == abstractTable.getRowHeights().length) {
+				if (subtable && i + 1 == abstractTable.getRowHeights().length) {
 					nexty -= padding;
 				}
 			}
@@ -118,14 +121,17 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			float nextx = x;
 			float ypos = y;
 			float yheight = y + abstractTable.getHeight();
-			if(subtable) {
+			if (subtable) {
 				ypos -= padding;
 				yheight = y + abstractTable.getHeight();
 			}
 			for (int i = 0; i <= cols; i++) {
-				logger.info("COL LINE: {} {} {} {}", nextx, ypos, nextx, yheight);
-				contentStream.drawLine(nextx, ypos, nextx,
+				if(subtable && i == cols) {
+					continue;
+				}
+				logger.info("COL LINE: {} {} {} {}", nextx, ypos, nextx,
 						yheight);
+				contentStream.drawLine(nextx, ypos, nextx, yheight);
 				if (i < colsSizes.length) {
 					nextx += (colsSizes != null) ? colsSizes[i] : colWidth;
 				}
@@ -135,24 +141,43 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		float textx = x + padding;
 		float texty = y + tableHeight;
 		for (int i = 0; i < abstractTable.getRowCount(); i++) {
-			ArrayList row = abstractTable.getRow(i);
+			ArrayList<Entry> row = abstractTable.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 				if (cell.getType() == Entry.TYPE_CAPTION
 						|| cell.getType() == Entry.TYPE_VALUE) {
+
+					if (cell.getType() == Entry.TYPE_CAPTION) {
+						textFont = abstractTable.getFont().getFont(doc);
+						fontSize = abstractTable.getFont().getFontSize();
+					} else if (cell.getType() == Entry.TYPE_VALUE) {
+						textFont = abstractTable.getValueFont().getFont(doc);
+						fontSize = abstractTable.getValueFont().getFontSize();
+					}
+
 					String text = (String) cell.getValue();
-					float fontsize = 5.f;
-					float ttexty = texty - padding - fontsize;
-					COSName name = COSName.getPDFName("ANDI_TAG!");
-					contentStream.beginMarkedContentSequence(COSName.ALT, name);
+					float ttexty = texty - padding - fontSize;
+					// COSName name = COSName.getPDFName("ANDI_TAG!");
+					// contentStream.beginMarkedContentSequence(COSName.ALT,
+					// name);
+					String fontName = textFont.equals(PDType1Font.COURIER) ? "COURIER" : "HELVETICA";
+					
 					contentStream.beginText();
+					
+					if(innerFormResources.getFonts().containsValue(textFont)) {
+						String fontID = getFontID(textFont);
+						logger.info("Using Font: " + fontID);
+						contentStream.appendRawCommands("/" + fontID + " " + fontSize + " Tf\n");
+					} else {
+						contentStream.setFont(textFont, fontSize);
+					}
 					logger.info("Writing: " + textx + " : " + ttexty + " = "
-							+ text);
+							+ text + " as " + cell.getType() + " w "  + fontName);
 					contentStream.moveTextPositionByAmount(textx, ttexty);
 
 					if (text.contains("\n")) {
 						String[] lines = text.split("\n");
-						contentStream.appendRawCommands(fontsize + " TL\n");
+						contentStream.appendRawCommands(fontSize + " TL\n");
 						for (int k = 0; k < lines.length; k++) {
 							contentStream.drawString(lines[k]);
 							if (k < lines.length - 1) {
@@ -163,67 +188,87 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 						contentStream.drawString(text);
 					}
 					contentStream.endText();
-					contentStream.endMarkedContentSequence();
+					// contentStream.endMarkedContentSequence();
 				} else if (cell.getType() == Entry.TYPE_IMAGE) {
 					String img_ref = (String) cell.getValue();
-					if(!images.containsKey(img_ref)) {
+					if (!images.containsKey(img_ref)) {
 						logger.error("Image not prepared! : " + img_ref);
-						throw new PdfAsException("Image not prepared! : " + img_ref);
+						throw new PdfAsException("Image not prepared! : "
+								+ img_ref);
 					}
 					ImageObject image = images.get(img_ref);
 					PDXObjectImage pdImage = image.getImage();
 					// text = "Row :" + i + "COL: " + j;
-					COSName name = COSName.getPDFName("ANDI_TAG!");
-					contentStream.beginMarkedContentSequence(COSName.ALT, name);
-					
+					// COSName name = COSName.getPDFName("ANDI_TAG!");
+					// contentStream.beginMarkedContentSequence(COSName.ALT,
+					// name);
+
 					float imgy = texty;
-					if(cell.getStyle().getImageVAlign() != null && 
-							cell.getStyle().getImageVAlign().equals(Style.TOP)) {
+					if (cell.getStyle().getImageVAlign() != null
+							&& cell.getStyle().getImageVAlign()
+									.equals(Style.TOP)) {
 						imgy = texty - padding - image.getSize();
-					} else if(cell.getStyle().getImageVAlign() != null && 
-							cell.getStyle().getImageVAlign().equals(Style.BOTTOM)) {
+					} else if (cell.getStyle().getImageVAlign() != null
+							&& cell.getStyle().getImageVAlign()
+									.equals(Style.BOTTOM)) {
 						// Should allready be at bottom ...
-						imgy = texty - abstractTable.getRowHeights()[i] + padding;
+						imgy = texty - abstractTable.getRowHeights()[i]
+								+ padding;
 					} else {
 						// default to middle
-						imgy = texty - padding - abstractTable.getRowHeights()[i] / 2;
+						imgy = texty - padding
+								- abstractTable.getRowHeights()[i] / 2;
 						imgy = imgy - image.getSize() / 2;
 					}
 					logger.info("Image: " + textx + " : " + imgy);
-					contentStream.drawXObject(pdImage, textx, imgy, 
+					contentStream.drawXObject(pdImage, textx, imgy,
 							image.getSize(), image.getSize());
-					contentStream.endMarkedContentSequence();
-					
+					// contentStream.endMarkedContentSequence();
+
 				} else if (cell.getType() == Entry.TYPE_TABLE) {
-					float tableY = texty - abstractTable.getRowHeights()[i]  - padding;
+					float tableY = texty - abstractTable.getRowHeights()[i]
+							- padding;
 					float tableX = textx;
-					//texty = texty - padding;
+					// texty = texty - padding;
 					tableX = textx - padding;
 					PDFBoxTable tbl_value = (PDFBoxTable) cell.getValue();
-					logger.info("Table: " + tableX + " : " + tableY );
-					drawTable(page, contentStream, tableX, tableY, tbl_value, doc, true);
+					logger.info("Table: " + tableX + " : " + tableY);
+					drawTable(page, contentStream, tableX, tableY, tbl_value,
+							doc, true);
 				}
 				textx += (colsSizes != null) ? colsSizes[j] : colWidth;
 			}
-			//if (i + 1 < abstractTable.getRowHeights().length) {
-				logger.info("Row {} from {} - {} - {} = {}", i, texty, 
-						abstractTable.getRowHeights()[i], padding * 2, 
-						texty - (abstractTable.getRowHeights()[i] + padding * 2));
-				texty -= abstractTable.getRowHeights()[i] + padding * 2;
-				//texty = texty - abstractTable.getRowHeights()[i + 1] - padding
-				//		* 2;
-				//texty = texty - abstractTable.getRowHeights()[i] - padding
-				//		* 2;
-			//}
+			// if (i + 1 < abstractTable.getRowHeights().length) {
+			logger.info("Row {} from {} - {} - {} = {}", i, texty,
+					abstractTable.getRowHeights()[i], padding * 2, texty
+							- (abstractTable.getRowHeights()[i] + padding * 2));
+			texty -= abstractTable.getRowHeights()[i] + padding * 2;
+			// texty = texty - abstractTable.getRowHeights()[i + 1] - padding
+			// * 2;
+			// texty = texty - abstractTable.getRowHeights()[i] - padding
+			// * 2;
+			// }
 			textx = x + padding;
 		}
 	}
 
 	private PDFAsVisualSignatureProperties properties;
 	private ISettings settings;
+	private List<PDFont> addedFonts = new ArrayList<PDFont>();
 	private PDResources innerFormResources;
 	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
 
+	private String getFontID(PDFont font) {
+		Iterator<java.util.Map.Entry<String, PDFont>> it = innerFormResources.getFonts().entrySet().iterator();
+		while(it.hasNext()) {
+			java.util.Map.Entry<String, PDFont> entry = it.next();
+			if(entry.getValue().equals(font)) {
+				return entry.getKey();
+			}
+		}
+		return "";
+	}
+	
 	public PDFAsVisualSignatureBuilder(
 			PDFAsVisualSignatureProperties properties, ISettings settings) {
 		this.properties = properties;
@@ -250,99 +295,114 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		getStructure().setTemplate(template);
 	}
 
+	private void readTableResources(PDFBoxTable table, PDDocument template) throws PdfAsException, IOException {
+
+		float[] colsSizes = table.getColsRelativeWith();
+		int max_cols = table.getColCount();
+		float padding = table.getPadding();
+		if (colsSizes == null) {
+			colsSizes = new float[max_cols];
+			// set the column ratio for all columns to 1
+			for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
+				colsSizes[cols_idx] = 1;
+			}
+		}
+
+		logger.info("TOTAL Width: " + table.getWidth());
+
+		float total = 0;
+
+		for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
+			total += colsSizes[cols_idx];
+		}
+
+		for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
+			colsSizes[cols_idx] = (colsSizes[cols_idx] / total)
+					* table.getWidth();
+		}
+
+		for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
+			logger.info("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
+		}
+
+		/*if(!addedFonts.contains(table.getFont().getFont(null))) {
+			PDFont font = table.getFont().getFont(template);
+			addedFonts.add(font);
+			innerFormResources.addFont(font);
+		}
+		
+		if(!addedFonts.contains(table.getValueFont().getFont(null))) {
+			PDFont font = table.getValueFont().getFont(template);
+			addedFonts.add(font);
+			innerFormResources.addFont(font);
+		}*/
+		
+		for (int i = 0; i < table.getRowCount(); i++) {
+			ArrayList<Entry> row = table.getRow(i);
+			for (int j = 0; j < row.size(); j++) {
+				Entry cell = (Entry) row.get(j);
+				if (cell.getType() == Entry.TYPE_IMAGE) {
+					String img_ref = (String) cell.getValue();
+					if (!images.containsKey(img_ref)) {
+						File img_file = new File(img_ref);
+						if (!img_file.isAbsolute()) {
+							logger.debug("Image file declaration is relative. Prepending path of resources directory.");
+							logger.debug("Image Location: "
+									+ settings.getWorkingDirectory()
+									+ File.separator + img_ref);
+							img_file = new File(settings.getWorkingDirectory()
+									+ File.separator + img_ref);
+						} else {
+							logger.debug("Image file declaration is absolute. Skipping file relocation.");
+						}
+
+						if (!img_file.exists()) {
+							logger.debug("Image file \""
+									+ img_file.getCanonicalPath()
+									+ "\" doesn't exist.");
+							throw new PdfAsException("error.pdf.stamp.04");
+						}
+
+						BufferedImage img = null;
+						try {
+							img = ImageIO.read(img_file);
+						} catch (IOException e) {
+							throw new PdfAsException("error.pdf.stamp.04", e);
+						}
+
+						float width = colsSizes[j];
+
+						int size = (int) Math.floor((double) width);
+						size -= 2 * padding;
+						logger.debug("Scaling image to: " + size);
+
+						PDXObjectImage pdImage = new PDJpeg(template, img);
+						ImageObject image = new ImageObject(pdImage, size);
+						images.put(img_ref, image);
+						innerFormResources.addXObject(pdImage, "Im");
+					}
+				} else if(cell.getType() == Entry.TYPE_TABLE) { 
+					PDFBoxTable tbl_value = (PDFBoxTable) cell.getValue();
+					readTableResources(tbl_value, template);
+				}
+			}
+		}
+	}
+
 	@Override
 	public void createInnerFormStream(PDDocument template) {
 		try {
-			float[] colsSizes = properties.getMainTable().getColsRelativeWith();
-			int max_cols = properties.getMainTable().getColCount();
-			float padding = properties.getMainTable().getPadding();
-			if (colsSizes == null) {
-				colsSizes = new float[max_cols];
-				// set the column ratio for all columns to 1
-				for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
-					colsSizes[cols_idx] = 1;
-				}
-			}
 
-			logger.info("TOTAL Width: " + properties.getMainTable().getWidth());
-
-			float total = 0;
-
-			for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
-				total += colsSizes[cols_idx];
-			}
-
-			for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
-				colsSizes[cols_idx] = (colsSizes[cols_idx] / total)
-						* properties.getMainTable().getWidth();
-			}
-
-			for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
-				logger.info("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
-			}
-			
 			// Hint we have to create all PDXObjectImages before creating the
 			// PDPageContentStream
 			// only PDFbox developers know why ...
 			innerFormResources = new PDResources();
-			for (int i = 0; i < properties.getMainTable().getRowCount(); i++) {
-				ArrayList row = properties.getMainTable().getRow(i);
-				for (int j = 0; j < row.size(); j++) {
-					Entry cell = (Entry) row.get(j);
-					if (cell.getType() == Entry.TYPE_IMAGE) {
-						String img_ref = (String) cell.getValue();
-						if (!images.containsKey(img_ref)) {
-							File img_file = new File(img_ref);
-							if (!img_file.isAbsolute()) {
-								logger.debug("Image file declaration is relative. Prepending path of resources directory.");
-								logger.debug("Image Location: "
-										+ settings.getWorkingDirectory()
-										+ File.separator + img_ref);
-								img_file = new File(
-										settings.getWorkingDirectory()
-												+ File.separator + img_ref);
-							} else {
-								logger.debug("Image file declaration is absolute. Skipping file relocation.");
-							}
-
-							if (!img_file.exists()) {
-								logger.debug("Image file \""
-										+ img_file.getCanonicalPath()
-										+ "\" doesn't exist.");
-								throw new PdfAsException("error.pdf.stamp.04");
-							}
-
-							BufferedImage img = null;
-							try {
-								img = ImageIO.read(img_file);
-							} catch (IOException e) {
-								throw new PdfAsException("error.pdf.stamp.04",
-										e);
-							}
-							
-							float width = colsSizes[j];
-							
-							int size = (int)Math.floor((double)width);
-							size -= 2*padding;
-							logger.debug("Scaling image to: " + size);
-							
-							PDXObjectImage pdImage = new PDJpeg(template,
-									img);
-							ImageObject image = new ImageObject(pdImage, size);
-							images.put(img_ref, image);
-							innerFormResources.addXObject(pdImage, "Im");
-						}
-					}
-				}
-			}
+			getStructure().getPage().setResources(innerFormResources);
+			readTableResources(properties.getMainTable(), template);
 			
-			//innerFormResources.getCOSObject().setDirect(true);
-			// TODO create Fonts caption and Value
-			innerFormResources.addFont(PDType1Font.COURIER);
-
 			PDPageContentStream stream = new PDPageContentStream(template,
 					getStructure().getPage());
-			stream.setFont(PDType1Font.COURIER, 5);
+			//stream.setFont(PDType1Font.COURIER, 5);
 
 			drawTable(getStructure().getPage(), stream, 1, 1,
 					properties.getMainTable(), template, false);
@@ -616,24 +676,6 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	public void appendRawCommands(OutputStream os, String commands)
 			throws IOException {
 		os.write(commands.getBytes("UTF-8"));
-		os.close();
-	}
-
-	public void appendCosStreamCommands(OutputStream os, COSStream stream)
-			throws IOException {
-		// stream.getScratchFile();
-		byte[] data = new byte[1024];
-		long i = 0;
-		long pos = stream.getScratchFile().getPosition();
-		stream.getScratchFile().seek(0);
-		while (i < stream.getScratchFile().length()) {
-			int read = stream.getScratchFile().read(data, 0, data.length);
-			i += read;
-			os.write(data, 0, read);
-		}
-		// /byte[] data =
-		// StreamUtils.inputStreamToByteArray(stream.getFilteredStream());
-		// os.write(data);
 		os.close();
 	}
 

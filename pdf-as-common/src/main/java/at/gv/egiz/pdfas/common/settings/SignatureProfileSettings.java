@@ -190,4 +190,13 @@ public class SignatureProfileSettings implements IProfileConstants {
 	public String getSigningReason() {
 		return this.getValue(SIGNING_REASON);
 	}
+	
+	public boolean isPDFA() {
+		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA1B_VALID);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+		return false;
+	}
 }

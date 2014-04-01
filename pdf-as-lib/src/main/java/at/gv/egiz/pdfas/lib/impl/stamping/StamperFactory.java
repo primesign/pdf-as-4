@@ -28,7 +28,8 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 
 public class StamperFactory {
 
-	public static final String DEFAULT_STAMPER_CLASS = "at.gv.egiz.pdfas.stmp.itext.ITextStamper";
+	//public static final String DEFAULT_STAMPER_CLASS = "at.gv.egiz.pdfas.stmp.itext.ITextStamper";
+	public static final String DEFAULT_STAMPER_CLASS = "at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxStamper";
 
 	public static IPDFStamper createDefaultStamper(ISettings settings) throws PdfAsException {
 		try {

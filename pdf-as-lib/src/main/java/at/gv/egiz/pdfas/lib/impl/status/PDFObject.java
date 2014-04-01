@@ -28,7 +28,6 @@ public class PDFObject {
 	private OperationStatus status;
 	
 	private byte[] originalDocument;
-	private byte[] stampedDocument;
 	private byte[] signedDocument;
 
 	public PDFObject(OperationStatus operationStatus) {
@@ -41,14 +40,6 @@ public class PDFObject {
 
 	public void setOriginalDocument(byte[] originalDocument) {
 		this.originalDocument = originalDocument;
-	}
-
-	public byte[] getStampedDocument() {
-		return stampedDocument;
-	}
-
-	public void setStampedDocument(byte[] stampedDocument) {
-		this.stampedDocument = stampedDocument;
 	}
 
 	public byte[] getSignedDocument() {

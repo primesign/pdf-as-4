@@ -1,12 +1,10 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
-import java.awt.geom.AffineTransform;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -14,10 +12,8 @@ import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDFTemplateBuilder;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDFTemplateCreator;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDFTemplateStructure;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSignDesigner;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.slf4j.Logger;
@@ -66,7 +62,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         
         // create AffineTransform
         this.pdfBuilder.createAffineTransform(properties.getAffineTransformParams());
-        AffineTransform transform = pdfStructure.getAffineTransform();
+        //AffineTransform transform = pdfStructure.getAffineTransform();
        
         // rectangle, formatter, image. /AcroForm/DR/XObject contains that form
         this.pdfBuilder.createSignatureRectangle(pdSignatureField, properties);

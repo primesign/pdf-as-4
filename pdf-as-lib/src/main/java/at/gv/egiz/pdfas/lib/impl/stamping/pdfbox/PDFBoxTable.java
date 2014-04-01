@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -20,15 +22,16 @@ public class PDFBoxTable {
 
 	Table table;
 	Style style;
-	PDFont font;
-	PDFont valueFont;
+	PDFBoxFont font;
+	PDFBoxFont valueFont;
+	ISettings settings;
 
 	float padding;
 	int positionX = 0;
 	int positionY = 0;
 	float tableWidth;
 	float tableHeight;
-	float fontSize;
+	Color bgColor;
 
 	float[] rowHeights;
 	float[] colWidths;
@@ -50,17 +53,26 @@ public class PDFBoxTable {
 		}
 
 		String fontString = style.getFont();
-		font = PDType1Font.COURIER;
 
 		String vfontString = style.getValueFont();
-		valueFont = font;
+		if (parent != null && style == parent.style) {
+			font = parent.getFont();
 
+			valueFont = parent.getValueFont();
+		} else {
+
+			font = new PDFBoxFont(fontString, settings);
+
+			valueFont = new PDFBoxFont(vfontString, settings);
+		}
 		padding = style.getPadding();
-		fontSize = 5f;
+
+		bgColor = style.getBgColor();
 	}
 
-	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize)
-			throws IOException {
+	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize,
+			ISettings settings) throws IOException {
+		this.settings = settings;
 		initializeStyle(abstractTable, parent);
 		float[] relativSizes = abstractTable.getColsRelativeWith();
 		colWidths = new float[relativSizes.length];
@@ -80,8 +92,9 @@ public class PDFBoxTable {
 		calculateHeightsBasedOnWidths();
 	}
 
-	public PDFBoxTable(Table abstractTable, PDFBoxTable parent)
-			throws IOException {
+	public PDFBoxTable(Table abstractTable, PDFBoxTable parent,
+			ISettings settings) throws IOException {
+		this.settings = settings;
 		initializeStyle(abstractTable, parent);
 		this.calculateWidthHeight();
 	}
@@ -95,7 +108,7 @@ public class PDFBoxTable {
 		}
 
 		for (int i = 0; i < rows; i++) {
-			ArrayList row = (ArrayList) this.table.getRows().get(i);
+			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 
@@ -132,7 +145,7 @@ public class PDFBoxTable {
 		}
 
 		for (int i = 0; i < rows; i++) {
-			ArrayList row = (ArrayList) this.table.getRows().get(i);
+			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 				float cellWidth = getCellWidth(cell);
@@ -180,13 +193,19 @@ public class PDFBoxTable {
 			isValue = false;
 		case Entry.TYPE_VALUE:
 			PDFont c = null;
+			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont;
+				c = valueFont.getFont(null);
+				fontSize = valueFont.getFontSize();
 			} else {
-				c = font;
+				c = font.getFont(null);
+				fontSize = font.getFontSize();
 			}
-
+			if (string == null) {
+				string = "";
+				cell.setValue(string);
+			}
 			if (string.contains("\n")) {
 				float maxWidth = 0;
 				String[] lines = string.split("\n");
@@ -205,7 +224,8 @@ public class PDFBoxTable {
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
-				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this);
+				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
+						this.settings);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
@@ -243,17 +263,49 @@ public class PDFBoxTable {
 			if (lineBreaks.length > 1) {
 				for (int j = 0; j < lineBreaks.length; j++) {
 					String subword = lineBreaks[j];
-					//if (cLine + subword.length() > maxline) {
-						lines.add(cLineValue.trim());
-						cLineValue = "";
-						cLine = 0;
-					//}
+					// if (cLine + subword.length() > maxline) {
+					lines.add(cLineValue.trim());
+					cLineValue = "";
+					cLine = 0;
+					// }
 					cLineValue += subword + " ";
 					cLine += subword.length();
 				}
 			} else {
-				if (cLine + word.length() > maxline && 
-						cLineValue.length() != 0) {
+				if (cLine + word.length() > maxline && cLineValue.length() != 0) {
+					lines.add(cLineValue.trim());
+					cLineValue = "";
+					cLine = 0;
+				}
+				cLineValue += word + " ";
+				cLine += word.length();
+			}
+		}
+		lines.add(cLineValue.trim());
+		return lines.toArray(new String[0]);
+	}
+	
+	private String[] breakString(String value, PDFont f, float maxwidth) throws IOException {
+		String[] words = value.split(" ");
+		List<String> lines = new ArrayList<String>();
+		int cLine = 0;
+		String cLineValue = "";
+		for (int i = 0; i < words.length; i++) {
+			String word = words[i];
+			String[] lineBreaks = word.split("\n");
+			if (lineBreaks.length > 1) {
+				for (int j = 0; j < lineBreaks.length; j++) {
+					String subword = lineBreaks[j];
+					// if (cLine + subword.length() > maxline) {
+					lines.add(cLineValue.trim());
+					cLineValue = "";
+					cLine = 0;
+					// }
+					cLineValue += subword + " ";
+					cLine += subword.length();
+				}
+			} else {
+				if (f.getStringWidth(cLineValue + word) > maxwidth && cLineValue.length() != 0) {
 					lines.add(cLineValue.trim());
 					cLineValue = "";
 					cLine = 0;
@@ -273,23 +325,31 @@ public class PDFBoxTable {
 			isValue = false;
 		case Entry.TYPE_VALUE:
 			PDFont c = null;
+			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont;
+				c = valueFont.getFont(null);
+				fontSize = valueFont.getFontSize();
 			} else {
-				c = font;
+				c = font.getFont(null);
+				fontSize = font.getFontSize();
 			}
 
-			float fwidth = c.getFontDescriptor().getFontBoundingBox()
-					.getWidth()
-					/ 1000 * fontSize;
+			float fwidth;
+			if (c instanceof PDType1Font) {
+				fwidth = c.getFontDescriptor().getFontBoundingBox().getWidth()
+						/ 1000 * fontSize;
+			} else {
+				fwidth = c.getFontDescriptor().getMaxWidth();
+			}
 
+			logger.debug("Font Width: {}", fwidth);
 			int maxcharcount = (int) ((width - padding * 2) / fwidth) - 1;
-			logger.info("Max {} chars per line!", maxcharcount);
+			logger.debug("Max {} chars per line!", maxcharcount);
 			float fheight = c.getFontDescriptor().getFontBoundingBox()
 					.getHeight()
 					/ 1000 * fontSize;
-
+			
 			String[] lines = breakString(string, maxcharcount);
 			cell.setValue(concatLines(lines));
 			return fheight * lines.length;
@@ -299,10 +359,14 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						width - padding);
+						width - padding, this.settings);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
+				// recreate here beacuse of fixed width!
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
+				pdfBoxTable = new PDFBoxTable(pdfBoxTable.table, this, width
+						- padding, this.settings);
+				cell.setValue(pdfBoxTable);
 			} else {
 				throw new IOException("Failed to build PDFBox Table");
 			}
@@ -320,11 +384,14 @@ public class PDFBoxTable {
 			isValue = false;
 		case Entry.TYPE_VALUE:
 			PDFont c = null;
+			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont;
+				c = valueFont.getFont(null);
+				fontSize = valueFont.getFontSize();
 			} else {
-				c = font;
+				c = font.getFont(null);
+				fontSize = font.getFontSize();
 			}
 			float fheight = c.getFontDescriptor().getFontBoundingBox()
 					.getHeight()
@@ -341,7 +408,8 @@ public class PDFBoxTable {
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
-				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this);
+				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
+						this.settings);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
@@ -394,7 +462,8 @@ public class PDFBoxTable {
 	public void dumpTable() {
 		logger.info("=====================================================================");
 		logger.info("Information about: " + this.table.getName());
-		logger.info("\tDimensions: {} x {} (W x H)", this.tableWidth, this.tableHeight);
+		logger.info("\tDimensions: {} x {} (W x H)", this.tableWidth,
+				this.tableHeight);
 		logger.info("\tPadding: {}", padding);
 		logger.info("\t================================");
 		logger.info("\tRow Heights:");
@@ -408,8 +477,24 @@ public class PDFBoxTable {
 		}
 		logger.info("=====================================================================");
 	}
-	
-	public ArrayList getRow(int i) {
-		return (ArrayList) this.table.getRows().get(i);
+
+	public Table getOrigTable() {
+		return this.table;
+	}
+
+	public ArrayList<Entry> getRow(int i) {
+		return this.table.getRows().get(i);
+	}
+
+	public PDFBoxFont getFont() {
+		return font;
+	}
+
+	public PDFBoxFont getValueFont() {
+		return valueFont;
+	}
+
+	public Color getBGColor() {
+		return this.bgColor;
 	}
 }

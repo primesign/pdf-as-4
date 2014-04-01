@@ -49,9 +49,9 @@ public class PDFAsVisualSignatureDesigner {
 	 *             - If we can't read, flush, or can't close stream
 	 */
 	public PDFAsVisualSignatureDesigner(PDDocument doc, int page,
-			PDFAsVisualSignatureProperties properties) throws IOException {
+			PDFAsVisualSignatureProperties properties, boolean newpage) throws IOException {
 		this.properties = properties;
-		calculatePageSize(doc, page);
+		calculatePageSize(doc, page, newpage);
 	}
 
 	/**
@@ -60,19 +60,25 @@ public class PDFAsVisualSignatureDesigner {
 	 * @param document
 	 * @param page
 	 */
-	private void calculatePageSize(PDDocument document, int page) {
+	private void calculatePageSize(PDDocument document, int page, boolean newpage) {
 
 		if (page < 1) {
 			throw new IllegalArgumentException("First page of pdf is 1, not "
 					+ page);
 		}
-
+		
 		List<?> pages = document.getDocumentCatalog().getAllPages();
-		PDPage firstPage = (PDPage) pages.get(page - 1);
-		PDRectangle mediaBox = firstPage.findMediaBox();
-		this.pageHeight(mediaBox.getHeight());
-		this.pageWidth = mediaBox.getWidth();
-
+		if(newpage) {
+			PDPage lastPage = (PDPage) pages.get(pages.size()-1);
+			PDRectangle mediaBox = lastPage.findMediaBox();
+			this.pageHeight(mediaBox.getHeight());
+			this.pageWidth = mediaBox.getWidth();
+		} else {
+			PDPage firstPage = (PDPage) pages.get(page - 1);
+			PDRectangle mediaBox = firstPage.findMediaBox();
+			this.pageHeight(mediaBox.getHeight());
+			this.pageWidth = mediaBox.getWidth();
+		}
 		float x = this.pageWidth;
 		float y = 0;
 		this.pageWidth = this.pageWidth + y;

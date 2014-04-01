@@ -78,7 +78,7 @@ public class Table implements Serializable
   /**
    * The row definitions.
    */
-  private Map rows_ = new HashMap();
+  private Map<String, ArrayList<Entry>> rows_ = new HashMap<String, ArrayList<Entry>>();
 
   /**
    * The table width.
@@ -192,12 +192,12 @@ public class Table implements Serializable
    * 
    * @return Returns the sorted (by row number) table rows.
    */
-  public ArrayList getRows()
+  public ArrayList<ArrayList<Entry>> getRows()
   {
-    ArrayList rows = new ArrayList();
+    ArrayList<ArrayList<Entry>> rows = new ArrayList<ArrayList<Entry>>();
     for (int row_idx = 1; row_idx <= rows_.size(); row_idx++)
     {
-      ArrayList row = (ArrayList) rows_.get("" + row_idx);
+      ArrayList<Entry> row = (ArrayList<Entry>) rows_.get("" + row_idx);
       rows.add(row);
     }
     return rows;
@@ -213,7 +213,7 @@ public class Table implements Serializable
    * @param row
    *          the entry list to store
    */
-  public void addRow(String rowNumber, ArrayList row)
+  public void addRow(String rowNumber, ArrayList<Entry> row)
   {
     rows_.put(rowNumber, row);
     if (row.size() > maxCols_)
@@ -230,10 +230,10 @@ public class Table implements Serializable
     String the_string = "\n#### TABLE " + name_ + " BEGIN #####";
     the_string += " Width:" + width_ + " max cols:" + maxCols_ + " cols:" + colsRelativeWith_;
     the_string += "\nStyle:" + style_;
-    ArrayList rows = getRows();
+    ArrayList<ArrayList<Entry>> rows = getRows();
     for (int row_idx = 0; row_idx < rows.size(); row_idx++)
     {
-      ArrayList row = (ArrayList) rows.get(row_idx);
+      ArrayList<Entry> row = rows.get(row_idx);
       String row_prefix = "\n ++ ROW " + row_idx + " ++ ";
       for (int entry_idx = 0; entry_idx < row.size(); entry_idx++)
       {
