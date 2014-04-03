@@ -42,6 +42,8 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -69,6 +71,7 @@ import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.tagging.PDFBoxTaggingUtils;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
@@ -288,6 +291,22 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 								e);
 					}
 				}
+				
+				/*if(signatureProfileSettings.isPDFA()) {
+					// Check for PDF-UA
+					PDDocumentCatalog root = doc.getDocumentCatalog();
+					PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
+					if(treeRoot != null) {
+						// Handle as PDF-UA
+						logger.info("Tree Root: {}", treeRoot.toString());
+						PDStructureElement docElement = PDFBoxTaggingUtils.getDocumentElement(treeRoot);
+						PDStructureElement sigBlock = new PDStructureElement("Table", docElement);
+						root.getCOSObject().setNeedToBeUpdate(true);
+						docElement.getCOSObject().setNeedToBeUpdate(true);
+						treeRoot.getCOSObject().setNeedToBeUpdate(true);
+						sigBlock.setTitle("Signature Table");
+					}
+				}*/
 
 				options.setPreferedSignatureSize(0x1000);
 				options.setPage(positioningInstruction.getPage());

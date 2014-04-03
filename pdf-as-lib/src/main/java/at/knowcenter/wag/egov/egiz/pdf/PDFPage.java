@@ -64,6 +64,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.PDFOperator;
 import org.apache.pdfbox.util.PDFTextStripper;
@@ -534,4 +535,34 @@ public class PDFPage extends PDFTextStripper {
 		return min;
 	}
 
+	public void processAnnotation(PDAnnotation anno) {
+		float current_y = anno.getRectangle().getLowerLeftY();
+		
+		int pageRotation = this.getCurrentPage().findRotation();
+		// logger_.debug("PageRotation = " + pageRotation);
+		if (pageRotation == 0) {
+			float page_height = this.getCurrentPage().findMediaBox().getHeight();
+			current_y = page_height - anno.getRectangle().getLowerLeftY();
+		}
+		if (pageRotation == 90) {
+			current_y = anno.getRectangle().getLowerLeftX();
+		}
+		if (pageRotation == 180) {
+			current_y = anno.getRectangle().getUpperRightY();
+		}
+		if (pageRotation == 270) {
+			float page_height = this.getCurrentPage().findMediaBox().getHeight();
+			current_y = page_height - anno.getRectangle().getUpperRightX();
+		}
+
+		if (current_y > this.effectivePageHeight) {
+			return;
+		}
+
+		// store ypos of the char if it is not empty
+		if (current_y > this.max_character_ypos) {
+			this.max_character_ypos = current_y;
+		}
+	}
+	
 }

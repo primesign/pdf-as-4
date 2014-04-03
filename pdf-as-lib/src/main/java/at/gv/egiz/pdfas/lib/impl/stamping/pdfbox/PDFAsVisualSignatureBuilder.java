@@ -41,14 +41,13 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.test.mains.TestPDFBoxTable;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 
 public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(TestPDFBoxTable.class);
+			.getLogger(PDFAsVisualSignatureBuilder.class);
 
 	private void drawTable(PDPage page, PDPageContentStream contentStream,
 			float x, float y, PDFBoxTable abstractTable, PDDocument doc,
@@ -157,9 +156,8 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 					String text = (String) cell.getValue();
 					float ttexty = texty - padding - fontSize;
-					// COSName name = COSName.getPDFName("ANDI_TAG!");
-					// contentStream.beginMarkedContentSequence(COSName.ALT,
-					// name);
+					//COSName name = COSName.getPDFName("ANDI_TAG!");
+					//contentStream.beginMarkedContentSequence(COSName.ALT, name);
 					String fontName = textFont.equals(PDType1Font.COURIER) ? "COURIER" : "HELVETICA";
 					
 					contentStream.beginText();
@@ -254,7 +252,6 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 	private PDFAsVisualSignatureProperties properties;
 	private ISettings settings;
-//	private List<PDFont> addedFonts = new ArrayList<PDFont>();
 	private PDResources innerFormResources;
 	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
 

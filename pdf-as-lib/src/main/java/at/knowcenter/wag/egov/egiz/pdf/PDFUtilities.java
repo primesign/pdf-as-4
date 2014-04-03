@@ -49,15 +49,16 @@
 package at.knowcenter.wag.egov.egiz.pdf;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
-
 
 /**
  * Contains useful helpers for accessing PDF documents.
@@ -65,31 +66,42 @@ import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
  * @author wprinz
  * @author mruhmer
  */
-public abstract class PDFUtilities
-{
-    public static float calculatePageLength(PDDocument document, int page, float effectivePageHeight, /*int pagerotation,*/ boolean legacy32) throws PDFIOException {
-	    //int last_page_id = document.getNumberOfPages();
-	    List<?> allPages = document.getDocumentCatalog().getAllPages();
-	    PDPage pdpage = (PDPage) allPages.get(page);
-	    //pdpage.setRotation(pagerotation);
-	    return calculatePageLength(pdpage, effectivePageHeight, legacy32);
+public abstract class PDFUtilities {
+	public static float calculatePageLength(PDDocument document, int page,
+			float effectivePageHeight, /* int pagerotation, */boolean legacy32)
+			throws PDFIOException {
+		// int last_page_id = document.getNumberOfPages();
+		List<?> allPages = document.getDocumentCatalog().getAllPages();
+		PDPage pdpage = (PDPage) allPages.get(page);
+		// pdpage.setRotation(pagerotation);
+		return calculatePageLength(pdpage, effectivePageHeight, legacy32);
 	}
 
-    public static float calculatePageLength(PDPage page, float effectivePageHeight, boolean legacy32) throws PDFIOException
-    {
-        try{
-            PDFPage my_page = new PDFPage(effectivePageHeight, legacy32);
-            PDResources resources = page.findResources();
-            COSStream stream = page.getContents().getStream();
-            //List<PDThreadBead> articles = page.getThreadBeads();
-            //my_page.processMyPage(page);
-            my_page.processStream(page, resources, stream);
-            return my_page.getMaxPageLength();
-        }
-        catch (IOException e)
-        {
-            throw new PDFIOException("error.pdf.stamp.11", e);
-        }
-    }
+	public static float calculatePageLength(PDPage page,
+			float effectivePageHeight, boolean legacy32) throws PDFIOException {
+		try {
+			PDFPage my_page = new PDFPage(effectivePageHeight, legacy32);
+			PDResources resources = page.findResources();
+			COSStream stream = page.getContents().getStream();
+			// List<PDThreadBead> articles = page.getThreadBeads();
+			// my_page.processMyPage(page);
+			my_page.processStream(page, resources, stream);
+
+			if (!legacy32) {
+				Iterator<PDAnnotation> annotationsIt = page.getAnnotations()
+						.iterator();
+
+				while (annotationsIt.hasNext()) {
+					PDAnnotation annotation = annotationsIt.next();
+					if(!annotation.isInvisible()) {
+						my_page.processAnnotation(annotation);
+					}
+				}
+			}
+			return my_page.getMaxPageLength();
+		} catch (IOException e) {
+			throw new PDFIOException("error.pdf.stamp.11", e);
+		}
+	}
 
 }
