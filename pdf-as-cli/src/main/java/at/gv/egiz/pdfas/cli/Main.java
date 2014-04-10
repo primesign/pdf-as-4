@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -183,6 +184,8 @@ public class Main {
 
 	public static void main(String[] args) {
 		// create the command line parser
+		
+		
 		CommandLineParser parser = new GnuParser();
 		ModeOfOperation mode = ModeOfOperation.INVALID;
 		try {
@@ -218,7 +221,6 @@ public class Main {
 			} else if (mode == ModeOfOperation.VERIFY) {
 				perform_verify(cli);
 			}
-
 		} catch (ParseException e) {
 			System.err.println("Invalid arguments: " + e.getMessage());
 			usage();

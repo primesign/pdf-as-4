@@ -1,4 +1,5 @@
 <%@page import="at.gv.egiz.pdfas.web.config.WebConfiguration"%>
+<%@page import="at.gv.egiz.pdfas.web.helper.PdfAsHelper"%>
 <html>
 <head>
 <title>PDF-Signatur</title>
@@ -60,5 +61,7 @@
 			}
 		%>
 	</form>
+	
+	<p><small>Version: <%= PdfAsHelper.getVersion() %> - <%= PdfAsHelper.getSCMRevision() %></small></p>
 </body>
 </html>

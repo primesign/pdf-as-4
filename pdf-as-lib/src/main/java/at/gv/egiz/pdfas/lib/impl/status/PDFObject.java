@@ -23,25 +23,47 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.status;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+
 public class PDFObject {
 	
 	private OperationStatus status;
 	
+	private PDDocument doc;
 	private byte[] originalDocument;
 	private byte[] signedDocument;
 
 	public PDFObject(OperationStatus operationStatus) {
 		this.status = operationStatus;
 	}
+	
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		if(doc != null) {
+			doc.close();
+		}
+	}
 
 	public byte[] getOriginalDocument() {
 		return originalDocument;
 	}
 
-	public void setOriginalDocument(byte[] originalDocument) {
+	public void setOriginalDocument(byte[] originalDocument) throws IOException {
 		this.originalDocument = originalDocument;
+		if(doc != null) {
+			doc.close();
+		}
+		this.doc = PDDocument.load(new ByteArrayInputStream(this.originalDocument));
 	}
 
+	public PDDocument getDocument() {
+		return this.doc;
+	}
+	
 	public byte[] getSignedDocument() {
 		return signedDocument;
 	}

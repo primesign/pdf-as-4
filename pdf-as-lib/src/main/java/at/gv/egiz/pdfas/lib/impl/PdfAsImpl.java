@@ -95,22 +95,23 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 		}
 
-		if(parameter.getDataSource() == null || parameter.getDataSource().getByteData() == null) {
+		if (parameter.getDataSource() == null
+				|| parameter.getDataSource().getByteData() == null) {
 			throw new PdfAsValidationException("error.pdf.sig.10", null);
 		}
-		
-		if(parameter.getOutput() == null) {
+
+		if (parameter.getOutput() == null) {
 			throw new PdfAsValidationException("error.pdf.sig.11", null);
 		}
-		
-		try {
-			PDDocument doc = PDDocument.load(new ByteArrayInputStream(parameter.getDataSource().getByteData()));
-			PDFUtils.checkPDFPermissions(doc);
-			doc.close();
-		} catch(IOException e) {
-			throw new PdfAsValidationException("error.pdf.sig.12", null, e);
-		}
-		
+
+		/*
+		 * try { PDDocument doc = PDDocument.load(new
+		 * ByteArrayInputStream(parameter.getDataSource().getByteData()));
+		 * PDFUtils.checkPDFPermissions(doc); doc.close(); } catch(IOException
+		 * e) { throw new PdfAsValidationException("error.pdf.sig.12", null, e);
+		 * }
+		 */
+
 		// TODO: verify Sign Parameter
 	}
 
@@ -120,8 +121,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		if (!(parameter.getConfiguration() instanceof ISettings)) {
 			throw new PdfAsSettingsException("Invalid settings object!");
 		}
-		
-		if(parameter.getDataSource() == null || parameter.getDataSource().getByteData() == null) {
+
+		if (parameter.getDataSource() == null
+				|| parameter.getDataSource().getByteData() == null) {
 			throw new PdfAsValidationException("error.pdf.verify.01", null);
 		}
 
@@ -142,8 +144,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			OperationStatus status = new OperationStatus(settings, parameter);
-			//PlaceholderConfiguration placeholderConfiguration = status
-			//		.getPlaceholderConfiguration();
+
+			// set Original PDF Document Data
+			status.getPdfObject().setOriginalDocument(
+					parameter.getDataSource().getByteData());
+
+			PDDocument doc = status.getPdfObject().getDocument();
+			PDFUtils.checkPDFPermissions(doc);
+
+			// PlaceholderConfiguration placeholderConfiguration = status
+			// .getPlaceholderConfiguration();
 
 			RequestedSignature requestedSignature = new RequestedSignature(
 					status);
@@ -164,11 +174,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			// status
 			// .getSignatureProfileConfiguration(signatureProfileID);
 
-			// set Original PDF Document Data
-			status.getPdfObject().setOriginalDocument(
-					parameter.getDataSource().getByteData());
-
-			//this.stampPdf(status);
+			// this.stampPdf(status);
 
 			// Create signature
 			IPdfSigner signer = PdfSignerFactory.createPdfSigner();
@@ -272,7 +278,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						if (verifyFilter != null) {
 							List<VerifyResult> results = verifyFilter.verify(
 									contentData.toByteArray(),
-									content.getBytes(), 
+									content.getBytes(),
 									parameter.getVerificationTime(), bytes);
 							if (results != null && !results.isEmpty()) {
 								result.addAll(results);
@@ -308,7 +314,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			throws PdfAsException {
 
 		verifySignParameter(parameter);
-		
+
 		StatusRequestImpl request = new StatusRequestImpl();
 
 		try {
@@ -355,7 +361,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						status.getSignParamter().getDataSource().getByteData());
 
 				// STAMPER!
-				//stampPdf(status);
+				// stampPdf(status);
 				request.setNeedCertificate(false);
 
 				status.setSigningDate(Calendar.getInstance());

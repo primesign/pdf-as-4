@@ -32,8 +32,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 			e.printStackTrace();
 		}
 		try {
-			PDDocument origDoc = PDDocument.load(new ByteArrayInputStream(
-					object.getOriginalDocument()));
+			PDDocument origDoc = object.getDocument();
 
 			designer = new PDFAsVisualSignatureDesigner(origDoc, pos.getPage(), this, pos.isMakeNewPage());
 			float posy = designer.getPageHeight() - pos.getY();

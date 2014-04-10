@@ -809,4 +809,12 @@ public class PdfAsHelper {
 		}
 		return false;
 	}
+	
+	public static String getVersion() {
+		return PdfAsFactory.getVersion();
+	}
+	
+	public static String getSCMRevision() {
+		return PdfAsFactory.getSCMRevision();
+	}
 }

@@ -1,6 +1,5 @@
 package at.gv.egiz.pdfas.lib.impl.placeholder;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -16,8 +15,7 @@ public class PlaceholderFilter implements IConfigurationConstants {
 		
 		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
 			SignaturePlaceholderData signaturePlaceholderData = SignaturePlaceholderExtractor
-					.extract(new ByteArrayInputStream(status.getPdfObject()
-							.getOriginalDocument()), null, 1);
+					.extract(status.getPdfObject().getDocument(), null, 1);
 
 			return signaturePlaceholderData;
 			/*

@@ -99,8 +99,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			FileInputStream fis = new FileInputStream(new File(fisTmpFile));
 
-			PDDocument doc = PDDocument.load(new ByteArrayInputStream(pdfObject
-					.getOriginalDocument()));
+			PDDocument doc = pdfObject.getDocument();
 
 			PDSignature signature = new PDSignature();
 			signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
@@ -198,13 +197,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				IPDFVisualObject visualObject = stamper.createVisualPDFObject(
 						pdfObject, main);
 
-				PDDocument originalDocument = PDDocument
+				/*PDDocument originalDocument = PDDocument
 						.load(new ByteArrayInputStream(pdfObject.getStatus()
-								.getPdfObject().getOriginalDocument()));
+								.getPdfObject().getOriginalDocument()));*/
 
 				PositioningInstruction positioningInstruction = Positioning
 						.determineTablePositioning(tablePos, "",
-								originalDocument, visualObject,
+								doc, visualObject,
 								legacy32Position);
 
 				SignaturePositionImpl position = new SignaturePositionImpl();
