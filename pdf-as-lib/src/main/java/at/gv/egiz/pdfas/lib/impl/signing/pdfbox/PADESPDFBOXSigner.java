@@ -227,10 +227,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						.getVisibleSignature()));
 				sigbos.close();
 
-				FileOutputStream fos2 = new FileOutputStream("/tmp/apsig.pdf");
-				fos2.write(sigbos.toByteArray());
-				fos2.close();
-
 				if (signaturePlaceholderData != null) {
 					// Placeholder found!
 					// replace placeholder
