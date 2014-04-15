@@ -251,6 +251,9 @@ public class PDFBoxTable {
 				return c.getStringWidth(string) / 1000 * fontSize;
 			}
 		case Entry.TYPE_IMAGE:
+			if(style != null && style.getImageScaleToFit() != null) {
+				return style.getImageScaleToFit().getWidth();
+			}
 			return 80.f;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
@@ -387,6 +390,11 @@ public class PDFBoxTable {
 			cell.setValue(concatLines(lines));
 			return fheight * lines.length;
 		case Entry.TYPE_IMAGE:
+			if(style != null && style.getImageScaleToFit() != null) {
+				if( style.getImageScaleToFit().getHeight() < width) {
+					return style.getImageScaleToFit().getHeight();
+				}
+			}
 			return width;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
@@ -437,6 +445,9 @@ public class PDFBoxTable {
 				return fheight;
 			}
 		case Entry.TYPE_IMAGE:
+			if(style != null && style.getImageScaleToFit() != null) {
+				return style.getImageScaleToFit().getHeight();
+			}
 			return 80.f;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;

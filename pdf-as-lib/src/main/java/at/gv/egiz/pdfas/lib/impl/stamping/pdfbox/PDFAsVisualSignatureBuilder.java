@@ -369,10 +369,16 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 						float width = colsSizes[j];
 
-						int size = (int) Math.floor((double) width);
+						float size = (int) Math.floor((double) width);
 						size -= 2 * padding;
 						logger.debug("Scaling image to: " + size);
-
+						
+						if(table.style != null) {
+							if(table.style.getImageScaleToFit() != null) {
+								size = table.style.getImageScaleToFit().getWidth();
+							}
+						}
+						
 						PDXObjectImage pdImage = new PDJpeg(template, img);
 						ImageObject image = new ImageObject(pdImage, size);
 						images.put(img_ref, image);
