@@ -23,35 +23,73 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.common.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Formatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Created with IntelliJ IDEA.
- * User: afitzek
- * Date: 8/28/13
- * Time: 12:42 PM
- * To change this template use File | Settings | File Templates.
+ * Created with IntelliJ IDEA. User: afitzek Date: 8/28/13 Time: 12:42 PM To
+ * change this template use File | Settings | File Templates.
  */
 public class StringUtils {
 
-    public static String bytesToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
+	private static final Logger logger = LoggerFactory
+			.getLogger(StringUtils.class);
 
-        Formatter formatter = new Formatter(sb);
-        for (byte b : bytes) {
-            formatter.format("%02x", b);
-        }
-        formatter.close();
+	public static String bytesToHexString(byte[] bytes) {
+		StringBuilder sb = new StringBuilder(bytes.length * 2);
 
-        return sb.toString();
-    }
+		Formatter formatter = new Formatter(sb);
+		for (byte b : bytes) {
+			formatter.format("%02x", b);
+		}
+		formatter.close();
 
-    public static String extractLastID(String id) {
-        int lastIDX = id.lastIndexOf('.');
-        String result = id;
-        if(lastIDX > 0) {
-            result = id.substring(lastIDX+1);
-        }
-        return result;
-    }
+		return sb.toString();
+	}
+
+	public static String extractLastID(String id) {
+		int lastIDX = id.lastIndexOf('.');
+		String result = id;
+		if (lastIDX > 0) {
+			result = id.substring(lastIDX + 1);
+		}
+		return result;
+	}
+
+	public static String convertStringToPDFFormat(String value)
+			throws UnsupportedEncodingException {
+		byte[] replace_bytes = applyWinAnsiEncoding(value);
+
+		String restored_value = unapplyWinAnsiEncoding(replace_bytes);
+		if (!value.equals(restored_value)) {
+			// Cannot encode String with CP1252 have to use URL encoding ...
+			return URLEncoder.encode(value, "UTF-8");
+		}
+		return value;
+	}
+
+	public static byte[] applyWinAnsiEncoding(String text)
+			throws UnsupportedEncodingException {
+		byte[] replace_bytes;
+		replace_bytes = text.getBytes("windows-1252");// CP1252 =
+														// WinAnsiEncoding
+		return replace_bytes;
+	}
+
+	/**
+	 * Unapplies the WinAnsi encoding.
+	 * 
+	 * @param replace_bytes
+	 *            The bytes.
+	 * @return Returns the decoded String.
+	 * @throws UnsupportedEncodingException 
+	 */
+	public static String unapplyWinAnsiEncoding(byte[] replace_bytes) throws UnsupportedEncodingException {
+		String text = new String(replace_bytes, "windows-1252");
+		return text;
+	}
 }

@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,10 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -36,10 +40,37 @@ public class PDFBoxTable {
 	float[] rowHeights;
 	float[] colWidths;
 
+	private void normalizeContent(Table abstractTable) throws PdfAsException {
+		try {
+			int rows = abstractTable.getRows().size();
+			for (int i = 0; i < rows; i++) {
+				ArrayList<Entry> row = this.table.getRows().get(i);
+				for (int j = 0; j < row.size(); j++) {
+					Entry cell = (Entry) row.get(j);
+
+					switch (cell.getType()) {
+					case Entry.TYPE_CAPTION:
+					case Entry.TYPE_VALUE:
+						String value = (String) cell.getValue();
+						cell.setValue(StringUtils
+								.convertStringToPDFFormat(value));
+						break;
+					}
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			throw new PdfAsException("Unsupported Encoding", e);
+		}
+	}
+
 	private void initializeStyle(Table abstractTable, PDFBoxTable parent)
 			throws IOException {
 		this.table = abstractTable;
-
+		try {
+			normalizeContent(abstractTable);
+		} catch(PdfAsException e) {
+			throw new PdfAsWrappedIOException(e);
+		}
 		if (abstractTable.getStyle() != null) {
 			style = abstractTable.getStyle();
 		}
@@ -284,39 +315,41 @@ public class PDFBoxTable {
 		lines.add(cLineValue.trim());
 		return lines.toArray(new String[0]);
 	}
-	
-//	private String[] breakString(String value, PDFont f, float maxwidth) throws IOException {
-//		String[] words = value.split(" ");
-//		List<String> lines = new ArrayList<String>();
-//		int cLine = 0;
-//		String cLineValue = "";
-//		for (int i = 0; i < words.length; i++) {
-//			String word = words[i];
-//			String[] lineBreaks = word.split("\n");
-//			if (lineBreaks.length > 1) {
-//				for (int j = 0; j < lineBreaks.length; j++) {
-//					String subword = lineBreaks[j];
-//					// if (cLine + subword.length() > maxline) {
-//					lines.add(cLineValue.trim());
-//					cLineValue = "";
-//					cLine = 0;
-//					// }
-//					cLineValue += subword + " ";
-//					cLine += subword.length();
-//				}
-//			} else {
-//				if (f.getStringWidth(cLineValue + word) > maxwidth && cLineValue.length() != 0) {
-//					lines.add(cLineValue.trim());
-//					cLineValue = "";
-//					cLine = 0;
-//				}
-//				cLineValue += word + " ";
-//				cLine += word.length();
-//			}
-//		}
-//		lines.add(cLineValue.trim());
-//		return lines.toArray(new String[0]);
-//	}
+
+	// private String[] breakString(String value, PDFont f, float maxwidth)
+	// throws IOException {
+	// String[] words = value.split(" ");
+	// List<String> lines = new ArrayList<String>();
+	// int cLine = 0;
+	// String cLineValue = "";
+	// for (int i = 0; i < words.length; i++) {
+	// String word = words[i];
+	// String[] lineBreaks = word.split("\n");
+	// if (lineBreaks.length > 1) {
+	// for (int j = 0; j < lineBreaks.length; j++) {
+	// String subword = lineBreaks[j];
+	// // if (cLine + subword.length() > maxline) {
+	// lines.add(cLineValue.trim());
+	// cLineValue = "";
+	// cLine = 0;
+	// // }
+	// cLineValue += subword + " ";
+	// cLine += subword.length();
+	// }
+	// } else {
+	// if (f.getStringWidth(cLineValue + word) > maxwidth && cLineValue.length()
+	// != 0) {
+	// lines.add(cLineValue.trim());
+	// cLineValue = "";
+	// cLine = 0;
+	// }
+	// cLineValue += word + " ";
+	// cLine += word.length();
+	// }
+	// }
+	// lines.add(cLineValue.trim());
+	// return lines.toArray(new String[0]);
+	// }
 
 	private float getCellHeight(Entry cell, float width) throws IOException {
 		boolean isValue = true;
@@ -349,7 +382,7 @@ public class PDFBoxTable {
 			float fheight = c.getFontDescriptor().getFontBoundingBox()
 					.getHeight()
 					/ 1000 * fontSize;
-			
+
 			String[] lines = breakString(string, maxcharcount);
 			cell.setValue(concatLines(lines));
 			return fheight * lines.length;
