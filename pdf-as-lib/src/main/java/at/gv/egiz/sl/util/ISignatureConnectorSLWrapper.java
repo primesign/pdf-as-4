@@ -40,14 +40,15 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
-import at.gv.egiz.sl.CreateCMSSignatureRequestType;
-import at.gv.egiz.sl.CreateCMSSignatureResponseType;
-import at.gv.egiz.sl.InfoboxAssocArrayPairType;
-import at.gv.egiz.sl.InfoboxReadRequestType;
-import at.gv.egiz.sl.InfoboxReadResponseType;
+import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
+import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
+import at.gv.egiz.sl.schema.InfoboxReadRequestType;
+import at.gv.egiz.sl.schema.InfoboxReadResponseType;
 
 public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 
+	public static final String SL_USE_BASE64 = "";
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(ISignatureConnectorSLWrapper.class);
 
@@ -83,10 +84,10 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 	}
 
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
-		CreateCMSSignatureRequestType request = connector.createCMSRequest(
+		RequestPackage pack = connector.createCMSRequest(
 				input, byteRange);
 		CreateCMSSignatureResponseType response = connector
-				.sendCMSRequest(request);
+				.sendCMSRequest(pack);
 		try {
 			SignedData signedData = new SignedData(new ByteArrayInputStream(
 					response.getCMSSignature()));

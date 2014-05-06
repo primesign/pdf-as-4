@@ -39,7 +39,7 @@ public class SLMarschaller {
 
 	static {
 		try {
-			JAXBContext context = JAXBContext.newInstance("at.gv.egiz.sl");
+			JAXBContext context = JAXBContext.newInstance("at.gv.egiz.sl.schema");
 			marshaller = context.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");

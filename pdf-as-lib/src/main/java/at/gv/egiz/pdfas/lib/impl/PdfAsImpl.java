@@ -135,7 +135,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		logger.trace("sign started");
 
 		verifySignParameter(parameter);
-
+		OperationStatus status = null;
 		try {
 			// Status initialization
 			if (!(parameter.getConfiguration() instanceof ISettings)) {
@@ -143,7 +143,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 
 			ISettings settings = (ISettings) parameter.getConfiguration();
-			OperationStatus status = new OperationStatus(settings, parameter);
+			status = new OperationStatus(settings, parameter);
 
 			// set Original PDF Document Data
 			status.getPdfObject().setOriginalDocument(
@@ -199,6 +199,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
+			if(status != null) {
+				if(status.getPdfObject() != null) {
+					status.getPdfObject().close();
+				}
+			}
 			logger.trace("sign done");
 		}
 	}
@@ -437,6 +442,12 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			return createSignResult(status);
 		} catch (IOException e) {
 			throw new PdfAsException("error.pdf.sig.06", e);
+		} finally {
+			if(status != null) {
+				if(status.getPdfObject() != null) {
+					status.getPdfObject().close();
+				}
+			}
 		}
 	}
 

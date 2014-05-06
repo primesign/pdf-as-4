@@ -23,8 +23,6 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -42,8 +40,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -71,7 +67,6 @@ import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
-import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.tagging.PDFBoxTaggingUtils;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
@@ -222,10 +217,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				properties.buildSignature();
 
-				ByteArrayOutputStream sigbos = new ByteArrayOutputStream();
+				/*ByteArrayOutputStream sigbos = new ByteArrayOutputStream();
 				sigbos.write(StreamUtils.inputStreamToByteArray(properties
 						.getVisibleSignature()));
-				sigbos.close();
+				sigbos.close();*/
 
 				if (signaturePlaceholderData != null) {
 					// Placeholder found!
@@ -305,8 +300,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				options.setPreferedSignatureSize(0x1000);
 				options.setPage(positioningInstruction.getPage());
-				options.setVisualSignature(new ByteArrayInputStream(sigbos
-						.toByteArray()));
+				options.setVisualSignature(properties
+						.getVisibleSignature());
 			}
 
 			doc.addSignature(signature, signer, options);
@@ -314,18 +309,23 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			// pdfbox patched (FIS -> IS)
 			doc.saveIncremental(fis, fos);
 			fis.close();
+			fos.flush();
 			fos.close();
-
+			fos = null;
+			
 			fis = new FileInputStream(new File(fisTmpFile));
 
 			// write to resulting output stream
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			bos.write(StreamUtils.inputStreamToByteArray(fis));
+			//ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			//bos.write();
+			//bos.close();
+			
+
+			pdfObject.setSignedDocument(StreamUtils.inputStreamToByteArray(fis));
 			fis.close();
-			bos.close();
-
-			pdfObject.setSignedDocument(bos.toByteArray());
-
+			fis = null;
+			System.gc();
+			
 			helper.deleteFile(fisTmpFile);
 
 		} catch (IOException e) {
@@ -337,6 +337,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		} catch (COSVisitorException e) {
 			logger.error(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
+		} finally {
+			logger.info("Signature done!");
+			
 		}
 	}
 }

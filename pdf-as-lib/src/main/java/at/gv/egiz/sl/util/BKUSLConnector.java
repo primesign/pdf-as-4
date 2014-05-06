@@ -37,18 +37,19 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.SLPdfAsException;
+import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.sl.CreateCMSSignatureRequestType;
-import at.gv.egiz.sl.CreateCMSSignatureResponseType;
-import at.gv.egiz.sl.ErrorResponseType;
-import at.gv.egiz.sl.InfoboxReadRequestType;
-import at.gv.egiz.sl.InfoboxReadResponseType;
+import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
+import at.gv.egiz.sl.schema.ErrorResponseType;
+import at.gv.egiz.sl.schema.InfoboxReadRequestType;
+import at.gv.egiz.sl.schema.InfoboxReadResponseType;
 
 public class BKUSLConnector extends BaseSLConnector {
 
@@ -68,7 +69,7 @@ public class BKUSLConnector extends BaseSLConnector {
 		return builder.build();
 	}
 
-	private String performHttpRequestToBKU(String xmlRequest)
+	private String performHttpRequestToBKU(String xmlRequest, RequestPackage pack)
 			throws ClientProtocolException, IOException, IllegalStateException {
 		CloseableHttpClient client = null;
 		try {
@@ -80,6 +81,10 @@ public class BKUSLConnector extends BaseSLConnector {
 			entityBuilder.addTextBody(XMLREQUEST, xmlRequest,
 					ContentType.TEXT_XML);
 
+			if(pack != null && pack.getSignatureData() != null) {
+				entityBuilder.addBinaryBody("fileupload", 
+						PDFUtils.blackOutSignature(pack.getSignatureData(), pack.getByteRange()));
+			}
 			post.setEntity(entityBuilder.build());
 
 			HttpResponse response = client.execute(post);
@@ -94,9 +99,14 @@ public class BKUSLConnector extends BaseSLConnector {
 			while ((line = rd.readLine()) != null) {
 				result.append(line);
 			}
-
+			rd.close();
+			response = null;
+			rd = null;
+			
 			logger.trace(result.toString());
 			return result.toString();
+		} catch (PDFIOException e) {
+			throw new WrappedIOException(e);
 		} finally {
 			if(client != null) {
 				client.close();
@@ -113,7 +123,7 @@ public class BKUSLConnector extends BaseSLConnector {
 					.createInfoboxReadRequest(request));
 			logger.trace(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest);
+			String slResponse = performHttpRequestToBKU(slRequest, null);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
@@ -144,15 +154,15 @@ public class BKUSLConnector extends BaseSLConnector {
 	}
 
 	public CreateCMSSignatureResponseType sendCMSRequest(
-			CreateCMSSignatureRequestType request) throws PdfAsException {
+			RequestPackage pack) throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
 		try {
 			slRequest = SLMarschaller.marshalToString(of
-					.createCreateCMSSignatureRequest(request));
+					.createCreateCMSSignatureRequest(pack.getRequestType()));
 			logger.debug(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest);
+			String slResponse = performHttpRequestToBKU(slRequest, pack);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);

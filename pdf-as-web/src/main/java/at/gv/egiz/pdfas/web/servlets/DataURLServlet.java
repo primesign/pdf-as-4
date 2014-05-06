@@ -36,9 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.web.exception.PdfAsSecurityLayerException;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
-import at.gv.egiz.sl.CreateCMSSignatureResponseType;
-import at.gv.egiz.sl.ErrorResponseType;
-import at.gv.egiz.sl.InfoboxReadResponseType;
+import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
+import at.gv.egiz.sl.schema.ErrorResponseType;
+import at.gv.egiz.sl.schema.InfoboxReadResponseType;
 import at.gv.egiz.sl.util.SLMarschaller;
 
 /**

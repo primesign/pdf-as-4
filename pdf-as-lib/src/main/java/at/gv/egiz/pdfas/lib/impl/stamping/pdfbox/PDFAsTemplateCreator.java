@@ -126,6 +126,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
             //in = pdfStructure.getTemplateAppearanceStream();
         	ByteArrayOutputStream baos = new ByteArrayOutputStream();
         	template.save(baos);
+        	baos.close();
         	in = new ByteArrayInputStream(baos.toByteArray());
         }
         catch (COSVisitorException e)

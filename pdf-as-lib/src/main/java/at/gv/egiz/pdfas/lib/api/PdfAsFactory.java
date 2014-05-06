@@ -104,10 +104,12 @@ public class PdfAsFactory {
 									configuration.getAbsolutePath());
 							PropertyConfigurator.configure(new FileInputStream(
 									log4j));
+							logger.info("Configured Log4j with: " + log4j.getAbsolutePath());
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
 						}
 					}
+					
 					log_configured = true;
 				}
 			}

@@ -57,14 +57,17 @@ import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
-import at.gv.egiz.sl.CreateCMSSignatureRequestType;
-import at.gv.egiz.sl.CreateCMSSignatureResponseType;
-import at.gv.egiz.sl.InfoboxAssocArrayPairType;
-import at.gv.egiz.sl.InfoboxReadRequestType;
-import at.gv.egiz.sl.InfoboxReadResponseType;
-import at.gv.egiz.sl.ObjectFactory;
+import at.gv.egiz.pdfas.web.ws.PDFASSignParameters;
+import at.gv.egiz.pdfas.web.ws.PDFASSignParameters.Connector;
+import at.gv.egiz.sl.schema.CreateCMSSignatureRequestType;
+import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
+import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
+import at.gv.egiz.sl.schema.InfoboxReadRequestType;
+import at.gv.egiz.sl.schema.InfoboxReadResponseType;
+import at.gv.egiz.sl.schema.ObjectFactory;
 import at.gv.egiz.sl.util.BKUSLConnector;
 import at.gv.egiz.sl.util.MOAConnector;
+import at.gv.egiz.sl.util.RequestPackage;
 import at.gv.egiz.sl.util.SLMarschaller;
 
 public class PdfAsHelper {
@@ -295,13 +298,15 @@ public class PdfAsHelper {
 		IPlainSigner signer;
 		if (connector.equals("moa")) {
 			signer = new PAdESSigner(new MOAConnector(config));
-		} else {
+		} else if(connector.equals("jks")) {
 			signer = new PKCS7DetachedSigner(
 					WebConfiguration.getKeystoreFile(),
 					WebConfiguration.getKeystoreAlias(),
 					WebConfiguration.getKeystorePass(),
 					WebConfiguration.getKeystoreKeyPass(),
 					WebConfiguration.getKeystoreType());
+		} else {
+			throw new PdfAsWebException("Invalid connector (moa | jks)");
 		}
 
 		signParameter.setPlainSigner(signer);
@@ -321,6 +326,57 @@ public class PdfAsHelper {
 		return output.getData();
 	}
 
+	/**
+	 * Create synchronous PDF Signature
+	 * 
+	 * @param request
+	 *            The Web request
+	 * @param response
+	 *            The Web response
+	 * @param pdfData
+	 *            The pdf data
+	 * @return The signed pdf data
+	 * @throws Exception
+	 */
+	public static byte[] synchornousServerSignature(byte[] pdfData, PDFASSignParameters params) throws Exception {
+		Configuration config = pdfAs.getConfiguration();
+
+		// Generate Sign Parameter
+		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
+				new ByteArrayDataSource(pdfData));
+
+		// Get Connector
+		
+		IPlainSigner signer;
+		if (params.getConnector().equals(Connector.MOA)) {
+			signer = new PAdESSigner(new MOAConnector(config));
+		} else if(params.getConnector().equals(Connector.JKS)) {
+			signer = new PKCS7DetachedSigner(
+					WebConfiguration.getKeystoreFile(),
+					WebConfiguration.getKeystoreAlias(),
+					WebConfiguration.getKeystorePass(),
+					WebConfiguration.getKeystoreKeyPass(),
+					WebConfiguration.getKeystoreType());
+		} else {
+			throw new PdfAsWebException("Invalid connector (moa | jks)");
+		}
+
+		signParameter.setPlainSigner(signer);
+
+		// set Signature Profile (null use default ...)
+		signParameter.setSignatureProfileId(params.getProfile());
+
+		ByteArrayDataSink output = new ByteArrayDataSink();
+		signParameter.setOutput(output);
+
+		// set Signature Position
+		signParameter.setSignaturePosition(params.getPosition());
+
+		pdfAs.sign(signParameter);
+
+		return output.getData();
+	}
+	
 	public static void startSignature(HttpServletRequest request,
 			HttpServletResponse response, ServletContext context, byte[] pdfData)
 			throws Exception {
@@ -354,6 +410,7 @@ public class PdfAsHelper {
 		if (connector.equals("bku") || connector.equals("onlinebku")
 				|| connector.equals("mobilebku")) {
 			BKUSLConnector conn = new BKUSLConnector(config);
+			//conn.setBase64(true);
 			signer = new PAdESSigner(conn);
 			session.setAttribute(PDF_SL_CONNECTOR, conn);
 		} else {
@@ -495,13 +552,13 @@ public class PdfAsHelper {
 			} else if (statusRequest.needSignature()) {
 				logger.info("Needing Signature from BKU");
 				// build SL Request for cms signature
-				CreateCMSSignatureRequestType createCMSSignatureRequestType = bkuSLConnector
+				RequestPackage pack = bkuSLConnector
 						.createCMSRequest(statusRequest.getSignatureData(),
 								statusRequest.getSignatureDataByteRange());
 
 				String slRequest = SLMarschaller
 						.marshalToString(of
-								.createCreateCMSSignatureRequest(createCMSSignatureRequestType));
+								.createCreateCMSSignatureRequest(pack.getRequestType()));
 
 				response.setContentType("text/xml");
 				response.getWriter().write(slRequest);

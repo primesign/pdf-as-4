@@ -48,6 +48,18 @@ public class PDFObject {
 		}
 	}
 
+	public void close() {
+		if(doc != null) {
+			try {
+				doc.close();
+				//System.gc();
+			} catch(Throwable e) {
+				// ignore!
+			}
+			doc = null;
+		}
+	}
+	
 	public byte[] getOriginalDocument() {
 		return originalDocument;
 	}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoints xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime"
+    version="2.0">
+    <endpoint name="SOAP Sign"
+        implementation="at.gv.egiz.pdfas.web.ws.PDFASSigningImpl"
+        url-pattern="/wssign"/>
+</endpoints>

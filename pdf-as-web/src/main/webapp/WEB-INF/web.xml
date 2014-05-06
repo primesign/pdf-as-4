@@ -29,6 +29,15 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
+	<listener>
+	    <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
+	</listener>
+	
+	
+	<servlet>
+	    <servlet-name>SOAPSign</servlet-name>
+	    <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+	</servlet>
 	<servlet>
 		<servlet-name>SignServlet</servlet-name>
 		<description>
@@ -77,6 +86,10 @@
 		servlet mappings, including zero. It is also legal to define more than one 
 		mapping for the same servlet, if you wish to. -->
 
+	<servlet-mapping>
+		<servlet-name>SOAPSign</servlet-name>
+		<url-pattern>/wssign</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SignServlet</servlet-name>
 		<url-pattern>/Sign</url-pattern>
