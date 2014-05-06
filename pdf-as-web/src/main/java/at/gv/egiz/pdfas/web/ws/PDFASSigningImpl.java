@@ -1,5 +1,8 @@
 package at.gv.egiz.pdfas.web.ws;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jws.WebService;
 import javax.xml.ws.WebServiceException;
 import javax.xml.ws.soap.MTOM;
@@ -8,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
+import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
+import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
@@ -31,6 +36,40 @@ public class PDFASSigningImpl implements PDFASSigning {
 				throw new WebServiceException("Server Signature failed.");
 			}
 		}
+	}
+
+	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
+		if(request == null) {
+			logger.warn("SOAP Sign Request is null!");
+			return null;
+		}
+		PDFASSignResponse response = new PDFASSignResponse();
+		try {
+			response.setSignedPDF(signPDFDokument(request.getInputData(), request.getParameters()));
+		} catch(Throwable e) {
+			if(e.getCause() != null) {
+				response.setError(e.getCause().getMessage());
+			} else {
+				response.setError(e.getMessage());
+			}
+		}
+		response.setRequestID(request.getRequestID());
+		return response;
+	}
+
+	public PDFASSignResponse[] signPDFDokument(PDFASSignRequest[] request) {
+		List<PDFASSignResponse> responses = new ArrayList<PDFASSignResponse>();
+		for(int i = 0; i < request.length; i++) {
+			PDFASSignResponse response = signPDFDokument(request[i]);
+			if(response != null) {
+				responses.add(response);
+			}
+		}
+		PDFASSignResponse[] array = new PDFASSignResponse[responses.size()];
+		for(int i = 0; i < responses.size(); i++) {
+			array[i] = responses.get(i);
+		}
+		return array;
 	}
 
 }

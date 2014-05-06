@@ -11,4 +11,10 @@ import javax.jws.soap.SOAPBinding.Style;
 public interface PDFASSigning {
 	@WebMethod(operationName = "sign")
 	public byte[] signPDFDokument(@WebParam(name = "pdfDocument")byte[] inputDocument, @WebParam(name = "parameters")PDFASSignParameters parameters);
+	
+	@WebMethod(operationName = "signSingle")
+	public PDFASSignResponse signPDFDokument(@WebParam(name = "signRequest") PDFASSignRequest request);
+	
+	@WebMethod(operationName = "signBulk")
+	public PDFASSignResponse[] signPDFDokument(@WebParam(name = "signRequests") PDFASSignRequest[] request);
 }

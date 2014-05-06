@@ -8,6 +8,8 @@ import javax.xml.ws.Service;
 import javax.xml.ws.soap.SOAPBinding;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
+import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
+import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
 
 public class RemotePDFSigner implements PDFASSigning {
@@ -33,6 +35,14 @@ public class RemotePDFSigner implements PDFASSigning {
 	public byte[] signPDFDokument(byte[] inputDocument,
 			PDFASSignParameters parameters) {
 		return proxy.signPDFDokument(inputDocument, parameters);
+	}
+
+	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
+		return proxy.signPDFDokument(request);
+	}
+
+	public PDFASSignResponse[] signPDFDokument(PDFASSignRequest[] request) {
+		return proxy.signPDFDokument(request);
 	}
 
 }
