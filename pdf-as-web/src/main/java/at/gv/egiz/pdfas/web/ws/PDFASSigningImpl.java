@@ -7,11 +7,13 @@ import javax.xml.ws.soap.MTOM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
+import at.gv.egiz.pdfas.api.ws.PDFASSigning;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 
 @MTOM
-@WebService(endpointInterface = "at.gv.egiz.pdfas.web.ws.PDFASSigning")
+@WebService(endpointInterface = "at.gv.egiz.pdfas.api.ws.PDFASSigning")
 public class PDFASSigningImpl implements PDFASSigning {
 
 	private static final Logger logger = LoggerFactory

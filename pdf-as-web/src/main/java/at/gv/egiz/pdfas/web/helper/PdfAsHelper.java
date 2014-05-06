@@ -41,6 +41,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
+import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -57,9 +59,6 @@ import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
-import at.gv.egiz.pdfas.web.ws.PDFASSignParameters;
-import at.gv.egiz.pdfas.web.ws.PDFASSignParameters.Connector;
-import at.gv.egiz.sl.schema.CreateCMSSignatureRequestType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
