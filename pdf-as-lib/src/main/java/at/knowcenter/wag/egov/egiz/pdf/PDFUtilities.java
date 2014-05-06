@@ -82,19 +82,22 @@ public abstract class PDFUtilities {
 		try {
 			PDFPage my_page = new PDFPage(effectivePageHeight, legacy32);
 			PDResources resources = page.findResources();
-			COSStream stream = page.getContents().getStream();
-			// List<PDThreadBead> articles = page.getThreadBeads();
-			// my_page.processMyPage(page);
-			my_page.processStream(page, resources, stream);
-
+			if (page.getContents() != null) {
+				COSStream stream = page.getContents().getStream();
+				// List<PDThreadBead> articles = page.getThreadBeads();
+				// my_page.processMyPage(page);
+				my_page.processStream(page, resources, stream);
+			}
 			if (!legacy32) {
-				Iterator<PDAnnotation> annotationsIt = page.getAnnotations()
-						.iterator();
+				if (page.getAnnotations() != null) {
+					Iterator<PDAnnotation> annotationsIt = page
+							.getAnnotations().iterator();
 
-				while (annotationsIt.hasNext()) {
-					PDAnnotation annotation = annotationsIt.next();
-					if(!annotation.isInvisible()) {
-						my_page.processAnnotation(annotation);
+					while (annotationsIt.hasNext()) {
+						PDAnnotation annotation = annotationsIt.next();
+						if (!annotation.isInvisible()) {
+							my_page.processAnnotation(annotation);
+						}
 					}
 				}
 			}

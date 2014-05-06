@@ -40,6 +40,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -256,6 +257,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					PDPage lastPage = kids.get(last);
 					rootPages.getCOSObject().setNeedToBeUpdate(true);
 					PDPage p = new PDPage(lastPage.findMediaBox());
+					p.setResources(new PDResources());
 
 					doc.addPage(p);
 				}
