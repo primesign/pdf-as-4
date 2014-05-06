@@ -1,2 +1,2 @@
 
-include "pdf-as-common", "signature-standards:sigs-pkcs7detached", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-cli", "pdf-as-legacy", "pdf-as-web"
+include "pdf-as-common", "signature-standards:sigs-pkcs7detached", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-cli", "pdf-as-legacy", "pdf-as-web", "pdf-as-web-client"
