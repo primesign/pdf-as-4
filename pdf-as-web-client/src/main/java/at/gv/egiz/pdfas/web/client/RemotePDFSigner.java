@@ -7,6 +7,8 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.Service;
 import javax.xml.ws.soap.SOAPBinding;
 
+import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
+import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
@@ -41,7 +43,7 @@ public class RemotePDFSigner implements PDFASSigning {
 		return proxy.signPDFDokument(request);
 	}
 
-	public PDFASSignResponse[] signPDFDokument(PDFASSignRequest[] request) {
+	public PDFASBulkSignResponse signPDFDokument(PDFASBulkSignRequest request) {
 		return proxy.signPDFDokument(request);
 	}
 

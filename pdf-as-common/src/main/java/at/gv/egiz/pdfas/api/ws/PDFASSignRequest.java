@@ -3,7 +3,9 @@ package at.gv.egiz.pdfas.api.ws;
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
 
+@XmlType(name="SignRequest")
 public class PDFASSignRequest implements Serializable {
 
 	/**
@@ -15,7 +17,7 @@ public class PDFASSignRequest implements Serializable {
 	byte[] inputData;
 	PDFASSignParameters parameters;
 	
-	@XmlElement(required = true, nillable = false)
+	@XmlElement(required = true, nillable = false, name="requestID")
 	public String getRequestID() {
 		return requestID;
 	}
@@ -24,7 +26,7 @@ public class PDFASSignRequest implements Serializable {
 		this.requestID = requestID;
 	}
 	
-	@XmlElement(required = true, nillable = false)
+	@XmlElement(required = true, nillable = false, name="inputData")
 	public byte[] getInputData() {
 		return inputData;
 	}
@@ -33,7 +35,7 @@ public class PDFASSignRequest implements Serializable {
 		this.inputData = inputData;
 	}
 	
-	@XmlElement(required = true, nillable = false)
+	@XmlElement(required = true, nillable = false, name="parameters")
 	public PDFASSignParameters getParameters() {
 		return parameters;
 	}

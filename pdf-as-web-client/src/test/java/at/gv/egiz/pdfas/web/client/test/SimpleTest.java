@@ -3,13 +3,17 @@ package at.gv.egiz.pdfas.web.client.test;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import sun.misc.IOUtils;
+import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
+import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.web.client.RemotePDFSigner;
-import sun.misc.IOUtils;
 
 public class SimpleTest {
 
@@ -58,16 +62,19 @@ public class SimpleTest {
 				System.out.println("ERROR: " + response.getError());
 			}
 			
-			PDFASSignRequest[] bulk = new PDFASSignRequest[20];
-			for(int i = 0; i < bulk.length; i++) {
-				bulk[i] = request;
+			List<PDFASSignRequest> bulk = new ArrayList<PDFASSignRequest>();
+			for(int i = 0; i < 10; i++) {
+				bulk.add(request);
 			}
 
-			System.out.println("Bulk Request:");
-			PDFASSignResponse[] responses = signer.signPDFDokument(bulk);
+			PDFASBulkSignRequest bulkRequest = new PDFASBulkSignRequest();
+			bulkRequest.setSignRequests(bulk);
 			
-			for(int i = 0; i < responses.length; i++) {
-				PDFASSignResponse bulkresponse = responses[i];
+			System.out.println("Bulk Request:");
+			PDFASBulkSignResponse responses = signer.signPDFDokument(bulkRequest);
+			
+			for(int i = 0; i < responses.getSignResponses().size(); i++) {
+				PDFASSignResponse bulkresponse = responses.getSignResponses().get(i);
 				System.out.println("ID: " + bulkresponse.getRequestID());
 				
 				if (bulkresponse.getSignedPDF() != null) {

@@ -10,6 +10,8 @@ import javax.xml.ws.soap.MTOM;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
+import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
@@ -23,14 +25,15 @@ public class PDFASSigningImpl implements PDFASSigning {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFASSigningImpl.class);
-	
+
 	public byte[] signPDFDokument(byte[] inputDocument,
 			PDFASSignParameters parameters) {
 		try {
-			return PdfAsHelper.synchornousServerSignature(inputDocument, parameters);
-		} catch(Throwable e) {
+			return PdfAsHelper.synchornousServerSignature(inputDocument,
+					parameters);
+		} catch (Throwable e) {
 			logger.error("Server Signature failed.", e);
-			if(WebConfiguration.isShowErrorDetails()) {
+			if (WebConfiguration.isShowErrorDetails()) {
 				throw new WebServiceException("Server Signature failed.", e);
 			} else {
 				throw new WebServiceException("Server Signature failed.");
@@ -39,15 +42,16 @@ public class PDFASSigningImpl implements PDFASSigning {
 	}
 
 	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
-		if(request == null) {
+		if (request == null) {
 			logger.warn("SOAP Sign Request is null!");
 			return null;
 		}
 		PDFASSignResponse response = new PDFASSignResponse();
 		try {
-			response.setSignedPDF(signPDFDokument(request.getInputData(), request.getParameters()));
-		} catch(Throwable e) {
-			if(e.getCause() != null) {
+			response.setSignedPDF(signPDFDokument(request.getInputData(),
+					request.getParameters()));
+		} catch (Throwable e) {
+			if (e.getCause() != null) {
 				response.setError(e.getCause().getMessage());
 			} else {
 				response.setError(e.getMessage());
@@ -57,19 +61,26 @@ public class PDFASSigningImpl implements PDFASSigning {
 		return response;
 	}
 
-	public PDFASSignResponse[] signPDFDokument(PDFASSignRequest[] request) {
+	public PDFASBulkSignResponse signPDFDokument(PDFASBulkSignRequest request) {
 		List<PDFASSignResponse> responses = new ArrayList<PDFASSignResponse>();
-		for(int i = 0; i < request.length; i++) {
-			PDFASSignResponse response = signPDFDokument(request[i]);
-			if(response != null) {
-				responses.add(response);
+		if (request.getSignRequests() != null) {
+			for (int i = 0; i < request.getSignRequests().size(); i++) {
+				PDFASSignResponse response = signPDFDokument(request
+						.getSignRequests().get(i));
+				if (response != null) {
+					responses.add(response);
+				}
 			}
+			PDFASBulkSignResponse response = new PDFASBulkSignResponse();
+			response.setSignResponses(responses);
+			return response;
 		}
-		PDFASSignResponse[] array = new PDFASSignResponse[responses.size()];
-		for(int i = 0; i < responses.size(); i++) {
-			array[i] = responses.get(i);
+		logger.error("Server Signature failed. [PDFASBulkSignRequest is NULL]");
+		if (WebConfiguration.isShowErrorDetails()) {
+			throw new WebServiceException("PDFASBulkSignRequest is NULL");
+		} else {
+			throw new WebServiceException("Server Signature failed.");
 		}
-		return array;
 	}
 
 }
