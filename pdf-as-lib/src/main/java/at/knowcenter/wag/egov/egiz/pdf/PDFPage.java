@@ -537,11 +537,21 @@ public class PDFPage extends PDFTextStripper {
 
 	public void processAnnotation(PDAnnotation anno) {
 		float current_y = anno.getRectangle().getLowerLeftY();
+		PDPage page = anno.getPage();
 		
-		int pageRotation = anno.getPage().findRotation();
+		if(page == null) {
+			page = getCurrentPage();
+		}
+		
+		if(page == null) {
+			logger.warn("Annotation without page! The position might not be correct!");
+			return;
+		}
+		
+		int pageRotation = page.findRotation();
 		// logger_.debug("PageRotation = " + pageRotation);
 		if (pageRotation == 0) {
-			float page_height = anno.getPage().findMediaBox().getHeight();
+			float page_height = page.findMediaBox().getHeight();
 			current_y = page_height - anno.getRectangle().getLowerLeftY();
 		}
 		if (pageRotation == 90) {
@@ -551,7 +561,7 @@ public class PDFPage extends PDFTextStripper {
 			current_y = anno.getRectangle().getUpperRightY();
 		}
 		if (pageRotation == 270) {
-			float page_height = anno.getPage().findMediaBox().getHeight();
+			float page_height = page.findMediaBox().getHeight();
 			current_y = page_height - anno.getRectangle().getUpperRightX();
 		}
 
