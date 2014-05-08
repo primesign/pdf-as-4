@@ -348,8 +348,14 @@ public class PdfAsHelper {
 		
 		IPlainSigner signer;
 		if (params.getConnector().equals(Connector.MOA)) {
+			if(!WebConfiguration.getMOASSEnabled()) {
+				throw new PdfAsWebException("MOA connector disabled.");
+			}
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if(params.getConnector().equals(Connector.JKS)) {
+			if(!WebConfiguration.getKeystoreEnabled()) {
+				throw new PdfAsWebException("JKS connector disabled.");
+			}
 			signer = new PKCS7DetachedSigner(
 					WebConfiguration.getKeystoreFile(),
 					WebConfiguration.getKeystoreAlias(),

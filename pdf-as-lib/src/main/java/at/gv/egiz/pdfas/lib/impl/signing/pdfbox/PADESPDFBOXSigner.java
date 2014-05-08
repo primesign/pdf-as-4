@@ -94,7 +94,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		String fisTmpFile = null;
 
 		TempFileHelper helper = pdfObject.getStatus().getTempFileHelper();
-
+		PDDocument doc = null;
 		try {
 			fisTmpFile = helper.getStaticFilename();
 
@@ -104,7 +104,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			FileInputStream fis = new FileInputStream(new File(fisTmpFile));
 
-			PDDocument doc = pdfObject.getDocument();
+			doc = pdfObject.getDocument();
 
 			PDSignature signature = new PDSignature();
 			signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
@@ -402,6 +402,14 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			logger.error(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
+			if(doc != null) {
+				try {
+					doc.close();
+				} catch (IOException e) {
+					logger.debug("Failed to close COS Doc!", e);
+					// Ignore
+				}
+			}
 			logger.info("Signature done!");
 
 		}

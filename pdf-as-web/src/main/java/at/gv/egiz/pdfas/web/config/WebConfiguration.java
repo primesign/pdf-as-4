@@ -44,6 +44,7 @@ public class WebConfiguration {
 	public static final String PDF_AS_WORK_DIR = "pdfas.dir";
 	
 	public static final String MOA_SS_ENABLED = "moa.enabled";
+	public static final String SOAP_SIGN_ENABLED = "soap.sign.enabled";
 	
 	public static final String KEYSTORE_ENABLED = "ks.enabled";
 	public static final String KEYSTORE_FILE = "ks.file";
@@ -153,6 +154,16 @@ public class WebConfiguration {
 	
 	public static boolean getKeystoreEnabled() {
 		String value = properties.getProperty(KEYSTORE_ENABLED);
+		if(value != null) {
+			if(value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean getSoapSignEnabled() {
+		String value = properties.getProperty(SOAP_SIGN_ENABLED);
 		if(value != null) {
 			if(value.equals("true")) {
 				return true;

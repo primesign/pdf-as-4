@@ -28,6 +28,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 
 	public byte[] signPDFDokument(byte[] inputDocument,
 			PDFASSignParameters parameters) {
+		checkSoapSignEnabled();
 		try {
 			return PdfAsHelper.synchornousServerSignature(inputDocument,
 					parameters);
@@ -42,6 +43,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 	}
 
 	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
+		checkSoapSignEnabled();
 		if (request == null) {
 			logger.warn("SOAP Sign Request is null!");
 			return null;
@@ -62,6 +64,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 	}
 
 	public PDFASBulkSignResponse signPDFDokument(PDFASBulkSignRequest request) {
+		checkSoapSignEnabled();
 		List<PDFASSignResponse> responses = new ArrayList<PDFASSignResponse>();
 		if (request.getSignRequests() != null) {
 			for (int i = 0; i < request.getSignRequests().size(); i++) {
@@ -83,4 +86,10 @@ public class PDFASSigningImpl implements PDFASSigning {
 		}
 	}
 
+	private void checkSoapSignEnabled() {
+		if(!WebConfiguration.getSoapSignEnabled()) {
+			throw new WebServiceException("Service disabled!");
+		}
+ 	}
+	
 }
