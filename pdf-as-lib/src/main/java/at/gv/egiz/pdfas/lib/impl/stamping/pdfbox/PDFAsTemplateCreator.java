@@ -65,7 +65,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         //AffineTransform transform = pdfStructure.getAffineTransform();
        
         // rectangle, formatter, image. /AcroForm/DR/XObject contains that form
-        this.pdfBuilder.createSignatureRectangle(pdSignatureField, properties);
+        this.pdfBuilder.createSignatureRectangle(pdSignatureField, properties, properties.getRotation());
         this.pdfBuilder.createFormaterRectangle(properties.getFormaterRectangleParams());
         PDRectangle formater = pdfStructure.getFormaterRectangle();
         
@@ -79,7 +79,8 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         this.pdfBuilder.createHolderForm(holderFormResources, holderFormStream, formater);
         
         // that is /AP entry the appearance dictionary.
-        this.pdfBuilder.createAppearanceDictionary(pdfStructure.getHolderForm(), pdSignatureField);
+        this.pdfBuilder.createAppearanceDictionary(pdfStructure.getHolderForm(), pdSignatureField, 
+        		properties.getRotation());
         
         // inner formstream, form and resource (hlder form containts inner form)
         this.pdfBuilder.createInnerFormStream(template);

@@ -1,6 +1,5 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -21,6 +20,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	private PDFBoxTable main;
 	
 	private PDFAsVisualSignatureDesigner designer;
+	
+	private float rotationAngle = 0;
 
 	public PDFAsVisualSignatureProperties(ISettings settings, PDFObject object, 
 			PdfBoxVisualObject visObj, PositioningInstruction pos) {
@@ -31,6 +32,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
+		this.rotationAngle = pos.getRotation();
 		try {
 			PDDocument origDoc = object.getDocument();
 
@@ -58,6 +60,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	}
 	
 	
+	public float getRotation() {
+		return this.rotationAngle;
+	}
 
-	
 }

@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -71,10 +72,10 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		logger.info("Drawing Table:");
 		abstractTable.dumpTable();
 
-		if(abstractTable.getBGColor() != null) {
+		if (abstractTable.getBGColor() != null) {
 			contentStream.setNonStrokingColor(abstractTable.getBGColor());
 			contentStream.fillRect(x, y, abstractTable.getWidth(),
-				abstractTable.getHeight());
+					abstractTable.getHeight());
 			contentStream.setNonStrokingColor(Color.BLACK);
 		}
 		float total = 0;
@@ -125,7 +126,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				yheight = y + abstractTable.getHeight();
 			}
 			for (int i = 0; i <= cols; i++) {
-				if(subtable && i == cols) {
+				if (subtable && i == cols) {
 					continue;
 				}
 				logger.info("COL LINE: {} {} {} {}", nextx, ypos, nextx,
@@ -156,21 +157,24 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 					String text = (String) cell.getValue();
 					float ttexty = texty - padding - fontSize;
-					//COSName name = COSName.getPDFName("ANDI_TAG!");
-					//contentStream.beginMarkedContentSequence(COSName.ALT, name);
-					String fontName = textFont.equals(PDType1Font.COURIER) ? "COURIER" : "HELVETICA";
-					
+					// COSName name = COSName.getPDFName("ANDI_TAG!");
+					// contentStream.beginMarkedContentSequence(COSName.ALT,
+					// name);
+					String fontName = textFont.equals(PDType1Font.COURIER) ? "COURIER"
+							: "HELVETICA";
+
 					contentStream.beginText();
-					
-					if(innerFormResources.getFonts().containsValue(textFont)) {
+
+					if (innerFormResources.getFonts().containsValue(textFont)) {
 						String fontID = getFontID(textFont);
 						logger.info("Using Font: " + fontID);
-						contentStream.appendRawCommands("/" + fontID + " " + fontSize + " Tf\n");
+						contentStream.appendRawCommands("/" + fontID + " "
+								+ fontSize + " Tf\n");
 					} else {
 						contentStream.setFont(textFont, fontSize);
 					}
 					logger.info("Writing: " + textx + " : " + ttexty + " = "
-							+ text + " as " + cell.getType() + " w "  + fontName);
+							+ text + " as " + cell.getType() + " w " + fontName);
 					contentStream.moveTextPositionByAmount(textx, ttexty);
 
 					if (text.contains("\n")) {
@@ -256,16 +260,17 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
 
 	private String getFontID(PDFont font) {
-		Iterator<java.util.Map.Entry<String, PDFont>> it = innerFormResources.getFonts().entrySet().iterator();
-		while(it.hasNext()) {
+		Iterator<java.util.Map.Entry<String, PDFont>> it = innerFormResources
+				.getFonts().entrySet().iterator();
+		while (it.hasNext()) {
 			java.util.Map.Entry<String, PDFont> entry = it.next();
-			if(entry.getValue().equals(font)) {
+			if (entry.getValue().equals(font)) {
 				return entry.getKey();
 			}
 		}
 		return "";
 	}
-	
+
 	public PDFAsVisualSignatureBuilder(
 			PDFAsVisualSignatureProperties properties, ISettings settings) {
 		this.properties = properties;
@@ -292,7 +297,8 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		getStructure().setTemplate(template);
 	}
 
-	private void readTableResources(PDFBoxTable table, PDDocument template) throws PdfAsException, IOException {
+	private void readTableResources(PDFBoxTable table, PDDocument template)
+			throws PdfAsException, IOException {
 
 		float[] colsSizes = table.getColsRelativeWith();
 		int max_cols = table.getColCount();
@@ -322,18 +328,16 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			logger.info("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
 		}
 
-		/*if(!addedFonts.contains(table.getFont().getFont(null))) {
-			PDFont font = table.getFont().getFont(template);
-			addedFonts.add(font);
-			innerFormResources.addFont(font);
-		}
-		
-		if(!addedFonts.contains(table.getValueFont().getFont(null))) {
-			PDFont font = table.getValueFont().getFont(template);
-			addedFonts.add(font);
-			innerFormResources.addFont(font);
-		}*/
-		
+		/*
+		 * if(!addedFonts.contains(table.getFont().getFont(null))) { PDFont font
+		 * = table.getFont().getFont(template); addedFonts.add(font);
+		 * innerFormResources.addFont(font); }
+		 * 
+		 * if(!addedFonts.contains(table.getValueFont().getFont(null))) { PDFont
+		 * font = table.getValueFont().getFont(template); addedFonts.add(font);
+		 * innerFormResources.addFont(font); }
+		 */
+
 		for (int i = 0; i < table.getRowCount(); i++) {
 			ArrayList<Entry> row = table.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
@@ -372,19 +376,20 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 						float size = (int) Math.floor((double) width);
 						size -= 2 * padding;
 						logger.debug("Scaling image to: " + size);
-						
-						if(table.style != null) {
-							if(table.style.getImageScaleToFit() != null) {
-								size = table.style.getImageScaleToFit().getWidth();
+
+						if (table.style != null) {
+							if (table.style.getImageScaleToFit() != null) {
+								size = table.style.getImageScaleToFit()
+										.getWidth();
 							}
 						}
-						
+
 						PDXObjectImage pdImage = new PDJpeg(template, img);
 						ImageObject image = new ImageObject(pdImage, size);
 						images.put(img_ref, image);
 						innerFormResources.addXObject(pdImage, "Im");
 					}
-				} else if(cell.getType() == Entry.TYPE_TABLE) { 
+				} else if (cell.getType() == Entry.TYPE_TABLE) {
 					PDFBoxTable tbl_value = (PDFBoxTable) cell.getValue();
 					readTableResources(tbl_value, template);
 				}
@@ -402,10 +407,10 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			innerFormResources = new PDResources();
 			getStructure().getPage().setResources(innerFormResources);
 			readTableResources(properties.getMainTable(), template);
-			
+
 			PDPageContentStream stream = new PDPageContentStream(template,
 					getStructure().getPage());
-			//stream.setFont(PDType1Font.COURIER, 5);
+			// stream.setFont(PDType1Font.COURIER, 5);
 
 			drawTable(getStructure().getPage(), stream, 1, 1,
 					properties.getMainTable(), template, false);
@@ -450,7 +455,15 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		 * String imgFormComment = "q " + 100 + " 0 0 50 0 0 cm /" + imageName +
 		 * " Do Q\n";
 		 */
-		String holderFormComment = "q 1 0 0 1 0 0 cm /" + innerFormName
+		double m00 = getStructure().getAffineTransform().getScaleX();
+		double m10 = getStructure().getAffineTransform().getShearY();
+		double m01 = getStructure().getAffineTransform().getShearX();
+		double m11 = getStructure().getAffineTransform().getScaleY();
+		double m02 = getStructure().getAffineTransform().getTranslateX();
+		double m12 = getStructure().getAffineTransform().getTranslateY();
+
+		String holderFormComment = "q " + m00 + " " + m10 + " " + m01 + " "
+				+ m11 + " " + m02 + " " + m12 + " cm /" + innerFormName
 				+ " Do Q \n";
 		// String innerFormComment = "q 1 0 0 1 0 0 cm /" + imageObjectName +
 		// " Do Q\n";
@@ -522,14 +535,36 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	}
 
 	public void createSignatureRectangle(PDSignatureField signatureField,
-			PDFAsVisualSignatureDesigner properties) throws IOException {
+			PDFAsVisualSignatureDesigner properties, float degrees)
+			throws IOException {
 
 		PDRectangle rect = new PDRectangle();
-		rect.setUpperRightX(properties.getxAxis() + properties.getWidth() + 10);
-		rect.setUpperRightY(properties.getPageHeight() - properties.getyAxis());
-		rect.setLowerLeftY(properties.getPageHeight() - properties.getyAxis()
-				- properties.getHeight() - 10);
-		rect.setLowerLeftX(properties.getxAxis());
+
+		Point2D upSrc = new Point2D.Float();
+		upSrc.setLocation(properties.getxAxis() + properties.getWidth() + 10,
+				properties.getPageHeight() - properties.getyAxis());
+
+		Point2D llSrc = new Point2D.Float();
+		llSrc.setLocation(properties.getxAxis(), properties.getPageHeight()
+				- properties.getyAxis() - properties.getHeight() - 10);
+		AffineTransform transform = new AffineTransform();
+		transform.setToIdentity();
+		if (degrees % 360 != 0) {
+			transform.setToRotation(Math.toRadians(degrees), llSrc.getX(),
+					llSrc.getY());
+		}
+		Point2D upDst = new Point2D.Float();
+		transform.transform(upSrc, upDst);
+
+		Point2D llDst = new Point2D.Float();
+		transform.transform(llSrc, llDst);
+
+		rect.setUpperRightX((float) upDst.getX());
+		rect.setUpperRightY((float) upDst.getY());
+		rect.setLowerLeftY((float) llDst.getY());
+		rect.setLowerLeftX((float) llDst.getX());
+		logger.info("rectangle of signature has been created: {}",
+				rect.toString());
 		signatureField.getWidget().setRectangle(rect);
 		getStructure().setSignatureRectangle(rect);
 		logger.info("rectangle of signature has been created");
@@ -538,6 +573,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	public void createAffineTransform(byte[] params) {
 		AffineTransform transform = new AffineTransform(params[0], params[1],
 				params[2], params[3], params[4], params[5]);
+		// transform.rotate(90);
 		getStructure().setAffineTransform(transform);
 		logger.info("Matrix has been added");
 	}
@@ -555,10 +591,14 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	public void createFormaterRectangle(float[] params) {
 
 		PDRectangle formrect = new PDRectangle();
-		formrect.setUpperRightX(params[0]);
-		formrect.setUpperRightY(params[1]);
-		formrect.setLowerLeftX(params[2]);
-		formrect.setLowerLeftY(params[3]);
+		float[] translated = new float[4];
+		getStructure().getAffineTransform().transform(params, 0, translated, 0,
+				2);
+
+		formrect.setUpperRightX(translated[0]);
+		formrect.setUpperRightY(translated[1]);
+		formrect.setLowerLeftX(translated[2]);
+		formrect.setLowerLeftY(translated[3]);
 
 		getStructure().setFormaterRectangle(formrect);
 		logger.info("Formater rectangle has been created");
@@ -591,14 +631,17 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	}
 
 	public void createAppearanceDictionary(PDXObjectForm holderForml,
-			PDSignatureField signatureField) throws IOException {
+			PDSignatureField signatureField, float degrees) throws IOException {
 
 		PDAppearanceDictionary appearance = new PDAppearanceDictionary();
 		appearance.getCOSObject().setDirect(true);
 
 		PDAppearanceStream appearanceStream = new PDAppearanceStream(
 				holderForml.getCOSStream());
-
+		AffineTransform transform = new AffineTransform();
+		transform.setToIdentity();
+		transform.rotate(Math.toRadians(degrees));
+		appearanceStream.setMatrix(transform);
 		appearance.setNormalAppearance(appearanceStream);
 		signatureField.getWidget().setAppearance(appearance);
 

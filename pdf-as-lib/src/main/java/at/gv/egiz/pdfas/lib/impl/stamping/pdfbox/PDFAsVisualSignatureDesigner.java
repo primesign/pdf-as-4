@@ -398,4 +398,8 @@ public class PDFAsVisualSignatureDesigner {
 				"That method is not yet implemented");
 	}
 
+	public float getRotation() {
+		return this.properties.getRotation();
+	}
+	
 }
