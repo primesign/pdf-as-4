@@ -70,7 +70,7 @@ public class TempFileHelper implements IProfileConstants {
     		needsDeletion = true;
     	}
     	
-    	logger.info("TempDirHelper for TempDirectory: " + tmpDir);
+    	logger.debug("TempDirHelper for TempDirectory: " + tmpDir);
     	
         createTmpDir();
     }
@@ -81,6 +81,10 @@ public class TempFileHelper implements IProfileConstants {
     	super.finalize();
     }
 
+    public void clear() {
+    	this.deleteTmpDir();
+    }
+    
     private void deleteTmpDir() {
         try {
             File tmpdir = new File(tmpDir);
@@ -133,7 +137,7 @@ public class TempFileHelper implements IProfileConstants {
         String uuidString = UUID.randomUUID().toString();
         logger.debug("Generated UUID "  + uuidString);
         String tmpFilename = tmpDir + getHashedHexString(uuidString) + tmpFileSuffix;
-        logger.info("Temporary filename " + tmpFilename);
+        logger.debug("Temporary filename " + tmpFilename);
         tmpFiles.add(tmpFilename);
         return tmpFilename;
     }
