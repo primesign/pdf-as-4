@@ -57,7 +57,6 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.knowcenter.wag.egov.egiz.sig.SignatureTypes;
 
-// TODO exception types?
 /**
  * Implementation class of the {@link DynamicSignatureProfile}. Don't use this class directly. Use {@link PdfAs} to create and the 
  * {@link DynamicSignatureProfile} interface for manipulation.

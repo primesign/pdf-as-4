@@ -64,7 +64,6 @@ public class SignatureDetailInformationWrapper implements
 	}
 
 	public SignaturePosition getSignaturePosition() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
