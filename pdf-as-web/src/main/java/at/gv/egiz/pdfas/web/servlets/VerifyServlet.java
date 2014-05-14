@@ -270,6 +270,7 @@ public class VerifyServlet extends HttpServlet {
 		sb.append("<th>Value Message</th>");
 		sb.append("<th>Error</th>");
 		sb.append("<th>Certificate</th>");
+		sb.append("<th>Certificate</th>");
 		sb.append("<th>Signed Data</th>");
 		
 		sb.append("</tr>");
@@ -302,7 +303,11 @@ public class VerifyServlet extends HttpServlet {
 				} else {
 					sb.append("<td>-</td>");
 				}
-				sb.append("<td><a href=\"signCert?SIGID=" + i + "\">here</a></td>");
+				if(result.isQualifiedCertificate()) {
+					sb.append("<td><a href=\"signCert?SIGID=" + i + "\">here</a> (QC)</td>");
+				} else {
+					sb.append("<td><a href=\"signCert?SIGID=" + i + "\">here</a></td>");
+				}
 				sb.append("<td><a href=\"signData?SIGID=" + i + "\">here</a></td>");
 				
 			} else {
