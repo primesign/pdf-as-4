@@ -59,9 +59,6 @@ public class PdfAsParameterExtractor {
 	
 	public static String getInvokeErrorURL(HttpServletRequest request) {
 		String url = (String)request.getAttribute(PARAM_INVOKE_URL_ERROR);
-		if(url != null) {
-			//TODO validation!
-		}
 		return url;
 	}
 	

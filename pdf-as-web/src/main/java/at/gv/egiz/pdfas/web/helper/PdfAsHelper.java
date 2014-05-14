@@ -56,6 +56,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
+import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
@@ -98,14 +99,14 @@ public class PdfAsHelper {
 	private static ObjectFactory of = new ObjectFactory();
 
 	static {
-		logger.debug("Creating PDF-AS");
+		logger.info("Creating PDF-AS");
 		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration
 				.getPdfASDir()));
-		logger.debug("Creating PDF-AS done");
+		logger.info("Creating PDF-AS done");
 	}
 
 	public static void init() {
-		logger.debug("PDF-AS Helper initialized");
+		logger.info("PDF-AS Helper initialized");
 	}
 
 	private static void validatePdfSize(HttpServletRequest request,
@@ -247,7 +248,7 @@ public class PdfAsHelper {
 			}
 		}
 
-		logger.error("Verifing Signature index: " + signIdx);
+		logger.debug("Verifing Signature index: " + signIdx);
 
 		Configuration config = pdfAs.getConfiguration();
 
@@ -298,7 +299,7 @@ public class PdfAsHelper {
 		if (connector.equals("moa")) {
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if(connector.equals("jks")) {
-			signer = new PKCS7DetachedSigner(
+			signer = new PAdESSignerKeystore(
 					WebConfiguration.getKeystoreFile(),
 					WebConfiguration.getKeystoreAlias(),
 					WebConfiguration.getKeystorePass(),
@@ -356,7 +357,7 @@ public class PdfAsHelper {
 			if(!WebConfiguration.getKeystoreEnabled()) {
 				throw new PdfAsWebException("JKS connector disabled.");
 			}
-			signer = new PKCS7DetachedSigner(
+			signer = new PAdESSignerKeystore(
 					WebConfiguration.getKeystoreFile(),
 					WebConfiguration.getKeystoreAlias(),
 					WebConfiguration.getKeystorePass(),
@@ -488,7 +489,7 @@ public class PdfAsHelper {
 			CreateCMSSignatureResponseType createCMSSignatureResponseType,
 			ServletContext context) throws Exception {
 
-		logger.info("Got CMS Signature Response");
+		logger.debug("Got CMS Signature Response");
 
 		HttpSession session = request.getSession();
 		StatusRequest statusRequest = (StatusRequest) session
@@ -530,13 +531,8 @@ public class PdfAsHelper {
 			BKUSLConnector bkuSLConnector = (BKUSLConnector) session
 					.getAttribute(PDF_SL_CONNECTOR);
 
-			// TODO Handle logic for BKU interaction
-
-//			Configuration config = (Configuration) session
-//					.getAttribute(PDF_CONFIG);
-
 			if (statusRequest.needCertificate()) {
-				logger.info("Needing Certificate from BKU");
+				logger.debug("Needing Certificate from BKU");
 				// build SL Request to read certificate
 				InfoboxReadRequestType readCertificateRequest = bkuSLConnector
 						.createInfoboxReadRequest();
@@ -555,7 +551,7 @@ public class PdfAsHelper {
 				response.getWriter().write(template);
 				response.getWriter().close();
 			} else if (statusRequest.needSignature()) {
-				logger.info("Needing Signature from BKU");
+				logger.debug("Needing Signature from BKU");
 				// build SL Request for cms signature
 				RequestPackage pack = bkuSLConnector
 						.createCMSRequest(statusRequest.getSignatureData(),
@@ -571,7 +567,7 @@ public class PdfAsHelper {
 
 			} else if (statusRequest.isReady()) {
 				// TODO: store pdf document redirect to Finish URL
-				logger.info("Document ready!");
+				logger.debug("Document ready!");
 
 				SignResult result = pdfAs.finishSign(statusRequest);
 				DataSink output = result.getOutputDocument();
@@ -581,14 +577,14 @@ public class PdfAsHelper {
 							byteDataSink.getData());
 					PdfAsHelper.gotoProvidePdf(context, request, response);
 				} else {
-					// TODO: no signature data available!
+					throw new PdfAsWebException("No Signature data available");
 				}
 
 			} else {
-				// TODO: invalid state
+				throw new PdfAsWebException("Invalid state!");
 			}
 		} else {
-			// TODO Handle logic for
+			throw new PdfAsWebException("Invalid connector: " + connector);
 		}
 	}
 
@@ -716,7 +712,7 @@ public class PdfAsHelper {
 			HttpServletResponse response, String url) {
 		HttpSession session = request.getSession();
 		session.setAttribute(PDF_INVOKE_URL, url);
-		logger.info("External Invoke URL: " + url);
+		logger.debug("External Invoke URL: " + url);
 	}
 
 	public static String getInvokeURL(HttpServletRequest request,
@@ -747,7 +743,7 @@ public class PdfAsHelper {
 						+ session.getId();
 			}
 		}
-		logger.info("Generated URL: " + dataURL);
+		logger.debug("Generated URL: " + dataURL);
 		return dataURL;
 	}
 

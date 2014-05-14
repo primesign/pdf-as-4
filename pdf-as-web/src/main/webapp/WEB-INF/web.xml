@@ -76,6 +76,18 @@
 		<description></description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.ErrorPage</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>PDFVerifyData</servlet-name>
+		<display-name>PDFVerifyData</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFSignatureData</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>PDFVerifyCert</servlet-name>
+		<display-name>PDFVerifyCert</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFSignatureCertificateData</servlet-class>
+	</servlet>
 
 	<!-- Define mappings that are used by the servlet container to translate 
 		a particular request URI (context-relative) to a particular servlet. The 
@@ -104,7 +116,7 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>VerifyServlet</servlet-name>
-		<url-pattern>/VerifyServlet</url-pattern>
+		<url-pattern>/Verify</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>PDFData</servlet-name>
@@ -113,6 +125,14 @@
 	<servlet-mapping>
 		<servlet-name>ErrorPage</servlet-name>
 		<url-pattern>/ErrorPage</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>PDFVerifyData</servlet-name>
+		<url-pattern>/signData</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>PDFVerifyCert</servlet-name>
+		<url-pattern>/signCert</url-pattern>
 	</servlet-mapping>
 
 	<!-- Define the default session timeout for your application, in minutes. 

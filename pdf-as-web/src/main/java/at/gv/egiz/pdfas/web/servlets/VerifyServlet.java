@@ -23,8 +23,11 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.servlets;
 
+import iaik.x509.X509Certificate;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -39,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
@@ -51,7 +55,7 @@ public class VerifyServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(ExternSignServlet.class);
+			.getLogger(VerifyServlet.class);
 
 	private static final String UPLOAD_PDF_DATA = "pdf-file";
 	private static final String UPLOAD_DIRECTORY = "upload";
@@ -72,7 +76,7 @@ public class VerifyServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("Get verify request");
+
 		logger.info("Get verify request");
 
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
@@ -91,7 +95,8 @@ public class VerifyServlet extends HttpServlet {
 
 			byte[] pdfData = RemotePDFFetcher.fetchPdfFile(pdfUrl);
 			doVerify(request, response, pdfData);
-		} catch (Exception e) {
+		} catch (Throwable e) {
+			logger.error("Generic Error: ", e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
@@ -105,8 +110,7 @@ public class VerifyServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 
-		System.out.println("Post signing request");
-		logger.info("Post signing request");
+		logger.info("Post verify request");
 
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
@@ -225,7 +229,8 @@ public class VerifyServlet extends HttpServlet {
 			}
 
 			doVerify(request, response, filecontent);
-		} catch (Exception e) {
+		} catch (Throwable e) {
+			logger.error("Generic Error: ", e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
@@ -234,9 +239,11 @@ public class VerifyServlet extends HttpServlet {
 
 	protected void doVerify(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData) throws Exception {
-		throw new Exception("");
 		
-		/*List<VerifyResult> results = PdfAsHelper.synchornousVerify(request,
+		logger.debug("doVerify");
+		logger.info("Starting verification of pdf dokument");
+		
+		List<VerifyResult> results = PdfAsHelper.synchornousVerify(request,
 				response, pdfData);
 
 		PdfAsHelper.setVerificationResult(request, results);
@@ -245,11 +252,36 @@ public class VerifyServlet extends HttpServlet {
 		// Put these results into the web page
 		// Or create a JSON response with the verification results for automated
 		// processing
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("<html><head><title></title></head><body>");
+		sb.append("<h3>Verification Results for: " + PdfAsHelper.getPDFFileName(request) + "</h3>");
+		sb.append("<table style=\"width:100%\" border='1' >");
+		
+		sb.append("<tr>");
+		
+		sb.append("<th>Signature</th>");
+		sb.append("<th>Processed</th>");
+		sb.append("<th>Signed By</th>");
+		sb.append("<th>Cert Code</th>");
+		sb.append("<th>Cert Message</th>");
+		sb.append("<th>Value Code</th>");
+		sb.append("<th>Value Message</th>");
+		sb.append("<th>Error</th>");
+		sb.append("<th>Certificate</th>");
+		sb.append("<th>Signed Data</th>");
+		
+		sb.append("</tr>");
+		
 		for (int i = 0; i < results.size(); i++) {
 			VerifyResult result = results.get(i);
-
+			sb.append("<tr>");
+			
+			sb.append("<td>" + i + "</td>");			
+			
 			if (result.isVerificationDone()) {
-
+				sb.append("<td>YES</td>");
 				int certCode = result.getCertificateCheck().getCode();
 				String certMessage = result.getCertificateCheck().getMessage();
 
@@ -259,11 +291,42 @@ public class VerifyServlet extends HttpServlet {
 				Exception e = result.getVerificationException();
 				
  				X509Certificate cert = result.getSignerCertificate();
-				byte[] data = result.getSignatureData();
 				
+				sb.append("<td>" + cert.getSubjectDN().getName() + "</td>");
+				sb.append("<td>" + certCode + "</td>");
+				sb.append("<td>" + certMessage + "</td>");
+				sb.append("<td>" + valueCode + "</td>");
+				sb.append("<td>" + valueMessage + "</td>");
+				if(e != null) {
+					sb.append("<td>" + e.getMessage() + "</td>");
+				} else {
+					sb.append("<td>-</td>");
+				}
+				sb.append("<td><a href=\"signCert?SIGID=" + i + "\">here</a></td>");
+				sb.append("<td><a href=\"signData?SIGID=" + i + "\">here</a></td>");
 				
+			} else {
+				sb.append("<td>NO</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
+				sb.append("<td>-</td>");
 			}
-		}*/
+			
+			
+			sb.append("</tr>");
+		}
+		sb.append("</table>");
+		sb.append("</body></html>");
+		
+		response.setContentType("text/html");
+		OutputStream os = response.getOutputStream();
+		os.write(sb.toString().getBytes());
+		os.close();
 	}
 
 }

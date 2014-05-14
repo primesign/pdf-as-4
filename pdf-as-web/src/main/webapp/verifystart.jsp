@@ -3,7 +3,7 @@
 </head>
 <body>
 <h1>Verify PDF-Dokument</h1>
-<form action="Sign" method="POST" enctype="multipart/form-data">
+<form action="Verify" method="POST" enctype="multipart/form-data">
 
 	<input type="file" name="pdf-file" />
 

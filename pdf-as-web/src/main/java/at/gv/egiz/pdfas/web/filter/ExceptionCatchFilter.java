@@ -76,7 +76,7 @@ public class ExceptionCatchFilter implements Filter {
 				String name = parameterNames.nextElement();
 				String value = httpRequest.getParameter(name);
 				request.setAttribute(name, value);
-				logger.info("Setting attribute: " + name + " - " + value);
+				logger.debug("Setting attribute: " + name + " - " + value);
 			}
 		}
 		

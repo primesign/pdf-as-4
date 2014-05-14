@@ -84,8 +84,7 @@ public class ExternSignServlet extends HttpServlet {
 		
 		//PdfAsHelper.regenerateSession(request);
 		
-		System.out.println("Get signing request");
-		logger.info("Get signing request");
+		logger.debug("Get signing request");
 		
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
@@ -119,8 +118,7 @@ public class ExternSignServlet extends HttpServlet {
 		
 		//PdfAsHelper.regenerateSession(request);
 		
-		System.out.println("Post signing request");
-		logger.info("Post signing request");
+		logger.debug("Post signing request");
 		
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
