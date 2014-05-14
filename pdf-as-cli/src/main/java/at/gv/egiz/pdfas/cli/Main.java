@@ -193,6 +193,7 @@ public class Main {
 			if (cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
 				PdfAsFactory.deployDefaultConfiguration(new File(
 						STANDARD_CONFIG_LOCATION));
+				System.out.println("Configuration was deployed to: " + STANDARD_CONFIG_LOCATION);
 			}
 
 			if (cli.hasOption(CLI_ARG_MODE_SHORT)) {
