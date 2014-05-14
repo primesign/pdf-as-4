@@ -55,6 +55,8 @@ import org.xml.sax.SAXException;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 
 public class MOAConnector implements ISignatureConnector {
@@ -95,9 +97,30 @@ public class MOAConnector implements ISignatureConnector {
 
 	public MOAConnector(Configuration config) throws CertificateException,
 			FileNotFoundException, IOException {
-		logger.info("Loading certificate: " + config.getValue(MOA_SIGN_CERTIFICATE));
-		this.certificate = new X509Certificate(new FileInputStream(new File(
-				config.getValue(MOA_SIGN_CERTIFICATE))));
+		if(config.getValue(MOA_SIGN_CERTIFICATE) == null) {
+			logger.error(MOA_SIGN_CERTIFICATE + " not configured for MOA connector");
+			throw new PdfAsWrappedIOException(new PdfAsException("Please configure: " + MOA_SIGN_CERTIFICATE + " to use MOA connector"));
+		}
+		
+		if(!(config instanceof ISettings)) {
+			logger.error("Configuration is no instance of ISettings");
+			throw new PdfAsWrappedIOException(new PdfAsException("Configuration is no instance of ISettings"));
+		}
+		
+		ISettings settings = (ISettings)config;
+		
+		String certificateValue = config.getValue(MOA_SIGN_CERTIFICATE);
+		
+		File certFile = new File(certificateValue); 
+		if(!certFile.isAbsolute()) {
+			certificateValue = settings.getWorkingDirectory() + "/" + 
+					config.getValue(MOA_SIGN_CERTIFICATE);
+			certFile = new File(certificateValue); 
+		}
+		
+		logger.info("Loading certificate: " + certificateValue);
+		
+		this.certificate = new X509Certificate(new FileInputStream(certFile));
 		this.moaEndpoint = config.getValue(MOA_SIGN_URL);
 		this.keyIdentifier = config.getValue(MOA_SIGN_KEY_ID);
 	}

@@ -104,7 +104,7 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 			while ((dataIs.read(buf)) > 0)
 				; // skip data
 			ContentInfo ci = new ContentInfo(si);
-			logger.info("PKCS7 signature done.");
+			logger.debug("PKCS7 signature done.");
 			return ci.getEncoded();
 		} catch (NoSuchAlgorithmException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);

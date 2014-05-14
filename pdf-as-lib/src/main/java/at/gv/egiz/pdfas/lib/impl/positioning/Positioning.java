@@ -113,6 +113,8 @@ public class Positioning {
 				.getAllPages().get(page - 1);
 		PDRectangle cropBox = pdPage.getCropBox();
 
+		// fallback to MediaBox if Cropbox not available!
+		
 		if (cropBox == null) {
 			cropBox = pdPage.findCropBox();
 		}
@@ -120,8 +122,6 @@ public class Positioning {
 		if (cropBox == null) {
 			cropBox = pdPage.findMediaBox();
 		}
-
-		// TODO: fallback to MediaBox if Cropbox not available!
 
 		// getPagedimensions
 		// Rectangle psize = reader.getPageSizeWithRotation(page);

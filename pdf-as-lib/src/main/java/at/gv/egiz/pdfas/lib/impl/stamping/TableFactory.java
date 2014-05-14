@@ -278,7 +278,7 @@ public class TableFactory implements IProfileConstants {
         }
          */  /*
         String overrideVal = OverridePropertyHolder.getProperty(key);
-        if (value != null && sigEntry != null && !sigEntry.isPlaceholder &&  overrideVal != null) { // TODO this!! SignatureEntry.isPlaceholder
+        if (value != null && sigEntry != null && !sigEntry.isPlaceholder &&  overrideVal != null) { 
             value = overrideVal;
             if (logger.isDebugEnabled()) {
                 logger.debug("Using override property for key '" + key + "' = " + value);

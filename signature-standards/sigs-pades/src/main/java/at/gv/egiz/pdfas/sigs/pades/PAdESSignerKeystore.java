@@ -135,6 +135,7 @@ public class PAdESSignerKeystore implements IPlainSigner {
 	
 	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
 		try {
+			logger.info("Creating PAdES signature.");
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 			
 			AlgorithmID[] algorithms = CertificateUtils.getAlgorithmIDs(cert);

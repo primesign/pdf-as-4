@@ -40,7 +40,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 			float posy = designer.getPageHeight() - pos.getY();
 			designer.coordinates(pos.getX(), posy);
 			float[] form_rect = new float[] {0,0, main.getWidth() + 2, main.getHeight() + 2};
-			logger.info("AP Rect: {} {} {} {}", form_rect[0], form_rect[1], form_rect[2], form_rect[3]);
+			logger.debug("AP Rect: {} {} {} {}", form_rect[0], form_rect[1], form_rect[2], form_rect[3]);
 			designer.formaterRectangleParams(form_rect);
 			//this.setPdVisibleSignature(designer);
 		} catch (Throwable e) {

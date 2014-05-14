@@ -272,6 +272,7 @@ public class TablePos implements Serializable
 	     			  }
 	     	case 'r': {
  		        		float flval=Float.parseFloat(commandval);
+ 		        		// TODO: check rotation to be only multiples of 90 degrees
  		        		if (flval<0)
  		        		{
  		        			throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");

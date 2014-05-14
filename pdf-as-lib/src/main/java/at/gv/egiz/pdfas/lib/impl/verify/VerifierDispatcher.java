@@ -23,6 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.verify;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -44,20 +45,61 @@ public class VerifierDispatcher {
 			"at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedVerifier",
 			"at.gv.egiz.pdfas.sigs.pades.PAdESVerifier" };
 
+	public static final String CONF_VERIFIER_LIST = "verifier.classes";
+	public static final String CONF_VERIFIER_SEP = ";";
+
 	public static final String CONF_VERIFIER = "default.verifier";
 
 	public Map<String, HashMap<String, IVerifyFilter>> filterMap = new HashMap<String, HashMap<String, IVerifyFilter>>();
 
+	private String[] getClasses(ISettings settings) {
+		String confVerifiers = settings.getValue(CONF_VERIFIER_LIST);
+		String[] classes;
+		if (confVerifiers != null) {
+			classes = confVerifiers.split(CONF_VERIFIER_SEP);
+		} else {
+			classes = defaultClasses;
+		}
+		
+		List<String> filteredClasses = new ArrayList<String>();
+
+		for (int i = 0; i < classes.length; i++) {
+			String clsName = classes[i];
+			try {
+				Class<?> cls = Class.forName(clsName);
+				filteredClasses.add(clsName);
+			} catch (Throwable e) {
+				logger.error("Cannot find Verifier class: " + clsName, e);
+			}
+		}
+		
+		String[] clsNames = new String[filteredClasses.size()];
+		for (int i = 0; i < filteredClasses.size(); i++) {
+			clsNames[i] = filteredClasses.get(i);
+		}
+		
+		dumpVerifierClasses(clsNames);
+		
+		return clsNames;
+	}
+	
+	private void dumpVerifierClasses(String[] clsNames) {
+		for (int i = 0; i < clsNames.length; i++) {
+			String clsName = clsNames[i];
+			logger.debug("Registering Signature Verifier: " + clsName);
+		}
+	}
+
 	public VerifierDispatcher(ISettings settings) {
 		// TODO: add configuration parameter to set verifier
 
-		Map<String, String> verifierClasses = settings
-				.getValuesPrefix(CONF_VERIFIER);
+		//Map<String, String> verifierClasses = settings
+		//		.getValuesPrefix(CONF_VERIFIER);
 		String[] currentClasses = null;
-		if (verifierClasses == null || verifierClasses.isEmpty()) {
-			logger.info("No verifier configured using default");
-			currentClasses = defaultClasses;
-		} else {
+		//if (verifierClasses == null || verifierClasses.isEmpty()) {
+		logger.info("Getting Verifier classes");
+		currentClasses = getClasses(settings);
+		/*} else {
 			currentClasses = new String[verifierClasses.values().size()];
 			Iterator<String> classIt = verifierClasses.values().iterator();
 			int j = 0;
@@ -65,7 +107,7 @@ public class VerifierDispatcher {
 				currentClasses[j] = classIt.next();
 				j++;
 			}
-		}
+		}*/
 		try {
 			for (int i = 0; i < currentClasses.length; i++) {
 				String clsName = currentClasses[i];

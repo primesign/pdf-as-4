@@ -32,7 +32,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
 	
 	public InputStream buildPDF(PDFAsVisualSignatureDesigner properties)
 			throws IOException {
-		logger.info("pdf building has been started");
+		logger.debug("pdf building has been started");
         PDFTemplateStructure pdfStructure = pdfBuilder.getStructure();
 
         // we create array of [Text, ImageB, ImageC, ImageI]
@@ -134,7 +134,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         {
             logger.error("COSVisitorException: can't get apereance stream ", e);
         }
-        logger.info("stream returning started, size= " + in.available());
+        logger.debug("stream returning started, size= " + in.available());
         
         // we must close the document
         template.close();

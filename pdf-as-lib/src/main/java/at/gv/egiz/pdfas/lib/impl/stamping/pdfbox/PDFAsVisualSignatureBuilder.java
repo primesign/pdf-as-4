@@ -69,7 +69,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			}
 		}
 
-		logger.info("Drawing Table:");
+		logger.debug("Drawing Table:");
 		abstractTable.dumpTable();
 
 		if (abstractTable.getBGColor() != null) {
@@ -90,7 +90,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		}
 
 		for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
-			logger.info("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
+			logger.debug("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
 		}
 
 		float border = abstractTable.style.getBorder();
@@ -106,7 +106,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			// draw the rows
 			float nexty = y + tableHeight;
 			for (int i = 0; i <= rows; i++) {
-				logger.info("ROW LINE: {} {} {} {}", x, nexty, x + tableWidth,
+				logger.debug("ROW LINE: {} {} {} {}", x, nexty, x + tableWidth,
 						nexty);
 				contentStream.drawLine(x, nexty, x + tableWidth, nexty);
 				if (i < abstractTable.getRowHeights().length) {
@@ -129,7 +129,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				if (subtable && i == cols) {
 					continue;
 				}
-				logger.info("COL LINE: {} {} {} {}", nextx, ypos, nextx,
+				logger.debug("COL LINE: {} {} {} {}", nextx, ypos, nextx,
 						yheight);
 				contentStream.drawLine(nextx, ypos, nextx, yheight);
 				if (i < colsSizes.length) {
@@ -167,13 +167,13 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 					if (innerFormResources.getFonts().containsValue(textFont)) {
 						String fontID = getFontID(textFont);
-						logger.info("Using Font: " + fontID);
+						logger.debug("Using Font: " + fontID);
 						contentStream.appendRawCommands("/" + fontID + " "
 								+ fontSize + " Tf\n");
 					} else {
 						contentStream.setFont(textFont, fontSize);
 					}
-					logger.info("Writing: " + textx + " : " + ttexty + " = "
+					logger.debug("Writing: " + textx + " : " + ttexty + " = "
 							+ text + " as " + cell.getType() + " w " + fontName);
 					contentStream.moveTextPositionByAmount(textx, ttexty);
 
@@ -222,7 +222,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 								- abstractTable.getRowHeights()[i] / 2;
 						imgy = imgy - image.getSize() / 2;
 					}
-					logger.info("Image: " + textx + " : " + imgy);
+					logger.debug("Image: " + textx + " : " + imgy);
 					contentStream.drawXObject(pdImage, textx, imgy,
 							image.getSize(), image.getSize());
 					// contentStream.endMarkedContentSequence();
@@ -234,14 +234,14 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					// texty = texty - padding;
 					tableX = textx - padding;
 					PDFBoxTable tbl_value = (PDFBoxTable) cell.getValue();
-					logger.info("Table: " + tableX + " : " + tableY);
+					logger.debug("Table: " + tableX + " : " + tableY);
 					drawTable(page, contentStream, tableX, tableY, tbl_value,
 							doc, true);
 				}
 				textx += (colsSizes != null) ? colsSizes[j] : colWidth;
 			}
 			// if (i + 1 < abstractTable.getRowHeights().length) {
-			logger.info("Row {} from {} - {} - {} = {}", i, texty,
+			logger.debug("Row {} from {} - {} - {} = {}", i, texty,
 					abstractTable.getRowHeights()[i], padding * 2, texty
 							- (abstractTable.getRowHeights()[i] + padding * 2));
 			texty -= abstractTable.getRowHeights()[i] + padding * 2;
@@ -286,7 +286,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		procSetArr.add(COSName.getPDFName("ImageB"));
 		procSetArr.add(COSName.getPDFName("ImageI"));
 		getStructure().setProcSet(procSetArr);
-		logger.info("ProcSet array has been created");
+		logger.debug("ProcSet array has been created");
 	}
 
 	@Override
@@ -311,7 +311,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			}
 		}
 
-		logger.info("TOTAL Width: " + table.getWidth());
+		logger.debug("TOTAL Width: " + table.getWidth());
 
 		float total = 0;
 
@@ -325,7 +325,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		}
 
 		for (int cols_idx = 0; cols_idx < colsSizes.length; cols_idx++) {
-			logger.info("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
+			logger.debug("Col: " + cols_idx + " : " + colsSizes[cols_idx]);
 		}
 
 		/*
@@ -417,7 +417,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			stream.close();
 			PDStream innterFormStream = getStructure().getPage().getContents();
 			getStructure().setInnterFormStream(innterFormStream);
-			logger.info("Strean of another form (inner form - it would be inside holder form) has been created");
+			logger.debug("Strean of another form (inner form - it would be inside holder form) has been created");
 
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -439,7 +439,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		 */
 		holderFormResources.getCOSDictionary().setItem(COSName.PROC_SET,
 				procSet);
-		logger.info("inserted ProcSet to PDF");
+		logger.debug("inserted ProcSet to PDF");
 	}
 
 	public void injectAppearanceStreams(PDStream holderFormStream,
@@ -470,7 +470,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		String innerFormComment = getStructure().getInnterFormStream()
 				.getInputStreamAsString();
 
-		logger.info("Inner Form Stream: " + innerFormComment);
+		logger.debug("Inner Form Stream: " + innerFormComment);
 
 		// appendRawCommands(getStructure().getInnterFormStream().createOutputStream(),
 		// getStructure().getInnterFormStream().getInputStreamAsString());
@@ -481,7 +481,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				.createOutputStream(), innerFormComment);
 		// appendRawCommands(getStructure().getImageFormStream().createOutputStream(),
 		// imgFormComment);
-		logger.info("Injected apereance stream to pdf");
+		logger.debug("Injected apereance stream to pdf");
 
 	}
 
@@ -490,21 +490,21 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		page.setMediaBox(new PDRectangle(properties.getPageWidth(), properties
 				.getPageHeight()));
 		getStructure().setPage(page);
-		logger.info("PDF page has been created");
+		logger.debug("PDF page has been created");
 	}
 
 	public void createAcroForm(PDDocument template) {
 		PDAcroForm theAcroForm = new PDAcroForm(template);
 		template.getDocumentCatalog().setAcroForm(theAcroForm);
 		getStructure().setAcroForm(theAcroForm);
-		logger.info("Acro form page has been created");
+		logger.debug("Acro form page has been created");
 
 	}
 
 	public void createSignatureField(PDAcroForm acroForm) throws IOException {
 		PDSignatureField sf = new PDSignatureField(acroForm);
 		getStructure().setSignatureField(sf);
-		logger.info("Signature field has been created");
+		logger.debug("Signature field has been created");
 	}
 
 	public void createSignature(PDSignatureField pdSignatureField, PDPage page,
@@ -517,7 +517,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		pdSignature.setByteRange(new int[] { 0, 0, 0, 0 });
 		pdSignature.setContents(new byte[4096]);
 		getStructure().setPdSignature(pdSignature);
-		logger.info("PDSignatur has been created");
+		logger.debug("PDSignatur has been created");
 	}
 
 	public void createAcroFormDictionary(PDAcroForm acroForm,
@@ -531,7 +531,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		acroFormDict.setString(COSName.DA, "/sylfaen 0 Tf 0 g");
 		getStructure().setAcroFormFields(acroFormFields);
 		getStructure().setAcroFormDictionary(acroFormDict);
-		logger.info("AcroForm dictionary has been created");
+		logger.debug("AcroForm dictionary has been created");
 	}
 
 	public void createSignatureRectangle(PDSignatureField signatureField,
@@ -563,11 +563,11 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		rect.setUpperRightY((float) upDst.getY());
 		rect.setLowerLeftY((float) llDst.getY());
 		rect.setLowerLeftX((float) llDst.getX());
-		logger.info("rectangle of signature has been created: {}",
+		logger.debug("rectangle of signature has been created: {}",
 				rect.toString());
 		signatureField.getWidget().setRectangle(rect);
 		getStructure().setSignatureRectangle(rect);
-		logger.info("rectangle of signature has been created");
+		logger.debug("rectangle of signature has been created");
 	}
 
 	public void createAffineTransform(byte[] params) {
@@ -575,14 +575,14 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				params[2], params[3], params[4], params[5]);
 		// transform.rotate(90);
 		getStructure().setAffineTransform(transform);
-		logger.info("Matrix has been added");
+		logger.debug("Matrix has been added");
 	}
 
 	public void createSignatureImage(PDDocument template,
 			InputStream inputStream) throws IOException {
 		PDJpeg img = new PDJpeg(template, inputStream);
 		getStructure().setJpedImage(img);
-		logger.info("Visible Signature Image has been created");
+		logger.debug("Visible Signature Image has been created");
 		// pdfStructure.setTemplate(template);
 		inputStream.close();
 
@@ -601,20 +601,20 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		formrect.setLowerLeftY(translated[3]);
 
 		getStructure().setFormaterRectangle(formrect);
-		logger.info("Formater rectangle has been created");
+		logger.debug("Formater rectangle has been created");
 
 	}
 
 	public void createHolderFormStream(PDDocument template) {
 		PDStream holderForm = new PDStream(template);
 		getStructure().setHolderFormStream(holderForm);
-		logger.info("Holder form Stream has been created");
+		logger.debug("Holder form Stream has been created");
 	}
 
 	public void createHolderFormResources() {
 		PDResources holderFormResources = new PDResources();
 		getStructure().setHolderFormResources(holderFormResources);
-		logger.info("Holder form resources have been created");
+		logger.debug("Holder form resources have been created");
 
 	}
 
@@ -626,7 +626,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		holderForm.setBBox(formrect);
 		holderForm.setFormType(1);
 		getStructure().setHolderForm(holderForm);
-		logger.info("Holder form has been created");
+		logger.debug("Holder form has been created");
 
 	}
 
@@ -646,13 +646,13 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		signatureField.getWidget().setAppearance(appearance);
 
 		getStructure().setAppearanceDictionary(appearance);
-		logger.info("PDF appereance Dictionary has been created");
+		logger.debug("PDF appereance Dictionary has been created");
 
 	}
 
 	public void createInnerFormResource() {
 		getStructure().setInnerFormResources(innerFormResources);
-		logger.info("Resources of another form (inner form - it would be inside holder form) have been created");
+		logger.debug("Resources of another form (inner form - it would be inside holder form) have been created");
 	}
 
 	public void createInnerForm(PDResources innerFormResources,
@@ -662,7 +662,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		innerForm.setBBox(formrect);
 		innerForm.setFormType(1);
 		getStructure().setInnerForm(innerForm);
-		logger.info("Another form (inner form - it would be inside holder form) have been created");
+		logger.debug("Another form (inner form - it would be inside holder form) have been created");
 
 	}
 
@@ -670,19 +670,19 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			PDResources holderFormResources) {
 		String name = holderFormResources.addXObject(innerForm, "FRM");
 		getStructure().setInnerFormName(name);
-		logger.info("Alerady inserted inner form  inside holder form");
+		logger.debug("Alerady inserted inner form  inside holder form");
 	}
 
 	public void createImageFormStream(PDDocument template) {
 		PDStream imageFormStream = new PDStream(template);
 		getStructure().setImageFormStream(imageFormStream);
-		logger.info("Created image form Stream");
+		logger.debug("Created image form Stream");
 	}
 
 	public void createImageFormResources() {
 		PDResources imageFormResources = new PDResources();
 		getStructure().setImageFormResources(imageFormResources);
-		logger.info("Created image form Resources");
+		logger.debug("Created image form Resources");
 	}
 
 	public void createImageForm(PDResources imageFormResources,
@@ -716,7 +716,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		this.getStructure().setImageForm(imageForm);
 		this.getStructure().setImageFormName(imageFormName);
 		this.getStructure().setImageName(imageName);
-		logger.info("Created image form");
+		logger.debug("Created image form");
 	}
 
 	public void appendRawCommands(OutputStream os, String commands)
@@ -727,7 +727,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 	public void createVisualSignature(PDDocument template) {
 		this.getStructure().setVisualSignature(template.getDocument());
-		logger.info("Visible signature has been created");
+		logger.debug("Visible signature has been created");
 
 	}
 
@@ -739,7 +739,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		widgetDict.setItem(COSName.DR, holderFormResources.getCOSObject());
 
 		getStructure().setWidgetDictionary(widgetDict);
-		logger.info("WidgetDictionary has been crated");
+		logger.debug("WidgetDictionary has been crated");
 	}
 
 	public void closeTemplate(PDDocument template) throws IOException {

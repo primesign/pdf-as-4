@@ -504,22 +504,22 @@ public class PDFBoxTable {
 	}
 
 	public void dumpTable() {
-		logger.info("=====================================================================");
-		logger.info("Information about: " + this.table.getName());
-		logger.info("\tDimensions: {} x {} (W x H)", this.tableWidth,
+		logger.debug("=====================================================================");
+		logger.debug("Information about: " + this.table.getName());
+		logger.debug("\tDimensions: {} x {} (W x H)", this.tableWidth,
 				this.tableHeight);
-		logger.info("\tPadding: {}", padding);
-		logger.info("\t================================");
-		logger.info("\tRow Heights:");
+		logger.debug("\tPadding: {}", padding);
+		logger.debug("\t================================");
+		logger.debug("\tRow Heights:");
 		for (int i = 0; i < rowHeights.length; i++) {
-			logger.info("\t[{}] : {}", i, this.rowHeights[i]);
+			logger.debug("\t[{}] : {}", i, this.rowHeights[i]);
 		}
-		logger.info("\t================================");
-		logger.info("\tCol Widths:");
+		logger.debug("\t================================");
+		logger.debug("\tCol Widths:");
 		for (int i = 0; i < colWidths.length; i++) {
-			logger.info("\t[{}] : {}", i, this.colWidths[i]);
+			logger.debug("\t[{}] : {}", i, this.colWidths[i]);
 		}
-		logger.info("=====================================================================");
+		logger.debug("=====================================================================");
 	}
 
 	public Table getOrigTable() {

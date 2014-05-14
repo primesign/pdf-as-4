@@ -125,7 +125,7 @@ public class PDFBoxFont {
 	public PDFBoxFont(String fontDesc, ISettings settings) throws IOException {
 		this.settings = settings;
 		this.fontDesc = fontDesc;
-		logger.info("Creating Font: " + fontDesc);
+		logger.debug("Creating Font: " + fontDesc);
 		this.setFont(fontDesc);
 	}
 	

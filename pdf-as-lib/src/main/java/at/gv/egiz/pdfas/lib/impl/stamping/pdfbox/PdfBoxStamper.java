@@ -31,8 +31,7 @@ public class PdfBoxStamper implements IPDFStamper {
 	}
 
 	public void setSettings(ISettings settings) {
-		// TODO Auto-generated method stub
-		
+		// not needed currently
 	}
 
 }

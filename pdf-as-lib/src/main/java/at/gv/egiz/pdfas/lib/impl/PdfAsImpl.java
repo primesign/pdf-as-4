@@ -103,16 +103,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		if (parameter.getOutput() == null) {
 			throw new PdfAsValidationException("error.pdf.sig.11", null);
 		}
-
-		/*
-		 * try { PDDocument doc = PDDocument.load(new
-		 * ByteArrayInputStream(parameter.getDataSource().getByteData()));
-		 * PDFUtils.checkPDFPermissions(doc); doc.close(); } catch(IOException
-		 * e) { throw new PdfAsValidationException("error.pdf.sig.12", null, e);
-		 * }
-		 */
-
-		// TODO: verify Sign Parameter
 	}
 
 	private void verifyVerifyParameter(VerifyParameter parameter)
@@ -126,8 +116,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 				|| parameter.getDataSource().getByteData() == null) {
 			throw new PdfAsValidationException("error.pdf.verify.01", null);
 		}
-
-		// TODO: verify Verify Parameter
 	}
 
 	public SignResult sign(SignParameter parameter) throws PdfAsException {
@@ -200,9 +188,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
 			if(status != null) {
-				if(status.getPdfObject() != null) {
-					status.getPdfObject().close();
-				}
+				status.clear();
 			}
 			logger.trace("sign done");
 		}
@@ -444,9 +430,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			throw new PdfAsException("error.pdf.sig.06", e);
 		} finally {
 			if(status != null) {
-				if(status.getPdfObject() != null) {
-					status.getPdfObject().close();
-				}
+				status.clear();
 			}
 		}
 	}

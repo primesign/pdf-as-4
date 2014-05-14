@@ -36,6 +36,7 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +54,12 @@ public class PdfAsFactory {
 
 	private static final String DEFAULT_CONFIG_RES = "config/config.zip";
 
-//	private static final String MAN_ATTRIBUTE = "JARMANIFEST";
-//	private static final String PDF_AS_LIB = "PDF-AS-LIB";
-//	private static final String IMPL_VERSION = "Implementation-Version";
-//	private static final String SCM_REVISION = "SCMREVISION";
-	
+	private static final String DEFAULT_LOG4J_ENV = "log4j.configuration";
+
+	// private static final String MAN_ATTRIBUTE = "JARMANIFEST";
+	// private static final String PDF_AS_LIB = "PDF-AS-LIB";
+	// private static final String IMPL_VERSION = "Implementation-Version";
+	// private static final String SCM_REVISION = "SCMREVISION";
 
 	static {
 		/*
@@ -66,13 +68,16 @@ public class PdfAsFactory {
 		 */
 		IAIK.addAsProvider();
 		ECCelerate.addAsProvider();
-		
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+		System.out
+				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 		System.out.println("+ PDF-AS: " + getVersion());
 		System.out.println("+ PDF-AS SCM Revision: " + getSCMRevision());
 		System.out.println("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
-		System.out.println("+ ECCelerate Version: " + ECCelerate.getInstance().getVersion());
-		System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		System.out.println("+ ECCelerate Version: "
+				+ ECCelerate.getInstance().getVersion());
+		System.out
+				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 	}
 
 	private static boolean log_configured = false;
@@ -86,30 +91,64 @@ public class PdfAsFactory {
 
 	/**
 	 * Create a new instance of PDF-AS
-	 * @param configuration The PDF-AS configuration 
+	 * 
+	 * @param configuration
+	 *            The PDF-AS configuration
 	 * @return
 	 */
 	public static PdfAs createPdfAs(File configuration) {
 		if (!log_configured) {
 			synchronized (log_mutex) {
 				if (!log_configured) {
-					File log4j = new File(configuration.getAbsolutePath()
-							+ File.separator + "cfg" + File.separator
-							+ "log4j.properties");
-					logger.info("Loading log4j configuration: "
-							+ log4j.getAbsolutePath());
-					if (log4j.exists()) {
-						try {
-							System.setProperty("pdf-as.work-dir",
-									configuration.getAbsolutePath());
-							PropertyConfigurator.configure(new FileInputStream(
-									log4j));
-							logger.info("Configured Log4j with: " + log4j.getAbsolutePath());
-						} catch (FileNotFoundException e) {
-							e.printStackTrace();
+
+					if (System.getProperty(DEFAULT_LOG4J_ENV) != null) {
+						String file = System.getProperty(DEFAULT_LOG4J_ENV);
+						File log4j = new File(file);
+						System.out.println("Configuring logging with: " + log4j.getAbsolutePath());
+						logger.info("Loading log4j configuration: "
+								+ log4j.getAbsolutePath());
+						if (log4j.exists()) {
+							try {
+								System.setProperty("pdf-as.work-dir",
+										configuration.getAbsolutePath());
+								PropertyConfigurator
+										.configure(new FileInputStream(log4j));
+								logger.info("Configured Log4j with: "
+										+ log4j.getAbsolutePath());
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+								System.err.println("Failed to initialize logging System. Defaulting to basic configuration!");
+								BasicConfigurator.configure();
+							}
+						} else {
+							System.err.println("Log4j File: " + log4j.getAbsolutePath() + " does not exist! Defaulting to basic configuration!");
+							BasicConfigurator.configure();
+						}
+					} else {
+						File log4j = new File(configuration.getAbsolutePath()
+								+ File.separator + "cfg" + File.separator
+								+ "log4j.properties");
+						System.out.println("Configuring logging with: " + log4j.getAbsolutePath());
+						logger.info("Loading log4j configuration: "
+								+ log4j.getAbsolutePath());
+						if (log4j.exists()) {
+							try {
+								System.setProperty("pdf-as.work-dir",
+										configuration.getAbsolutePath());
+								PropertyConfigurator
+										.configure(new FileInputStream(log4j));
+								logger.info("Configured Log4j with: "
+										+ log4j.getAbsolutePath());
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+								System.err.println("Failed to initialize logging System. Defaulting to basic configuration!");
+								BasicConfigurator.configure();
+							}
+						} else {
+							System.err.println("Log4j File: " + log4j.getAbsolutePath() + " does not exist! Defaulting to basic configuration!");
+							BasicConfigurator.configure();
 						}
 					}
-					
 					log_configured = true;
 				}
 			}
@@ -120,8 +159,11 @@ public class PdfAsFactory {
 
 	/**
 	 * Creates a sign parameter
-	 * @param configuration The configuration to be used
-	 * @param dataSource The data source to be used
+	 * 
+	 * @param configuration
+	 *            The configuration to be used
+	 * @param dataSource
+	 *            The data source to be used
 	 * @return
 	 */
 	public static SignParameter createSignParameter(
@@ -132,8 +174,11 @@ public class PdfAsFactory {
 
 	/**
 	 * Creates a verification parameter
-	 * @param configuration The configuration to be used
-	 * @param dataSource The data source to be used
+	 * 
+	 * @param configuration
+	 *            The configuration to be used
+	 * @param dataSource
+	 *            The data source to be used
 	 * @return
 	 */
 	public static VerifyParameter createVerifyParameter(
@@ -216,18 +261,20 @@ public class PdfAsFactory {
 			}
 		}
 	}
-	
+
 	/**
 	 * Gets the PDF-AS SCM Revision
+	 * 
 	 * @return
 	 */
 	public static String getSCMRevision() {
 		Package pack = PdfAsFactory.class.getPackage();
 		return pack.getSpecificationVersion();
 	}
-	
-	/** 
-	 * Gets the PDF-AS Version 
+
+	/**
+	 * Gets the PDF-AS Version
+	 * 
 	 * @return PDF-AS Verison string
 	 */
 	public static String getVersion() {

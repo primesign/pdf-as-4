@@ -129,8 +129,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 	}
 
 	public void setConfiguration(Configuration config) {
-		// TODO Auto-generated method stub
-		
+		// not needed
 	}
 
 }

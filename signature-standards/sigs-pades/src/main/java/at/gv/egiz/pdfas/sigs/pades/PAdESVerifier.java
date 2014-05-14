@@ -50,6 +50,7 @@ import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureRespons
 import at.gv.egiz.moa.SignatureVerificationServiceStub.VerifyCMSSignatureResponseTypeSequence;
 import at.gv.egiz.moa.SignatureVerificationServiceStub.X509DataTypeSequence;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.messages.CodesResolver;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -112,13 +113,17 @@ public class PAdESVerifier implements IVerifyFilter {
 			VerifyCMSSignatureResponse response = service
 					.verifyCMSSignature(verifyCMSSignatureRequest);
 
+			logger.debug("Got Verify Response from MOA");
+			
 			VerifyCMSSignatureResponseTypeSequence[] verifySequence = response
 					.getVerifyCMSSignatureResponse()
 					.getVerifyCMSSignatureResponseTypeSequence();
 			for (int i = 0; i < verifySequence.length; i++) {
 				VerifyResultImpl result = new VerifyResultImpl();
-
-				SignatureCheck certificateCheck;
+				logger.debug(" ---------------------- ");
+				logger.debug("Signature: " + i);
+				
+				SignatureCheckImpl certificateCheck;
 
 				verifySequence[i].getSignerInfo().getKeyInfoTypeChoice()[0]
 						.getExtraElement();
@@ -132,16 +137,32 @@ public class PAdESVerifier implements IVerifyFilter {
 				} else {
 					certificateCheck = new SignatureCheckImpl(
 							1,
-							"Es konnte keine formal korrekte Zertifikatskette vom Signatorzertifikat zu einem vertrauenswürdigen Wurzelzertifikat konstruiert werden.");
+							"");
 				}
 
-				SignatureCheck signatureCheck = new SignatureCheckImpl(
+				if(certificateCheck.getMessage() == null || certificateCheck.getMessage().trim().length() == 0) {
+					String resourceString = "verify.cert." + certificateCheck.getCode();
+					String message = CodesResolver.resolveMessage(resourceString);
+					certificateCheck.setMessage(message);
+				}
+				
+				logger.debug("Certificate Check: " + certificateCheck.getCode() + " [" + certificateCheck.getMessage() + "]");
+				
+				SignatureCheckImpl signatureCheck = new SignatureCheckImpl(
 						verifySequence[i].getSignatureCheck().getCode()
 								.intValue(),
 						verifySequence[i].getSignatureCheck().isInfoSpecified() ? verifySequence[i]
 								.getSignatureCheck().getInfo().toString()
 								: "");
 
+				if(signatureCheck.getMessage() == null || signatureCheck.getMessage().trim().length() == 0) {
+					String resourceString = "verify.value." + signatureCheck.getCode();
+					String message = CodesResolver.resolveMessage(resourceString);
+					signatureCheck.setMessage(message);
+				}
+				
+				logger.debug("Signature Check: " + signatureCheck.getCode() + " [" + signatureCheck.getMessage() + "]");
+				
 				result.setCertificateCheck(certificateCheck);
 				result.setValueCheckCode(signatureCheck);
 				result.setVerificationDone(true);
@@ -211,8 +232,11 @@ public class PAdESVerifier implements IVerifyFilter {
 				}
 
 				resultList.add(result);
+				
+				logger.debug(" ---------------------- ");
 			}
 		} catch (Throwable e) {
+			logger.error("Verification failed", e);
 			throw new PdfAsException("error.pdf.verify.02", e);
 		}
 		return resultList;
