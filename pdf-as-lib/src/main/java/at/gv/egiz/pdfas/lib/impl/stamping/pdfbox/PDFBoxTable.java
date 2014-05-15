@@ -80,20 +80,36 @@ public class PDFBoxTable {
 		}
 
 		if (style == null) {
-			throw new IOException("Failed to determine Table style");
+			throw new IOException("Failed to determine Table style, for table " + abstractTable.getName());
 		}
 
 		String fontString = style.getFont();
 
 		String vfontString = style.getValueFont();
+		
+		if(fontString == null || vfontString == null) {
+			
+		}
+		
 		if (parent != null && style == parent.style) {
 			font = parent.getFont();
 
 			valueFont = parent.getValueFont();
 		} else {
-
+			if(fontString == null && parent != null && parent.style != null) {
+				fontString = parent.style.getFont();
+			} else if(fontString == null) {
+				throw new IOException("Failed to determine Table font style, for table " + abstractTable.getName());
+			}
+			
 			font = new PDFBoxFont(fontString, settings);
-
+			
+			if(vfontString == null && parent != null && parent.style != null) {
+				vfontString = parent.style.getValueFont();
+			} else if(fontString == null) {
+				throw new IOException("Failed to determine value Table font style, for table " + abstractTable.getName());
+			}
+			
 			valueFont = new PDFBoxFont(vfontString, settings);
 		}
 		padding = style.getPadding();

@@ -28,6 +28,7 @@ import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDPixelMap;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.utils.ImageUtils;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 
@@ -383,8 +385,14 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 										.getWidth();
 							}
 						}
+						
+						if(img.getAlphaRaster() == null && img.getColorModel().hasAlpha()) {
+							img = ImageUtils.removeAlphaChannel(img);
+						}
 
 						PDXObjectImage pdImage = new PDJpeg(template, img);
+
+						
 						ImageObject image = new ImageObject(pdImage, size);
 						images.put(img_ref, image);
 						innerFormResources.addXObject(pdImage, "Im");

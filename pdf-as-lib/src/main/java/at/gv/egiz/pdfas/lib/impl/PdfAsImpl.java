@@ -89,7 +89,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 		String signatureProfile = parameter.getSignatureProfileId();
 		if (signatureProfile != null) {
-			if (!settings.hasPrefix("sig_obj." + signatureProfile + ".key")) {
+			if (!settings.hasPrefix("sig_obj." + signatureProfile)) {
 				throw new PdfAsValidationException("error.pdf.sig.09",
 						signatureProfile);
 			}
