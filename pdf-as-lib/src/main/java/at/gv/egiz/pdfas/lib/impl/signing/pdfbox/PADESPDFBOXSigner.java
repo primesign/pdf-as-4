@@ -128,7 +128,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			if (signerReason == null) {
 				signerReason = "PAdES Signature";
 			}
-
+			
 			signature.setReason(signerReason);
 			logger.debug("Signing reason: " + signerReason);
 
@@ -139,7 +139,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signer.setPDSignature(signature);
 			SignatureOptions options = new SignatureOptions();
-
+			
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
 				logger.info("Creating visual siganture block");
@@ -321,6 +321,36 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			doc.addSignature(signature, signer, options);
 
+			String sigFieldName = signatureProfileSettings.getSignFieldValue();
+			
+			if(sigFieldName != null) {
+				PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
+				if (acroForm != null) {
+					@SuppressWarnings("unchecked")
+					List<PDField> fields = acroForm.getFields();
+					PDSignatureField signatureField = null;
+
+					if (fields != null) {
+						for (PDField pdField : fields) {
+							if (pdField instanceof PDSignatureField) {
+								if (((PDSignatureField) pdField).getSignature().getDictionary()
+										.equals(signature.getDictionary())) {
+									signatureField = (PDSignatureField) pdField;
+								}
+							}
+						}
+					} else {
+						logger.warn("Failed to name Signature Field! [Cannot find Field list in acroForm!]");
+					}
+					
+					if(signatureField != null) {
+						signatureField.setPartialName(sigFieldName);
+					}
+				} else {
+					logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
+				}
+			}
+			
 			if (requestedSignature.isVisual()) {
 
 				// if(requestedSignature.getSignaturePosition().)

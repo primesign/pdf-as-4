@@ -133,7 +133,7 @@ public class SignatureProfileSettings implements IProfileConstants {
 			String value = others.get(key);
 			key = key.substring(key.lastIndexOf('.') + 1);
 
-			profileSettings.put(key, others.get(value));
+			profileSettings.put(key, value);
 
 			logger.debug("   Settings: " + key + " : " + value);
 		}
@@ -180,6 +180,10 @@ public class SignatureProfileSettings implements IProfileConstants {
 
 			return value;
 		}
+		String v = profileSettings.get(key);
+		if (v != null) {
+			return v;
+		}
 		return getDefaultValue(key);
 	}
 
@@ -189,6 +193,10 @@ public class SignatureProfileSettings implements IProfileConstants {
 
 	public String getSigningReason() {
 		return this.getValue(SIGNING_REASON);
+	}
+	
+	public String getSignFieldValue() {
+		return this.getValue(SIGNFIELD_VALUE);
 	}
 	
 	public boolean isPDFA() {

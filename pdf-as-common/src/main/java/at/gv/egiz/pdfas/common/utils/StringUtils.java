@@ -62,6 +62,12 @@ public class StringUtils {
 
 	public static String convertStringToPDFFormat(String value)
 			throws UnsupportedEncodingException {
+		
+		if(value == null) {
+			logger.warn("Trying to convert null string!");
+			return value;
+		}
+		
 		byte[] replace_bytes = applyWinAnsiEncoding(value);
 
 		String restored_value = unapplyWinAnsiEncoding(replace_bytes);

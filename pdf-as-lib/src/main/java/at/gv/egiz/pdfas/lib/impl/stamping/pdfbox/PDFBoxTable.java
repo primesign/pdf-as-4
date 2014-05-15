@@ -374,9 +374,10 @@ public class PDFBoxTable {
 			float fwidth;
 			if (c instanceof PDType1Font) {
 				fwidth = c.getFontDescriptor().getFontBoundingBox().getWidth()
-						/ 1000 * fontSize;
+						/ 1000.0f * fontSize;
 			} else {
-				fwidth = c.getFontDescriptor().getMaxWidth();
+				fwidth = c.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f * fontSize;
+				fwidth = fwidth / (float)"abcdefghijklmnopqrstuvwxyz".length();
 			}
 
 			logger.debug("Font Width: {}", fwidth);
