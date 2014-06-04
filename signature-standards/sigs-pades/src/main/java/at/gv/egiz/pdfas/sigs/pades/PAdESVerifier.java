@@ -54,7 +54,6 @@ import at.gv.egiz.pdfas.common.messages.CodesResolver;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.verify.SignatureCheck;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.verify.FilterEntry;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
