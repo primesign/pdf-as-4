@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 9/11/13 Time: 11:11 AM To
@@ -51,8 +52,15 @@ public class ValueResolver implements IProfileConstants, IResolver {
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
 
+	private CertificateResolver certificateResolver;
+	
+	public ValueResolver(ICertificateProvider certProvider, OperationStatus operationStatus) {
+		certificateResolver = new CertificateResolver(
+				certProvider.getCertificate(), operationStatus);
+	}
+	
 	public String resolve(String key, String value,
-			SignatureProfileSettings settings, ICertificateProvider certProvider) {
+			SignatureProfileSettings settings) {
 
 		logger.debug("Resolving value for key: " + key);
 		logger.debug("Resolving value with value: " + value);
@@ -71,8 +79,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 			Pattern pattern = Pattern.compile(PatternRegex);
 			Matcher matcher = pattern.matcher(value);
-			CertificateResolver certificateResolver = new CertificateResolver(
-					certProvider.getCertificate());
+			
 			String result = "";
 			int curidx = 0;
 			if (matcher.find()) {
@@ -82,7 +89,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 					result += value.substring(curidx, idx);
 					curidx = idxe;
 					result += certificateResolver.resolve(key,
-							matcher.group(1), settings, certProvider);
+							matcher.group(1), settings);
 				} while (matcher.find());
 			} else {
 				result = value;

@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 
 import iaik.x509.X509Certificate;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.naming.InvalidNameException;
@@ -38,6 +39,7 @@ import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.DNUtils;
 import at.gv.egiz.pdfas.common.utils.OgnlUtils;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 public class CertificateResolver implements IResolver {
 
@@ -45,8 +47,9 @@ public class CertificateResolver implements IResolver {
 
     private OgnlContext ctx;
     private X509Certificate certificate;
+    private OperationStatus operationStatus;
 
-    public CertificateResolver(X509Certificate certificate) {
+    public CertificateResolver(X509Certificate certificate, OperationStatus operationStatus) {
         this.certificate = certificate;
         this.ctx = new OgnlContext();
 
@@ -66,10 +69,16 @@ public class CertificateResolver implements IResolver {
             logger.error("Failed to build subject Map", e);
         }
 
+        Map<String, String> iuiMap = new HashMap<String, String>();
+        try {
+        	iuiMap.put("pdfVersion", String.valueOf(operationStatus.getPdfObject().getDocument().getDocument().getVersion()));
+        } catch(Throwable e) {
+        	logger.warn("Cannot determine pdfVersion: " + e.getMessage());
+        }
+        this.ctx.put("iui", iuiMap);
     }
 
-    public String resolve(String key, String value, SignatureProfileSettings settings,
-    		ICertificateProvider signature) {
+    public String resolve(String key, String value, SignatureProfileSettings settings) {
         return OgnlUtils.resolvsOgnlExpression(value, this.ctx);
     }
 

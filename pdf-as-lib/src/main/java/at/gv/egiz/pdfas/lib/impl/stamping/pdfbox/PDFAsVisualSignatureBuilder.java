@@ -105,6 +105,52 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		// draw if boarder > 0
 		if (border != 0) {
 
+			float nexty = y + tableHeight;
+			float lasty = nexty;
+			for (int i = 0; i < rows; i++) {
+				ArrayList<Entry> row = abstractTable.getRow(i);
+				// Draw row border!
+				logger.debug("ROW LINE: {} {} {} {}", x, nexty, x + tableWidth,
+						nexty);
+				contentStream.drawLine(x, nexty, x + tableWidth, nexty);
+				lasty = nexty;
+				if (i < abstractTable.getRowHeights().length) {
+					nexty -= abstractTable.getRowHeights()[i] + padding * 2;
+				}
+				
+				if (subtable && i + 1 == abstractTable.getRowHeights().length) {
+					nexty -= padding;
+				}
+				
+				float nextx = x;
+				float ypos = y;
+				float yheight = y + abstractTable.getHeight();
+				if (subtable) {
+					ypos -= padding;
+					yheight = y + abstractTable.getHeight();
+				}
+				
+				for (int j = 0; j < row.size(); j++) {
+					Entry cell = (Entry) row.get(j);
+					
+					if (subtable && j == cols) {
+						continue;
+					}
+					logger.debug("COL LINE: {} {} {} {}", nextx, ypos, nextx,
+							yheight);
+					contentStream.drawLine(nextx, lasty, nextx, nexty);
+					for(int k = 0; k < cell.getColSpan(); k++) {
+						if (k + j < colsSizes.length) {
+							nextx += (colsSizes != null) ? colsSizes[k + j] : colWidth;
+						}
+					}
+				}
+				contentStream.drawLine(nextx, lasty, nextx, nexty);
+			}
+			
+			contentStream.drawLine(x, nexty, x + tableWidth, nexty);
+			
+			/*
 			// draw the rows
 			float nexty = y + tableHeight;
 			for (int i = 0; i <= rows; i++) {
@@ -137,7 +183,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				if (i < colsSizes.length) {
 					nextx += (colsSizes != null) ? colsSizes[i] : colWidth;
 				}
-			}
+			}*/
 		}
 
 		float textx = x + padding;
@@ -146,6 +192,10 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			ArrayList<Entry> row = abstractTable.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
+				
+				Style inherit_style = Style.doInherit(abstractTable.style, cell.getStyle());
+		        cell.setStyle(inherit_style);
+				
 				if (cell.getType() == Entry.TYPE_CAPTION
 						|| cell.getType() == Entry.TYPE_VALUE) {
 
@@ -175,9 +225,71 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					} else {
 						contentStream.setFont(textFont, fontSize);
 					}
-					logger.debug("Writing: " + textx + " : " + ttexty + " = "
+					
+					// TODO: use halign and valgin
+					
+					float fheight = textFont.getFontDescriptor().getFontBoundingBox()
+							.getHeight()
+							/ 1000 * fontSize;
+
+					String[] tlines = text.split("\n");
+					float textHeight = fheight * tlines.length;
+					
+					Style cellStyle = cell.getStyle();
+					String valign = null;
+					String halign = null;
+					
+					if (cell.getType() == Entry.TYPE_CAPTION && cellStyle != null) {
+						valign = cellStyle.getVAlign();
+						halign = cellStyle.getHAlign();
+					} else if (cell.getType() == Entry.TYPE_VALUE && cellStyle != null) {
+						valign = cellStyle.getValueVAlign();
+						halign = cellStyle.getValueHAlign();
+					}
+					float ty = ttexty;
+					if(Style.BOTTOM.equals(valign)) {
+						float bottom_offset = abstractTable.getRowHeights()[i] - textHeight;
+						ty -= bottom_offset;
+					} else if(Style.MIDDLE.equals(valign)) {
+						float bottom_offset = abstractTable.getRowHeights()[i] - textHeight;
+						bottom_offset = bottom_offset / 2.0f;
+						ty -= bottom_offset;
+					}
+					
+					float columnWidth = (colsSizes != null) ? colsSizes[j] : colWidth;
+					float maxWidth = 0;
+					for (int k = 0; k < tlines.length; k++) {
+						
+						float fwidth;
+						if (textFont instanceof PDType1Font) {
+							fwidth = textFont.getFontDescriptor().getFontBoundingBox().getWidth()
+									/ 1000.0f * fontSize;
+						} else {
+							fwidth = textFont.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f * fontSize;
+							fwidth = fwidth / (float)"abcdefghijklmnopqrstuvwxyz".length();
+						}
+						
+						float lineWidth = tlines[k].length() * fwidth;
+						
+						//float w = textFont.getStringWidth(tlines[k]) / 1000 * fontSize;
+						if (maxWidth < lineWidth) {
+							maxWidth = lineWidth;
+						}
+					}
+					
+					float tx = textx;
+					if(Style.CENTER.equals(halign)) {
+						float offset  = columnWidth - maxWidth - 2 * padding;
+						offset = offset / 2.0f;
+						tx += offset;
+					} else if(Style.RIGHT.equals(halign)) {
+						float offset  = columnWidth - maxWidth - 2 * padding;
+						tx += offset;
+					}
+					
+					logger.debug("Writing: " + tx + " : " + ty + " = "
 							+ text + " as " + cell.getType() + " w " + fontName);
-					contentStream.moveTextPositionByAmount(textx, ttexty);
+					contentStream.moveTextPositionByAmount(tx, ty);
 
 					if (text.contains("\n")) {
 						String[] lines = text.split("\n");
@@ -207,6 +319,8 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					// contentStream.beginMarkedContentSequence(COSName.ALT,
 					// name);
 
+					// TODO: use HAlign
+					
 					float imgy = texty;
 					if (cell.getStyle().getImageVAlign() != null
 							&& cell.getStyle().getImageVAlign()
@@ -230,12 +344,17 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					// contentStream.endMarkedContentSequence();
 
 				} else if (cell.getType() == Entry.TYPE_TABLE) {
+					
 					float tableY = texty - abstractTable.getRowHeights()[i]
 							- padding;
 					float tableX = textx;
 					// texty = texty - padding;
 					tableX = textx - padding;
 					PDFBoxTable tbl_value = (PDFBoxTable) cell.getValue();
+					
+					Style inherit_styletab = Style.doInherit(abstractTable.style, cell.getStyle());
+					tbl_value.table.setStyle(inherit_styletab);
+					
 					logger.debug("Table: " + tableX + " : " + tableY);
 					drawTable(page, contentStream, tableX, tableY, tbl_value,
 							doc, true);

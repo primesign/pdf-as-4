@@ -11,6 +11,8 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.org.apache.bcel.internal.generic.Type;
+
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
@@ -71,12 +73,11 @@ public class PDFBoxTable {
 		} catch(PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);
 		}
-		if (abstractTable.getStyle() != null) {
-			style = abstractTable.getStyle();
-		}
 
-		if (style == null && parent != null) {
-			style = parent.style;
+		if (parent != null) {
+			style = Style.doInherit(abstractTable.getStyle(), parent.style);
+		} else {
+			style = abstractTable.getStyle();
 		}
 
 		if (style == null) {
@@ -86,10 +87,6 @@ public class PDFBoxTable {
 		String fontString = style.getFont();
 
 		String vfontString = style.getValueFont();
-		
-		if(fontString == null || vfontString == null) {
-			
-		}
 		
 		if (parent != null && style == parent.style) {
 			font = parent.getFont();
@@ -158,14 +155,26 @@ public class PDFBoxTable {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
-
-				float cellheight = getCellHeight(cell, colWidths[j]);
+				
+				float colWidth = colWidths[j];
+				
+				int colsleft = cell.getColSpan() - 1;
+				
+				if(j + colsleft > colWidths.length) {
+					throw new IOException("Configuration is wrong. Cannot determine column width!");
+				}
+				
+				for(int k = 0; k < colsleft; k++) {
+					colWidth = colWidth + colWidths[j+k];
+				}
+				
+				float cellheight = getCellHeight(cell, colWidth);
 
 				if (rowHeights[i] < cellheight) {
 					rowHeights[i] = cellheight;
 				}
 
-				logger.debug("ROW: {} COL: {} Width: {} Height: {}", i, j,
+				logger.debug("ROW: {} COL: {} Width: {} Height: {}", i, j, colWidth,
 						cellheight);
 
 				int span = cell.getColSpan() - 1;
@@ -386,7 +395,7 @@ public class PDFBoxTable {
 				c = font.getFont(null);
 				fontSize = font.getFontSize();
 			}
-
+			
 			float fwidth;
 			if (c instanceof PDType1Font) {
 				fwidth = c.getFontDescriptor().getFontBoundingBox().getWidth()
@@ -536,6 +545,9 @@ public class PDFBoxTable {
 		for (int i = 0; i < colWidths.length; i++) {
 			logger.debug("\t[{}] : {}", i, this.colWidths[i]);
 		}
+		logger.debug("\t================================");
+		logger.debug("\tTable:");
+		logger.debug("\t" + this.table.toString());
 		logger.debug("=====================================================================");
 	}
 

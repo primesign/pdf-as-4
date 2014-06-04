@@ -167,13 +167,13 @@ public class TestPDFBoxTable {
 			X509Certificate cert = new X509Certificate(new FileInputStream("/home/afitzek/qualified.cer"));
 			
 			CertificateHolderRequest request = new CertificateHolderRequest(cert);
-			
+			/*
 			Table main = TableFactory.createSigTable(profileSettings, "main", settings, request);
 		
 			main.setWidth(400);
 			
 			renderTable(main);
-			
+			*/
 //			PDStream stream1;
 			
 			PDDocument document = new PDDocument();
@@ -181,7 +181,7 @@ public class TestPDFBoxTable {
 			page.setMediaBox(new PDRectangle());
 			PDPageContentStream stream = new PDPageContentStream(document, page);
 			stream.setFont(PDType1Font.HELVETICA_BOLD , 12);
-			drawTable(page, stream, 100, 300, main);
+			//drawTable(page, stream, 100, 300, main);
 			stream.close();
 			
 			document.addPage(page);

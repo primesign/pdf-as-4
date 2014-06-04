@@ -30,9 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.COSVisitorException;
@@ -42,11 +42,8 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.graphics.color.PDGamma;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
@@ -56,7 +53,6 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sun.tools.jar.SignatureFile;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -116,10 +112,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					.createProfile(requestedSignature.getSignatureProfileID(),
 							pdfObject.getStatus().getSettings());
 
-			ValueResolver resolver = new ValueResolver();
+			ValueResolver resolver = new ValueResolver(requestedSignature,
+					pdfObject.getStatus());
 			String signerName = resolver.resolve("SIG_SUBJECT",
 					signatureProfileSettings.getValue("SIG_SUBJECT"),
-					signatureProfileSettings, requestedSignature);
+					signatureProfileSettings);
 
 			signature.setName(signerName);
 			signature.setSignDate(Calendar.getInstance());
@@ -128,7 +125,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			if (signerReason == null) {
 				signerReason = "PAdES Signature";
 			}
-			
+
 			signature.setReason(signerReason);
 			logger.debug("Signing reason: " + signerReason);
 
@@ -139,7 +136,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signer.setPDSignature(signature);
 			SignatureOptions options = new SignatureOptions();
-			
+
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
 				logger.info("Creating visual siganture block");
@@ -192,8 +189,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				// create Table describtion
 				Table main = TableFactory.createSigTable(
-						signatureProfileSettings, MAIN, pdfObject.getStatus()
-								.getSettings(), requestedSignature);
+						signatureProfileSettings, MAIN, pdfObject.getStatus(),
+						requestedSignature);
 
 				IPDFStamper stamper = StamperFactory
 						.createDefaultStamper(pdfObject.getStatus()
@@ -279,23 +276,26 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				if (signatureProfileSettings.isPDFA()) {
 					PDDocumentCatalog root = doc.getDocumentCatalog();
-					InputStream colorProfile = PDDocumentCatalog.class
-							.getResourceAsStream("/icm/sRGB Color Space Profile.icm");
-					try {
-						PDOutputIntent oi = new PDOutputIntent(doc,
-								colorProfile);
-						oi.setInfo("sRGB IEC61966-2.1");
-						oi.setOutputCondition("sRGB IEC61966-2.1");
-						oi.setOutputConditionIdentifier("sRGB IEC61966-2.1");
-						oi.setRegistryName("http://www.color.org");
+					COSBase base = root.getCOSDictionary().getItem(COSName.OUTPUT_INTENTS);
+					if(base == null) {
+						InputStream colorProfile = PDDocumentCatalog.class
+								.getResourceAsStream("/icm/sRGB Color Space Profile.icm");
+						try {
+							PDOutputIntent oi = new PDOutputIntent(doc,
+									colorProfile);
+							oi.setInfo("sRGB IEC61966-2.1");
+							oi.setOutputCondition("sRGB IEC61966-2.1");
+							oi.setOutputConditionIdentifier("sRGB IEC61966-2.1");
+							oi.setRegistryName("http://www.color.org");
 
-						root.addOutputIntent(oi);
-						root.getCOSObject().setNeedToBeUpdate(true);
-						logger.info("added Output Intent");
-					} catch (Throwable e) {
-						e.printStackTrace();
-						throw new PdfAsException("Failed to add Output Intent",
-								e);
+							root.addOutputIntent(oi);
+							root.getCOSObject().setNeedToBeUpdate(true);
+							logger.info("added Output Intent");
+						} catch (Throwable e) {
+							e.printStackTrace();
+							throw new PdfAsException(
+									"Failed to add Output Intent", e);
+						}
 					}
 				}
 
@@ -322,8 +322,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			doc.addSignature(signature, signer, options);
 
 			String sigFieldName = signatureProfileSettings.getSignFieldValue();
-			
-			if(sigFieldName != null) {
+
+			if (sigFieldName != null) {
 				PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
 				if (acroForm != null) {
 					@SuppressWarnings("unchecked")
@@ -333,7 +333,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					if (fields != null) {
 						for (PDField pdField : fields) {
 							if (pdField instanceof PDSignatureField) {
-								if (((PDSignatureField) pdField).getSignature().getDictionary()
+								if (((PDSignatureField) pdField).getSignature()
+										.getDictionary()
 										.equals(signature.getDictionary())) {
 									signatureField = (PDSignatureField) pdField;
 								}
@@ -342,15 +343,15 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					} else {
 						logger.warn("Failed to name Signature Field! [Cannot find Field list in acroForm!]");
 					}
-					
-					if(signatureField != null) {
+
+					if (signatureField != null) {
 						signatureField.setPartialName(sigFieldName);
 					}
 				} else {
 					logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 				}
 			}
-			
+
 			if (requestedSignature.isVisual()) {
 
 				// if(requestedSignature.getSignaturePosition().)
@@ -365,7 +366,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					if (fields != null) {
 						for (PDField pdField : fields) {
 							if (pdField instanceof PDSignatureField) {
-								if (((PDSignatureField) pdField).getSignature().getDictionary()
+								if (((PDSignatureField) pdField).getSignature()
+										.getDictionary()
 										.equals(signature.getDictionary())) {
 									signatureField = (PDSignatureField) pdField;
 								}
@@ -374,8 +376,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					} else {
 						logger.warn("Failed to apply rotation! [Cannot find Field list in acroForm!]");
 					}
-					
-					if(signatureField != null) {
+
+					if (signatureField != null) {
 						if (signatureField.getWidget() != null) {
 							if (signatureField.getWidget()
 									.getAppearanceCharacteristics() == null) {
@@ -432,7 +434,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			logger.error(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
-			if(doc != null) {
+			if (doc != null) {
 				try {
 					doc.close();
 				} catch (IOException e) {

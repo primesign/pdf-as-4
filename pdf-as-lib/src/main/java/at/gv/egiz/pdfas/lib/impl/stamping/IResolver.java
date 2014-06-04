@@ -34,6 +34,5 @@ import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
  * To change this template use File | Settings | File Templates.
  */
 public interface IResolver {
-    public String resolve(String key, String value, SignatureProfileSettings settings,
-    		ICertificateProvider signature);
+    public String resolve(String key, String value, SignatureProfileSettings settings);
 }

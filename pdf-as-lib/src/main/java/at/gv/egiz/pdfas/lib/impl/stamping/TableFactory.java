@@ -38,6 +38,7 @@ import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.knowcenter.wag.egov.egiz.pdf.sig.SignatureEntry;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
@@ -100,11 +101,12 @@ public class TableFactory implements IProfileConstants {
      * @see at.knowcenter.wag.egov.egiz.table.Table
      * @see at.knowcenter.wag.egov.egiz.table.Entry
      */
-    public static Table createSigTable(SignatureProfileSettings profile, String tableID, ISettings configuration,
+    public static Table createSigTable(SignatureProfileSettings profile, String tableID, OperationStatus operationStatus,
     		ICertificateProvider certProvider)
     {
         String table_key_prefix = SIG_OBJ + profile.getProfileID() + "." + TABLE;
         String table_key = table_key_prefix + tableID;
+        ISettings configuration = operationStatus.getSettings();
         // String caption_prefix = SignatureTypes.SIG_OBJ + getSignationType() +
         // ".key.";
         // String value_prefix = SignatureTypes.SIG_OBJ + getSignationType() +
@@ -165,7 +167,7 @@ public class TableFactory implements IProfileConstants {
                     if (TYPE_TABLE.equals(key))
                     {
                         // add a table entry
-                        Table table = createSigTable(profile, type, configuration, certProvider);
+                        Table table = createSigTable(profile, type, operationStatus, certProvider);
                         if (table != null)
                         {
                             Entry entry = new Entry(Entry.TYPE_TABLE, table, key);
@@ -190,10 +192,10 @@ public class TableFactory implements IProfileConstants {
                     if (TYPE_VALUE.equals(type))
                     {
                         // add a single value entry
-                    	 ValueResolver resolver = new ValueResolver();
+                    	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String value = profile.getValue(key);
                         Entry entry = new Entry(Entry.TYPE_VALUE, 
-                        		resolver.resolve(key, value, profile, certProvider), key);
+                        		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
                             entry.setColSpan(2);
@@ -213,9 +215,9 @@ public class TableFactory implements IProfileConstants {
                             Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
                             c_entry.setNoWrap(true);  // dferbas fix bug #331
                             c_entry.setStyle(defaultCaptionStyle_);
-                            ValueResolver resolver = new ValueResolver();
+                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                             Entry v_entry = new Entry(Entry.TYPE_VALUE, 
-                            		resolver.resolve(key, value, profile, certProvider), key);
+                            		resolver.resolve(key, value, profile), key);
                             v_entry.setStyle(defaultValueStyle_);
                             if (c_entry != null && v_entry != null)
                             {
@@ -228,10 +230,10 @@ public class TableFactory implements IProfileConstants {
                             c_entry.setNoWrap(true);  // dferbas fix bug #331
                             c_entry.setStyle(defaultCaptionStyle_);
 
-                            ValueResolver resolver = new ValueResolver();
+                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
 
                             Entry v_entry = new Entry(Entry.TYPE_VALUE,
-                                    resolver.resolve(key, value, profile, certProvider), key);
+                                    resolver.resolve(key, value, profile), key);
                             v_entry.setStyle(defaultValueStyle_);
                             if (c_entry != null && v_entry != null)
                             {
