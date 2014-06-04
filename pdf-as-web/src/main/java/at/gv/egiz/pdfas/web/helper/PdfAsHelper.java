@@ -549,6 +549,8 @@ public class PdfAsHelper {
 						StringEscapeUtils.escapeHtml4(slRequest));
 				template = template.replace("##DataURL##", url);
 				response.getWriter().write(template);
+				//TODO: set content type of response!!
+				response.setContentType("text/html");
 				response.getWriter().close();
 			} else if (statusRequest.needSignature()) {
 				logger.debug("Needing Signature from BKU");
@@ -561,6 +563,8 @@ public class PdfAsHelper {
 						.marshalToString(of
 								.createCreateCMSSignatureRequest(pack.getRequestType()));
 
+				logger.trace("SL Request: " + slRequest);
+				
 				response.setContentType("text/xml");
 				response.getWriter().write(slRequest);
 				response.getWriter().close();
