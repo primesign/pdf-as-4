@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 
 public class PAdESSignerKeystore implements IPlainSigner {
@@ -81,7 +82,7 @@ public class PAdESSignerKeystore implements IPlainSigner {
 		}
 	}
 
-	public X509Certificate getCertificate() {
+	public X509Certificate getCertificate(SignParameter parameter) {
 		return cert;
 	}
 	
@@ -133,7 +134,7 @@ public class PAdESSignerKeystore implements IPlainSigner {
 	    signerInfo.setSignedAttributes(attributeArray);
 	  }
 	
-	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
 		try {
 			logger.info("Creating PAdES signature.");
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);

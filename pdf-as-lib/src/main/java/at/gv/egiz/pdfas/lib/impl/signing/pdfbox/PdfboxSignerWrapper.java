@@ -37,6 +37,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.PDFASSignatureInterface;
 
 public class PdfboxSignerWrapper implements PDFASSignatureInterface {
@@ -49,10 +50,12 @@ public class PdfboxSignerWrapper implements PDFASSignatureInterface {
   private PDSignature signature;
 	private int[] byteRange;
 	private Calendar date;
+	private SignParameter parameters;
 
-	public PdfboxSignerWrapper(IPlainSigner signer) {
+	public PdfboxSignerWrapper(IPlainSigner signer, SignParameter parameters) {
 		this.signer = signer;
 		this.date = Calendar.getInstance();
+		this.parameters = parameters;
 	}
 
 	public byte[] sign(InputStream inputStream) throws SignatureException,
@@ -63,7 +66,7 @@ public class PdfboxSignerWrapper implements PDFASSignatureInterface {
 		logger.info("Byte Range 2: " + byteRange2);
 		try {
 			logger.info("Signing with Pdfbox Wrapper");
-			byte[] signature = signer.sign(data, byteRange);
+			byte[] signature = signer.sign(data, byteRange, this.parameters);
 			return signature;
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);

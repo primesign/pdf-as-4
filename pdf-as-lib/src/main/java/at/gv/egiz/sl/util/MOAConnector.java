@@ -58,6 +58,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
 public class MOAConnector implements ISignatureConnector {
 
@@ -125,7 +126,7 @@ public class MOAConnector implements ISignatureConnector {
 		this.keyIdentifier = config.getValue(MOA_SIGN_KEY_ID);
 	}
 
-	public X509Certificate getCertificate() throws PdfAsException {
+	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException {
 		return this.certificate;
 	}
 
@@ -134,7 +135,7 @@ public class MOAConnector implements ISignatureConnector {
 		return builder.build();
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
 		CloseableHttpClient client = null;
 		try {
 			client = buildHttpClient();

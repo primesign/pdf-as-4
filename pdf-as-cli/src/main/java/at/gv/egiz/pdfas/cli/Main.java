@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -319,6 +320,10 @@ public class Main {
 		SignParameter signParameter = PdfAsFactory.createSignParameter(
 				configuration, dataSource);
 
+		String id = UUID.randomUUID().toString();
+		signParameter.setTransactionId(id);
+		System.out.println("Transaction: " + id);
+		
 		IPlainSigner slConnector = null;
 
 		if (connector != null) {

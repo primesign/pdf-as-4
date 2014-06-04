@@ -156,4 +156,11 @@ public class OperationStatus implements Serializable {
 		this.signingDate = signingDate;
 	}
 
+	public String getTransactionId() {
+		if(this.signParamter != null) {
+			return this.signParamter.getTransactionId();
+		}
+		return null;
+	}
+	
 }

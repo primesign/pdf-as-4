@@ -48,4 +48,8 @@ public interface PdfAsParameter {
 	 * @param dataSource
 	 */
 	public void setDataSource(DataSource dataSource);
+	
+	public String getTransactionId();
+	
+	public void setTransactionId(String id);
 }

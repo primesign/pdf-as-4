@@ -31,11 +31,13 @@ public class PdfAsParameterImpl implements PdfAsParameter {
 protected Configuration configuration;
 	
 	protected DataSource dataSource;
+	protected String transactionId;
 	
 	public PdfAsParameterImpl(Configuration configuration, 
 			DataSource dataSource) {
 		this.configuration = configuration;
 		this.dataSource = dataSource;
+		this.transactionId = null;
 	}
 
 	public Configuration getConfiguration() {
@@ -52,5 +54,13 @@ protected Configuration configuration;
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
+	}
+
+	public String getTransactionId() {
+		return transactionId;
+	}
+
+	public void setTransactionId(String id) {
+		this.transactionId = id;
 	}
 }

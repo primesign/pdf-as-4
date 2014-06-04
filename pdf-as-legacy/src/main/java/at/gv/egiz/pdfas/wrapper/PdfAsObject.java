@@ -87,7 +87,7 @@ public class PdfAsObject implements PdfAs {
 		if (request.needSignature()) {
 			try {
 				byte[] signature = sdi.wrapper.getSignParameter4().getPlainSigner().sign(
-						request.getSignatureData(), request.getSignatureDataByteRange());
+						request.getSignatureData(), request.getSignatureDataByteRange(), sdi.wrapper.getSignParameter4());
 				request.setSigature(signature);
 				request = this.pdfas4.process(request);
 				if(request.isReady()) {
@@ -233,7 +233,7 @@ public class PdfAsObject implements PdfAs {
 
 			if (request.needCertificate()) {
 				X509Certificate certificate = signParameter4.getPlainSigner()
-						.getCertificate();
+						.getCertificate(signParameter4);
 				sdi = new SignatureDetailInformationWrapper(certificate);
 				request.setCertificate(certificate.getEncoded());
 				request = this.pdfas4.process(request);

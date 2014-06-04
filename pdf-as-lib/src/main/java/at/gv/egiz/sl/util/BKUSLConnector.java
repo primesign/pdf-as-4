@@ -46,6 +46,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.SLPdfAsException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.ErrorResponseType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -69,7 +70,7 @@ public class BKUSLConnector extends BaseSLConnector {
 		return builder.build();
 	}
 
-	private String performHttpRequestToBKU(String xmlRequest, RequestPackage pack)
+	private String performHttpRequestToBKU(String xmlRequest, RequestPackage pack, SignParameter parameter)
 			throws ClientProtocolException, IOException, IllegalStateException {
 		CloseableHttpClient client = null;
 		try {
@@ -81,6 +82,13 @@ public class BKUSLConnector extends BaseSLConnector {
 			entityBuilder.addTextBody(XMLREQUEST, xmlRequest,
 					ContentType.TEXT_XML);
 
+			if(parameter != null) {
+				String transactionId = parameter.getTransactionId();
+				if(transactionId != null) {
+					entityBuilder.addTextBody("TransactionId_", transactionId);
+				}
+			}
+			
 			if(pack != null && pack.getSignatureData() != null) {
 				entityBuilder.addBinaryBody("fileupload", 
 						PDFUtils.blackOutSignature(pack.getSignatureData(), pack.getByteRange()));
@@ -115,7 +123,7 @@ public class BKUSLConnector extends BaseSLConnector {
 	}
 
 	public InfoboxReadResponseType sendInfoboxReadRequest(
-			InfoboxReadRequestType request) throws PdfAsException {
+			InfoboxReadRequestType request, SignParameter parameter) throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
 		try {
@@ -123,7 +131,7 @@ public class BKUSLConnector extends BaseSLConnector {
 					.createInfoboxReadRequest(request));
 			logger.trace(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest, null);
+			String slResponse = performHttpRequestToBKU(slRequest, null, parameter);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
@@ -154,7 +162,7 @@ public class BKUSLConnector extends BaseSLConnector {
 	}
 
 	public CreateCMSSignatureResponseType sendCMSRequest(
-			RequestPackage pack) throws PdfAsException {
+			RequestPackage pack, SignParameter parameter) throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
 		try {
@@ -162,7 +170,7 @@ public class BKUSLConnector extends BaseSLConnector {
 					.createCreateCMSSignatureRequest(pack.getRequestType()));
 			logger.debug(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest, pack);
+			String slResponse = performHttpRequestToBKU(slRequest, pack, parameter);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);

@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
 /**
  * Creates a PKCS7 detached PDF signature
@@ -75,11 +76,11 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 		}
 	}
 
-	public X509Certificate getCertificate() {
+	public X509Certificate getCertificate(SignParameter parameter) {
 		return cert;
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
 		try {
 			logger.info("Creating PKCS7 signature.");
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);

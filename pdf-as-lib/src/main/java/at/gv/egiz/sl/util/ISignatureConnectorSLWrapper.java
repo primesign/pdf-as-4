@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
@@ -58,13 +59,13 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		this.connector = connector;
 	}
 
-	public X509Certificate getCertificate() throws PdfAsException {
+	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException {
 		X509Certificate certificate = null;
 		try {
 			InfoboxReadRequestType request = connector
-					.createInfoboxReadRequest();
+					.createInfoboxReadRequest(parameter);
 			InfoboxReadResponseType response = connector
-					.sendInfoboxReadRequest(request);
+					.sendInfoboxReadRequest(request, parameter);
 
 			Iterator<InfoboxAssocArrayPairType> iterator = response
 					.getAssocArrayData().getPair().iterator();
@@ -83,11 +84,11 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		return certificate;
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
 		RequestPackage pack = connector.createCMSRequest(
-				input, byteRange);
+				input, byteRange, parameter);
 		CreateCMSSignatureResponseType response = connector
-				.sendCMSRequest(pack);
+				.sendCMSRequest(pack, parameter);
 		try {
 			SignedData signedData = new SignedData(new ByteArrayInputStream(
 					response.getCMSSignature()));

@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.sl.schema.Base64OptRefContentType;
 import at.gv.egiz.sl.schema.Base64XMLLocRefContentType;
 import at.gv.egiz.sl.schema.Base64XMLLocRefOptRefContentType;
@@ -60,7 +61,7 @@ public abstract class BaseSLConnector implements ISLConnector {
 
 	protected ObjectFactory of = new ObjectFactory();
 
-	public InfoboxReadRequestType createInfoboxReadRequest() {
+	public InfoboxReadRequestType createInfoboxReadRequest(SignParameter parameter) {
 		InfoboxReadRequestType request = new InfoboxReadRequestType();
 		request.setInfoboxIdentifier("Certificates");
 		InfoboxReadParamsAssocArrayType readData = new InfoboxReadParamsAssocArrayType();
@@ -73,7 +74,7 @@ public abstract class BaseSLConnector implements ISLConnector {
 		return request;
 	}
 
-	public RequestPackage createCMSRequest(byte[] signatureData, int[] byteRange)
+	public RequestPackage createCMSRequest(byte[] signatureData, int[] byteRange, SignParameter parameter)
 			throws PDFIOException {
 		//if (base64) {
 			byte[] data = PDFUtils.blackOutSignature(signatureData, byteRange);

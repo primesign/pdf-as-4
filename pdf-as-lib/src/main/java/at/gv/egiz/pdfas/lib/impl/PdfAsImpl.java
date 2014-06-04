@@ -149,7 +149,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			status.setRequestedSignature(requestedSignature);
 
 			requestedSignature.setCertificate(status.getSignParamter()
-					.getPlainSigner().getCertificate());
+					.getPlainSigner().getCertificate(parameter));
 
 			// Only use this profileID because validation was done in
 			// RequestedSignature
@@ -168,7 +168,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			IPdfSigner signer = PdfSignerFactory.createPdfSigner();
 			signer.signPDF(status.getPdfObject(), requestedSignature,
 					new PdfboxSignerWrapper(status.getSignParamter()
-							.getPlainSigner()));
+							.getPlainSigner(), parameter));
 
 			// ================================================================
 			// Create SignResult

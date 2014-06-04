@@ -39,7 +39,7 @@ public interface IPlainSigner {
 	 * @return
 	 * @throws PdfAsException
 	 */
-	public X509Certificate getCertificate() throws PdfAsException;
+	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException;
 	
 	/**
 	 * Sign the document
@@ -48,7 +48,7 @@ public interface IPlainSigner {
 	 * @return
 	 * @throws PdfAsException
 	 */
-    public byte[] sign(byte[] input, int[] byteRange) throws PdfAsException;
+    public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException;
     
     /**
      * Gets the PDF Subfilter for this signer
