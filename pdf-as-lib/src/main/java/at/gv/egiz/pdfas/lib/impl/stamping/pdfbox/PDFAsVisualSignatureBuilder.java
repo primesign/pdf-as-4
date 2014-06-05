@@ -28,7 +28,6 @@ import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
-import org.apache.pdfbox.pdmodel.graphics.xobject.PDPixelMap;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
@@ -280,11 +279,15 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					float tx = textx;
 					if(Style.CENTER.equals(halign)) {
 						float offset  = columnWidth - maxWidth - 2 * padding;
-						offset = offset / 2.0f;
-						tx += offset;
+						if(offset > 0) {
+							offset = offset / 2.0f;
+							tx += offset;
+						}
 					} else if(Style.RIGHT.equals(halign)) {
 						float offset  = columnWidth - maxWidth - 2 * padding;
-						tx += offset;
+						if(offset > 0) {
+							tx += offset;
+						}
 					}
 					
 					logger.debug("Writing: " + tx + " : " + ty + " = "
