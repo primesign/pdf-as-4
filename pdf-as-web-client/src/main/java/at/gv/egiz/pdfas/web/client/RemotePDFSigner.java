@@ -34,11 +34,6 @@ public class RemotePDFSigner implements PDFASSigning {
 		binding.setMTOMEnabled(useMTOM);
 	}
 
-	public byte[] signPDFDokument(byte[] inputDocument,
-			PDFASSignParameters parameters) {
-		return proxy.signPDFDokument(inputDocument, parameters);
-	}
-
 	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
 		return proxy.signPDFDokument(request);
 	}

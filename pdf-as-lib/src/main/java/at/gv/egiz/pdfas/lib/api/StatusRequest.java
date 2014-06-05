@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.lib.api;
 
 import java.security.cert.CertificateException;
 
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+
 /**
  * Status of a signture process
  */
@@ -78,5 +80,7 @@ public interface StatusRequest {
 	 * @param signatureValue
 	 */
 	public void setSigature(byte[] signatureValue) ;
+
+	public SignParameter getSignParameter();
 	
 }

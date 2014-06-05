@@ -10,9 +10,9 @@ import javax.jws.soap.SOAPBinding.Style;
 @WebService
 @SOAPBinding(style = Style.RPC)
 public interface PDFASSigning {
-	@WebMethod(operationName = "sign")
-	@WebResult(name="signedPDF")
-	public byte[] signPDFDokument(@WebParam(name = "pdfDocument")byte[] inputDocument, @WebParam(name = "parameters")PDFASSignParameters parameters);
+	//@WebMethod(operationName = "sign")
+	//@WebResult(name="signedPDF")
+	//public byte[] signPDFDokument(@WebParam(name = "pdfDocument")byte[] inputDocument, @WebParam(name = "parameters")PDFASSignParameters parameters);
 	
 	@WebMethod(operationName = "signSingle")
 	@WebResult(name="signResponse")

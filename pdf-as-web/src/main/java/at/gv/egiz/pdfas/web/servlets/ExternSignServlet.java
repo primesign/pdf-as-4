@@ -238,6 +238,8 @@ public class ExternSignServlet extends HttpServlet {
 			HttpServletResponse response, byte[] pdfData) throws Exception {
 		// Get Connector
 		String connector = PdfAsParameterExtractor.getConnector(request);
+		
+		String transactionId = PdfAsParameterExtractor.getTransactionId(request);
 
 		String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
 		PdfAsHelper.setInvokeURL(request, response, invokeUrl);
@@ -278,7 +280,7 @@ public class ExternSignServlet extends HttpServlet {
 				}
 			}
 			
-			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData);
+			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector, transactionId);
 		} else if (connector.equals("jks") || connector.equals("moa")) {
 			// start synchronous siganture creation
 			

@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.web.helper;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.List;
 
@@ -57,9 +59,9 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
-import at.gv.egiz.pdfas.sigs.pkcs7detached.PKCS7DetachedSigner;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
+import at.gv.egiz.pdfas.web.servlets.UIEntryPointServlet;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -84,6 +86,7 @@ public class PdfAsHelper {
 	private static final String PDF_PROVIDE_PAGE = "/ProvidePDF";
 	private static final String PDF_PDFDATA_PAGE = "/PDFData";
 	private static final String PDF_DATAURL_PAGE = "/DataURL";
+	private static final String PDF_USERENTRY_PAGE = "/userentry";
 	private static final String PDF_ERR_URL = "PDF_ERR_URL";
 	private static final String PDF_FILE_NAME = "PDF_FILE_NAME";
 	private static final String PDF_INVOKE_URL = "PDF_INVOKE_URL";
@@ -384,7 +387,8 @@ public class PdfAsHelper {
 	}
 	
 	public static void startSignature(HttpServletRequest request,
-			HttpServletResponse response, ServletContext context, byte[] pdfData)
+			HttpServletResponse response, ServletContext context, byte[] pdfData, 
+			String connector, String transactionId)
 			throws Exception {
 
 		// TODO: Protect session so that only one PDF can be signed during one
@@ -409,9 +413,10 @@ public class PdfAsHelper {
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
 				new ByteArrayDataSource(pdfData));
 
-		// Get Connector
-		String connector = PdfAsParameterExtractor.getConnector(request);
-
+		logger.info("Setting TransactionID: " + transactionId);
+		
+		signParameter.setTransactionId(transactionId);
+		
 		IPlainSigner signer;
 		if (connector.equals("bku") || connector.equals("onlinebku")
 				|| connector.equals("mobilebku")) {
@@ -535,7 +540,7 @@ public class PdfAsHelper {
 				logger.debug("Needing Certificate from BKU");
 				// build SL Request to read certificate
 				InfoboxReadRequestType readCertificateRequest = bkuSLConnector
-						.createInfoboxReadRequest();
+						.createInfoboxReadRequest(statusRequest.getSignParameter());
 
 				JAXBElement<InfoboxReadRequestType> readRequest = of
 						.createInfoboxReadRequest(readCertificateRequest);
@@ -548,6 +553,14 @@ public class PdfAsHelper {
 				template = template.replace("##XMLRequest##",
 						StringEscapeUtils.escapeHtml4(slRequest));
 				template = template.replace("##DataURL##", url);
+				
+				if(statusRequest.getSignParameter().getTransactionId() != null) {
+					template = template.replace("##ADDITIONAL##", "<input type=\"hidden\" name=\"TransactionId_\" value=\"" + 
+							StringEscapeUtils.escapeHtml4(statusRequest.getSignParameter().getTransactionId()) + "\">");
+				} else {
+					template = template.replace("##ADDITIONAL##", "");
+				}
+				
 				response.getWriter().write(template);
 				//TODO: set content type of response!!
 				response.setContentType("text/html");
@@ -557,7 +570,8 @@ public class PdfAsHelper {
 				// build SL Request for cms signature
 				RequestPackage pack = bkuSLConnector
 						.createCMSRequest(statusRequest.getSignatureData(),
-								statusRequest.getSignatureDataByteRange());
+								statusRequest.getSignatureDataByteRange(), 
+								statusRequest.getSignParameter());
 
 				String slRequest = SLMarschaller
 						.marshalToString(of
@@ -774,6 +788,22 @@ public class PdfAsHelper {
 	public static String generatePdfURL(HttpServletRequest request,
 			HttpServletResponse response) {
 		return generateURL(request, response, PDF_PDFDATA_PAGE);
+	}
+	
+	public static String generateUserEntryURL(String storeId) {
+		String publicURL = WebConfiguration.getPublicURL();
+		if(publicURL == null) {
+			logger.error("To use this functionality " + WebConfiguration.PUBLIC_URL + " has to be configured in the web configuration");
+			return null;
+		}
+		
+		String baseURL = publicURL + PDF_USERENTRY_PAGE;
+		try {
+			return baseURL + "?" + UIEntryPointServlet.REQUEST_ID_PARAM + "=" + URLEncoder.encode(storeId, "UTF-8");
+		} catch(UnsupportedEncodingException e) {
+			logger.warn("Encoding not supported for URL encoding", e);
+		}
+		return baseURL + "?" + UIEntryPointServlet.REQUEST_ID_PARAM + "=" + storeId;
 	}
 
 	public static String generateBKUURL(String connector) {

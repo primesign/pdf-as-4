@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 public class PdfAsParameterExtractor {
 
 	public static final String PARAM_CONNECTOR = "connector";
+	public static final String PARAM_TRANSACTION_ID = "transactionId";
 	public static final String PARAM_CONNECTOR_DEFAULT = "bku";
 	
 	
@@ -51,6 +52,11 @@ public class PdfAsParameterExtractor {
 			return connector;
 		} 
 		return PARAM_CONNECTOR_DEFAULT;
+	}
+	
+	public static String getTransactionId(HttpServletRequest request) {
+		String transactionId = (String)request.getAttribute(PARAM_TRANSACTION_ID);
+		return transactionId;
 	}
 	
 	public static String getInvokeURL(HttpServletRequest request) {

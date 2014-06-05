@@ -16,6 +16,7 @@ public class PDFASSignResponse implements Serializable {
 	String requestID;
 	String error;
 	byte[] signedPDF;
+	String redirectUrl;
 	
 	@XmlElement(required = true, nillable = false, name="requestID")
 	public String getRequestID() {
@@ -39,5 +40,13 @@ public class PDFASSignResponse implements Serializable {
 	}
 	public void setError(String error) {
 		this.error = error;
+	}
+	
+	@XmlElement(required = false, name="redirectUrl")
+	public String getRedirectUrl() {
+		return redirectUrl;
+	}
+	public void setRedirectUrl(String redirectUrl) {
+		this.redirectUrl = redirectUrl;
 	}
 }

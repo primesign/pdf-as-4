@@ -15,8 +15,26 @@ public class PDFASSignParameters implements Serializable {
 
 	@XmlType(name="Connector")
 	public enum Connector {
-		JKS,
-		MOA
+		JKS("jks"),
+		MOA("moa"),
+		BKU("bku"),
+		MOBILEBKU("mobilebku"),
+		ONLINEBKU("onlinebku");
+		
+		
+		private final String name;       
+
+	    private Connector(String s) {
+	        name = s;
+	    }
+
+	    public boolean equalsName(String otherName){
+	        return (otherName == null)? false:name.equals(otherName);
+	    }
+
+	    public String toString(){
+	       return name;
+	    }
 	}
 	
 	
@@ -24,8 +42,9 @@ public class PDFASSignParameters implements Serializable {
 	
 	
 	String position;
-	
-	
+	String invokeUrl;
+	String invokeErrorUrl;
+	String transactionId;
 	String profile;
 	
 	@XmlElement(required = true, nillable = false, name="connector")
@@ -53,6 +72,28 @@ public class PDFASSignParameters implements Serializable {
 		this.profile = profile;
 	}
 	
+	@XmlElement(required = false, nillable = true, name="invoke-url")
+	public String getInvokeURL() {
+		return invokeUrl;
+	}
+	public void setInvokeURL(String invokeUrl) {
+		this.invokeUrl = invokeUrl;
+	}
 	
+	@XmlElement(required = false, nillable = true, name="invoke-error-url")
+	public String getInvokeErrorURL() {
+		return invokeErrorUrl;
+	}
+	public void setInvokeErrorURL(String invokeErrorUrl) {
+		this.invokeErrorUrl = invokeErrorUrl;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="transactionId")
+	public String getTransactionId() {
+		return transactionId;
+	}
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
+	}
 	
 }

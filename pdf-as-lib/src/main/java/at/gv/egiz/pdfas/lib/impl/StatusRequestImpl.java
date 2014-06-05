@@ -28,6 +28,7 @@ import iaik.x509.X509Certificate;
 import java.security.cert.CertificateException;
 
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 public class StatusRequestImpl implements StatusRequest {
@@ -105,4 +106,10 @@ public class StatusRequestImpl implements StatusRequest {
 	public void setSigature(byte[] signatureValue) {
 		this.encodedSignature = signatureValue;
 	}
+
+	public SignParameter getSignParameter() {
+		return this.status.getSignParamter();
+	}
+	
+	
 }

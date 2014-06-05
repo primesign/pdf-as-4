@@ -56,6 +56,9 @@ public class WebConfiguration {
 	public static final String WHITELIST_ENABLED = "whitelist.enabled";
 	public static final String WHITELIST_VALUE_PRE = "whitelist.url.";
 	
+	public static final String REQUEST_STORE = "request.store";
+	public static final String REQUEST_STORE_INMEM = "at.gv.egiz.pdfas.web.store.InMemoryRequestStore";
+	
 	private static Properties properties = new Properties();
 	
 	private static final Logger logger = LoggerFactory
@@ -210,5 +213,15 @@ public class WebConfiguration {
 			return false;
 		}
 		return true;
+	}
+	
+	public static String getStoreClass() {
+		String cls = properties.getProperty(REQUEST_STORE);
+		
+		if(cls != null) {
+			return cls;
+		}
+		
+		return REQUEST_STORE_INMEM;
 	}
 }

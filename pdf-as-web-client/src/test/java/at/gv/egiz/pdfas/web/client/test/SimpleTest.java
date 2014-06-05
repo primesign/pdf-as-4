@@ -24,7 +24,7 @@ public class SimpleTest {
 			byte[] inputData = IOUtils.readFully(fis, -1, true);
 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
-			signParameters.setConnector(Connector.JKS);
+			signParameters.setConnector(Connector.BKU);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_DE");
 
@@ -42,8 +42,14 @@ public class SimpleTest {
 
 			RemotePDFSigner signer = new RemotePDFSigner(endpoint, false);
 
+			PDFASSignRequest signrequest = new PDFASSignRequest();
+			signrequest.setInputData(inputData);
+			signrequest.setParameters(signParameters);
+			signParameters.setTransactionId("MYID ....");
 			System.out.println("Simple Request:"); 
-			byte[] outputFile = signer.signPDFDokument(inputData, signParameters);
+			PDFASSignResponse response = signer.signPDFDokument(signrequest);
+			
+			System.out.println("User URL: " + response.getRedirectUrl());
 			
 			/*
 			 * System.out.println("Simple Request:"); byte[] outputFile =

@@ -16,8 +16,10 @@ import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
+import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.store.RequestStore;
 
 @MTOM
 @WebService(endpointInterface = "at.gv.egiz.pdfas.api.ws.PDFASSigning")
@@ -25,7 +27,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFASSigningImpl.class);
-
+	
 	public byte[] signPDFDokument(byte[] inputDocument,
 			PDFASSignParameters parameters) {
 		checkSoapSignEnabled();
@@ -50,8 +52,24 @@ public class PDFASSigningImpl implements PDFASSigning {
 		}
 		PDFASSignResponse response = new PDFASSignResponse();
 		try {
-			response.setSignedPDF(signPDFDokument(request.getInputData(),
+			if(request.getParameters().getConnector().equals(Connector.MOA) || 
+					request.getParameters().getConnector().equals(Connector.JKS)) {
+				// Plain server based signatures!!
+				response.setSignedPDF(signPDFDokument(request.getInputData(),
 					request.getParameters()));
+			} else {
+				// Signatures with user interaction!!
+				String id = RequestStore.getInstance().createNewStoreEntry(request);
+				String userEntryURL = PdfAsHelper.generateUserEntryURL(id);
+				logger.debug("Generated request store: " + id);
+				logger.debug("Generated UI URL: " + userEntryURL);
+				
+				if(userEntryURL == null) {
+					throw new WebServiceException("Failed to generate User Entry URL");
+				}
+				
+				response.setRedirectUrl(userEntryURL);
+			}
 		} catch (Throwable e) {
 			if (e.getCause() != null) {
 				response.setError(e.getCause().getMessage());
