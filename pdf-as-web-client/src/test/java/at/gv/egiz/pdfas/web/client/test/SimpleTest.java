@@ -1,14 +1,9 @@
 package at.gv.egiz.pdfas.web.client.test;
 
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import sun.misc.IOUtils;
-import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
-import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
@@ -24,7 +19,7 @@ public class SimpleTest {
 			byte[] inputData = IOUtils.readFully(fis, -1, true);
 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
-			signParameters.setConnector(Connector.BKU);
+			signParameters.setConnector(Connector.ONLINEBKU);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_DE");
 
@@ -33,12 +28,12 @@ public class SimpleTest {
 			request.setParameters(signParameters);
 			request.setRequestID("SOME TEST ID");
 
-			// URL endpoint = new
-			// URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
+			URL endpoint = new
+			URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
 			//URL endpoint = new URL(
 			//		"http://localhost:8080/pdf-as-web/wssign?wsdl");
-			URL endpoint = new URL(
-					"http://192.168.56.10/pdf-as-web/wssign?wsdl");
+			//URL endpoint = new URL(
+			//		"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
 			RemotePDFSigner signer = new RemotePDFSigner(endpoint, false);
 
