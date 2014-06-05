@@ -139,7 +139,7 @@ public class PdfAsHelper {
 		}
 	}
 
-	private static String buildPosString(HttpServletRequest request,
+	public static String buildPosString(HttpServletRequest request,
 			HttpServletResponse response) throws PdfAsWebException {
 		String posP = PdfAsParameterExtractor.getSigPosP(request);
 		String posX = PdfAsParameterExtractor.getSigPosX(request);
@@ -388,7 +388,7 @@ public class PdfAsHelper {
 	
 	public static void startSignature(HttpServletRequest request,
 			HttpServletResponse response, ServletContext context, byte[] pdfData, 
-			String connector, String transactionId)
+			String connector, String position, String transactionId)
 			throws Exception {
 
 		// TODO: Protect session so that only one PDF can be signed during one
@@ -441,7 +441,7 @@ public class PdfAsHelper {
 		signParameter.setOutput(dataSink);
 
 		// set Signature Position
-		signParameter.setSignaturePosition(buildPosString(request, response));
+		signParameter.setSignaturePosition(position);
 
 		StatusRequest statusRequest = pdfAs.startSign(signParameter);
 		session.setAttribute(PDF_STATUS, statusRequest);

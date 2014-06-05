@@ -103,7 +103,8 @@ public class UIEntryPointServlet extends HttpServlet {
 				}
 				
 				PdfAsHelper.startSignature(req, resp, getServletContext(), pdfAsRequest.getInputData(), 
-						connector.toString(), pdfAsRequest.getParameters().getTransactionId());
+						connector.toString(), pdfAsRequest.getParameters().getPosition(), 
+						pdfAsRequest.getParameters().getTransactionId());
 			} else {
 				throw new PdfAsWebException("Invalid connector (" + Connector.BKU + " | " + Connector.ONLINEBKU + " | " + Connector.MOBILEBKU + ")");
 			}
