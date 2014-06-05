@@ -388,7 +388,7 @@ public class PdfAsHelper {
 	
 	public static void startSignature(HttpServletRequest request,
 			HttpServletResponse response, ServletContext context, byte[] pdfData, 
-			String connector, String position, String transactionId)
+			String connector, String position, String transactionId, String profile)
 			throws Exception {
 
 		// TODO: Protect session so that only one PDF can be signed during one
@@ -434,8 +434,7 @@ public class PdfAsHelper {
 		session.setAttribute(PDF_SL_INTERACTIVE, connector);
 
 		// set Signature Profile (null use default ...)
-		signParameter.setSignatureProfileId(PdfAsParameterExtractor
-				.getSigType(request));
+		signParameter.setSignatureProfileId(profile);
 
 		ByteArrayDataSink dataSink = new ByteArrayDataSink();
 		signParameter.setOutput(dataSink);

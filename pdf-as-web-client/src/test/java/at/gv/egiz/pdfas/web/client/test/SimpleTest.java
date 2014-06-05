@@ -15,25 +15,27 @@ public class SimpleTest {
 	public static void main(String[] args) {
 		try {
 			FileInputStream fis = new FileInputStream(
-					"/home/afitzek/Documents/arm_arm.pdf");
+					"/home/afitzek/simple.pdf");
 			byte[] inputData = IOUtils.readFully(fis, -1, true);
 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
-			signParameters.setConnector(Connector.ONLINEBKU);
+			signParameters.setConnector(Connector.BKU);
 			signParameters.setPosition(null);
-			signParameters.setProfile("SIGNATURBLOCK_DE");
+			signParameters.setProfile("SIGNATURBLOCK_SMALL_DE");
 
 			PDFASSignRequest request = new PDFASSignRequest();
 			request.setInputData(inputData);
 			request.setParameters(signParameters);
 			request.setRequestID("SOME TEST ID");
 
-			URL endpoint = new
-			URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
+			//URL endpoint = new
+			//URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
+			//URL endpoint = new
+			//		URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
 			//URL endpoint = new URL(
 			//		"http://localhost:8080/pdf-as-web/wssign?wsdl");
-			//URL endpoint = new URL(
-			//		"http://192.168.56.10/pdf-as-web/wssign?wsdl");
+			URL endpoint = new URL(
+					"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
 			RemotePDFSigner signer = new RemotePDFSigner(endpoint, false);
 
@@ -41,6 +43,7 @@ public class SimpleTest {
 			signrequest.setInputData(inputData);
 			signrequest.setParameters(signParameters);
 			signParameters.setTransactionId("MYID ....");
+			signParameters.setPosition("f:80;w:230;p:2");
 			System.out.println("Simple Request:"); 
 			PDFASSignResponse response = signer.signPDFDokument(signrequest);
 			
