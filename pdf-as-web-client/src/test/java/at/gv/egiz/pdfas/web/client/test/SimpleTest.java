@@ -19,7 +19,7 @@ public class SimpleTest {
 			byte[] inputData = IOUtils.readFully(fis, -1, true);
 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
-			signParameters.setConnector(Connector.BKU);
+			signParameters.setConnector(Connector.MOBILEBKU);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_SMALL_DE");
 
@@ -30,12 +30,12 @@ public class SimpleTest {
 
 			//URL endpoint = new
 			//URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
-			//URL endpoint = new
-			//		URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
+			URL endpoint = new
+					URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
 			//URL endpoint = new URL(
 			//		"http://localhost:8080/pdf-as-web/wssign?wsdl");
-			URL endpoint = new URL(
-					"http://192.168.56.10/pdf-as-web/wssign?wsdl");
+			//URL endpoint = new URL(
+			//		"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
 			RemotePDFSigner signer = new RemotePDFSigner(endpoint, false);
 
