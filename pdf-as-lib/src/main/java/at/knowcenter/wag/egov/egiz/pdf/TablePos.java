@@ -158,6 +158,138 @@ public class TablePos implements Serializable
     //nothing to do --> default
   } 
   
+  private void parsePosString(String pos_string) throws PdfAsException {
+	//parse posstring and throw exception
+		//[x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo]
+		
+		String[] strs = pos_string.split(";");
+		try
+		{
+		  for (int cmds = 0;cmds<strs.length;cmds++)
+		  {
+			 
+			 String cmd_kvstring = strs[cmds];
+			 String[] cmd_kv = cmd_kvstring.split(":");
+			 if (cmd_kv.length != 2)
+			 {
+				 throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
+			 }
+			 String cmdstr =  cmd_kv[0];
+			 if (cmdstr.length() != 1)
+			 {
+				 throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
+			 }		 
+			 char command = cmdstr.charAt(0);
+		     String commandval= cmd_kv[1];
+		     switch (command)
+		     {
+		     	case 'x': {
+		     		         if (!commandval.equalsIgnoreCase("auto"))
+		     		         {  
+		     		        	float xval= Float.parseFloat(commandval);
+		     		            if (xval<0)
+		     		            {
+		     		            	throw new PdfAsException("Pos string (x:" + xval + ") is invalid.");
+		     		            }	     		          
+		     		        	this.pos_x = xval;
+		     		        	this.autoX = false; 
+		     		         }	     		         
+		     		         break;
+		     			  }	
+		     	case 'y': {
+			         		if (!commandval.equalsIgnoreCase("auto"))
+			         		{
+			         			float yval= Float.parseFloat(commandval);
+		     		            if (yval<0)
+		     		            {
+		     		            	throw new PdfAsException("Pos string (y:" + yval + ") is invalid.");
+		     		            }			         			
+			         			this.pos_y = yval;
+			         			this.autoY = false; 
+			         		}	     		         
+			         		break;
+		     			  }		
+		     	case 'w': { 
+	         				if (!commandval.equalsIgnoreCase("auto"))
+	         				{    
+			         			float wval= Float.parseFloat(commandval);
+		     		            if (wval<=0)
+		     		            {
+		     		            	throw new PdfAsException("pos.width (w:" + wval + ") must not be lower or equal 0.");
+		     		            }        					
+	         					this.width = wval;
+	         					this.autoW = false; 
+	         				}	     		         
+	         				break;
+	      				  }
+		     	case 'p': {
+	 						if (!commandval.equalsIgnoreCase("auto"))
+	 						{ 
+	 							if (commandval.equalsIgnoreCase("new"))
+	 							{ 								
+	 								this.newpage = true;
+	 							}
+	 							else
+	 							{
+	 								int pval = Integer.parseInt(commandval);
+	 								if (pval<1)
+	 								{
+	 									throw new PdfAsException("Page (p:" + pval + ") must not be lower than 1.");
+	 								}
+	 								this.page = pval;
+	 								this.autoP = false;
+	 							}
+	 						}						     		       
+	 						break;
+	      				  }
+		     	case 'f': {
+		     		        float flval=Float.parseFloat(commandval);
+	     		            if (flval<0)
+	     		            {
+	     		            	throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
+	     		            } 	     		        
+		     				this.footer_line = flval;
+		     				break;
+		     			  }
+		     	case 'r': {
+	 		        		float flval=Float.parseFloat(commandval);
+	 		        		// TODO: check rotation to be only multiples of 90 degrees
+	 		        		if (flval<0)
+	 		        		{
+	 		        			throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
+	 		        		} 	     		        
+	 		        		this.rotation = flval;
+	 		        		break;
+	 			  }
+		     	default : {
+			                throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
+		                  }
+		     }
+		  }
+		  this.myposstring=pos_string;
+	    }
+	    catch (NumberFormatException e)
+	    {
+	      throw new PdfAsException("Pos string (=" + pos_string + ") cannot be parsed.");
+	    }
+  }
+  
+  private void readFromPos(TablePos base) {
+	  this.autoP = base.autoP;
+	  this.autoW = base.autoW;
+	  this.autoX = base.autoX;
+	  this.autoY = base.autoY;
+	  
+	  this.footer_line = base.footer_line;
+	  this.myposstring = base.myposstring;
+	  this.newpage = base.newpage;
+	  this.page = base.page;
+	  this.pos_x = base.pos_x;
+	  this.pos_y = base.pos_y;
+	  this.rotation  = base.rotation;
+	  this.width = base.width;
+  }
+  
   /**
    * Constructor.
    * 
@@ -178,120 +310,35 @@ public class TablePos implements Serializable
    */
   public TablePos(String pos_string) throws PdfAsException
   {
-    //parse posstring and throw exception
-	//[x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo]
-	
-	String[] strs = pos_string.split(";");
-	try
-	{
-	  for (int cmds = 0;cmds<strs.length;cmds++)
-	  {
-		 
-		 String cmd_kvstring = strs[cmds];
-		 String[] cmd_kv = cmd_kvstring.split(":");
-		 if (cmd_kv.length != 2)
-		 {
-			 throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
-		 }
-		 String cmdstr =  cmd_kv[0];
-		 if (cmdstr.length() != 1)
-		 {
-			 throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
-		 }		 
-		 char command = cmdstr.charAt(0);
-	     String commandval= cmd_kv[1];
-	     switch (command)
-	     {
-	     	case 'x': {
-	     		         if (!commandval.equalsIgnoreCase("auto"))
-	     		         {  
-	     		        	float xval= Float.parseFloat(commandval);
-	     		            if (xval<0)
-	     		            {
-	     		            	throw new PdfAsException("Pos string (x:" + xval + ") is invalid.");
-	     		            }	     		          
-	     		        	this.pos_x = xval;
-	     		        	this.autoX = false; 
-	     		         }	     		         
-	     		         break;
-	     			  }	
-	     	case 'y': {
-		         		if (!commandval.equalsIgnoreCase("auto"))
-		         		{
-		         			float yval= Float.parseFloat(commandval);
-	     		            if (yval<0)
-	     		            {
-	     		            	throw new PdfAsException("Pos string (y:" + yval + ") is invalid.");
-	     		            }			         			
-		         			this.pos_y = yval;
-		         			this.autoY = false; 
-		         		}	     		         
-		         		break;
-	     			  }		
-	     	case 'w': { 
-         				if (!commandval.equalsIgnoreCase("auto"))
-         				{    
-		         			float wval= Float.parseFloat(commandval);
-	     		            if (wval<=0)
-	     		            {
-	     		            	throw new PdfAsException("pos.width (w:" + wval + ") must not be lower or equal 0.");
-	     		            }        					
-         					this.width = wval;
-         					this.autoW = false; 
-         				}	     		         
-         				break;
-      				  }
-	     	case 'p': {
- 						if (!commandval.equalsIgnoreCase("auto"))
- 						{ 
- 							if (commandval.equalsIgnoreCase("new"))
- 							{ 								
- 								this.newpage = true;
- 							}
- 							else
- 							{
- 								int pval = Integer.parseInt(commandval);
- 								if (pval<1)
- 								{
- 									throw new PdfAsException("Page (p:" + pval + ") must not be lower than 1.");
- 								}
- 								this.page = pval;
- 								this.autoP = false;
- 							}
- 						}						     		       
- 						break;
-      				  }
-	     	case 'f': {
-	     		        float flval=Float.parseFloat(commandval);
-     		            if (flval<0)
-     		            {
-     		            	throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
-     		            } 	     		        
-	     				this.footer_line = flval;
-	     				break;
-	     			  }
-	     	case 'r': {
- 		        		float flval=Float.parseFloat(commandval);
- 		        		// TODO: check rotation to be only multiples of 90 degrees
- 		        		if (flval<0)
- 		        		{
- 		        			throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
- 		        		} 	     		        
- 		        		this.rotation = flval;
- 		        		break;
- 			  }
-	     	default : {
-		                throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
-	                  }
-	     }
-	  }
-	  this.myposstring=pos_string;
-    }
-    catch (NumberFormatException e)
-    {
-      throw new PdfAsException("Pos string (=" + pos_string + ") cannot be parsed.");
-    }
+    parsePosString(pos_string);
   }
+  
+  /**
+   * Constructor
+   * @param pos_string The pos instruction.
+   * 		format : [x:x_algo];[y:y_algo];[w:w_algo][p:p_algo];[f:f_algo];[r:r_algo]
+   *        x_algo:='auto'     ... automatic positioning x
+   *                floatvalue ... absolute x
+   *        y_algo:='auto'     ... automatic positioning y
+   *                floatvalue ... absolute y
+   *        w_algo:='auto'     ... automatic width
+   *                floatvalue ... absolute width    
+   *        p_algo:='auto'     ... automatic last page
+   *                'new'      ... new page  
+   *                intvalue   ... pagenumber
+   *        f_algo  floatvalue ... consider footerline (only if y_algo is auto and p_algo is not 'new')
+   *        r_algo  floatvalue ... rotate the table arround the lower left corner anti clockwise in degree
+   * @param basePosition The base Table Position these values are the base values
+   * @throws PdfAsException
+   */
+  public TablePos(String pos_string, TablePos basePosition) throws PdfAsException
+  {
+	  if(basePosition != null) {
+		  readFromPos(basePosition);
+	  }
+	  parsePosString(pos_string);
+  }
+  
   public String toString()
   {  
 	 String thatsme = "cmd:"+this.myposstring+" pos_x:"+this.pos_x+" pos_y:"+this.pos_y+" page:"+this.page+" width:"+this.width+" footer:"+this.footer_line+" rotation:"+this.rotation+"\n "+" autoX:"+this.autoX+" autoY:"+this.autoY+" autoW:"+this.autoW+" Newpage:"+this.newpage+" autoP:"+this.autoP; 

@@ -52,7 +52,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			.getLogger(PDFAsVisualSignatureBuilder.class);
 
 	private void drawTable(PDPage page, PDPageContentStream contentStream,
-			float x, float y, PDFBoxTable abstractTable, PDDocument doc,
+			float x, float y, float width, float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable) throws IOException, PdfAsException {
 
 		final int rows = abstractTable.getRowCount();
@@ -109,9 +109,9 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			for (int i = 0; i < rows; i++) {
 				ArrayList<Entry> row = abstractTable.getRow(i);
 				// Draw row border!
-				logger.debug("ROW LINE: {} {} {} {}", x, nexty, x + tableWidth,
+				logger.debug("ROW LINE: {} {} {} {}", x, nexty, x + width,
 						nexty);
-				contentStream.drawLine(x, nexty, x + tableWidth, nexty);
+				contentStream.drawLine(x, nexty, x + width, nexty);
 				lasty = nexty;
 				if (i < abstractTable.getRowHeights().length) {
 					nexty -= abstractTable.getRowHeights()[i] + padding * 2;
@@ -144,7 +144,9 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 						}
 					}
 				}
-				contentStream.drawLine(nextx, lasty, nextx, nexty);
+				if(!subtable) {
+					contentStream.drawLine(nextx, lasty, nextx, nexty);
+				}
 			}
 			
 			contentStream.drawLine(x, nexty, x + tableWidth, nexty);
@@ -359,8 +361,10 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					tbl_value.table.setStyle(inherit_styletab);
 					
 					logger.debug("Table: " + tableX + " : " + tableY);
-					drawTable(page, contentStream, tableX, tableY, tbl_value,
-							doc, true);
+					drawTable(page, contentStream, tableX, tableY, 
+							(colsSizes != null) ? colsSizes[j] : colWidth, 
+							abstractTable.getRowHeights()[i] + padding * 2,
+							tbl_value, doc, true);
 				}
 				textx += (colsSizes != null) ? colsSizes[j] : colWidth;
 			}
@@ -379,6 +383,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	}
 
 	private PDFAsVisualSignatureProperties properties;
+	private PDFAsVisualSignatureDesigner designer;
 	private ISettings settings;
 	private PDResources innerFormResources;
 	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
@@ -396,9 +401,11 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 	}
 
 	public PDFAsVisualSignatureBuilder(
-			PDFAsVisualSignatureProperties properties, ISettings settings) {
+			PDFAsVisualSignatureProperties properties, ISettings settings, 
+			PDFAsVisualSignatureDesigner designer) {
 		this.properties = properties;
 		this.settings = settings;
+		this.designer = designer;
 	}
 
 	@Override
@@ -541,8 +548,8 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			PDPageContentStream stream = new PDPageContentStream(template,
 					getStructure().getPage());
 			// stream.setFont(PDType1Font.COURIER, 5);
-
 			drawTable(getStructure().getPage(), stream, 1, 1,
+					designer.getWidth(), designer.getHeight(),
 					properties.getMainTable(), template, false);
 			stream.close();
 			PDStream innterFormStream = getStructure().getPage().getContents();
