@@ -6,7 +6,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -308,6 +310,47 @@ public class PDFBoxTable {
 		}
 		return v;
 	}
+	
+	private String[] breakString(String value, float maxwidth, PDFont font, float fontSize) throws IOException {
+		String[] words = value.split(" ");
+		List<String> lines = new ArrayList<String>();
+		String cLineValue = "";
+		for (int i = 0; i < words.length; i++) {
+			String word = words[i];
+			String[] lineBreaks = word.split("\n");
+			if (lineBreaks.length > 1) {
+				for (int j = 0; j < lineBreaks.length; j++) {
+					String subword = lineBreaks[j];
+					// if (cLine + subword.length() > maxline) {
+					if(j == 0 && word.startsWith("\n")) {
+						lines.add(cLineValue.trim());
+						cLineValue = "";
+					} else if(j != 0) {
+						lines.add(cLineValue.trim());
+						cLineValue = "";
+					}
+					// }
+					String tmpLine = cLineValue + subword;
+					float size = font.getStringWidth(tmpLine) / 1000.0f * fontSize;
+					if (size > maxwidth && cLineValue.length() != 0) {
+						lines.add(cLineValue.trim());
+						cLineValue = "";
+					}
+					cLineValue += subword + " ";
+				}
+			} else {
+				String tmpLine = cLineValue + word;
+				float size = font.getStringWidth(tmpLine) / 1000.0f * fontSize;
+				if (size > maxwidth && cLineValue.length() != 0) {
+					lines.add(cLineValue.trim());
+					cLineValue = "";
+				}
+				cLineValue += word + " ";
+			}
+		}
+		lines.add(cLineValue.trim());
+		return lines.toArray(new String[0]);
+	}
 
 	private String[] breakString(String value, int maxline) {
 		String[] words = value.split(" ");
@@ -393,11 +436,14 @@ public class PDFBoxTable {
 				c = font.getFont(null);
 				fontSize = font.getFontSize();
 			}
-			
+			/*
 			float fwidth;
 			if (c instanceof PDType1Font) {
 				fwidth = c.getFontDescriptor().getFontBoundingBox().getWidth()
-						/ 1000.0f * fontSize;
+						/ 1000.0f * fontSize * 0.9f;
+			} else if (c instanceof PDTrueTypeFont) {
+				PDTrueTypeFont t = (PDTrueTypeFont)c;
+				fwidth = t.getAverageFontWidth() / 1000.0f * fontSize;
 			} else {
 				fwidth = c.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f * fontSize;
 				fwidth = fwidth / (float)"abcdefghijklmnopqrstuvwxyz".length();
@@ -405,14 +451,14 @@ public class PDFBoxTable {
 
 			logger.debug("Font Width: {}", fwidth);
 			int maxcharcount = (int) ((width - padding * 2) / fwidth) - 1;
-			logger.debug("Max {} chars per line!", maxcharcount);
+			logger.debug("Max {} chars per line!", maxcharcount); */
 			float fheight = c.getFontDescriptor().getFontBoundingBox()
 					.getHeight()
-					/ 1000 * fontSize;
+					/ 1000 * fontSize * 0.9f;
 
-			String[] lines = breakString(string, maxcharcount);
+			String[] lines = breakString(string, (width - padding * 2.0f), c, fontSize);
 			cell.setValue(concatLines(lines));
-			return fheight * lines.length;
+			return fheight * lines.length;// - padding;
 		case Entry.TYPE_IMAGE:
 			if(style != null && style.getImageScaleToFit() != null) {
 				if( style.getImageScaleToFit().getHeight() < width) {

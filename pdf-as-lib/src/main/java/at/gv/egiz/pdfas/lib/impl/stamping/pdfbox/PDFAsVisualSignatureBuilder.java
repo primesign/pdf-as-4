@@ -209,7 +209,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					}
 
 					String text = (String) cell.getValue();
-					float ttexty = texty - padding - fontSize;
+					float ttexty = texty - fontSize - padding * 0.5f;
 					// COSName name = COSName.getPDFName("ANDI_TAG!");
 					// contentStream.beginMarkedContentSequence(COSName.ALT,
 					// name);
@@ -260,17 +260,18 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 					float columnWidth = (colsSizes != null) ? colsSizes[j] : colWidth;
 					float maxWidth = 0;
 					for (int k = 0; k < tlines.length; k++) {
-						
-						float fwidth;
+						float lineWidth;
 						if (textFont instanceof PDType1Font) {
-							fwidth = textFont.getFontDescriptor().getFontBoundingBox().getWidth()
-									/ 1000.0f * fontSize;
+							lineWidth = textFont.getStringWidth(tlines[k]) / 1000.0f * fontSize;
+							//fwidth = textFont.getFontDescriptor().getFontBoundingBox().getWidth()
+							//		/ 1000.0f * fontSize;
 						} else {
-							fwidth = textFont.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f * fontSize;
+							float fwidth = textFont.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f * fontSize;
 							fwidth = fwidth / (float)"abcdefghijklmnopqrstuvwxyz".length();
+							lineWidth = tlines[k].length() * fwidth;
 						}
 						
-						float lineWidth = tlines[k].length() * fwidth;
+						 
 						
 						//float w = textFont.getStringWidth(tlines[k]) / 1000 * fontSize;
 						if (maxWidth < lineWidth) {
