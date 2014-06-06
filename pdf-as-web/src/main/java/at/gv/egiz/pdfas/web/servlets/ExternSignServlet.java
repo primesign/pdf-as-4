@@ -247,6 +247,9 @@ public class ExternSignServlet extends HttpServlet {
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
 		
+		String locale = PdfAsParameterExtractor.getLocale(request);
+		PdfAsHelper.setLocale(request, response, locale);
+		
 		if(pdfData == null) {
 			throw new PdfAsException("No Signature data available");
 		}

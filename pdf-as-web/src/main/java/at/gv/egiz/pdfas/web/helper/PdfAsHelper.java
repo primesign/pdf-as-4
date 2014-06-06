@@ -80,6 +80,7 @@ public class PdfAsHelper {
 	private static final String PDF_SIGNER = "PDF_SIGNER";
 	private static final String PDF_SL_INTERACTIVE = "PDF_SL_INTERACTIVE";
 	private static final String PDF_SIGNED_DATA = "PDF_SIGNED_DATA";
+	private static final String PDF_LOCALE = "PDF_LOCALE";
 	private static final String PDF_ERR_MESSAGE = "PDF_ERR_MESSAGE";
 	private static final String PDF_ERR_THROWABLE = "PDF_ERR_THROWABLE";
 	private static final String PDF_ERROR_PAGE = "/ErrorPage";
@@ -547,11 +548,13 @@ public class PdfAsHelper {
 				String url = generateDataURL(request, response);
 				String slRequest = SLMarschaller.marshalToString(readRequest);
 				String template = getTemplateSL();
+				String locale = getLocale(request, response);
 				template = template.replace("##BKU##",
 						generateBKUURL(connector));
 				template = template.replace("##XMLRequest##",
 						StringEscapeUtils.escapeHtml4(slRequest));
 				template = template.replace("##DataURL##", url);
+				template = template.replace("##LOCALE##", locale);
 				
 				if(statusRequest.getSignParameter().getTransactionId() != null) {
 					template = template.replace("##ADDITIONAL##", "<input type=\"hidden\" name=\"TransactionId_\" value=\"" + 
@@ -657,6 +660,19 @@ public class PdfAsHelper {
 			HttpServletResponse response, byte[] signedData) {
 		HttpSession session = request.getSession();
 		session.setAttribute(PDF_SIGNED_DATA, signedData);
+	}
+	
+	public static void setLocale(HttpServletRequest request,
+			HttpServletResponse response, String locale) {
+		HttpSession session = request.getSession();
+		session.setAttribute(PDF_LOCALE, locale);
+	}
+
+	public static String getLocale(HttpServletRequest request,
+			HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(PDF_LOCALE);
+		return obj == null ? "DE" : obj.toString();
 	}
 
 	public static void setSessionException(HttpServletRequest request,
