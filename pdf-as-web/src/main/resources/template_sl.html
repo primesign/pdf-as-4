@@ -31,7 +31,17 @@ div.content {
 }
 </style>
 <script language="javascript" type="text/javascript">
+                        function adaptWindowSizes() {
+                        	var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 221)
+                        	var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 221)
+                        	var appletWidth = document.getElementById("appletWidth");
+                        	var appletHeight = document.getElementById("appletHeight");
+                        	appletWidth.value = w;
+                        	appletHeight.value = h;
+                        }
+                        
                         function onAnmeldeSubmit() {
+                        		adaptWindowSizes();
                                 document.CustomizedForm.submit();
                                 document.CustomizedForm.Senden.disabled=true;
                                 document.CustomizedForm.Senden.hidden = "hidden";
@@ -45,12 +55,15 @@ div.content {
 		<div class="frameTC">
 			<div class="content">
 				<form name="CustomizedForm" action="##BKU##" method="post"
-					enctype="multipart/form-data">
+					enctype="multipart/x-www-form-urlencoded">
 					<input class="button" type="submit" value="Starte Anmeldung"
 						name="Senden"> <input type="hidden"
 						name="XMLRequest" value="##XMLRequest##"> <input
 						type="hidden" name="DataURL" value="##DataURL##">
-						<input type="hidden" name="locale_" value="##LOCALE##" />
+						<input type="hidden" name="locale" value="##LOCALE##" />
+						<input type="hidden" name="iframe_" value="on" />
+						<input type="hidden" id="appletWidth" name="appletWidth" value="221" />
+						<input type="hidden" id="appletHeight" name="appletHeight" value="221" />
 						##ADDITIONAL##
 				</form>
 				<span id="spin" style="display:block;

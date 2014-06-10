@@ -7,8 +7,8 @@
 <body>
 	<form action="Sign" method="POST"
 		enctype="multipart/form-data">
-		<input type="hidden" name="source" id="source" value="internal" /> <input
-			type="file" name="pdf-file" id="pdf-file" accept="application/pdf">
+		<input type="hidden" name="source" id="source" value="internal" /> 
+		<input type="file" name="pdf-file" id="pdf-file" accept="application/pdf">
 		<%
 			if (request.getAttribute("FILEERR") != null) {
 		%>
@@ -60,6 +60,12 @@
 		<%
 			}
 		%>
+		
+		<select name="locale" id="locale" size="3">
+      		<option>EN</option>
+      		<option>DE</option>
+    	</select>
+		
 	</form>
 	
 	<p><small>Version: <%= PdfAsHelper.getVersion() %> - <%= PdfAsHelper.getSCMRevision() %></small></p>
