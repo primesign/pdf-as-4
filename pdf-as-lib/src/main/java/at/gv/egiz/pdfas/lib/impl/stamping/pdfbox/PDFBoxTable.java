@@ -70,7 +70,7 @@ public class PDFBoxTable {
 		this.table = abstractTable;
 		try {
 			normalizeContent(abstractTable);
-		} catch(PdfAsException e) {
+		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);
 		}
 
@@ -81,32 +81,37 @@ public class PDFBoxTable {
 		}
 
 		if (style == null) {
-			throw new IOException("Failed to determine Table style, for table " + abstractTable.getName());
+			throw new IOException("Failed to determine Table style, for table "
+					+ abstractTable.getName());
 		}
 
 		String fontString = style.getFont();
 
 		String vfontString = style.getValueFont();
-		
+
 		if (parent != null && style == parent.style) {
 			font = parent.getFont();
 
 			valueFont = parent.getValueFont();
 		} else {
-			if(fontString == null && parent != null && parent.style != null) {
+			if (fontString == null && parent != null && parent.style != null) {
 				fontString = parent.style.getFont();
-			} else if(fontString == null) {
-				throw new IOException("Failed to determine Table font style, for table " + abstractTable.getName());
+			} else if (fontString == null) {
+				throw new IOException(
+						"Failed to determine Table font style, for table "
+								+ abstractTable.getName());
 			}
-			
+
 			font = new PDFBoxFont(fontString, settings);
-			
-			if(vfontString == null && parent != null && parent.style != null) {
+
+			if (vfontString == null && parent != null && parent.style != null) {
 				vfontString = parent.style.getValueFont();
-			} else if(fontString == null) {
-				throw new IOException("Failed to determine value Table font style, for table " + abstractTable.getName());
+			} else if (fontString == null) {
+				throw new IOException(
+						"Failed to determine value Table font style, for table "
+								+ abstractTable.getName());
 			}
-			
+
 			valueFont = new PDFBoxFont(vfontString, settings);
 		}
 		padding = style.getPadding();
@@ -119,20 +124,29 @@ public class PDFBoxTable {
 		this.settings = settings;
 		initializeStyle(abstractTable, parent);
 		float[] relativSizes = abstractTable.getColsRelativeWith();
-		colWidths = new float[relativSizes.length];
-		float totalrel = 0;
+		if (relativSizes != null) {
+			colWidths = new float[relativSizes.length];
+			float totalrel = 0;
 
-		for (int i = 0; i < relativSizes.length; i++) {
-			totalrel += relativSizes[i];
+			for (int i = 0; i < relativSizes.length; i++) {
+				totalrel += relativSizes[i];
+			}
+
+			float unit = (fixSize / totalrel);
+
+			for (int i = 0; i < relativSizes.length; i++) {
+
+				colWidths[i] = unit * relativSizes[i];
+			}
+		} else {
+			colWidths = new float[abstractTable.getMaxCols()];
+			float totalrel = abstractTable.getMaxCols();
+			float unit = (fixSize / totalrel);
+			for (int i = 0; i < colWidths.length; i++) {
+
+				colWidths[i] = unit;
+			}
 		}
-
-		float unit = (fixSize / totalrel);
-
-		for (int i = 0; i < relativSizes.length; i++) {
-
-			colWidths[i] = unit * relativSizes[i];
-		}
-
 		calculateHeightsBasedOnWidths();
 	}
 
@@ -155,27 +169,28 @@ public class PDFBoxTable {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
-				
+
 				float colWidth = colWidths[j];
-				
+
 				int colsleft = cell.getColSpan() - 1;
-				
-				if(j + colsleft > colWidths.length) {
-					throw new IOException("Configuration is wrong. Cannot determine column width!");
+
+				if (j + colsleft > colWidths.length) {
+					throw new IOException(
+							"Configuration is wrong. Cannot determine column width!");
 				}
-				
-				for(int k = 0; k < colsleft; k++) {
-					colWidth = colWidth + colWidths[j+k];
+
+				for (int k = 0; k < colsleft; k++) {
+					colWidth = colWidth + colWidths[j + k];
 				}
-				
+
 				float cellheight = getCellHeight(cell, colWidth);
 
 				if (rowHeights[i] < cellheight) {
 					rowHeights[i] = cellheight;
 				}
 
-				logger.debug("ROW: {} COL: {} Width: {} Height: {}", i, j, colWidth,
-						cellheight);
+				logger.debug("ROW: {} COL: {} Width: {} Height: {}", i, j,
+						colWidth, cellheight);
 
 				int span = cell.getColSpan() - 1;
 				j += span;
@@ -276,7 +291,7 @@ public class PDFBoxTable {
 				return c.getStringWidth(string) / 1000 * fontSize;
 			}
 		case Entry.TYPE_IMAGE:
-			if(style != null && style.getImageScaleToFit() != null) {
+			if (style != null && style.getImageScaleToFit() != null) {
 				return style.getImageScaleToFit().getWidth();
 			}
 			return 80.f;
@@ -310,8 +325,9 @@ public class PDFBoxTable {
 		}
 		return v;
 	}
-	
-	private String[] breakString(String value, float maxwidth, PDFont font, float fontSize) throws IOException {
+
+	private String[] breakString(String value, float maxwidth, PDFont font,
+			float fontSize) throws IOException {
 		String[] words = value.split(" ");
 		List<String> lines = new ArrayList<String>();
 		String cLineValue = "";
@@ -322,16 +338,17 @@ public class PDFBoxTable {
 				for (int j = 0; j < lineBreaks.length; j++) {
 					String subword = lineBreaks[j];
 					// if (cLine + subword.length() > maxline) {
-					if(j == 0 && word.startsWith("\n")) {
+					if (j == 0 && word.startsWith("\n")) {
 						lines.add(cLineValue.trim());
 						cLineValue = "";
-					} else if(j != 0) {
+					} else if (j != 0) {
 						lines.add(cLineValue.trim());
 						cLineValue = "";
 					}
 					// }
 					String tmpLine = cLineValue + subword;
-					float size = font.getStringWidth(tmpLine) / 1000.0f * fontSize;
+					float size = font.getStringWidth(tmpLine) / 1000.0f
+							* fontSize;
 					if (size > maxwidth && cLineValue.length() != 0) {
 						lines.add(cLineValue.trim());
 						cLineValue = "";
@@ -437,31 +454,30 @@ public class PDFBoxTable {
 				fontSize = font.getFontSize();
 			}
 			/*
-			float fwidth;
-			if (c instanceof PDType1Font) {
-				fwidth = c.getFontDescriptor().getFontBoundingBox().getWidth()
-						/ 1000.0f * fontSize * 0.9f;
-			} else if (c instanceof PDTrueTypeFont) {
-				PDTrueTypeFont t = (PDTrueTypeFont)c;
-				fwidth = t.getAverageFontWidth() / 1000.0f * fontSize;
-			} else {
-				fwidth = c.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f * fontSize;
-				fwidth = fwidth / (float)"abcdefghijklmnopqrstuvwxyz".length();
-			}
-
-			logger.debug("Font Width: {}", fwidth);
-			int maxcharcount = (int) ((width - padding * 2) / fwidth) - 1;
-			logger.debug("Max {} chars per line!", maxcharcount); */
+			 * float fwidth; if (c instanceof PDType1Font) { fwidth =
+			 * c.getFontDescriptor().getFontBoundingBox().getWidth() / 1000.0f *
+			 * fontSize * 0.9f; } else if (c instanceof PDTrueTypeFont) {
+			 * PDTrueTypeFont t = (PDTrueTypeFont)c; fwidth =
+			 * t.getAverageFontWidth() / 1000.0f * fontSize; } else { fwidth =
+			 * c.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f *
+			 * fontSize; fwidth = fwidth /
+			 * (float)"abcdefghijklmnopqrstuvwxyz".length(); }
+			 * 
+			 * logger.debug("Font Width: {}", fwidth); int maxcharcount = (int)
+			 * ((width - padding * 2) / fwidth) - 1;
+			 * logger.debug("Max {} chars per line!", maxcharcount);
+			 */
 			float fheight = c.getFontDescriptor().getFontBoundingBox()
 					.getHeight()
 					/ 1000 * fontSize * 0.9f;
 
-			String[] lines = breakString(string, (width - padding * 2.0f), c, fontSize);
+			String[] lines = breakString(string, (width - padding * 2.0f), c,
+					fontSize);
 			cell.setValue(concatLines(lines));
 			return fheight * lines.length;// - padding;
 		case Entry.TYPE_IMAGE:
-			if(style != null && style.getImageScaleToFit() != null) {
-				if( style.getImageScaleToFit().getHeight() < width) {
+			if (style != null && style.getImageScaleToFit() != null) {
+				if (style.getImageScaleToFit().getHeight() < width) {
 					return style.getImageScaleToFit().getHeight();
 				}
 			}
@@ -515,7 +531,7 @@ public class PDFBoxTable {
 				return fheight;
 			}
 		case Entry.TYPE_IMAGE:
-			if(style != null && style.getImageScaleToFit() != null) {
+			if (style != null && style.getImageScaleToFit() != null) {
 				return style.getImageScaleToFit().getHeight();
 			}
 			return 80.f;
@@ -562,7 +578,7 @@ public class PDFBoxTable {
 	}
 
 	public int getColCount() {
-		return this.table.getColsRelativeWith().length;
+		return this.table.getMaxCols();//.getColsRelativeWith().length;
 	}
 
 	public float[] getColsRelativeWith() {
