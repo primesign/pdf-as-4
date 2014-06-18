@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,11 +67,12 @@ public class ValueResolver implements IProfileConstants, IResolver {
 		logger.debug("Resolving value with value: " + value);
 
 		if (key.equals(SIG_DATE)) {
-			if (value == null) {
-				value = defaultDateFormat;
-			}
+			//if (value == null) {
+			value = defaultDateFormat;
+			//}
 			// Value holds the date format!
 			SimpleDateFormat formater = new SimpleDateFormat(value);
+			formater.setTimeZone(TimeZone.getTimeZone("UTC"));
 			Calendar cal = Calendar.getInstance();
 			return formater.format(cal.getTime());
 		}
