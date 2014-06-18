@@ -110,10 +110,10 @@ public class PDFBoxFont {
 		
 		if(fontArr.length == 3) {
 			font = generateFont(fontArr[0], fontArr[2]);
-			fontSize = Integer.parseInt(fontArr[1]);
+			fontSize = Float.parseFloat(fontArr[1]);
 		} else if(fontArr.length == 2 && fontArr[0].startsWith("TTF:")) {
 			font = generateFont(fontArr[0], null);
-			fontSize = Integer.parseInt(fontArr[1]);
+			fontSize = Float.parseFloat(fontArr[1]);
 		} else {
 			logger.warn("Using default font because: {} is not a valid font descriptor.", desc);
 			this.font = defaultFont;
