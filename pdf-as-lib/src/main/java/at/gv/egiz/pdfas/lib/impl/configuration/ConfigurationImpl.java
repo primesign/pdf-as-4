@@ -139,5 +139,28 @@ public class ConfigurationImpl implements ISettings, Configuration {
 		return this.settings.getWorkingDirectory();
 	}
 
+	public void cloneProfile(String originalPrefix, String clonedPrefix) {
+		Map<String, String> source = getValuesPrefix(originalPrefix);
+		
+		Iterator<String> keyIt = source.keySet().iterator();
+		
+		while(keyIt.hasNext()) {
+			String origKey = keyIt.next();
+			String cloneKey = origKey.replace(originalPrefix, clonedPrefix);
+			this.overwrittenProperties.setProperty(cloneKey, source.get(origKey));
+		}
+	}
+
+	public void removeProfile(String configurationPrefix) {
+		Iterator<Object> keyIterator = overwrittenProperties.keySet().iterator();
+        while(keyIterator.hasNext()) {
+            String key = keyIterator.next().toString();
+
+            if(key.startsWith(configurationPrefix)) {
+                overwrittenProperties.remove(key);
+            }
+        }
+	}
+
 	
 }

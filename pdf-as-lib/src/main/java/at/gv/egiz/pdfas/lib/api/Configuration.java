@@ -51,4 +51,30 @@ public interface Configuration {
 	 * @param value The configuration value
 	 */
 	public void setValue(String key, String value);
+	
+	/**
+	 * Clone configuration values at runtime only
+	 * All configuration values with originalPrefix are copied and 
+	 * inserted as clonedPrefix
+	 * 
+	 * Example usage might be the generation of dynamic signature profiles:
+	 * cloneProfile(PdfAsConfigurationConstants.SIG_OBJECT_PREFIX + "SIGNATURBLOCK_DE",
+	 * 	PdfAsConfigurationConstants.SIG_OBJECT_PREFIX + "MY_DYNAMIC_PROFILE");
+	 * 
+	 * @param originalPrefix The original configuration key prefix
+	 * @param clonedPrefix The cloned configuration key prefix
+	 */
+	public void cloneProfile(String originalPrefix, String clonedPrefix);
+	
+	/**
+	 * Removes all dynamically configured values with a given prefix.
+	 * 
+	 * It can be used to remove a profile during runtime.
+	 * 
+	 * Example usage might be the generation of dynamic signature profiles:
+	 * removeProfile(PdfAsConfigurationConstants.SIG_OBJECT_PREFIX + "MY_DYNAMIC_PROFILE");
+	 * 
+	 * @param configurationPrefix The configuration key prefix
+	 */
+	public void removeProfile(String configurationPrefix);
 }
