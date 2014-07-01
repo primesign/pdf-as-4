@@ -579,7 +579,7 @@ public class Style implements Serializable {
     }
     
     float width = Float.parseFloat(dimensions[0]);
-    float height = Float.parseFloat(dimensions[0]);
+    float height = Float.parseFloat(dimensions[1]);
     
     return new ImageScaleToFit(width, height);
   }

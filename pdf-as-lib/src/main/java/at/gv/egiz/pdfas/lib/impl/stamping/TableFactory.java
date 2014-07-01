@@ -198,8 +198,22 @@ public class TableFactory implements IProfileConstants {
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
-                            entry.setColSpan(2);
+                            //entry.setColSpan(2);
                             entry.setStyle(defaultValueStyle_);
+                            row.add(entry);
+                        }
+                    }
+                    if (TYPE_CAPTION.equals(type))
+                    {
+                        // add a single value entry
+                    	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                        String value = profile.getCaption(key);
+                        Entry entry = new Entry(Entry.TYPE_CAPTION, 
+                        		resolver.resolve(key, value, profile), key);
+                        if (entry != null)
+                        {
+                            //entry.setColSpan(2);
+                            entry.setStyle(defaultCaptionStyle_);
                             row.add(entry);
                         }
                     }

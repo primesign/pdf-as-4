@@ -39,6 +39,7 @@ public class PDFBoxTable {
 	float tableHeight;
 	Color bgColor;
 
+	boolean[] addPadding;
 	float[] rowHeights;
 	float[] colWidths;
 
@@ -148,6 +149,8 @@ public class PDFBoxTable {
 			}
 		}
 		calculateHeightsBasedOnWidths();
+		
+		logger.debug("Generating Table with fixed With {} got width {}", fixSize, getWidth());
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent,
@@ -160,6 +163,7 @@ public class PDFBoxTable {
 	private void calculateHeightsBasedOnWidths() throws IOException {
 		int rows = this.table.getRows().size();
 		rowHeights = new float[rows];
+		addPadding = new boolean[rows];
 
 		for (int i = 0; i < rows; i++) {
 			rowHeights[i] = 0;
@@ -247,13 +251,28 @@ public class PDFBoxTable {
 		this.tableHeight = 0;
 
 		for (int i = 0; i < rowHeights.length; i++) {
-			this.tableHeight += rowHeights[i] + padding * 2;
+			this.tableHeight += rowHeights[i];
 		}
 
+		// Post Process heights for inner Tables ...
+		for (int i = 0; i < rowHeights.length; i++) {
+			ArrayList<Entry> row = this.table.getRows().get(i);
+			for (int j = 0; j < row.size(); j++) {
+				Entry cell = (Entry) row.get(j);
+				if(cell.getType() == Entry.TYPE_TABLE) {
+					PDFBoxTable tbl = (PDFBoxTable)cell.getValue();
+					if(rowHeights[i] != tbl.getHeight())
+					{
+						tbl.setHeight(rowHeights[i]);
+					}
+				}
+			}
+		}
+		
 		this.tableWidth = 0;
 
 		for (int i = 0; i < colWidths.length; i++) {
-			this.tableWidth += colWidths[i] + padding * 2;
+			this.tableWidth += colWidths[i];
 		}
 	}
 
@@ -309,8 +328,6 @@ public class PDFBoxTable {
 			return pdfBoxTable.getWidth();
 		default:
 			logger.warn("Invalid Cell Entry Type: " + cell.getType());
-			// return font.getFontDescriptor().getFontBoundingBox().getHeight()
-			// / 1000 * fontSize;
 		}
 		return 0;
 	}
@@ -437,6 +454,32 @@ public class PDFBoxTable {
 	// return lines.toArray(new String[0]);
 	// }
 
+	private float[] getStringHeights(String[] lines, PDFont c, float fontSize) {
+		float[] heights = new float[lines.length];
+		for (int i = 0; i < lines.length; i++) {
+			float maxLineHeight = 0;
+			try {
+				byte[] linebytes = StringUtils.applyWinAnsiEncoding(lines[i]);
+				for(int j = 0; j < linebytes.length; j++) {
+					float he = c.getFontHeight(linebytes, j, 1) / 1000 * fontSize;
+					if(he > maxLineHeight) {
+						maxLineHeight = he;
+					}
+				}
+			} catch (UnsupportedEncodingException e) {
+				logger.warn("failed to determine String height", e);
+				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+			} catch (IOException e) {
+				logger.warn("failed to determine String height", e);
+				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+			}
+			
+			heights[i] = maxLineHeight;
+		}
+		
+		return heights;
+	}
+
 	private float getCellHeight(Entry cell, float width) throws IOException {
 		boolean isValue = true;
 		switch (cell.getType()) {
@@ -453,51 +496,35 @@ public class PDFBoxTable {
 				c = font.getFont(null);
 				fontSize = font.getFontSize();
 			}
-			/*
-			 * float fwidth; if (c instanceof PDType1Font) { fwidth =
-			 * c.getFontDescriptor().getFontBoundingBox().getWidth() / 1000.0f *
-			 * fontSize * 0.9f; } else if (c instanceof PDTrueTypeFont) {
-			 * PDTrueTypeFont t = (PDTrueTypeFont)c; fwidth =
-			 * t.getAverageFontWidth() / 1000.0f * fontSize; } else { fwidth =
-			 * c.getStringWidth("abcdefghijklmnopqrstuvwxyz ") / 1000.0f *
-			 * fontSize; fwidth = fwidth /
-			 * (float)"abcdefghijklmnopqrstuvwxyz".length(); }
-			 * 
-			 * logger.debug("Font Width: {}", fwidth); int maxcharcount = (int)
-			 * ((width - padding * 2) / fwidth) - 1;
-			 * logger.debug("Max {} chars per line!", maxcharcount);
-			 */
-			float fheight = c.getFontDescriptor().getFontBoundingBox()
-					.getHeight()
-					/ 1000 * fontSize * 0.9f;
 
 			String[] lines = breakString(string, (width - padding * 2.0f), c,
 					fontSize);
 			cell.setValue(concatLines(lines));
-			return fheight * lines.length;// - padding;
+			float[] heights = getStringHeights(lines, c, fontSize);
+			return fontSize * heights.length  + padding * 2;
 		case Entry.TYPE_IMAGE:
 			if (style != null && style.getImageScaleToFit() != null) {
-				if (style.getImageScaleToFit().getHeight() < width) {
+				//if (style.getImageScaleToFit().getHeight() < width) {
 					return style.getImageScaleToFit().getHeight();
-				}
+				//}
 			}
 			return width;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						width - padding, this.settings);
+						width, this.settings);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				// recreate here beacuse of fixed width!
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
-				pdfBoxTable = new PDFBoxTable(pdfBoxTable.table, this, width
-						- padding, this.settings);
+				pdfBoxTable = new PDFBoxTable(pdfBoxTable.table, this, width,
+						this.settings);
 				cell.setValue(pdfBoxTable);
 			} else {
 				throw new IOException("Failed to build PDFBox Table");
 			}
-			return pdfBoxTable.getHeight() - padding;
+			return pdfBoxTable.getHeight();
 		default:
 			logger.warn("Invalid Cell Entry Type: " + cell.getType());
 		}
@@ -520,15 +547,13 @@ public class PDFBoxTable {
 				c = font.getFont(null);
 				fontSize = font.getFontSize();
 			}
-			float fheight = c.getFontDescriptor().getFontBoundingBox()
-					.getHeight()
-					/ 1000 * fontSize;
+
 			if (string.contains("\n")) {
 				String[] lines = string.split("\n");
 
-				return fheight * lines.length;
+				return fontSize * lines.length + padding * 2;
 			} else {
-				return fheight;
+				return fontSize + padding * 2;
 			}
 		case Entry.TYPE_IMAGE:
 			if (style != null && style.getImageScaleToFit() != null) {
@@ -568,6 +593,16 @@ public class PDFBoxTable {
 	public float getHeight() {
 		return tableHeight;
 	}
+	
+	public void setHeight(float height) {
+		float diff = height - this.getHeight();
+		if(diff > 0) {
+			this.rowHeights[rowHeights.length - 1] += diff;
+			calcTotals();
+		} else {
+			logger.warn("Table cannot be this small!");
+		}
+	}
 
 	public float[] getRowHeights() {
 		return rowHeights;
@@ -578,7 +613,7 @@ public class PDFBoxTable {
 	}
 
 	public int getColCount() {
-		return this.table.getMaxCols();//.getColsRelativeWith().length;
+		return this.table.getMaxCols();// .getColsRelativeWith().length;
 	}
 
 	public float[] getColsRelativeWith() {
