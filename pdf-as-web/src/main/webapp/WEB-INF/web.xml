@@ -59,6 +59,12 @@
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.DataURLServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>VisBlockServlet</servlet-name>
+		<display-name>VisBlockServlet</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.VisBlockServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>VerifyServlet</servlet-name>
 		<display-name>VerifyServlet</display-name>
 		<description></description>
@@ -111,6 +117,10 @@
 	<servlet-mapping>
 		<servlet-name>SignServlet</servlet-name>
 		<url-pattern>/Sign</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>VisBlockServlet</servlet-name>
+	    <url-pattern>/visblock</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>ProvidePDF</servlet-name>

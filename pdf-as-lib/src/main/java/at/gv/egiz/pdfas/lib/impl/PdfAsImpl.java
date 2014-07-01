@@ -499,6 +499,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			requestedSignature.setCertificate(cert);
 			
 			if (!requestedSignature.isVisual()) {
+				logger.warn("Profile is invisible so not block image is generated");
 				return null;
 			}
 			
@@ -511,9 +512,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			baos.close();
 			
 			pdfObject.setOriginalDocument(baos.toByteArray());
-			
-			
-			
+
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(),
 							pdfObject.getStatus().getSettings());
@@ -556,7 +555,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			requestedSignature.setSignaturePosition(position);
 			
-			
 			PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
 				pdfObject.getStatus().getSettings(), pdfObject, (PdfBoxVisualObject) visualObject,
 				positioningInstruction);
@@ -569,13 +567,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			
 			PDPage firstPage = pages.get(0);
 			
-			//BufferedImage outputImage = new BufferedImage(
-			//		(int)Math.ceil(pageable.getPageFormat(position.getPage()-1).getImageableWidth()), 
-			//		(int)Math.ceil(pageable.getPageFormat(position.getPage()-1).getImageableHeight()), 
-			//		BufferedImage.TYPE_4BYTE_ABGR);
-			
-			//pageable.print(outputImage.getGraphics(), pageable.getPageFormat(position.getPage()-1), position.getPage()-1);
-			
 			float stdRes = 72;
 			float targetRes = resolution;
 			float factor = targetRes / stdRes;
@@ -587,17 +578,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			
 			Graphics2D graphics = (Graphics2D) cutOut.getGraphics();
 	        
-			//float srcy_tmp = (float) ((position.getHeight() + position.getY()) - pageable.getPageFormat(position.getPage()-1).getImageableHeight());
-			
-			//int srcy1 = (int)(Math.floor(srcy_tmp));
-			//int srcy2 = (int)(srcy1 + position.getHeight());
-			
-			/*logger.debug("Draw Image: SRC {} {} {} {}", 0, 0,cutOut.getWidth(), cutOut.getHeight() );
-			logger.debug("Draw Image: DST {} {} {} {}", (int)position.getX(), srcy1, (int)(position.getX() + position.getWidth()), 
-	        		srcy2 );*/
-			//ImageIO.write(outputImage, "png", new File("/tmp/test.png"));
-			//logger.debug("Sig Position: {} {} {} {}", position.getX(), position.getY(), position.getWidth(), position.getHeight());
-			
 	        graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut.getHeight(),
 	        		(int)(1 * factor), 
 	        		(int)(outputImage.getHeight() - ((position.getHeight() + 1) * factor)),
@@ -606,8 +586,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 	        		null);
 			return cutOut;
 		} catch(PdfAsException e) {
+			logger.error("PDF-AS  Exception", e);
 			throw e;
 		}	catch(Throwable e) {
+			logger.error("Throwable  Exception", e);
 			throw new PdfAsException("", e);
 		}
 		

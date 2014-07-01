@@ -23,13 +23,21 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.helper;
 
+import iaik.x509.X509Certificate;
+
+import java.awt.Image;
+import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.cert.CertificateException;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -45,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -468,6 +477,25 @@ public class PdfAsHelper {
 		return data;
 	}
 
+	public static byte[] generateVisualBlock(String profile, int resolution) throws IOException, CertificateException, PdfAsException {
+		X509Certificate cert = new X509Certificate(PdfAsHelper.class.getResourceAsStream("/qualified.cer"));
+		Configuration config = pdfAs.getConfiguration();
+		SignParameter parameter = PdfAsFactory.createSignParameter(
+				config, null);
+		parameter.setSignatureProfileId(profile);
+		Image img = pdfAs.generateVisibleSignaturePreview(parameter,
+				cert, resolution);
+		
+		if(img == null) {
+			return null;
+		}
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ImageIO.write((RenderedImage) img, "png", baos);
+		baos.close();
+		return baos.toByteArray();
+	}
+	
 	public static void injectCertificate(HttpServletRequest request,
 			HttpServletResponse response,
 			InfoboxReadResponseType infoboxReadResponseType,
