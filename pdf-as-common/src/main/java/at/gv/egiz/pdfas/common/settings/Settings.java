@@ -72,6 +72,7 @@ public class Settings implements ISettings, IProfileConstants {
 			if (includes != null) {
 				Iterator<String> includeIterator = includes.values().iterator();
 				while (includeIterator.hasNext()) {
+					contextFolder = new File(configDir);
 					String includeFileName = includeIterator.next();
 					
 					File includeInstruction = new File(contextFolder, includeFileName);
