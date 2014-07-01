@@ -26,6 +26,8 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

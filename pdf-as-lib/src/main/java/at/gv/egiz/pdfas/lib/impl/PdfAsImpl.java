@@ -23,14 +23,22 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import iaik.x509.X509Certificate;
+
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
@@ -38,6 +46,9 @@ import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageable;
+import org.apache.pdfbox.util.PDFImageWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +58,9 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.Settings;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
+import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
@@ -57,14 +70,26 @@ import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
+import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
+import at.gv.egiz.pdfas.lib.impl.positioning.Positioning;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.PdfSignerFactory;
 import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PdfboxSignerWrapper;
 import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.SignatureDataExtractor;
+import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
+import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
+import at.gv.egiz.pdfas.lib.impl.stamping.StamperFactory;
+import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifierDispatcher;
+import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
+import at.knowcenter.wag.egov.egiz.pdf.TablePos;
+import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
@@ -187,7 +212,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
-			if(status != null) {
+			if (status != null) {
 				status.clear();
 			}
 			logger.trace("sign done");
@@ -429,7 +454,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		} catch (IOException e) {
 			throw new PdfAsException("error.pdf.sig.06", e);
 		} finally {
-			if(status != null) {
+			if (status != null) {
 				status.clear();
 			}
 		}
@@ -456,4 +481,135 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		return result;
 	}
 
+	public Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution)
+			throws PdfAsException {
+		
+		OperationStatus status = null;
+		try {
+			// Status initialization
+			if (!(parameter.getConfiguration() instanceof ISettings)) {
+				throw new PdfAsSettingsException("Invalid settings object!");
+			}
+			
+			ISettings settings = (ISettings) parameter.getConfiguration();
+			status = new OperationStatus(settings, parameter);
+		
+			RequestedSignature requestedSignature = new RequestedSignature(
+					status);
+			requestedSignature.setCertificate(cert);
+			
+			if (!requestedSignature.isVisual()) {
+				return null;
+			}
+			
+			PDFObject pdfObject = status.getPdfObject();
+
+			PDDocument origDoc = new PDDocument();
+			origDoc.addPage(new PDPage(PDPage.PAGE_SIZE_A4));
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			origDoc.save(baos);
+			baos.close();
+			
+			pdfObject.setOriginalDocument(baos.toByteArray());
+			
+			
+			
+			SignatureProfileSettings signatureProfileSettings = TableFactory
+					.createProfile(requestedSignature.getSignatureProfileID(),
+							pdfObject.getStatus().getSettings());
+			
+			// create Table describtion
+			Table main = TableFactory.createSigTable(
+						signatureProfileSettings, MAIN, pdfObject.getStatus(),
+						requestedSignature);
+
+			IPDFStamper stamper = StamperFactory
+						.createDefaultStamper(pdfObject.getStatus()
+						.getSettings());
+
+			IPDFVisualObject visualObject = stamper.createVisualPDFObject(
+						pdfObject, main);
+					
+			SignatureProfileConfiguration signatureProfileConfiguration = pdfObject
+					.getStatus().getSignatureProfileConfiguration(
+							requestedSignature.getSignatureProfileID());
+			
+			String signaturePosString = signatureProfileConfiguration
+					.getDefaultPositioning();
+			PositioningInstruction positioningInstruction = null;
+			if(signaturePosString != null) {
+				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "", origDoc,
+						visualObject, false);
+			} else {
+				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
+						visualObject, false);
+			}
+			
+			origDoc.close();
+			
+			SignaturePositionImpl position = new SignaturePositionImpl();
+			position.setX(positioningInstruction.getX());
+			position.setY(positioningInstruction.getY());
+			position.setPage(positioningInstruction.getPage());
+			position.setHeight(visualObject.getHeight());
+			position.setWidth(visualObject.getWidth());
+
+			requestedSignature.setSignaturePosition(position);
+			
+			
+			PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
+				pdfObject.getStatus().getSettings(), pdfObject, (PdfBoxVisualObject) visualObject,
+				positioningInstruction);
+
+			properties.buildSignature();
+			PDDocument visualDoc = PDDocument.load(properties.getVisibleSignature());
+			//PDPageable pageable = new PDPageable(visualDoc);
+			List<PDPage> pages = new ArrayList<PDPage>();
+			visualDoc.getDocumentCatalog().getPages().getAllKids(pages);
+			
+			PDPage firstPage = pages.get(0);
+			
+			//BufferedImage outputImage = new BufferedImage(
+			//		(int)Math.ceil(pageable.getPageFormat(position.getPage()-1).getImageableWidth()), 
+			//		(int)Math.ceil(pageable.getPageFormat(position.getPage()-1).getImageableHeight()), 
+			//		BufferedImage.TYPE_4BYTE_ABGR);
+			
+			//pageable.print(outputImage.getGraphics(), pageable.getPageFormat(position.getPage()-1), position.getPage()-1);
+			
+			float stdRes = 72;
+			float targetRes = resolution;
+			float factor = targetRes / stdRes;
+			
+			BufferedImage outputImage = firstPage.convertToImage(BufferedImage.TYPE_4BYTE_ABGR, (int)targetRes);
+			
+			BufferedImage cutOut = new BufferedImage((int)(position.getWidth() * factor), (int)(position.getHeight() * factor), 
+					BufferedImage.TYPE_4BYTE_ABGR);
+			
+			Graphics2D graphics = (Graphics2D) cutOut.getGraphics();
+	        
+			//float srcy_tmp = (float) ((position.getHeight() + position.getY()) - pageable.getPageFormat(position.getPage()-1).getImageableHeight());
+			
+			//int srcy1 = (int)(Math.floor(srcy_tmp));
+			//int srcy2 = (int)(srcy1 + position.getHeight());
+			
+			/*logger.debug("Draw Image: SRC {} {} {} {}", 0, 0,cutOut.getWidth(), cutOut.getHeight() );
+			logger.debug("Draw Image: DST {} {} {} {}", (int)position.getX(), srcy1, (int)(position.getX() + position.getWidth()), 
+	        		srcy2 );*/
+			//ImageIO.write(outputImage, "png", new File("/tmp/test.png"));
+			//logger.debug("Sig Position: {} {} {} {}", position.getX(), position.getY(), position.getWidth(), position.getHeight());
+			
+	        graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut.getHeight(),
+	        		(int)(1 * factor), 
+	        		(int)(outputImage.getHeight() - ((position.getHeight() + 1) * factor)),
+	        		(int)((1 + position.getWidth()) * factor), 
+	        		(int)(outputImage.getHeight() - ((position.getHeight() + 1) * factor) + (position.getHeight() * factor)),
+	        		null);
+			return cutOut;
+		} catch(PdfAsException e) {
+			throw e;
+		}	catch(Throwable e) {
+			throw new PdfAsException("", e);
+		}
+		
+	}
 }

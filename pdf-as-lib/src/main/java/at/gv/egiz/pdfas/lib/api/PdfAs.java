@@ -23,6 +23,9 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
+import iaik.x509.X509Certificate;
+
+import java.awt.Image;
 import java.util.List;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -84,4 +87,15 @@ public interface PdfAs {
 	 * @throws PdfAsException
 	 */
 	public SignResult    finishSign(StatusRequest statusRequest) throws PdfAsException;
+	
+	/**
+	 * Generates a Image of the visual signatur block as Preview
+	 * 
+	 * @param parameter The signing Parameter
+	 * @param cert The certificate to use to build the signature block
+	 * @param resolution the resolution in dpi (dots per inch) (default is 72)
+	 * @return
+	 * @throws PdfAsException
+	 */
+	public Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution) throws PdfAsException;
 }
