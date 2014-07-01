@@ -12,8 +12,11 @@ at.gv.egiz.pdfas.lib.impl.signing
 at.gv.egiz.pdfas.lib.impl.signing.pdfbox
 at.gv.egiz.pdfas.lib.impl.signing.sig_interface
 at.gv.egiz.pdfas.lib.impl.stamping
+at.gv.egiz.pdfas.lib.impl.stamping.pdfbox
+at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.tagging
 at.gv.egiz.pdfas.lib.impl.status
 at.gv.egiz.pdfas.lib.impl.verify
 at.gv.egiz.pdfas.lib.util
 at.gv.egiz.sl
+at.gv.egiz.sl.schema
 at.gv.egiz.sl.util
