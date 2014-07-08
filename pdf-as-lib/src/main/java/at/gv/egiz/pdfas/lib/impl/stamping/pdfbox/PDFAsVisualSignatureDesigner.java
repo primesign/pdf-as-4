@@ -52,7 +52,9 @@ public class PDFAsVisualSignatureDesigner {
 	private float[] formaterRectangleParams = { 0, 0, 100, 50 }; // default
 	private byte[] AffineTransformParams = { 1, 0, 0, 1, 0, 0 }; // default
 	private float imageSizeInPercents;
-//	private PDDocument document = null;
+	private PDDocument document = null;
+	private int page = 0;
+	private boolean newpage = false;
 	PDFAsVisualSignatureProperties properties;
 
 	/**
@@ -68,6 +70,9 @@ public class PDFAsVisualSignatureDesigner {
 			PDFAsVisualSignatureProperties properties, boolean newpage) throws IOException {
 		this.properties = properties;
 		calculatePageSize(doc, page, newpage);
+		document = doc;
+		this.page = page;
+		this.newpage = newpage;
 	}
 
 	/**
@@ -362,6 +367,22 @@ public class PDFAsVisualSignatureDesigner {
 	 */
 	public float getPageWidth() {
 		return pageWidth;
+	}
+	
+	public PDPage getSignaturePage() {
+		if (page < 1) {
+			throw new IllegalArgumentException("First page of pdf is 1, not "
+					+ page);
+		}
+		PDPage pdPage = null;
+		List<?> pages = document.getDocumentCatalog().getAllPages();
+		if(newpage) {
+			pdPage = new PDPage();
+		} else {
+			pdPage = (PDPage) pages.get(page - 1);
+		}
+		
+		return pdPage;
 	}
 
 	/**

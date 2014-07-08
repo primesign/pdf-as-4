@@ -35,6 +35,7 @@ import java.util.List;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -137,7 +138,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signer.setPDSignature(signature);
 			SignatureOptions options = new SignatureOptions();
-
+	
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
 				logger.info("Creating visual siganture block");
@@ -231,14 +232,14 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				position.setWidth(visualObject.getWidth());
 
 				requestedSignature.setSignaturePosition(position);
-
+				
 				PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
 						pdfObject.getStatus().getSettings(), pdfObject,
 						(PdfBoxVisualObject) visualObject,
 						positioningInstruction);
 
 				properties.buildSignature();
-
+				
 				/*
 				 * ByteArrayOutputStream sigbos = new ByteArrayOutputStream();
 				 * sigbos.write(StreamUtils.inputStreamToByteArray(properties
@@ -333,9 +334,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				options.setPage(positioningInstruction.getPage());
 				options.setVisualSignature(properties.getVisibleSignature());
 			}
-
+			
 			doc.addSignature(signature, signer, options);
-
+			
 			String sigFieldName = signatureProfileSettings.getSignFieldValue();
 
 			if (sigFieldName == null) {
@@ -372,7 +373,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			} else {
 				logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 			}
-
+			
 			if (requestedSignature.isVisual()) {
 
 				// if(requestedSignature.getSignaturePosition().)

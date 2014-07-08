@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSDocument;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
@@ -309,7 +312,7 @@ public class TableDrawUtils {
 		try {
 			float innerHeight = height;
 			float innerWidth = width;
-
+						
 			String img_ref = (String) cell.getValue();
 			if (!images.containsKey(img_ref)) {
 				logger.error("Image not prepared! : " + img_ref);

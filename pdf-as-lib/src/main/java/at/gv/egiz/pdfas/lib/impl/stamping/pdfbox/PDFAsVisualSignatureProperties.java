@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.io.IOException;
 
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -53,7 +54,6 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		this.settings = settings;
 		try {
 			main = visObj.getTable();
-			
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
@@ -89,4 +89,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		return this.rotationAngle;
 	}
 
+	public PDFAsVisualSignatureDesigner getDesigner() {
+		return designer;
+	}
+	
 }

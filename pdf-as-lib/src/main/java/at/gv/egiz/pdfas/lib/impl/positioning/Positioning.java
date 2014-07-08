@@ -23,15 +23,25 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.positioning;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageNode;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
+import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.knowcenter.wag.egov.egiz.pdf.PDFUtilities;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 8/29/13 Time: 4:30 PM To
@@ -39,6 +49,9 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
  */
 public class Positioning {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(Positioning.class);
+	
 	/**
 	 * The left/right margin.
 	 */
@@ -88,7 +101,7 @@ public class Positioning {
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
 			TablePos pos, boolean legacy32) throws PdfAsException {
-
+		
 		PDFUtils.checkPDFPermissions(pdfDataSource);
 		// get pages of currentdocument
 
@@ -108,7 +121,7 @@ public class Positioning {
 				// ") cannot be parsed.");
 			}
 		}
-
+		
 		PDPage pdPage = (PDPage) pdfDataSource.getDocumentCatalog()
 				.getAllPages().get(page - 1);
 		PDRectangle cropBox = pdPage.getCropBox();
@@ -185,9 +198,11 @@ public class Positioning {
 		// fit
 		// Now we have to getfreespace in page and reguard footerline
 		float footer_line = pos.getFooterLine();
+		
 		float pre_page_length = PDFUtilities.calculatePageLength(pdfDataSource,
 				page - 1, page_height - footer_line, /* page_rotation, */
 				legacy32);
+		
 		if (pre_page_length == Float.NEGATIVE_INFINITY) {
 			// we do have an empty page or nothing in area above footerline
 			pre_page_length = page_height;
