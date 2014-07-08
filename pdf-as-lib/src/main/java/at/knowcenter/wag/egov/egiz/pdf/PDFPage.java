@@ -56,12 +56,14 @@ import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectForm;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
@@ -359,6 +361,25 @@ public class PDFPage extends PDFTextStripper {
                 maxPathRelatedYPositionFromTop);
 	}
 
+	@Override
+	public Map<String, PDFont> getFonts() {
+		
+		COSBase fontObj = null;
+		
+		if(getCurrentPage().getResources() != null && 
+				getCurrentPage().getResources().getCOSDictionary() != null &&
+				getCurrentPage().getResources().getCOSDictionary().getDictionaryObject(COSName.FONT) != null) {
+			fontObj = getCurrentPage().getResources().getCOSDictionary().getDictionaryObject(COSName.FONT);
+		}
+		Map<String, PDFont> fontMap = getCurrentPage().findResources().getFonts();
+		
+		if(fontObj != null) {
+			getCurrentPage().getResources().getCOSDictionary().setItem(COSName.FONT, fontObj);
+		}
+		
+		return fontMap;
+	}
+	
 	public class MyInvoke extends OperatorProcessor {
 
         private PDFPage mypage;
