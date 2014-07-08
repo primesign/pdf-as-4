@@ -75,6 +75,7 @@ import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -172,15 +173,16 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							.getSignaturePosition();
 
 					TablePos signaturePos = null;
-					
-					String signaturePosString = signatureProfileConfiguration
-								.getDefaultPositioning();
 
-					if(signaturePosString != null) {
-						logger.debug("using signature Positioning: " + signaturePos);
+					String signaturePosString = signatureProfileConfiguration
+							.getDefaultPositioning();
+
+					if (signaturePosString != null) {
+						logger.debug("using signature Positioning: "
+								+ signaturePos);
 						signaturePos = new TablePos(signaturePosString);
 					}
-					
+
 					logger.debug("using Positioning: " + posString);
 
 					if (posString != null) {
@@ -190,8 +192,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						// Fallback to signature Position!
 						tablePos = signaturePos;
 					}
-					
-					if(tablePos == null) {
+
+					if (tablePos == null) {
 						// Last Fallback default position
 						tablePos = new TablePos();
 					}
@@ -288,8 +290,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				if (signatureProfileSettings.isPDFA()) {
 					PDDocumentCatalog root = doc.getDocumentCatalog();
-					COSBase base = root.getCOSDictionary().getItem(COSName.OUTPUT_INTENTS);
-					if(base == null) {
+					COSBase base = root.getCOSDictionary().getItem(
+							COSName.OUTPUT_INTENTS);
+					if (base == null) {
 						InputStream colorProfile = PDDocumentCatalog.class
 								.getResourceAsStream("/icm/sRGB Color Space Profile.icm");
 						try {
@@ -335,33 +338,39 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			String sigFieldName = signatureProfileSettings.getSignFieldValue();
 
-			if (sigFieldName != null) {
-				PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
-				if (acroForm != null) {
-					@SuppressWarnings("unchecked")
-					List<PDField> fields = acroForm.getFields();
-					PDSignatureField signatureField = null;
+			if (sigFieldName == null) {
+				sigFieldName = "PDF-AS Signatur";
+			}
+			
+			int count = SignatureUtils.countSignatures(doc);
+			
+			sigFieldName = sigFieldName + count;
 
-					if (fields != null) {
-						for (PDField pdField : fields) {
-							if (pdField instanceof PDSignatureField) {
-								if (((PDSignatureField) pdField).getSignature()
-										.getDictionary()
-										.equals(signature.getDictionary())) {
-									signatureField = (PDSignatureField) pdField;
-								}
+			PDAcroForm acroFormm = doc.getDocumentCatalog().getAcroForm();
+			if (acroFormm != null) {
+				@SuppressWarnings("unchecked")
+				List<PDField> fields = acroFormm.getFields();
+				PDSignatureField signatureField = null;
+
+				if (fields != null) {
+					for (PDField pdField : fields) {
+						if (pdField instanceof PDSignatureField) {
+							if (((PDSignatureField) pdField).getSignature()
+									.getDictionary()
+									.equals(signature.getDictionary())) {
+								signatureField = (PDSignatureField) pdField;
 							}
 						}
-					} else {
-						logger.warn("Failed to name Signature Field! [Cannot find Field list in acroForm!]");
-					}
-
-					if (signatureField != null) {
-						signatureField.setPartialName(sigFieldName);
 					}
 				} else {
-					logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
+					logger.warn("Failed to name Signature Field! [Cannot find Field list in acroForm!]");
 				}
+
+				if (signatureField != null) {
+					signatureField.setPartialName(sigFieldName);
+				}
+			} else {
+				logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 			}
 
 			if (requestedSignature.isVisual()) {
