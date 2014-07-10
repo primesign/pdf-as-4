@@ -81,6 +81,7 @@ import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.impl.verify.IVerifier;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifierDispatcher;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
@@ -281,11 +282,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 								dict.getNameAsString("Filter"),
 								dict.getNameAsString("SubFilter"));
 
+						IVerifier lvlVerifier = verifier.getVerifierByLevel(parameter.getSignatureVerificationLevel());
+						lvlVerifier.setConfiguration(parameter.getConfiguration());
 						if (verifyFilter != null) {
 							List<VerifyResult> results = verifyFilter.verify(
 									contentData.toByteArray(),
 									content.getBytes(),
-									parameter.getVerificationTime(), bytes);
+									parameter.getVerificationTime(), bytes, lvlVerifier);
 							if (results != null && !results.isEmpty()) {
 								result.addAll(results);
 							}

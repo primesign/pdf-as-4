@@ -49,6 +49,7 @@ import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.sl.util.BKUSLConnector;
@@ -82,6 +83,11 @@ public class Main {
 
 	public static final String CLI_ARG_VERIFY_WHICH_SHORT = "vw";
 	public static final String CLI_ARG_VERIFY_WHICH = "verify_which";
+	
+	public static final String CLI_ARG_VERIFY_LEVEL_SHORT = "vl";
+	public static final String CLI_ARG_VERIFY_LEVEL = "verify_level";
+	public static final String CLI_ARG_VERIFY_LEVEL_OPTION_FULL = "full";
+	public static final String CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY = "intOnly";
 
 	public static final String CLI_ARG_KEYSTORE_FILE_SHORT = "ksf";
 	public static final String CLI_ARG_KEYSTORE_FILE = "ks_file";
@@ -169,6 +175,13 @@ public class Main {
 				true,
 				"[optional] zero based number of the signature to be verified. If omitted, all signatures are verified.");
 		cliOptions.addOption(verifywhichOption);
+		
+		Option verifyLevelOption = new Option(
+				CLI_ARG_VERIFY_LEVEL_SHORT,
+				CLI_ARG_VERIFY_LEVEL,
+				true,
+				"[optional] Verification Level Full certificate verification, or only integrity Verification (" + CLI_ARG_VERIFY_LEVEL_OPTION_FULL + " | " + CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY + ")");
+		cliOptions.addOption(verifyLevelOption);
 
 		Option outputOption = new Option(CLI_ARG_OUTPUT_SHORT, CLI_ARG_OUTPUT,
 				true, "The output file");
@@ -423,6 +436,22 @@ public class Main {
 			String whichValue = cli.getOptionValue(CLI_ARG_VERIFY_WHICH_SHORT);
 			which = Integer.parseInt(whichValue);
 		}
+		
+		SignatureVerificationLevel lvl = SignatureVerificationLevel.FULL_VERIFICATION;
+		
+		if (cli.hasOption(CLI_ARG_VERIFY_LEVEL_SHORT)) {
+			String levelValue = cli.getOptionValue(CLI_ARG_VERIFY_LEVEL_SHORT);
+			if(levelValue.equals(CLI_ARG_VERIFY_LEVEL_OPTION_FULL)) {
+				lvl = SignatureVerificationLevel.FULL_VERIFICATION;
+			} else if(levelValue.equals(CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY)) {
+				lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
+			} else {
+				System.out.println("Invalid value for verification Level: " + levelValue);
+				System.out.println("Allowed values are: " + CLI_ARG_VERIFY_LEVEL_OPTION_FULL 
+						+ ", " + CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY);
+				throw new Exception("Invalid value for verification Level: " + levelValue);
+			}
+		}
 
 		String confOutputFile = null;
 		
@@ -452,7 +481,7 @@ public class Main {
 
 		VerifyParameter verifyParameter = PdfAsFactory.createVerifyParameter(
 				configuration, dataSource);
-
+		verifyParameter.setSignatureVerificationLevel(lvl);
 		verifyParameter.setDataSource(dataSource);
 		verifyParameter.setConfiguration(configuration);
 		verifyParameter.setWhichSignature(which);

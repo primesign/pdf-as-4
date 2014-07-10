@@ -30,6 +30,25 @@ import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 public interface VerifyParameter extends PdfAsParameter {
 
 	/**
+	 * The signature Verification Level defines what should be verified 
+	 */
+	public enum SignatureVerificationLevel {
+		/**
+		 * Only verifies the the Signatures integrity
+		 * 
+		 * This option does not perform a verification of the signing Certificate 
+		 * and does not requires MOA-SP 
+		 */
+		INTEGRITY_ONLY_VERIFICATION,
+		/**
+		 * Uses MOA-SP to verify the Signature and verifies the Certification Path
+		 * 
+		 * This is the default value
+		 */
+		FULL_VERIFICATION
+	}
+	
+	/**
 	 * Gets which signature should be verified 
 	 * 
 	 * This is a 0 based index of the signatures 
@@ -58,4 +77,18 @@ public interface VerifyParameter extends PdfAsParameter {
 	 * @param verificationTime
 	 */
 	public void setVerificationTime(Date verificationTime);
+	
+	/**
+	 * Sets the verification Level
+	 * 
+	 * @param signatureVerificationLevel
+	 */
+	public void setSignatureVerificationLevel(SignatureVerificationLevel signatureVerificationLevel);
+	
+	/**
+	 * Gets the verification level
+	 * 
+	 * @return
+	 */
+	public SignatureVerificationLevel getSignatureVerificationLevel();
 }

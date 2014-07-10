@@ -35,6 +35,9 @@ public class VerifyParameterImpl extends PdfAsParameterImpl implements VerifyPar
 	
 	protected Date verificationTime = null;
 	
+	protected SignatureVerificationLevel signatureVerificationLevel = 
+			SignatureVerificationLevel.FULL_VERIFICATION;
+	
 	public VerifyParameterImpl(Configuration configuration,
 			DataSource dataSource) {
 		super(configuration, dataSource);
@@ -54,5 +57,14 @@ public class VerifyParameterImpl extends PdfAsParameterImpl implements VerifyPar
 
 	public void setVerificationTime(Date verificationTime) {
 		this.verificationTime = verificationTime;
+	}
+
+	public void setSignatureVerificationLevel(
+			SignatureVerificationLevel signatureVerificationLevel) {
+		this.signatureVerificationLevel = signatureVerificationLevel;
+	}
+
+	public SignatureVerificationLevel getSignatureVerificationLevel() {
+		return this.signatureVerificationLevel;
 	}
 }

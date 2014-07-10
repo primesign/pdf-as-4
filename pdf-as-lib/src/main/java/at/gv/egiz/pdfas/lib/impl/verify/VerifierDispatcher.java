@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 
 public class VerifierDispatcher {
 
@@ -60,7 +61,7 @@ public class VerifierDispatcher {
 		} else {
 			classes = defaultClasses;
 		}
-		
+
 		List<String> filteredClasses = new ArrayList<String>();
 
 		for (int i = 0; i < classes.length; i++) {
@@ -72,17 +73,17 @@ public class VerifierDispatcher {
 				logger.error("Cannot find Verifier class: " + clsName, e);
 			}
 		}
-		
+
 		String[] clsNames = new String[filteredClasses.size()];
 		for (int i = 0; i < filteredClasses.size(); i++) {
 			clsNames[i] = filteredClasses.get(i);
 		}
-		
+
 		dumpVerifierClasses(clsNames);
-		
+
 		return clsNames;
 	}
-	
+
 	private void dumpVerifierClasses(String[] clsNames) {
 		for (int i = 0; i < clsNames.length; i++) {
 			String clsName = clsNames[i];
@@ -93,21 +94,18 @@ public class VerifierDispatcher {
 	public VerifierDispatcher(ISettings settings) {
 		// TODO: add configuration parameter to set verifier
 
-		//Map<String, String> verifierClasses = settings
-		//		.getValuesPrefix(CONF_VERIFIER);
+		// Map<String, String> verifierClasses = settings
+		// .getValuesPrefix(CONF_VERIFIER);
 		String[] currentClasses = null;
-		//if (verifierClasses == null || verifierClasses.isEmpty()) {
+		// if (verifierClasses == null || verifierClasses.isEmpty()) {
 		logger.info("Getting Verifier classes");
 		currentClasses = getClasses(settings);
-		/*} else {
-			currentClasses = new String[verifierClasses.values().size()];
-			Iterator<String> classIt = verifierClasses.values().iterator();
-			int j = 0;
-			while (classIt.hasNext()) {
-				currentClasses[j] = classIt.next();
-				j++;
-			}
-		}*/
+		/*
+		 * } else { currentClasses = new
+		 * String[verifierClasses.values().size()]; Iterator<String> classIt =
+		 * verifierClasses.values().iterator(); int j = 0; while
+		 * (classIt.hasNext()) { currentClasses[j] = classIt.next(); j++; } }
+		 */
 		try {
 			for (int i = 0; i < currentClasses.length; i++) {
 				String clsName = currentClasses[i];
@@ -154,5 +152,14 @@ public class VerifierDispatcher {
 		}
 
 		return filters.get(subfilter);
+	}
+
+	public IVerifier getVerifierByLevel(SignatureVerificationLevel level) {
+		switch (level) {
+		case INTEGRITY_ONLY_VERIFICATION:
+			return new IntegrityVerifier();
+		default:
+			return new FullVerifier();
+		}
 	}
 }
