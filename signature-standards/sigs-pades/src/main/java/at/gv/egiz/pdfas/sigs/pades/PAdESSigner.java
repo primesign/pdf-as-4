@@ -30,6 +30,7 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.sl.util.ISignatureConnector;
 import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
 import at.gv.egiz.sl.util.ISLConnector;
@@ -50,8 +51,9 @@ public class PAdESSigner implements IPlainSigner {
 		return this.plainSigner.getCertificate(parameter);
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
-		return this.plainSigner.sign(input, byteRange, parameter);
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter
+			, RequestedSignature requestedSignature) throws PdfAsException {
+		return this.plainSigner.sign(input, byteRange, parameter, requestedSignature);
 	}
 
 	public String getPDFSubFilter() {

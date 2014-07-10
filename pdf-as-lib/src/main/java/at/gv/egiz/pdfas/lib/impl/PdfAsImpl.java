@@ -31,14 +31,11 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
@@ -47,14 +44,13 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageable;
-import org.apache.pdfbox.util.PDFImageWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.Settings;
@@ -87,6 +83,7 @@ import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifierDispatcher;
+import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -193,18 +190,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			IPdfSigner signer = PdfSignerFactory.createPdfSigner();
 			signer.signPDF(status.getPdfObject(), requestedSignature,
 					new PdfboxSignerWrapper(status.getSignParamter()
-							.getPlainSigner(), parameter));
+							.getPlainSigner(), parameter, requestedSignature));
 
 			// ================================================================
 			// Create SignResult
-			SignResultImpl result = new SignResultImpl(status.getSignParamter()
-					.getOutput());
-			OutputStream outputStream = result.getOutputDocument()
-					.createOutputStream();
-
-			outputStream.write(status.getPdfObject().getSignedDocument());
-
-			outputStream.close();
+			SignResult result = createSignResult(status);
 
 			return result;
 		} catch (Throwable e) {
@@ -424,7 +414,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			String signature = new COSString(request.getSignature())
 					.getHexString();
 			byte[] pdfSignature = signature.getBytes();
-
+			//byte[] input = PDFUtils.blackOutSignature(status.getPdfObject().getSignedDocument(), 
+			//		request.getSignatureDataByteRange());
+			VerifyResult verifyResult = SignatureUtils.verifySignature(request.getSignature(), request.getSignatureData());
+			RequestedSignature requestedSignature = request.getStatus().getRequestedSignature();
+			
+			if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
+					verifyResult.getSignerCertificate().getFingerprintSHA())) {
+				throw new PdfAsSignatureException("Certificates missmatch!");
+			}
+			
 			for (int i = 0; i < pdfSignature.length; i++) {
 				status.getPdfObject().getSignedDocument()[offset + i] = pdfSignature[i];
 			}

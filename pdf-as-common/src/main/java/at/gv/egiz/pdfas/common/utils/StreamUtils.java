@@ -28,24 +28,36 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created with IntelliJ IDEA.
- * User: afitzek
- * Date: 8/29/13
- * Time: 9:54 AM
- * To change this template use File | Settings | File Templates.
+ * Created with IntelliJ IDEA. User: afitzek Date: 8/29/13 Time: 9:54 AM To
+ * change this template use File | Settings | File Templates.
  */
 public class StreamUtils {
 
-    public static byte[] inputStreamToByteArray(InputStream stream) throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[4096];
-        int readBytes = 0;
+	public static byte[] inputStreamToByteArray(InputStream stream)
+			throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		byte[] buffer = new byte[4096];
+		int readBytes = 0;
 
-        while((readBytes = stream.read(buffer)) != -1) {
-            bos.write(buffer, 0, readBytes);
-        }
-        stream.close();
-        bos.close();
-        return bos.toByteArray();
-    }
+		while ((readBytes = stream.read(buffer)) != -1) {
+			bos.write(buffer, 0, readBytes);
+		}
+		stream.close();
+		bos.close();
+		return bos.toByteArray();
+	}
+
+	public static boolean dataCompare(byte[] a, byte[] b) {
+		if (a != null && b != null) {
+			if (a.length == b.length) {
+				for(int i = 0; i < a.length; i++) {
+					if(a[i] != b[i]) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		return false;
+	}
 }

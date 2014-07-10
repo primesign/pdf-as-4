@@ -55,10 +55,15 @@ import org.xml.sax.SAXException;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 
 public class MOAConnector implements ISignatureConnector {
 
@@ -135,7 +140,8 @@ public class MOAConnector implements ISignatureConnector {
 		return builder.build();
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter
+			, RequestedSignature requestedSignature) throws PdfAsException {
 		CloseableHttpClient client = null;
 		try {
 			client = buildHttpClient();
@@ -220,7 +226,16 @@ public class MOAConnector implements ISignatureConnector {
 
 				if (cmsSignature != null) {
 					try {
-						return base64.decode(cmsSignature);
+						byte[] cmsSignatureData = base64.decode(cmsSignature);
+						
+						VerifyResult verifyResult = SignatureUtils.verifySignature(cmsSignatureData, input);
+
+						if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
+								verifyResult.getSignerCertificate().getFingerprintSHA())) {
+							throw new PdfAsSignatureException("Certificates missmatch!");
+						}
+						
+						return cmsSignatureData;
 					} catch(Exception e) {
 						throw new PdfAsException("error.pdf.io.07", e);
 					}

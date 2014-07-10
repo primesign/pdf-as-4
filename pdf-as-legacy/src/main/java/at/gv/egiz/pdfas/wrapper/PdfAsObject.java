@@ -59,6 +59,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
+import at.gv.egiz.pdfas.lib.impl.StatusRequestImpl;
 
 public class PdfAsObject implements PdfAs {
 
@@ -82,14 +83,22 @@ public class PdfAsObject implements PdfAs {
 		}
 
 		SignatureDetailInformationWrapper sdi = (SignatureDetailInformationWrapper) signatureDetailInformation;
-		StatusRequest request = sdi.getStatus();
+		StatusRequest statusRequest = sdi.getStatus();
+		
+		if (!(statusRequest instanceof StatusRequestImpl)) {
+			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
+					"Invalid state");
+		}
 
+		StatusRequestImpl request = (StatusRequestImpl) statusRequest;
+		
 		if (request.needSignature()) {
 			try {
 				byte[] signature = sdi.wrapper.getSignParameter4().getPlainSigner().sign(
-						request.getSignatureData(), request.getSignatureDataByteRange(), sdi.wrapper.getSignParameter4());
+						request.getSignatureData(), request.getSignatureDataByteRange(), sdi.wrapper.getSignParameter4(), 
+						request.getStatus().getRequestedSignature());
 				request.setSigature(signature);
-				request = this.pdfas4.process(request);
+				request = (StatusRequestImpl) this.pdfas4.process(request);
 				if(request.isReady()) {
 					at.gv.egiz.pdfas.lib.api.sign.SignResult result = this.pdfas4.finishSign(request);
 					sdi.wrapper.syncNewToOld();

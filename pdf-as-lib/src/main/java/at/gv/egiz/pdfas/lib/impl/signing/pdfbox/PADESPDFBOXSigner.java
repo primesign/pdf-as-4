@@ -35,7 +35,6 @@ import java.util.List;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -343,7 +342,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				sigFieldName = "PDF-AS Signatur";
 			}
 			
-			int count = SignatureUtils.countSignatures(doc);
+			int count = SignatureUtils.countSignatures(doc, sigFieldName);
 			
 			sigFieldName = sigFieldName + count;
 

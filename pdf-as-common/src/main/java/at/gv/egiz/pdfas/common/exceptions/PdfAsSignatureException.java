@@ -33,4 +33,8 @@ public class PdfAsSignatureException extends PdfAsException {
 	public PdfAsSignatureException(String msgId, Throwable e) {
         super(msgId, e);
     }
+	
+	public PdfAsSignatureException(String msgId) {
+        super(msgId);
+    }
 }

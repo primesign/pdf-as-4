@@ -23,24 +23,23 @@
  ******************************************************************************/
 package at.gv.egiz.sl.util;
 
-import iaik.cms.CMSException;
-import iaik.cms.SignedData;
-import iaik.cms.SignerInfo;
 import iaik.x509.X509Certificate;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.lib.impl.SignResultImpl;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -84,59 +83,20 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		return certificate;
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, 
+			SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
 		RequestPackage pack = connector.createCMSRequest(
 				input, byteRange, parameter);
 		CreateCMSSignatureResponseType response = connector
 				.sendCMSRequest(pack, parameter);
-		try {
-			SignedData signedData = new SignedData(new ByteArrayInputStream(
-					response.getCMSSignature()));
+		
+		VerifyResult verifyResult = SignatureUtils.verifySignature(response.getCMSSignature(), input);
 
-			signedData.setContent(input);
-
-			// get the signer infos
-			SignerInfo[] signerInfos = signedData.getSignerInfos();
-			if (signerInfos.length == 0) {
-				throw new PdfAsSignatureException("Invalid Signature (no signer info created!)", null);
-			}
-			// verify the signatures
-			for (int i = 0; i < signerInfos.length; i++) {
-				VerifyResultImpl verifyResult = new VerifyResultImpl();
-				try {
-					logger.info("Signature Algo: {}, Digest {}", signedData
-							.getSignerInfos()[i].getSignatureAlgorithm(),
-							signedData.getSignerInfos()[i].getDigestAlgorithm());
-					// verify the signature for SignerInfo at index i
-					X509Certificate signer_cert = signedData.verify(i);
-					// if the signature is OK the certificate of the
-					// signer is returned
-					logger.info("Signature OK from signer: "
-							+ signer_cert.getSubjectDN());
-					verifyResult.setSignerCertificate(signer_cert);
-
-				} catch (SignatureException ex) {
-					// if the signature is not OK a SignatureException
-					// is thrown
-					logger.error(
-							"Signature ERROR from signer: "
-									+ signedData.getCertificate(
-											signerInfos[i]
-													.getSignerIdentifier())
-											.getSubjectDN(), ex);
-
-					verifyResult.setSignerCertificate(signedData
-							.getCertificate(signerInfos[i]
-									.getSignerIdentifier()));
-					throw new PdfAsSignatureException("error.pdf.sig.08", ex);
-				}
-			}
-		} catch (CMSException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.08", e);
-		} catch (IOException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.08", e);
+		if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
+				verifyResult.getSignerCertificate().getFingerprintSHA())) {
+			throw new PdfAsSignatureException("Certificates missmatch!");
 		}
-
+		
 		return response.getCMSSignature();
 	}
 

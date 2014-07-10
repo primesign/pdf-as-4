@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 /**
  * Signer interface
@@ -48,7 +49,7 @@ public interface IPlainSigner {
 	 * @return
 	 * @throws PdfAsException
 	 */
-    public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException;
+    public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException;
     
     /**
      * Gets the PDF Subfilter for this signer

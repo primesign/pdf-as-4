@@ -51,6 +51,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 /**
  * Creates a PKCS7 detached PDF signature
@@ -80,7 +81,8 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 		return cert;
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter
+			, RequestedSignature requestedSignature) throws PdfAsException {
 		try {
 			logger.info("Creating PKCS7 signature.");
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);

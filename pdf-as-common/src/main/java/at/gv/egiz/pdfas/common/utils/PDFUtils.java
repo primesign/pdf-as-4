@@ -99,6 +99,33 @@ public class PDFUtils {
 		return data;
 	}
 	
+	public static byte[] extractSignatureData(byte[] signatureData, int[] byteRange) throws PDFIOException {
+		if(byteRange.length % 2 != 0) {
+			throw new PDFIOException("error.pdf.io.09");
+		}
+		
+		int lastOffset = byteRange[byteRange.length - 2];
+		int lastSize = byteRange[byteRange.length - 1];
+		
+		int dataSize = lastOffset + lastSize;
+		
+		byte[] data = new byte[dataSize];
+		int currentdataOff = 0;
+		
+		Arrays.fill(data, (byte)0x0);
+		
+		for(int i = 0; i < byteRange.length; i = i + 2) {
+			int offset = byteRange[i];
+			int size = byteRange[i+1];
+			
+			for(int j = 0; j < size; j++) {
+				data[offset + j] = signatureData[currentdataOff];
+				currentdataOff++;
+			}
+		}
+		return data;
+	}
+	
 	private static int extractASCIIInteger(byte[] data, int offset) {
 		int nextsepp = nextSeperator(data, offset);
 
