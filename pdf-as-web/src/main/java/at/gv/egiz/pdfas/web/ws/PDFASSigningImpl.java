@@ -35,11 +35,14 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
-import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
+import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
-import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
+import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
+import at.gv.egiz.pdfas.api.ws.VerificationLevel;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.store.RequestStore;
@@ -51,7 +54,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFASSigningImpl.class);
 	
-	public byte[] signPDFDokument(byte[] inputDocument,
+	/*public byte[] signPDFDokument(byte[] inputDocument,
 			PDFASSignParameters parameters) {
 		checkSoapSignEnabled();
 		try {
@@ -65,7 +68,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 				throw new WebServiceException("Server Signature failed.");
 			}
 		}
-	}
+	}*/
 
 	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
 		checkSoapSignEnabled();
@@ -78,12 +81,42 @@ public class PDFASSigningImpl implements PDFASSigning {
 			if(request.getParameters().getConnector().equals(Connector.MOA) || 
 					request.getParameters().getConnector().equals(Connector.JKS)) {
 				// Plain server based signatures!!
-				response.setSignedPDF(signPDFDokument(request.getInputData(),
-					request.getParameters()));
+				response = PdfAsHelper.synchornousServerSignature(request.getInputData(),
+					request.getParameters());
+				
+				PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
+				VerifyResult verifyResult = null;
+				if(request.getVerificationLevel().equals(VerificationLevel.FULL_CERT_PATH)) {
+					List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(response.getSignedPDF(), -1, 
+							SignatureVerificationLevel.FULL_VERIFICATION);
+					
+					if(verResults.size() != 1) {
+						throw new WebServiceException("Document verification failed!");
+					}
+					verifyResult = verResults.get(0);
+				} else {
+					List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(response.getSignedPDF(), -1, 
+							SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION);
+					
+					if(verResults.size() != 1) {
+						throw new WebServiceException("Document verification failed!");
+					}
+					verifyResult = verResults.get(0);
+				}
+				
+				verResponse.setCertificateCode(verifyResult.getCertificateCheck().getCode());
+				verResponse.setValueCode(verifyResult.getValueCheckCode().getCode());
+				response.setVerificationResponse(verResponse);
 			} else {
 				// Signatures with user interaction!!
 				String id = RequestStore.getInstance().createNewStoreEntry(request);
+				
+				if(id == null) {
+					throw new WebServiceException("Failed to store request");
+				}
+				
 				String userEntryURL = PdfAsHelper.generateUserEntryURL(id);
+				
 				logger.debug("Generated request store: " + id);
 				logger.debug("Generated UI URL: " + userEntryURL);
 				

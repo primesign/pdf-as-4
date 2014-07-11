@@ -39,6 +39,7 @@ public class PDFASSignRequest implements Serializable {
 	String requestID;
 	byte[] inputData;
 	PDFASSignParameters parameters;
+	VerificationLevel verificationLevel;
 	
 	@XmlElement(required = true, nillable = false, name="requestID")
 	public String getRequestID() {
@@ -47,6 +48,15 @@ public class PDFASSignRequest implements Serializable {
 	
 	public void setRequestID(String requestID) {
 		this.requestID = requestID;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="verificationLevel")
+	public VerificationLevel getVerificationLevel() {
+		return verificationLevel;
+	}
+	
+	public void setVerificationLevel(VerificationLevel verificationLevel) {
+		this.verificationLevel = verificationLevel;
 	}
 	
 	@XmlElement(required = true, nillable = false, name="inputData")

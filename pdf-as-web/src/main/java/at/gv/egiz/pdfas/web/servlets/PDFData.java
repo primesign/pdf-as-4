@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 
 /**
@@ -94,6 +95,16 @@ public class PDFData extends HttpServlet {
 				}
 			}
 			response.setHeader("Content-Disposition", "inline;filename=" + PdfAsHelper.getPDFFileName(request));
+			String pdfCert = PdfAsHelper.getSignerCertificate(request);
+			if(pdfCert != null) {
+				response.setHeader("Signer-Certificate", pdfCert);
+			}
+			
+			PDFASVerificationResponse resp = PdfAsHelper.getPDFASVerificationResponse(request);
+			if(resp != null) {
+				response.setHeader("CertificateCheckCode", String.valueOf(resp.getCertificateCode()));
+				response.setHeader("ValueCheckCode", String.valueOf(resp.getValueCode()));
+			}
 			response.setContentType("application/pdf");
 			OutputStream os = response.getOutputStream();
 			os.write(signedData);

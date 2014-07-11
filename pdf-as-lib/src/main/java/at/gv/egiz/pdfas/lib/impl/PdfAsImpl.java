@@ -232,6 +232,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					.getDictionaryObject(COSName.ACRO_FORM);
 			COSArray fields = (COSArray) acroForm
 					.getDictionaryObject(COSName.FIELDS);
+			
+			int lastSig = -1;
+			for (int i = 0; i < fields.size(); i++) {
+				COSDictionary field = (COSDictionary) fields.getObject(i);
+				String type = field.getNameAsString("FT");
+				if ("Sig".equals(type)) {
+					lastSig = i;
+				}
+			}
+			
 			for (int i = 0; i < fields.size(); i++) {
 				COSDictionary field = (COSDictionary) fields.getObject(i);
 				String type = field.getNameAsString("FT");
@@ -242,7 +252,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						// verify only specific siganture!
 						verifyThis = signatureToVerify == currentSignature;
 					}
-
+					
+					if(signatureToVerify == -2) {
+						verifyThis = i == lastSig;
+					}
+					
 					if (verifyThis) {
 						logger.trace("Found Signature: ");
 						COSBase base = field.getDictionaryObject("V");

@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsStoreException;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
@@ -92,6 +93,19 @@ public class UIEntryPointServlet extends HttpServlet {
 			String errorUrl = pdfAsRequest.getParameters().getInvokeErrorURL();
 			PdfAsHelper.setErrorURL(req, resp, errorUrl);
 			
+			SignatureVerificationLevel lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
+			if(pdfAsRequest.getVerificationLevel() != null) {
+			switch (pdfAsRequest.getVerificationLevel()) {
+			case INTEGRITY_ONLY:
+				lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
+				break;
+			default:
+				lvl = SignatureVerificationLevel.FULL_VERIFICATION;
+				break;
+			}
+			}
+			PdfAsHelper.setVerificationLevel(req, lvl);
+			
 			if(pdfAsRequest.getInputData() == null) {
 				throw new PdfAsException("No Signature data available");
 			}
@@ -135,6 +149,7 @@ public class UIEntryPointServlet extends HttpServlet {
 			
 			
 		} catch (Throwable e) {
+			logger.error("Failed to process Request: ", e);
 			PdfAsHelper.setSessionException(req, resp, e.getMessage(), e);
 			PdfAsHelper.gotoError(getServletContext(), req, resp);
 		}

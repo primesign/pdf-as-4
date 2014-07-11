@@ -39,6 +39,8 @@ public class PDFASSignResponse implements Serializable {
 	String requestID;
 	String error;
 	byte[] signedPDF;
+	byte[] signerCertificate;
+	PDFASVerificationResponse verificationResponse;
 	String redirectUrl;
 	
 	@XmlElement(required = true, nillable = false, name="requestID")
@@ -55,6 +57,22 @@ public class PDFASSignResponse implements Serializable {
 	}
 	public void setSignedPDF(byte[] signedPDF) {
 		this.signedPDF = signedPDF;
+	}
+	
+	@XmlElement(required = false, nillable = false, name="signerCertificate")
+	public byte[] getSignerCertificate() {
+		return signerCertificate;
+	}
+	public void setSignerCertificate(byte[] signerCertificate) {
+		this.signerCertificate = signerCertificate;
+	}
+	
+	@XmlElement(required = false, nillable = false, name="verificationResponse")
+	public PDFASVerificationResponse getVerificationResponse() {
+		return verificationResponse;
+	}
+	public void setVerificationResponse(PDFASVerificationResponse verificationResponse) {
+		this.verificationResponse = verificationResponse;
 	}
 	
 	@XmlElement(required = false, name="error")
