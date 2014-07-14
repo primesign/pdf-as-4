@@ -231,7 +231,7 @@ public class MOAConnector implements ISignatureConnector {
 						VerifyResult verifyResult = SignatureUtils.verifySignature(cmsSignatureData, input);
 
 						if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
-								verifyResult.getSignerCertificate().getFingerprintSHA())) {
+								((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {
 							throw new PdfAsSignatureException("Certificates missmatch!");
 						}
 						

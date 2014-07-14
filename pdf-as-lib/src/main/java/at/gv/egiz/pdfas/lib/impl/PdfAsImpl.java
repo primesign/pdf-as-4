@@ -437,7 +437,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			RequestedSignature requestedSignature = request.getStatus().getRequestedSignature();
 			
 			if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
-					verifyResult.getSignerCertificate().getFingerprintSHA())) {
+					((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {
 				throw new PdfAsSignatureException("Certificates missmatch!");
 			}
 			

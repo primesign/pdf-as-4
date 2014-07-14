@@ -93,7 +93,7 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		VerifyResult verifyResult = SignatureUtils.verifySignature(response.getCMSSignature(), input);
 
 		if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
-				verifyResult.getSignerCertificate().getFingerprintSHA())) {
+				((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {
 			throw new PdfAsSignatureException("Certificates missmatch!");
 		}
 		

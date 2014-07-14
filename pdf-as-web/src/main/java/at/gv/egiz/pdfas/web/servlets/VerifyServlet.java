@@ -294,7 +294,7 @@ public class VerifyServlet extends HttpServlet {
 
 				Exception e = result.getVerificationException();
 				
- 				X509Certificate cert = result.getSignerCertificate();
+ 				X509Certificate cert = (X509Certificate)result.getSignerCertificate();
 				
 				sb.append("<td>" + cert.getSubjectDN().getName() + "</td>");
 				sb.append("<td>" + certCode + "</td>");
