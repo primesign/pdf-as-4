@@ -90,7 +90,8 @@ public class UIEntryPointServlet extends HttpServlet {
 			String invokeUrl = pdfAsRequest.getParameters().getInvokeURL();
 			PdfAsHelper.setInvokeURL(req, resp, invokeUrl);
 			
-			// TODO: Generate attribute for Invoke Target
+			String invokeTarget = pdfAsRequest.getParameters().getInvokeTarget();
+			PdfAsHelper.setInvokeTarget(req, resp, invokeTarget);
 			
 			String errorUrl = pdfAsRequest.getParameters().getInvokeErrorURL();
 			PdfAsHelper.setErrorURL(req, resp, errorUrl);

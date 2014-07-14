@@ -66,6 +66,7 @@ public class PDFASSignParameters implements Serializable {
 	
 	String position;
 	String invokeUrl;
+	String invokeTarget;
 	String invokeErrorUrl;
 	String transactionId;
 	String profile;
@@ -101,6 +102,14 @@ public class PDFASSignParameters implements Serializable {
 	}
 	public void setInvokeURL(String invokeUrl) {
 		this.invokeUrl = invokeUrl;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="invoke-target")
+	public String getInvokeTarget() {
+		return invokeTarget;
+	}
+	public void setInvokeTarget(String invokeTarget) {
+		this.invokeTarget = invokeTarget;
 	}
 	
 	@XmlElement(required = false, nillable = true, name="invoke-error-url")
