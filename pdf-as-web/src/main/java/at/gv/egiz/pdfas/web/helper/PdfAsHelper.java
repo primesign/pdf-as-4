@@ -29,7 +29,6 @@ import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -54,10 +53,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
-import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
-import at.gv.egiz.pdfas.api.ws.VerificationLevel;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
+import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
@@ -109,11 +107,12 @@ public class PdfAsHelper {
 	private static final String PDF_VER_LEVEL = "PDF_VER_LEVEL";
 	private static final String PDF_VER_RESP = "PDF_VER_RESP";
 	private static final String PDF_INVOKE_URL = "PDF_INVOKE_URL";
+	private static final String PDF_INVOKE_TARGET = "PDF_INVOKE_TARGET";
 	private static final String REQUEST_FROM_DU = "REQ_DATA_URL";
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
 	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
 	private static final String VERIFICATION_RESULT = "VERIFICATION_RESULT";
-
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
 
@@ -850,6 +849,23 @@ public class PdfAsHelper {
 			HttpServletResponse response) {
 		HttpSession session = request.getSession();
 		Object obj = session.getAttribute(PDF_INVOKE_URL);
+		return obj == null ? null : obj.toString();
+	}
+	
+	public static void setInvokeTarget(HttpServletRequest request,
+			HttpServletResponse response, String url) {
+		
+		
+		
+		HttpSession session = request.getSession();
+		session.setAttribute(PDF_INVOKE_TARGET, url);
+		logger.debug("External Invoke TARGET: " + url);
+	}
+
+	public static String getInvokeTarget(HttpServletRequest request,
+			HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(PDF_INVOKE_TARGET);
 		return obj == null ? null : obj.toString();
 	}
 

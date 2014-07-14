@@ -92,6 +92,15 @@ public class ErrorPage extends HttpServlet {
 				String template = PdfAsHelper.getErrorRedirectTemplateSL();
 				template = template.replace("##ERROR_URL##",
 						errorURL);
+				
+				String target = PdfAsHelper.getInvokeTarget(request, response);
+				
+				if(target == null) {
+					target = "_self";
+				}
+				
+				template = template.replace("##TARGET##", target);
+				
 				if (e != null && WebConfiguration.isShowErrorDetails()) {
 					template = template.replace("##CAUSE##",
 							URLEncoder.encode(e.getMessage(), "UTF-8"));

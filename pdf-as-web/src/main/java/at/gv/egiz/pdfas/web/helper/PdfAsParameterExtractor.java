@@ -33,11 +33,13 @@ public class PdfAsParameterExtractor {
 	
 	
 	public static final String PARAM_INVOKE_URL = "invoke-app-url";
+	public static final String PARAM_INVOKE_URL_TARGET = "invoke-app-url-target";
 	public static final String PARAM_INVOKE_URL_ERROR = "invoke-app-error-url";
 	public static final String PARAM_LOCALE = "locale";
 	public static final String PARAM_NUM_BYTES = "num-bytes";
 	public static final String PARAM_PDF_URL = "pdf-url";
 	public static final String PARAM_SIG_TYPE = "sig-type";
+	public static final String PARAM_SIG_TYPE_ALIAS = "sig_type";
 	public static final String PARAM_SIG_POS_P = "sig-pos-p";
 	public static final String PARAM_SIG_POS_Y = "sig-pos-y";
 	public static final String PARAM_SIG_POS_X = "sig-pos-x";
@@ -63,6 +65,10 @@ public class PdfAsParameterExtractor {
 		return (String)request.getAttribute(PARAM_INVOKE_URL);
 	}
 	
+	public static String getInvokeTarget(HttpServletRequest request) {
+		return (String)request.getAttribute(PARAM_INVOKE_URL_TARGET);
+	}
+	
 	public static String getInvokeErrorURL(HttpServletRequest request) {
 		String url = (String)request.getAttribute(PARAM_INVOKE_URL_ERROR);
 		return url;
@@ -81,7 +87,11 @@ public class PdfAsParameterExtractor {
 	}
 	
 	public static String getSigType(HttpServletRequest request) {
-		return (String)request.getAttribute(PARAM_SIG_TYPE);
+		String value = (String)request.getAttribute(PARAM_SIG_TYPE);
+		if(value == null) {
+			value = (String)request.getAttribute(PARAM_SIG_TYPE_ALIAS);
+		}
+		return value;
 	}
 	
 	public static String getSigPosP(HttpServletRequest request) {

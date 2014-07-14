@@ -93,6 +93,9 @@ public class ExternSignServlet extends HttpServlet {
 			String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
 			PdfAsHelper.setInvokeURL(request, response, invokeUrl);
 
+			String invokeTarget = PdfAsParameterExtractor.getInvokeTarget(request);
+			PdfAsHelper.setInvokeTarget(request, response, invokeTarget);
+			
 			String pdfUrl = PdfAsParameterExtractor.getPdfUrl(request);
 
 			if (pdfUrl == null) {
@@ -243,6 +246,9 @@ public class ExternSignServlet extends HttpServlet {
 
 		String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
 		PdfAsHelper.setInvokeURL(request, response, invokeUrl);
+		
+		String invokeTarget = PdfAsParameterExtractor.getInvokeTarget(request);
+		PdfAsHelper.setInvokeTarget(request, response, invokeTarget);
 		
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);

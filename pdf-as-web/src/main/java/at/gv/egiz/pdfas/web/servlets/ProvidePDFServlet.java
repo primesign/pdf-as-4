@@ -104,6 +104,14 @@ public class ProvidePDFServlet extends HttpServlet {
 					throw new PdfAsException("No Signature data available");
 				}
 
+				String target = PdfAsHelper.getInvokeTarget(request, response);
+				
+				if(target == null) {
+					target = "_self";
+				}
+				
+				template = template.replace("##TARGET##", target);
+				
 				template = template.replace("##PDFURL##",
 						URLEncoder.encode(PdfAsHelper.generatePdfURL(request, response), 
 								"UTF-8"));
