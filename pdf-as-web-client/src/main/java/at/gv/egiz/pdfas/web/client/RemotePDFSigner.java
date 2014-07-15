@@ -32,20 +32,17 @@ import javax.xml.ws.soap.SOAPBinding;
 
 import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
-import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
 
 public class RemotePDFSigner implements PDFASSigning {
 
-	private URL urlEndpoint;
 	private Service service;
 
 	private PDFASSigning proxy;
 
 	public RemotePDFSigner(URL endpoint, boolean useMTOM) {
-		this.urlEndpoint = endpoint;
 		QName qname = new QName("http://ws.web.pdfas.egiz.gv.at/",
 				"PDFASSigningImplService");
 		service = Service.create(endpoint, qname);

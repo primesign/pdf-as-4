@@ -33,6 +33,13 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_TRANSACTION_ID = "transactionId";
 	public static final String PARAM_CONNECTOR_DEFAULT = "bku";
 	
+	public static final String PARAM_FORMAT = "format";
+	public static final String PARAM_HTML = "html";
+	public static final String PARAM_JSON = "json";
+	
+	public static final String[] AVAILABLE_FORMATS = new String[] {
+		PARAM_HTML, PARAM_JSON
+	};
 	
 	public static final String PARAM_INVOKE_URL = "invoke-app-url";
 	public static final String PARAM_INVOKE_URL_TARGET = "invoke-app-url-target";
@@ -86,6 +93,23 @@ public class PdfAsParameterExtractor {
 	
 	public static String getInvokeTarget(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_INVOKE_URL_TARGET);
+	}
+	
+	public static String getFormat(HttpServletRequest request) {
+		String format = (String)request.getAttribute(PARAM_FORMAT);
+		
+		String finalFormat = null;
+		for(int i = 0; i < AVAILABLE_FORMATS.length; i++) {
+			if(AVAILABLE_FORMATS[i].equals(format)) {
+				finalFormat = AVAILABLE_FORMATS[i];
+			}
+		}
+		
+		if(finalFormat == null) {
+			finalFormat = PARAM_HTML;
+		}
+		
+		return finalFormat;
 	}
 	
 	public static String getInvokeErrorURL(HttpServletRequest request) {
