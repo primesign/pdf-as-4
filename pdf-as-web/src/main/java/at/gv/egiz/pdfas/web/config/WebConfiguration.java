@@ -44,6 +44,9 @@ public class WebConfiguration {
 
 	public static final String MOA_SS_ENABLED = "moa.enabled";
 	public static final String SOAP_SIGN_ENABLED = "soap.sign.enabled";
+	public static final String SOAP_VERIFY_ENABLED = "soap.verify.enabled";
+	public static final String RELOAD_PASSWORD = "reload.pwd";
+	public static final String RELOAD_ENABLED = "reload.enabled";
 
 	public static final String KEYSTORE_ENABLED = "ks.enabled";
 	public static final String KEYSTORE_FILE = "ks.file";
@@ -212,6 +215,16 @@ public class WebConfiguration {
 		}
 		return false;
 	}
+	
+	public static boolean getSoapVerifyEnabled() {
+		String value = properties.getProperty(SOAP_VERIFY_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static boolean isShowErrorDetails() {
 		String value = properties.getProperty(ERROR_DETAILS);
@@ -278,5 +291,19 @@ public class WebConfiguration {
 		}
 
 		return REQUEST_STORE_INMEM;
+	}
+	
+	public static String getReloadPassword() {
+		return properties.getProperty(RELOAD_PASSWORD);
+	}
+	
+	public static boolean getReloadEnabled() {
+		String value = properties.getProperty(RELOAD_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

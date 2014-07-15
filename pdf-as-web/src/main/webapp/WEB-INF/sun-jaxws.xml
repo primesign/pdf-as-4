@@ -4,4 +4,8 @@
     <endpoint name="SOAP Sign"
         implementation="at.gv.egiz.pdfas.web.ws.PDFASSigningImpl"
         url-pattern="/wssign"/>
+    
+    <endpoint name="SOAP Verify"
+        implementation="at.gv.egiz.pdfas.web.ws.PDFASVerificationImpl"
+        url-pattern="/wsverify"/>
 </endpoints>

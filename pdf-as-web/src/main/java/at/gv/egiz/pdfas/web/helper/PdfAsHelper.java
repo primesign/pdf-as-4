@@ -120,16 +120,20 @@ public class PdfAsHelper {
 	private static ObjectFactory of = new ObjectFactory();
 
 	static {
-		logger.info("Creating PDF-AS");
-		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration
-				.getPdfASDir()));
-		logger.info("Creating PDF-AS done");
+		reloadConfig();
 	}
 
 	public static void init() {
 		logger.info("PDF-AS Helper initialized");
 	}
 
+	public static synchronized void reloadConfig() {
+		logger.info("Creating PDF-AS");
+		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration
+				.getPdfASDir()));
+		logger.info("Creating PDF-AS done");
+	}
+	
 	private static void validatePdfSize(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData)
 			throws PdfAsWebException {
