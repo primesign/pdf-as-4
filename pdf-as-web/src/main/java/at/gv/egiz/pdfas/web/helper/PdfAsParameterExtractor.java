@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.web.helper;
 
 import javax.servlet.http.HttpServletRequest;
 
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
+
 public class PdfAsParameterExtractor {
 
 	public static final String PARAM_CONNECTOR = "connector";
@@ -35,6 +37,11 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_INVOKE_URL = "invoke-app-url";
 	public static final String PARAM_INVOKE_URL_TARGET = "invoke-app-url-target";
 	public static final String PARAM_INVOKE_URL_ERROR = "invoke-app-error-url";
+	
+	public static final String PARAM_VERIFY_LEVEL = "verify-level";
+	public static final String PARAM_VERIFY_LEVEL_OPTION_FULL = "full";
+	public static final String PARAM_VERIFY_LEVEL_OPTION_INT_ONLY = "intOnly";
+	
 	public static final String PARAM_LOCALE = "locale";
 	public static final String PARAM_NUM_BYTES = "num-bytes";
 	public static final String PARAM_PDF_URL = "pdf-url";
@@ -63,6 +70,18 @@ public class PdfAsParameterExtractor {
 	
 	public static String getInvokeURL(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_INVOKE_URL);
+	}
+	
+	public static SignatureVerificationLevel getVerificationLevel(HttpServletRequest request) {
+		String value = (String)request.getAttribute(PARAM_VERIFY_LEVEL);
+		if(value != null) {
+			if(value.equals(PARAM_VERIFY_LEVEL_OPTION_FULL)) {
+				return SignatureVerificationLevel.FULL_VERIFICATION;
+			} else if(value.equals(PARAM_VERIFY_LEVEL_OPTION_INT_ONLY)) {
+				return SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
+			}
+		}
+		return SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
 	}
 	
 	public static String getInvokeTarget(HttpServletRequest request) {
