@@ -8,7 +8,7 @@ subprojects {
 
 	sourceCompatibility = 1.5
 
-	version = '4.0.0-RC6'
+	version = '4.0.0-RC7'
 	pdfasversion = version
 	revision = getCheckedOutGitCommitHash()
 	
