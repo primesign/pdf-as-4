@@ -15,6 +15,7 @@ public class PDFASVerificationResponse implements Serializable {
 
 	int valueCode;
 	int certificateCode;
+	byte[] signerCertificate;
 	
 	@XmlElement(required = true, nillable = false, name="valueCode")
 	public int getValueCode() {
@@ -30,5 +31,13 @@ public class PDFASVerificationResponse implements Serializable {
 	}
 	public void setCertificateCode(int certificateCode) {
 		this.certificateCode = certificateCode;
+	}
+	
+	@XmlElement(required = false, nillable = false, name="signerCertificate")
+	public byte[] getSignerCertificate() {
+		return signerCertificate;
+	}
+	public void setSignerCertificate(byte[] signerCertificate) {
+		this.signerCertificate = signerCertificate;
 	}
 }

@@ -84,7 +84,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 				response = PdfAsHelper.synchornousServerSignature(request.getInputData(),
 					request.getParameters());
 				
-				PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
+				
 				VerifyResult verifyResult = null;
 				if(request.getVerificationLevel().equals(VerificationLevel.FULL_CERT_PATH)) {
 					List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(response.getSignedPDF(), -1, 
@@ -104,9 +104,9 @@ public class PDFASSigningImpl implements PDFASSigning {
 					verifyResult = verResults.get(0);
 				}
 				
-				verResponse.setCertificateCode(verifyResult.getCertificateCheck().getCode());
-				verResponse.setValueCode(verifyResult.getValueCheckCode().getCode());
-				response.setVerificationResponse(verResponse);
+				response.getVerificationResponse().setCertificateCode(verifyResult.getCertificateCheck().getCode());
+				response.getVerificationResponse().setValueCode(verifyResult.getValueCheckCode().getCode());
+
 			} else {
 				// Signatures with user interaction!!
 				String id = RequestStore.getInstance().createNewStoreEntry(request);

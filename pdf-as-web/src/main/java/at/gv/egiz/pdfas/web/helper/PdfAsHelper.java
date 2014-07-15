@@ -426,9 +426,14 @@ public class PdfAsHelper {
 
 		PDFASSignResponse signResponse = new PDFASSignResponse();
 		signResponse.setSignedPDF(output.getData());
-		signResponse.setSignerCertificate(signResult.getSignerCertificate()
+		
+		PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
+		
+		verResponse.setSignerCertificate(signResult.getSignerCertificate()
 				.getEncoded());
 
+		signResponse.setVerificationResponse(verResponse);
+		
 		return signResponse;
 	}
 
