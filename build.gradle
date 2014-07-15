@@ -1,18 +1,41 @@
 subprojects {
 	apply plugin: 'java'
 	apply plugin: 'eclipse'
+	apply plugin: 'maven'
 
+	group = 'at.gv.egiz.pdfas'
+
+	configurations {
+		deployerJars
+	}
+	
 	repositories { mavenCentral() }
 
-	dependencies { testCompile 'junit:junit:4.8.2' }
+	dependencies { 
+		testCompile 'junit:junit:4.8.2' 
+		//to use WebDav protocol on upload
+		deployerJars 'org.apache.maven.wagon:wagon-webdav:1.0-beta-2'
+	}
 
 	sourceCompatibility = 1.5
 
+	project.ext{
+		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
+		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
+	  }
+	
 	version = '4.0.0-RC7'
 	pdfasversion = version
 	revision = getCheckedOutGitCommitHash()
 	
 	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': version  }
+	
+	uploadArchives {
+		repositories.mavenDeployer {
+			repository(url: project.releaseRepoUrl)
+			snapshotRepository(url: project.snapshotRepoUrl)
+		}
+	}
 }
 
 def getCheckedOutGitCommitHash() {
