@@ -95,6 +95,12 @@
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFSignatureCertificateData</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>ReloadServlet</servlet-name>
+		<display-name>ReloadServlet</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFSignatureCertificateData</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>UIEntryPointServlet</servlet-name>
 		<display-name>UIEntryPointServlet</display-name>
 		<description></description>
@@ -125,6 +131,10 @@
 	<servlet-mapping>
 		<servlet-name>ProvidePDF</servlet-name>
 		<url-pattern>/ProvidePDF</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ReloadServlet</servlet-name>
+		<url-pattern>/Reload</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>DataURLServlet</servlet-name>
