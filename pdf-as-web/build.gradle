@@ -30,6 +30,8 @@ dependencies {
 	compile "commons-codec:commons-codec:1.9"
 	compile 'com.sun.xml.ws:jaxws-rt:2.2.8'
 	compile 'com.sun.xml.bind:jaxb-impl:2.2.7'
+	compile 'org.apache.commons:commons-lang3:3.3.2'
+	compile 'org.apache.httpcomponents:httpclient:4.3.4'
 	compile "org.hibernate:hibernate-core:4.3.5.Final"
 	compile "org.hibernate:hibernate-entitymanager:4.3.5.Final"
 	compile "mysql:mysql-connector-java:5.1.28"
