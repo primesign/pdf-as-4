@@ -27,17 +27,24 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 
 public class RemotePDFFetcher {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(RemotePDFFetcher.class);
+	
 	public static byte[] fetchPdfFile(String pdfURL) throws PdfAsWebException {
 		URL url;
 		try {
 			url = new URL(pdfURL);
 		} catch (MalformedURLException e) {
+			logger.error("Not a valid URL!", e);
 			throw new PdfAsWebException("Not a valid URL!", e);
 		}
 		if (WebConfiguration.isProvidePdfURLinWhitelist(url.toExternalForm())) {
@@ -48,6 +55,7 @@ public class RemotePDFFetcher {
 					InputStream is = url.openStream();
 					return StreamUtils.inputStreamToByteArray(is);
 				} catch (Exception e) {
+					logger.error("Failed to fetch pdf document!", e);
 					throw new PdfAsWebException(
 							"Failed to fetch pdf document!", e);
 				}

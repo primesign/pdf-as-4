@@ -30,12 +30,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
+import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
@@ -43,7 +42,6 @@ import at.gv.egiz.pdfas.web.exception.PdfAsStoreException;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.helper.DigestHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
-import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.store.RequestStore;
 
 public class UIEntryPointServlet extends HttpServlet {
@@ -77,80 +75,90 @@ public class UIEntryPointServlet extends HttpServlet {
 			if (storeId == null) {
 				throw new PdfAsStoreException("Wrong Parameters");
 			}
-			
+
 			PDFASSignRequest pdfAsRequest = RequestStore.getInstance()
 					.fetchStoreEntry(storeId);
-			
-			if(pdfAsRequest == null) {
-				throw new PdfAsStoreException("Invalid " + REQUEST_ID_PARAM + " value");
+
+			if (pdfAsRequest == null) {
+				throw new PdfAsStoreException("Invalid " + REQUEST_ID_PARAM
+						+ " value");
 			}
-			
+
 			Connector connector = pdfAsRequest.getParameters().getConnector();
-			
+
 			String invokeUrl = pdfAsRequest.getParameters().getInvokeURL();
 			PdfAsHelper.setInvokeURL(req, resp, invokeUrl);
-			
-			String invokeTarget = pdfAsRequest.getParameters().getInvokeTarget();
+
+			String invokeTarget = pdfAsRequest.getParameters()
+					.getInvokeTarget();
 			PdfAsHelper.setInvokeTarget(req, resp, invokeTarget);
-			
+
 			String errorUrl = pdfAsRequest.getParameters().getInvokeErrorURL();
 			PdfAsHelper.setErrorURL(req, resp, errorUrl);
-			
+
 			SignatureVerificationLevel lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
-			if(pdfAsRequest.getVerificationLevel() != null) {
-			switch (pdfAsRequest.getVerificationLevel()) {
-			case INTEGRITY_ONLY:
-				lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
-				break;
-			default:
-				lvl = SignatureVerificationLevel.FULL_VERIFICATION;
-				break;
-			}
+			if (pdfAsRequest.getVerificationLevel() != null) {
+				switch (pdfAsRequest.getVerificationLevel()) {
+				case INTEGRITY_ONLY:
+					lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
+					break;
+				default:
+					lvl = SignatureVerificationLevel.FULL_VERIFICATION;
+					break;
+				}
 			}
 			PdfAsHelper.setVerificationLevel(req, lvl);
-			
-			if(pdfAsRequest.getInputData() == null) {
+
+			if (pdfAsRequest.getInputData() == null) {
 				throw new PdfAsException("No Signature data available");
 			}
-			
-			String pdfDataHash = DigestHelper.getHexEncodedHash(pdfAsRequest.getInputData());
-			
+
+			String pdfDataHash = DigestHelper.getHexEncodedHash(pdfAsRequest
+					.getInputData());
+
 			PdfAsHelper.setSignatureDataHash(req, pdfDataHash);
 			logger.debug("Storing signatures data hash: " + pdfDataHash);
-			
+
 			logger.debug("Starting signature creation with: " + connector);
-			
-			//IPlainSigner signer;
-			if (connector.equals(Connector.BKU) || connector.equals(Connector.ONLINEBKU) || connector.equals(Connector.MOBILEBKU)) {
+
+			// IPlainSigner signer;
+			if (connector.equals(Connector.BKU)
+					|| connector.equals(Connector.ONLINEBKU)
+					|| connector.equals(Connector.MOBILEBKU)) {
 				// start asynchronous signature creation
-				
-				if(connector.equals(Connector.BKU)) {
-					if(WebConfiguration.getLocalBKUURL() == null) {
-						throw new PdfAsWebException("Invalid connector bku is not supported");
+
+				if (connector.equals(Connector.BKU)) {
+					if (WebConfiguration.getLocalBKUURL() == null) {
+						throw new PdfAsWebException(
+								"Invalid connector bku is not supported");
 					}
 				}
-				
-				if(connector.equals(Connector.ONLINEBKU)) {
-					if(WebConfiguration.getLocalBKUURL() == null) {
-						throw new PdfAsWebException("Invalid connector onlinebku is not supported");
+
+				if (connector.equals(Connector.ONLINEBKU)) {
+					if (WebConfiguration.getLocalBKUURL() == null) {
+						throw new PdfAsWebException(
+								"Invalid connector onlinebku is not supported");
 					}
 				}
-				
-				if(connector.equals(Connector.MOBILEBKU)) {
-					if(WebConfiguration.getLocalBKUURL() == null) {
-						throw new PdfAsWebException("Invalid connector mobilebku is not supported");
+
+				if (connector.equals(Connector.MOBILEBKU)) {
+					if (WebConfiguration.getLocalBKUURL() == null) {
+						throw new PdfAsWebException(
+								"Invalid connector mobilebku is not supported");
 					}
 				}
-				
-				PdfAsHelper.startSignature(req, resp, getServletContext(), pdfAsRequest.getInputData(), 
-						connector.toString(), pdfAsRequest.getParameters().getPosition(), 
-						pdfAsRequest.getParameters().getTransactionId(), 
+
+				PdfAsHelper.startSignature(req, resp, getServletContext(),
+						pdfAsRequest.getInputData(), connector.toString(),
+						pdfAsRequest.getParameters().getPosition(),
+						pdfAsRequest.getParameters().getTransactionId(),
 						pdfAsRequest.getParameters().getProfile());
 			} else {
-				throw new PdfAsWebException("Invalid connector (" + Connector.BKU + " | " + Connector.ONLINEBKU + " | " + Connector.MOBILEBKU + ")");
+				throw new PdfAsWebException("Invalid connector ("
+						+ Connector.BKU + " | " + Connector.ONLINEBKU + " | "
+						+ Connector.MOBILEBKU + ")");
 			}
-			
-			
+
 		} catch (Throwable e) {
 			logger.error("Failed to process Request: ", e);
 			PdfAsHelper.setSessionException(req, resp, e.getMessage(), e);

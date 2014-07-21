@@ -837,6 +837,7 @@ public class PdfAsHelper {
 	public static void setErrorURL(HttpServletRequest request,
 			HttpServletResponse response, String url) {
 		HttpSession session = request.getSession();
+		logger.debug("[" + session.getId() + "]: Setting Error URL to: " + url);
 		session.setAttribute(PDF_ERR_URL, url);
 	}
 
@@ -850,8 +851,8 @@ public class PdfAsHelper {
 	public static void setInvokeURL(HttpServletRequest request,
 			HttpServletResponse response, String url) {
 		HttpSession session = request.getSession();
+		logger.debug("[" + session.getId() + "]: Setting Invoke URL to: " + url);
 		session.setAttribute(PDF_INVOKE_URL, url);
-		logger.debug("External Invoke URL: " + url);
 	}
 
 	public static String getInvokeURL(HttpServletRequest request,

@@ -89,6 +89,7 @@ public class ExternSignServlet extends HttpServlet {
 		
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
+		
 		try {
 			// Mandatory Parameters on Get Request:
 			String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
@@ -296,6 +297,7 @@ public class ExternSignServlet extends HttpServlet {
 			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector, 
 					PdfAsHelper.buildPosString(request, response), transactionId, PdfAsParameterExtractor
 					.getSigType(request));
+			return;
 		} else if (connector.equals("jks") || connector.equals("moa")) {
 			// start synchronous siganture creation
 			
