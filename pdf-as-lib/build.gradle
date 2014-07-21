@@ -34,7 +34,6 @@ compileJava.dependsOn(createConf)
 repositories {
 	mavenLocal()
 	mavenCentral()
-	maven { url "http://nexus.iaik.tugraz.at/nexus/content/groups/internal" }
 }
 
 dependencies {
@@ -58,24 +57,8 @@ dependencies {
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
 	compile group: 'com.google.zxing', name: 'core', version: '2.2'
 	compile group: 'com.google.zxing', name: 'javase', version: '2.2'
-	pdfDoclet files('libs/pdfdoclet-1.0.3-all.jar')
 	testCompile group: 'junit', name: 'junit', version: '4.+'
 }
-
-/*javadoc {
-	revision = getCheckedOutGitCommitHash()
-	project.configure(options) {
-		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
-		charSet = "ISO-8859-1"
-		docTitle = "PDF-AS 4.0 Library"
-		exclude = '/**'
-		include = 'at/gv/egiz/pdfas/lib/api/**'
-		windowTitle = "PDF-AS 4.0 Library"
-		header = "<b>PDF-AS 4.0 Library $version [$revision]</b>"
-		use = "true"
-		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
-	}
-}*/
 
 task apidocs(type: Javadoc) {
 	classpath = configurations.compile
@@ -110,14 +93,6 @@ task fulldocs(type: Javadoc) {
 		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
 	}
 }
-
-/*task apidocspdf(type: Javadoc) {
-	classpath = configurations.compile
-	source = sourceSets.main.allJava
-	options.docletpath = configurations.pdfDoclet.files.asType(List)
-	options.doclet = "com.tarsec.javadoc.pdfdoclet.PDFDoclet"
-	options.addStringOption("pdf", "../docs/api.pdf")
-}*/
 
 task apidocspdf << {
 	def proc = "./doc.sh".execute()
