@@ -33,10 +33,16 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SLMarschaller {
 	private static Marshaller marshaller = null;
 	private static Unmarshaller unmarshaller = null;
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(SLMarschaller.class);
+	
 	static {
 		try {
 			JAXBContext context = JAXBContext.newInstance("at.gv.egiz.sl.schema");
@@ -46,6 +52,7 @@ public class SLMarschaller {
 
 			unmarshaller = context.createUnmarshaller();
 		} catch (JAXBException e) {
+			logger.error("Error in creating JAXBContext", e);
 			throw new RuntimeException(
 					"There was a problem creating a JAXBContext object for formatting the object to XML.");
 		}
