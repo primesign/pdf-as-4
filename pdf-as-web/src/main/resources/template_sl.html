@@ -41,7 +41,7 @@ div.content {
                         }
                         
                         function onAnmeldeSubmit() {
-                        		adaptWindowSizes();
+                        		//adaptWindowSizes();
                                 document.CustomizedForm.submit();
                                 document.CustomizedForm.Senden.disabled=true;
                                 document.CustomizedForm.Senden.hidden = "hidden";
@@ -62,6 +62,7 @@ div.content {
 						<input type="hidden" name="iframe_" value="on" />
 						<input type="hidden" id="appletWidth" name="appletWidth" value="221" />
 						<input type="hidden" id="appletHeight" name="appletHeight" value="221" />
+						<input type="hidden" id="redirectTarget" name="redirectTarget" value="_self" />
 						##ADDITIONAL##
 				</form>
 			</div>
