@@ -27,6 +27,9 @@ subprojects {
 	version = '4.0.0-RC8-SNAPSHOT'
 	pdfasversion = version
 	revision = getCheckedOutGitCommitHash()
+	//tomcatVersion = '7.0.54';
+	tomcatVersion = '8.0.9';
+	
 	
 	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': version  }
 	

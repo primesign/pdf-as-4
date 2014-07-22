@@ -44,10 +44,104 @@ test {
     systemProperties 'property': 'value'
 }
 
-uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
-    }
+task downloadTomcat << {
+	String url  = "http://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
+	String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
+	
+	url = url.replaceAll("##VERSION##", tomcatVersion);
+	filename = filename.replaceAll("##VERSION##", tomcatVersion);
+	
+	println "Tomcat Version: " + url
+	
+	println "Tomcat file: " + filename
+	
+	def f = new File(filename)
+	if (!f.exists()) {
+		println "Downloading Tomcat ..."
+		new URL(url).withInputStream{ i -> f.withOutputStream{ it << i }}
+	}
 }
+
+task extractTomcat(dependsOn: downloadTomcat, type: Copy) {
+	
+	String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
+	filename = filename.replaceAll("##VERSION##", tomcatVersion);
+	
+	inputs.file filename
+	
+	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	def zipFile = file(filename)
+	def outputDir = file(targetDir)
+ 
+	from zipTree(zipFile)
+	into outputDir
+}
+
+task cleanWebAppsInTomcat(dependsOn: extractTomcat) << {
+	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##/webapps/";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	def webappDir = new File(targetDir);
+	println "Removing: " + webappDir.toString()
+	def result = webappDir.deleteDir()  // Returns true if all goes well, false otherwise.
+	println result.toString()
+	
+	assert result
+	
+	webappDir.mkdirs()
+}
+
+task putTemplateIntoTomcat(dependsOn: cleanWebAppsInTomcat, type: Copy) {
+	String source = project.projectDir.toString() + "/";
+	
+	String targetDir = "build/tomcat-##VERSION##/apache-tomcat-##VERSION##";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	from 'src/main/assembly/tomcat'
+	into targetDir
+}
+
+task putConfigIntoTomcat(dependsOn: putTemplateIntoTomcat, type: Copy) {
+	String source = "../pdf-as-lib/build/resources/main/config/config.zip";
+	
+	String targetDir = "build/tomcat-##VERSION##/apache-tomcat-##VERSION##/conf/pdf-as";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	from zipTree(source)
+	into targetDir
+}
+
+task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat, type: Copy) {
+	String targetDir = "build/tomcat-##VERSION##/apache-tomcat-##VERSION##/conf/pdf-as";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	from 'src/main/configuration/'
+	into targetDir
+}
+
+task injectPdfAsWebApp(dependsOn: putWebConfigIntoTomcat, type: Copy) {
+	war.execute();
+	
+	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##/webapps/";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	from war.outputs
+	into targetDir
+	rename '.*.war', 'pdf-as-web.war'
+}
+
+task buildTomcat(dependsOn: injectPdfAsWebApp, type: Zip) {
+	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	String archive = "apache-tomcat-##VERSION##-pdf-as-web-##PVERSION##.zip";
+	archive = archive.replaceAll("##VERSION##", tomcatVersion);
+	archive = archive.replaceAll("##PVERSION##", version);
+	
+	from targetDir
+	archiveName archive
+	destinationDir project.buildDir
+}
+
