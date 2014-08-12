@@ -56,7 +56,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -335,7 +334,8 @@ public class PDFPage extends PDFTextStripper {
 		}
 
 		// store ypos of the char if it is not empty
-		if (!character.equals(" ") && current_y > this.max_character_ypos) {
+		if (!at.gv.egiz.pdfas.common.utils.StringUtils.whiteSpaceTrim(character).isEmpty() && 
+				current_y > this.max_character_ypos) {
 			this.max_character_ypos = current_y;
 		}
 

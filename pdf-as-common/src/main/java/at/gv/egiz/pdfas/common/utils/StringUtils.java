@@ -98,4 +98,37 @@ public class StringUtils {
 		String text = new String(replace_bytes, "windows-1252");
 		return text;
 	}
+	
+	public static String whiteSpaceTrim(String string) {
+		String str = startStrip(string);
+		return endStrip(str);
+	}
+
+	private static String startStrip(final String str) {
+		int strLen;
+		if (str == null || (strLen = str.length()) == 0) {
+			return str;
+		}
+		int start = 0;
+		while (start != strLen && isEmptySpace(str.charAt(start))) {
+			start++;
+		}
+		return str.substring(start);
+	}
+	
+	private static String endStrip(final String str) {
+		int end;
+		if (str == null || (end = str.length()) == 0) {
+			return str;
+		}
+		while (end != 0 && isEmptySpace(str.charAt(end - 1))) {
+			end++;
+		}
+
+		return str.substring(0, end);
+	}
+	
+	private static boolean isEmptySpace(char c) {
+		return Character.isWhitespace(c) || Character.isSpaceChar(c);
+	}
 }
