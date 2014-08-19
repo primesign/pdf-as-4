@@ -60,21 +60,18 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 
-public class MOAConnector implements ISignatureConnector {
+public class MOAConnector implements ISignatureConnector, IConfigurationConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MOAConnector.class);
 	
 	private static final Logger moalogger = LoggerFactory.getLogger("at.knowcenter.wag.egov.egiz.sig.connectors.MOASSRepsonseLogger");
-
-	public static final String MOA_SIGN_URL = "moa.sign.url";
-	public static final String MOA_SIGN_KEY_ID = "moa.sign.KeyIdentifier";
-	public static final String MOA_SIGN_CERTIFICATE = "moa.sign.Certificate";
 
 	public static final String KEY_ID_PATTERN = "##KEYID##";
 	public static final String CONTENT_PATTERN = "##CONTENT##";

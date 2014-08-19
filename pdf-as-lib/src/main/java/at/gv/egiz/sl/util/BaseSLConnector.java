@@ -30,14 +30,11 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.sl.schema.Base64OptRefContentType;
-import at.gv.egiz.sl.schema.Base64XMLLocRefContentType;
-import at.gv.egiz.sl.schema.Base64XMLLocRefOptRefContentType;
-import at.gv.egiz.sl.schema.CMSDataObjectOptionalMetaType;
 import at.gv.egiz.sl.schema.CMSDataObjectRequiredMetaType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureRequestType;
-import at.gv.egiz.sl.schema.DataObjectInfoType;
 import at.gv.egiz.sl.schema.ExcludedByteRangeType;
 import at.gv.egiz.sl.schema.InfoboxReadParamsAssocArrayType;
 import at.gv.egiz.sl.schema.InfoboxReadParamsAssocArrayType.ReadValue;
@@ -45,7 +42,7 @@ import at.gv.egiz.sl.schema.InfoboxReadRequestType;
 import at.gv.egiz.sl.schema.MetaInfoType;
 import at.gv.egiz.sl.schema.ObjectFactory;
 
-public abstract class BaseSLConnector implements ISLConnector {
+public abstract class BaseSLConnector implements ISLConnector, IConfigurationConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(BaseSLConnector.class);

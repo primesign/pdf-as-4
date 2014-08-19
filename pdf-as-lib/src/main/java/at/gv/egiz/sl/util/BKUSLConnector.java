@@ -57,8 +57,6 @@ public class BKUSLConnector extends BaseSLConnector {
 	private static final Logger logger = LoggerFactory
 			.getLogger(BKUSLConnector.class);
 
-	public static final String CONFIG_BKU_URL = "bku.sign.url";
-
 	private String bkuUrl;
 
 	public BKUSLConnector(Configuration config) {

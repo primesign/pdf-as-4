@@ -42,6 +42,8 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
@@ -73,6 +75,7 @@ import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.tagging.PDFBoxTaggingUtils;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
@@ -137,7 +140,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signer.setPDSignature(signature);
 			SignatureOptions options = new SignatureOptions();
-	
+
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
 				logger.info("Creating visual siganture block");
@@ -231,14 +234,14 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				position.setWidth(visualObject.getWidth());
 
 				requestedSignature.setSignaturePosition(position);
-				
+
 				PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
 						pdfObject.getStatus().getSettings(), pdfObject,
 						(PdfBoxVisualObject) visualObject,
 						positioningInstruction);
 
 				properties.buildSignature();
-				
+
 				/*
 				 * ByteArrayOutputStream sigbos = new ByteArrayOutputStream();
 				 * sigbos.write(StreamUtils.inputStreamToByteArray(properties
@@ -314,36 +317,37 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 				}
 
-				/*
-				 * if(signatureProfileSettings.isPDFA()) { // Check for PDF-UA
-				 * PDDocumentCatalog root = doc.getDocumentCatalog();
-				 * PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
-				 * if(treeRoot != null) { // Handle as PDF-UA
-				 * logger.info("Tree Root: {}", treeRoot.toString());
-				 * PDStructureElement docElement =
-				 * PDFBoxTaggingUtils.getDocumentElement(treeRoot);
-				 * PDStructureElement sigBlock = new PDStructureElement("Table",
-				 * docElement); root.getCOSObject().setNeedToBeUpdate(true);
-				 * docElement.getCOSObject().setNeedToBeUpdate(true);
-				 * treeRoot.getCOSObject().setNeedToBeUpdate(true);
-				 * sigBlock.setTitle("Signature Table"); } }
-				 */
+//				if (signatureProfileSettings.isPDFA()) { // Check for PDF-UA
+//					PDDocumentCatalog root = doc.getDocumentCatalog();
+//					PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
+//					if (treeRoot != null) { // Handle as PDF-UA
+//						logger.info("Tree Root: {}", treeRoot.toString());
+//						PDStructureElement docElement = PDFBoxTaggingUtils
+//								.getDocumentElement(treeRoot);
+//						PDStructureElement sigBlock = new PDStructureElement(
+//								"Table", docElement);
+//						root.getCOSObject().setNeedToBeUpdate(true);
+//						docElement.getCOSObject().setNeedToBeUpdate(true);
+//						treeRoot.getCOSObject().setNeedToBeUpdate(true);
+//						sigBlock.setTitle("Signature Table");
+//					}
+//				}
 
 				options.setPreferedSignatureSize(0x1000);
 				options.setPage(positioningInstruction.getPage());
 				options.setVisualSignature(properties.getVisibleSignature());
 			}
-			
+
 			doc.addSignature(signature, signer, options);
-			
+
 			String sigFieldName = signatureProfileSettings.getSignFieldValue();
 
 			if (sigFieldName == null) {
 				sigFieldName = "PDF-AS Signatur";
 			}
-			
+
 			int count = SignatureUtils.countSignatures(doc, sigFieldName);
-			
+
 			sigFieldName = sigFieldName + count;
 
 			PDAcroForm acroFormm = doc.getDocumentCatalog().getAcroForm();
@@ -372,7 +376,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			} else {
 				logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 			}
-			
+
 			if (requestedSignature.isVisual()) {
 
 				// if(requestedSignature.getSignaturePosition().)

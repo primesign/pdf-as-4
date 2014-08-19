@@ -45,6 +45,8 @@ public interface IConfigurationConstants {
 	public static final String PLACEHOLDER_SEARCH_ENABLED = "enable_placeholder_search";
 	public static final String DEFAULT_SIGNATURE_PROFILE = SIG_OBJECT + SEPERATOR + TYPE + SEPERATOR + DEFAULT;
 	
+	public static final String CONFIG_BKU_URL = "bku.sign.url";
+	
 	/**
 	 * Signature object Prefix
 	 */
@@ -66,6 +68,8 @@ public interface IConfigurationConstants {
 	 */
 	public static final String MOA_TRUSTPROFILE_ID = "moa.verify.TrustProfileID";
 	
+	public static final String MOA_SIGN_KEY_ID = MOA_SS_KEY_IDENTIFIER;
+	public static final String MOA_SIGN_CERTIFICATE = MOA_SS_KEY_CERTIFICATE;
 	
 	/**
 	 * MOA Verify URL configuration Key
@@ -77,5 +81,8 @@ public interface IConfigurationConstants {
 	 * MOA Sign URL configuration Key
 	 */
 	public static final String MOA_SIGN_URL = "moa.sign.url";
+	
+	public static final String MOC_SIGN_URL = "moc.sign.url";
+	public static final String MOBILE_SIGN_URL = "mobile.sign.url";
 	
 }

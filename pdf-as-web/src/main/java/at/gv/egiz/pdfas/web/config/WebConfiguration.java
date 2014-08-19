@@ -33,9 +33,15 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebConfiguration {
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
+import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+
+public class WebConfiguration implements IConfigurationConstants {
 
 	public static final String PUBLIC_URL = "public.url";
+	public static final String LOCAL_BKU_ENABLED = "bku.sign.enabled";
+	public static final String ONLINE_BKU_ENABLED = "moc.sign.enabled";
+	public static final String MOBILE_BKU_ENABLED = "mobile.sign.enabled";
 	public static final String LOCAL_BKU_URL = "bku.local.url";
 	public static final String ONLINE_BKU_URL = "bku.online.url";
 	public static final String MOBILE_BKU_URL = "bku.mobile.url";
@@ -151,15 +157,45 @@ public class WebConfiguration {
 	}
 
 	public static String getLocalBKUURL() {
-		return properties.getProperty(LOCAL_BKU_URL);
+		if(!getLocalBKUEnabled()) {
+			String overwrite = properties.getProperty(CONFIG_BKU_URL);
+			if(overwrite == null) {
+				overwrite = properties.getProperty(LOCAL_BKU_URL);
+				if(overwrite == null) {
+					overwrite = PdfAsHelper.getPdfAsConfig().getValue(CONFIG_BKU_URL);
+				}
+			}
+			return overwrite;
+		}
+		return null;
 	}
 
 	public static String getOnlineBKUURL() {
-		return properties.getProperty(ONLINE_BKU_URL);
+		if(!getOnlineBKUEnabled()) {
+			String overwrite = properties.getProperty(MOC_SIGN_URL);
+			if(overwrite == null) {
+				overwrite = properties.getProperty(ONLINE_BKU_URL);
+				if(overwrite == null) {
+					overwrite = PdfAsHelper.getPdfAsConfig().getValue(MOC_SIGN_URL);
+				}
+			}
+			return overwrite;
+		}
+		return null;
 	}
 
 	public static String getHandyBKUURL() {
-		return properties.getProperty(MOBILE_BKU_URL);
+		if(!getMobileBKUEnabled()) {
+			String overwrite = properties.getProperty(MOBILE_SIGN_URL);
+			if(overwrite == null) {
+				overwrite = properties.getProperty(MOBILE_BKU_URL);
+				if(overwrite == null) {
+					overwrite = PdfAsHelper.getPdfAsConfig().getValue(MOBILE_SIGN_URL);
+				}
+			}
+			return overwrite;
+		}
+		return null;
 	}
 
 	public static String getPdfASDir() {
@@ -206,6 +242,36 @@ public class WebConfiguration {
 		return false;
 	}
 
+	public static boolean getLocalBKUEnabled() {
+		String value = properties.getProperty(LOCAL_BKU_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean getOnlineBKUEnabled() {
+		String value = properties.getProperty(ONLINE_BKU_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean getMobileBKUEnabled() {
+		String value = properties.getProperty(MOBILE_BKU_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public static boolean getSoapSignEnabled() {
 		String value = properties.getProperty(SOAP_SIGN_ENABLED);
 		if (value != null) {

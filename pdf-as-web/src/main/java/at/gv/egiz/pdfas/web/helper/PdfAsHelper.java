@@ -118,7 +118,8 @@ public class PdfAsHelper {
 
 	private static PdfAs pdfAs;
 	private static ObjectFactory of = new ObjectFactory();
-
+	private static Configuration pdfAsConfig;
+	
 	static {
 		reloadConfig();
 	}
@@ -131,7 +132,12 @@ public class PdfAsHelper {
 		logger.info("Creating PDF-AS");
 		pdfAs = PdfAsFactory.createPdfAs(new File(WebConfiguration
 				.getPdfASDir()));
+		pdfAsConfig = pdfAs.getConfiguration();
 		logger.info("Creating PDF-AS done");
+	}
+	
+	public static Configuration getPdfAsConfig() {
+		return pdfAsConfig;
 	}
 	
 	private static void validatePdfSize(HttpServletRequest request,
