@@ -226,12 +226,28 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					.getDataSource().getByteData()));
 
 			COSDictionary trailer = doc.getDocument().getTrailer();
+			if(trailer == null) {
+				// No signatures ...
+				return result;
+			}
 			COSDictionary root = (COSDictionary) trailer
 					.getDictionaryObject(COSName.ROOT);
+			if(root == null) {
+				// No signatures ...
+				return result;
+			}
 			COSDictionary acroForm = (COSDictionary) root
 					.getDictionaryObject(COSName.ACRO_FORM);
+			if(acroForm == null) {
+				// No signatures ...
+				return result;
+			}
 			COSArray fields = (COSArray) acroForm
 					.getDictionaryObject(COSName.FIELDS);
+			if(fields == null) {
+				// No signatures ...
+				return result;
+			}
 			
 			int lastSig = -1;
 			for (int i = 0; i < fields.size(); i++) {
