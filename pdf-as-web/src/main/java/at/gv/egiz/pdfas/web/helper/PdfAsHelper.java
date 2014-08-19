@@ -746,6 +746,13 @@ public class PdfAsHelper {
 		return xml;
 	}
 
+	public static String getGenericTemplate() throws IOException {
+		String xml = FileUtils.readFileToString(FileUtils
+				.toFile(PdfAsHelper.class
+						.getResource("/template_generic_param.html")));
+		return xml;
+	}
+	
 	public static String getInvokeRedirectTemplateSL() throws IOException {
 		String xml = FileUtils.readFileToString(FileUtils
 				.toFile(PdfAsHelper.class

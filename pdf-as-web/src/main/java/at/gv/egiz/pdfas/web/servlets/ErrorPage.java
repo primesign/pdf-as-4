@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.web.servlets;
 
 import java.io.IOException;
+import java.net.URL;
 import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.HTMLFormater;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.helper.UrlParameterExtractor;
 
 /**
  * Servlet implementation class ErrorPage
@@ -92,6 +94,10 @@ public class ErrorPage extends HttpServlet {
 				String template = PdfAsHelper.getErrorRedirectTemplateSL();
 				template = template.replace("##ERROR_URL##",
 						errorURL);
+				
+				URL url = new URL(errorURL);
+				String extraParams = UrlParameterExtractor.buildParameterFormString(url);
+				template = template.replace("##ADD_PARAMS##", extraParams);
 				
 				String target = PdfAsHelper.getInvokeTarget(request, response);
 				

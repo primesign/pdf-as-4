@@ -143,7 +143,7 @@ public class WebConfiguration implements IConfigurationConstants {
 		}
 
 		File f = new File(pdfASDir);
-
+ 
 		if (!f.exists() || !f.isDirectory()) {
 			logger.error("Pdf As working directory does not exists or is not a directory!: "
 					+ pdfASDir);

@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.web.servlets;
 
 import java.io.IOException;
+import java.net.URL;
 import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.helper.UrlParameterExtractor;
 
 /**
  * Servlet implementation class ProvidePDF
@@ -95,7 +97,11 @@ public class ProvidePDFServlet extends HttpServlet {
 				// Redirect Browser
 				String template = PdfAsHelper.getInvokeRedirectTemplateSL();
 				template = template.replace("##INVOKE_URL##", invokeURL);
-
+				
+				URL url = new URL(invokeURL);
+				String extraParams = UrlParameterExtractor.buildParameterFormString(url);
+				template = template.replace("##ADD_PARAMS##", extraParams);
+				
 				byte[] signedData = PdfAsHelper.getSignedPdf(request, response);
 				if (signedData != null) {
 					template = template.replace("##PDFLENGTH##",
