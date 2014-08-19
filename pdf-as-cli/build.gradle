@@ -9,6 +9,15 @@ repositories {
     mavenCentral()
 }
 
+task releases(type: Copy) {
+	from distZip.outputs
+	from distTar.outputs
+	into rootDir.toString() + "/releases"
+}
+
+releases.dependsOn distZip
+releases.dependsOn distTar
+
 dependencies {
 	compile project (':pdf-as-lib')
 	compile project (':pdf-as-legacy')

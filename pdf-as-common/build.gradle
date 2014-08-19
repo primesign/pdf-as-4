@@ -11,6 +11,11 @@ repositories {
     mavenCentral()
 }
 
+task releases(type: Copy) {
+	from jar.outputs
+	into rootDir.toString() + "/releases"
+}
+
 dependencies {
 	compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.5'
 	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.5'

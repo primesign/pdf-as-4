@@ -145,3 +145,32 @@ task buildTomcat(dependsOn: injectPdfAsWebApp, type: Zip) {
 	destinationDir project.buildDir
 }
 
+task buildTomcatTar(dependsOn: injectPdfAsWebApp, type: Tar) {
+	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##";
+	targetDir = targetDir.replaceAll("##VERSION##", tomcatVersion);
+	
+	String archive = "apache-tomcat-##VERSION##-pdf-as-web-##PVERSION##.tar";
+	archive = archive.replaceAll("##VERSION##", tomcatVersion);
+	archive = archive.replaceAll("##PVERSION##", version);
+	
+	from targetDir
+	archiveName archive
+	destinationDir project.buildDir
+}
+
+task releases(dependsOn: buildTomcat, type: Copy) {
+	String archive = project.buildDir.toString() + "/apache-tomcat-##VERSION##-pdf-as-web-##PVERSION##.zip";
+	archive = archive.replaceAll("##VERSION##", tomcatVersion);
+	archive = archive.replaceAll("##PVERSION##", version);
+	
+	String tararchive = project.buildDir.toString() + "/apache-tomcat-##VERSION##-pdf-as-web-##PVERSION##.tar";
+	tararchive = tararchive.replaceAll("##VERSION##", tomcatVersion);
+	tararchive = tararchive.replaceAll("##PVERSION##", version);
+	
+	from war.outputs
+	from archive
+	from tararchive
+	into rootDir.toString() + "/releases"
+}
+
+releases.dependsOn buildTomcatTar

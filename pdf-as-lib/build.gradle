@@ -60,6 +60,12 @@ dependencies {
 	testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
+task releases(type: Copy) {
+	from jar.outputs
+	into rootDir.toString() + "/releases"
+	rename '.*.war', 'pdf-as-web.war'
+}
+
 task apidocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava

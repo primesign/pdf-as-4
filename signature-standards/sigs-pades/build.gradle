@@ -12,6 +12,11 @@ repositories {
     mavenCentral()
 }
 
+task releases(type: Copy) {
+	from jar.outputs
+	into rootDir.toString() + "/releases"
+}
+
 dependencies {
 	compile project (':pdf-as-lib')
 	compile project (':pdf-as-common')
