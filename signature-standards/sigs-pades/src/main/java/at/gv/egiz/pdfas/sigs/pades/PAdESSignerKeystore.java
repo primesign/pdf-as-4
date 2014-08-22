@@ -77,6 +77,9 @@ public class PAdESSignerKeystore implements IPlainSigner {
 			KeyStore ks = KeyStore.getInstance(type);
 			ks.load(new FileInputStream(file), kspassword.toCharArray());
 			privKey = (PrivateKey) ks.getKey(alias, keypassword.toCharArray());
+			if(privKey == null) {
+				throw new PdfAsException("error.pdf.sig.13");
+			}
 			cert = new X509Certificate(ks.getCertificate(alias).getEncoded());
 		} catch (Throwable e) {
 			throw new PdfAsException("error.pdf.sig.02", e);
