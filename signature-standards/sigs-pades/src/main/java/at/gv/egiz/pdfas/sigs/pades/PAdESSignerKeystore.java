@@ -43,6 +43,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.KeyStore.Entry;
+import java.security.KeyStore.PasswordProtection;
+import java.security.KeyStore.PrivateKeyEntry;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
@@ -75,13 +78,54 @@ public class PAdESSignerKeystore implements IPlainSigner {
 			String keypassword, String type) throws PdfAsException {
 		try {
 			KeyStore ks = KeyStore.getInstance(type);
+			if(ks == null) {
+				throw new PdfAsException("error.pdf.sig.14");
+			}
+			if(kspassword == null) {
+				throw new PdfAsException("error.pdf.sig.15");
+			}
+			
+			logger.info("Opening Keystore: " + file);
+			
 			ks.load(new FileInputStream(file), kspassword.toCharArray());
-			privKey = (PrivateKey) ks.getKey(alias, keypassword.toCharArray());
+			if(keypassword == null) {
+				throw new PdfAsException("error.pdf.sig.16");
+			}
+			PasswordProtection pwdProt = new PasswordProtection(keypassword.toCharArray());
+			
+			logger.info("Opening Alias: [" + alias + "]");
+			
+			Entry entry = ks.getEntry(alias, pwdProt);
+			
+			if(!(entry instanceof PrivateKeyEntry)) {
+				throw new PdfAsException("error.pdf.sig.18");
+			}
+			
+			PrivateKeyEntry privateEntry = (PrivateKeyEntry)entry;
+			
+			privKey = privateEntry.getPrivateKey();
+			
 			if(privKey == null) {
 				throw new PdfAsException("error.pdf.sig.13");
 			}
-			cert = new X509Certificate(ks.getCertificate(alias).getEncoded());
+			
+			Certificate c = privateEntry.getCertificate();
+			
+			if(c == null) {
+				if(privateEntry.getCertificateChain() != null) {
+					if(privateEntry.getCertificateChain().length > 0) {
+						c = privateEntry.getCertificateChain()[0];
+					}
+				}
+			}
+			
+			if(c == null) {
+				throw new PdfAsException("error.pdf.sig.17");
+			}
+			
+			cert = new X509Certificate(c.getEncoded());
 		} catch (Throwable e) {
+			 logger.error("Keystore error: ", e);
 			throw new PdfAsException("error.pdf.sig.02", e);
 		}
 	}
