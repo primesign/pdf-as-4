@@ -69,43 +69,40 @@ task releases(type: Copy) {
 task apidocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava
-	project.configure(options) {
-		destinationDir = new File(projectDir, '../docs/api')
-		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
-		charSet = "ISO-8859-1"
-		docTitle = "PDF-AS " + pdfasversion + " Documentation"
-		version = pdfasversion
-		include = include('at/gv/egiz/pdfas/lib/api/**')
-		windowTitle = "PDF-AS " + pdfasversion + " Library"
-		header = "<b>PDF-AS " + pdfasversion + " Library  " + pdfasversion + " [" + revision + "]</b>"
-		use = "true"
-		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
-	}
+	destinationDir = new File(rootDir.toString() + "/releases/docs/api")
+	title = "PDF-AS " + project.pdfasversion + " Documentation"
+	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
+	options.charSet = "ISO-8859-1"
+	options.author = "Andreas Fitzek"
+	options.docTitle = "PDF-AS " + project.pdfasversion + " Documentation"
+	options.version = project.pdfasversion
+	options.windowTitle = "PDF-AS " + project.pdfasversion + " Library"
+	options.header = "<b>PDF-AS " + project.pdfasversion + " Library  " + project.pdfasversion + " [" + project.revision + "]</b>"
+	options.use = "true"
+	options.links("http://docs.oracle.com/javase/1.5.0/docs/api/")
+	include('at/gv/egiz/pdfas/lib/api/**')
 }
 
 task fulldocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava
-	project.configure(options) {
-		destinationDir = new File(projectDir, '../docs/full')
-		memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
-		charSet = "ISO-8859-1"
-		docTitle = "PDF-AS " + pdfasversion + " Documentation"
-		version = pdfasversion
-		include = include('at/gv/egiz/**')
-		windowTitle = "PDF-AS " + pdfasversion + " Library"
-		header = "<b>PDF-AS " + pdfasversion + " Library  " + pdfasversion + " [" + revision + "]</b>"
-		use = "true"
-		links("http://java.sun.com/j2ee/1.4/docs/api", "http://java.sun.com/j2se/1.5.0/docs/api")
-	}
+	destinationDir = new File(rootDir.toString() + "/releases/docs/api")
+	title = "PDF-AS " + project.pdfasversion + " Documentation"
+	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
+	options.charSet = "ISO-8859-1"
+	options.author = "Andreas Fitzek"
+	options.docTitle = "PDF-AS " + project.pdfasversion + " Documentation"
+	options.version = project.pdfasversion
+	options.windowTitle = "PDF-AS " + project.pdfasversion + " Library"
+	options.header = "<b>PDF-AS " + project.pdfasversion + " Library  " + project.pdfasversion + " [" + project.revision + "]</b>"
+	options.use = "true"
+	options.links("http://docs.oracle.com/javase/1.5.0/docs/api/")
+	include('at/knowcenter/wag/egiz/**')
+	include('at/gv/egiz/**')
 }
 
-task apidocspdf << {
-	def proc = "./doc.sh".execute()
-	proc.in.eachLine {line -> println line}
-	proc.err.eachLine {line -> println 'ERROR: ' + line}
-	proc.waitFor()
-}
+releases.dependsOn apidocs
+releases.dependsOn fulldocs
 
 test {
 	systemProperties 'property': 'value'

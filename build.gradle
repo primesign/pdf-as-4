@@ -18,20 +18,21 @@ subprojects {
 	}
 
 	sourceCompatibility = 1.5
-
+	version = '4.0.0-RC9-SNAPSHOT'
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
 		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
+		version = '4.0.0-RC9-SNAPSHOT'
+		pdfasversion = version
+		revision = getCheckedOutGitCommitHash()
+		//tomcatVersion = '7.0.54';
+		tomcatVersion = '8.0.9';
 	  }
 	
-	version = '4.0.0-RC9-SNAPSHOT'
-	pdfasversion = version
-	revision = getCheckedOutGitCommitHash()
-	//tomcatVersion = '7.0.54';
-	tomcatVersion = '8.0.9';
 	
 	
-	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': version  }
+	
+	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': project.version  }
 	
 	uploadArchives {
 		repositories.mavenDeployer {
@@ -58,11 +59,11 @@ def getCheckedOutGitCommitHash() {
 	def refHead = new File(gitFolder + head[1].trim()) // .git/refs/heads/master
 	refHead.text.trim().take takeFromHash
 }
-
+/*
 task docs(type: Javadoc) {
 	source subprojects.collect {project -> project.sourceSets.main.allJava }
 	classpath = files(subprojects.collect {project -> project.sourceSets.main.compileClasspath})
 	destinationDir = new File(projectDir, 'docs/full')
-}
+}*/
 
 
