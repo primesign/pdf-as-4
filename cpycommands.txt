@@ -1,0 +1,11 @@
+
+
+./davcpy.sh docs/api https://joinup.ec.europa.eu/webdav/pdf-as/www/4_0_0_RC9/
+
+./davcpy.sh docs/full https://joinup.ec.europa.eu/webdav/pdf-as/www/4_0_0_RC9/
+
+./davcpy.sh ../mvn-repo/releases https://joinup.ec.europa.eu/webdav/pdf-as/www/maven/
+
+./davcpy.sh releases/. https://joinup.ec.europa.eu/webdav/pdf-as/www/releases
+
+./davcpy.sh doc/. https://joinup.ec.europa.eu/webdav/pdf-as/www/4_0_0_RC9/
