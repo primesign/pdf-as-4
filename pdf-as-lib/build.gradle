@@ -86,7 +86,7 @@ task apidocs(type: Javadoc) {
 task fulldocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava
-	destinationDir = new File(rootDir.toString() + "/releases/docs/api")
+	destinationDir = new File(rootDir.toString() + "/releases/docs/full")
 	title = "PDF-AS " + project.pdfasversion + " Documentation"
 	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 	options.charSet = "ISO-8859-1"
