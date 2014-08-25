@@ -48,7 +48,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 	public static final String PatternRegex = "\\$(\\{[^\\$]*\\})";
 
-	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
 
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
@@ -72,7 +72,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			//}
 			// Value holds the date format!
 			SimpleDateFormat formater = new SimpleDateFormat(value);
-			formater.setTimeZone(TimeZone.getTimeZone("UTC"));
+			//formater.setTimeZone(TimeZone.getTimeZone("UTC"));
 			Calendar cal = Calendar.getInstance();
 			return formater.format(cal.getTime());
 		}
