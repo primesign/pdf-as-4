@@ -71,124 +71,162 @@ public class PAdESSignerKeystore implements IPlainSigner {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESSignerKeystore.class);
 
+	private static final String fallBackProvider = "SunJSSE";
+
 	PrivateKey privKey;
 	X509Certificate cert;
+
+	private void loadKeystore(String file, String alias, String kspassword,
+			String keypassword, String type, String provider) throws Throwable {
+
+		String viusalProvider = (provider == null ? "IAIK" : provider);
+		logger.info("Opening Keystore: " + file + " with [" + viusalProvider
+				+ "]");
+
+		KeyStore ks = null;
+		if(provider == null) {
+			ks = KeyStore.getInstance(type);
+		} else {
+			ks = KeyStore.getInstance(type, provider);
+		}
+		
+		if (ks == null) {
+			throw new PdfAsException("error.pdf.sig.14");
+		}
+		if (kspassword == null) {
+			throw new PdfAsException("error.pdf.sig.15");
+		}
+
+		ks.load(new FileInputStream(file), kspassword.toCharArray());
+		if (keypassword == null) {
+			throw new PdfAsException("error.pdf.sig.16");
+		}
+		PasswordProtection pwdProt = new PasswordProtection(
+				keypassword.toCharArray());
+
+		logger.info("Opening Alias: [" + alias + "]");
+
+		Entry entry = ks.getEntry(alias, pwdProt);
+
+		if (!(entry instanceof PrivateKeyEntry)) {
+			throw new PdfAsException("error.pdf.sig.18");
+		}
+
+		PrivateKeyEntry privateEntry = (PrivateKeyEntry) entry;
+
+		privKey = privateEntry.getPrivateKey();
+
+		if (privKey == null) {
+			throw new PdfAsException("error.pdf.sig.13");
+		}
+
+		Certificate c = privateEntry.getCertificate();
+
+		if (c == null) {
+			if (privateEntry.getCertificateChain() != null) {
+				if (privateEntry.getCertificateChain().length > 0) {
+					c = privateEntry.getCertificateChain()[0];
+				}
+			}
+		}
+
+		if (c == null) {
+			throw new PdfAsException("error.pdf.sig.17");
+		}
+
+		cert = new X509Certificate(c.getEncoded());
+	}
 
 	public PAdESSignerKeystore(String file, String alias, String kspassword,
 			String keypassword, String type) throws PdfAsException {
 		try {
-			KeyStore ks = KeyStore.getInstance(type);
-			if(ks == null) {
-				throw new PdfAsException("error.pdf.sig.14");
-			}
-			if(kspassword == null) {
-				throw new PdfAsException("error.pdf.sig.15");
-			}
-			
-			logger.info("Opening Keystore: " + file);
-			
-			ks.load(new FileInputStream(file), kspassword.toCharArray());
-			if(keypassword == null) {
-				throw new PdfAsException("error.pdf.sig.16");
-			}
-			PasswordProtection pwdProt = new PasswordProtection(keypassword.toCharArray());
-			
-			logger.info("Opening Alias: [" + alias + "]");
-			
-			Entry entry = ks.getEntry(alias, pwdProt);
-			
-			if(!(entry instanceof PrivateKeyEntry)) {
-				throw new PdfAsException("error.pdf.sig.18");
-			}
-			
-			PrivateKeyEntry privateEntry = (PrivateKeyEntry)entry;
-			
-			privKey = privateEntry.getPrivateKey();
-			
-			if(privKey == null) {
-				throw new PdfAsException("error.pdf.sig.13");
-			}
-			
-			Certificate c = privateEntry.getCertificate();
-			
-			if(c == null) {
-				if(privateEntry.getCertificateChain() != null) {
-					if(privateEntry.getCertificateChain().length > 0) {
-						c = privateEntry.getCertificateChain()[0];
-					}
-				}
-			}
-			
-			if(c == null) {
-				throw new PdfAsException("error.pdf.sig.17");
-			}
-			
-			cert = new X509Certificate(c.getEncoded());
+			// Load keystore with default security provider (IAIK)
+			loadKeystore(file, alias, kspassword, keypassword, type, null);
 		} catch (Throwable e) {
-			 logger.error("Keystore error: ", e);
-			throw new PdfAsException("error.pdf.sig.02", e);
+			try {
+				// IAIK Provider seems to have problem with some PKCS12 files..
+				loadKeystore(file, alias, kspassword, keypassword, type,
+						fallBackProvider);
+				logger.warn("Failed to open Keystore with IAIK provider!");
+			} catch (Throwable e1) {
+				logger.error("Keystore IAIK provider error: ", e);
+				logger.error("Keystore " + fallBackProvider +  " provider error: ", e1);
+				throw new PdfAsException("error.pdf.sig.02", e1);
+			}
 		}
 	}
 
 	public X509Certificate getCertificate(SignParameter parameter) {
 		return cert;
 	}
-	
+
 	private void setMimeTypeAttrib(List<Attribute> attributes, String mimeType) {
-	    String oidStr = "0.4.0.1733.2.1";
-	    String name = "mime-type";
-	    ObjectID mimeTypeOID = new ObjectID(oidStr, name);
+		String oidStr = "0.4.0.1733.2.1";
+		String name = "mime-type";
+		ObjectID mimeTypeOID = new ObjectID(oidStr, name);
 
-	    Attribute mimeTypeAtt = new Attribute(mimeTypeOID, new ASN1Object[] {new UTF8String(mimeType)});
-	    attributes.add(mimeTypeAtt);
-	  }
+		Attribute mimeTypeAtt = new Attribute(mimeTypeOID,
+				new ASN1Object[] { new UTF8String(mimeType) });
+		attributes.add(mimeTypeAtt);
+	}
 
-	  private void setContentTypeAttrib(List<Attribute> attributes) {
-	    Attribute contentType = new Attribute(ObjectID.contentType, new ASN1Object[] {ObjectID.cms_data});
-	    attributes.add(contentType);
-	  }
+	private void setContentTypeAttrib(List<Attribute> attributes) {
+		Attribute contentType = new Attribute(ObjectID.contentType,
+				new ASN1Object[] { ObjectID.cms_data });
+		attributes.add(contentType);
+	}
 
-	  private void setSigningCertificateAttrib(List<Attribute> attributes, X509Certificate signingCertificate) throws CertificateException, NoSuchAlgorithmException, CodingException {
-	    ObjectID id;
-	    ASN1Object value = new SEQUENCE();
-	    AlgorithmID[] algorithms = CertificateUtils.getAlgorithmIDs(signingCertificate);
-	    if (algorithms[1].equals(AlgorithmID.sha1)) {
-	      id = ObjectID.signingCertificate;
-	      value.addComponent(new ESSCertID(signingCertificate, true).toASN1Object());
-	    }
-	    else {
-	      id = ObjectID.signingCertificateV2;
-	      value.addComponent(new ESSCertIDv2(algorithms[1], signingCertificate, true).toASN1Object());
-	    }
-	    ASN1Object signingCert = new SEQUENCE();
-	    signingCert.addComponent(value);
-	    Attribute signingCertificateAttrib = new Attribute(id, new ASN1Object[] {signingCert});
-	    attributes.add(signingCertificateAttrib);
-	  }
+	private void setSigningCertificateAttrib(List<Attribute> attributes,
+			X509Certificate signingCertificate) throws CertificateException,
+			NoSuchAlgorithmException, CodingException {
+		ObjectID id;
+		ASN1Object value = new SEQUENCE();
+		AlgorithmID[] algorithms = CertificateUtils
+				.getAlgorithmIDs(signingCertificate);
+		if (algorithms[1].equals(AlgorithmID.sha1)) {
+			id = ObjectID.signingCertificate;
+			value.addComponent(new ESSCertID(signingCertificate, true)
+					.toASN1Object());
+		} else {
+			id = ObjectID.signingCertificateV2;
+			value.addComponent(new ESSCertIDv2(algorithms[1],
+					signingCertificate, true).toASN1Object());
+		}
+		ASN1Object signingCert = new SEQUENCE();
+		signingCert.addComponent(value);
+		Attribute signingCertificateAttrib = new Attribute(id,
+				new ASN1Object[] { signingCert });
+		attributes.add(signingCertificateAttrib);
+	}
 
-	  private void setSigningTimeAttrib(List<Attribute> attributes, Date date) {
-	    Attribute signingTime = new Attribute(ObjectID.signingTime, new ASN1Object[] {new ChoiceOfTime(date).toASN1Object()});
-	    attributes.add(signingTime);
-	  }
+	private void setSigningTimeAttrib(List<Attribute> attributes, Date date) {
+		Attribute signingTime = new Attribute(ObjectID.signingTime,
+				new ASN1Object[] { new ChoiceOfTime(date).toASN1Object() });
+		attributes.add(signingTime);
+	}
 
-	private void setAttributes(String mimeType, X509Certificate signingCertificate, Date signingTime, 
-			SignerInfo signerInfo) throws CertificateException, NoSuchAlgorithmException, CodingException {
-	    List<Attribute> attributes = new ArrayList<Attribute>();
-	    setMimeTypeAttrib(attributes, mimeType);
-	    setContentTypeAttrib(attributes);
-	    setSigningCertificateAttrib(attributes, signingCertificate);
-	    setSigningTimeAttrib(attributes, signingTime);
-	    Attribute[] attributeArray = attributes.toArray(new Attribute[attributes.size()]);
-	    signerInfo.setSignedAttributes(attributeArray);
-	  }
-	
-	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+	private void setAttributes(String mimeType,
+			X509Certificate signingCertificate, Date signingTime,
+			SignerInfo signerInfo) throws CertificateException,
+			NoSuchAlgorithmException, CodingException {
+		List<Attribute> attributes = new ArrayList<Attribute>();
+		setMimeTypeAttrib(attributes, mimeType);
+		setContentTypeAttrib(attributes);
+		setSigningCertificateAttrib(attributes, signingCertificate);
+		setSigningTimeAttrib(attributes, signingTime);
+		Attribute[] attributeArray = attributes
+				.toArray(new Attribute[attributes.size()]);
+		signerInfo.setSignedAttributes(attributeArray);
+	}
+
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter,
+			RequestedSignature requestedSignature) throws PdfAsException {
 		try {
 			logger.info("Creating PAdES signature.");
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
-			
+
 			AlgorithmID[] algorithms = CertificateUtils.getAlgorithmIDs(cert);
-			
+
 			SignerInfo signer1 = new SignerInfo(issuer, algorithms[1],
 					algorithms[0], privKey);
 
