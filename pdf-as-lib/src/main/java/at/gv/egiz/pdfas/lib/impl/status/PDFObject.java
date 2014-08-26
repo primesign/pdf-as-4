@@ -70,6 +70,9 @@ public class PDFObject {
 			doc.close();
 		}
 		this.doc = PDDocument.load(new ByteArrayInputStream(this.originalDocument));
+		if(this.doc != null) {
+			this.doc.getDocument().setWarnMissingClose(false);
+		}
 	}
 
 	public PDDocument getDocument() {
