@@ -68,7 +68,7 @@ public class Settings implements ISettings, IProfileConstants {
 			String configDir = workDirectory.getAbsolutePath() + File.separator
 					+ CFG_DIR;
 			Properties tmpProps = new Properties();
-			logger.info("Loading: " + file.getName());
+			logger.debug("Loading: " + file.getName());
 			tmpProps.load(new FileInputStream(file));
 
 			properties.putAll(tmpProps);
@@ -97,7 +97,7 @@ public class Settings implements ISettings, IProfileConstants {
 								fileFilter, null);
 					}
 					if (includeFiles != null && !includeFiles.isEmpty()) {
-						logger.info("Including '" + includeFileName + "'.");
+						logger.debug("Including '" + includeFileName + "'.");
 						for (File includeFile : includeFiles) {
 							loadSettingsRecursive(workDirectory, includeFile);
 						}

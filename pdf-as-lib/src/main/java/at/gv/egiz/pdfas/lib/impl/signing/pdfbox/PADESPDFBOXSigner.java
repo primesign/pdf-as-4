@@ -467,7 +467,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					// Ignore
 				}
 			}
-			logger.info("Signature done!");
+			logger.debug("Signature done!");
 
 		}
 	}

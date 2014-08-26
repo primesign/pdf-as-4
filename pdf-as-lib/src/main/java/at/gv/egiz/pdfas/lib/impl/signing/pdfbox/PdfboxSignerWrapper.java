@@ -65,9 +65,9 @@ public class PdfboxSignerWrapper implements PDFASSignatureInterface {
 		byte[] data = StreamUtils.inputStreamToByteArray(inputStream);
 		byteRange = PDFUtils.extractSignatureByteRange(data);
 		int[] byteRange2 = signature.getByteRange();
-		logger.info("Byte Range 2: " + byteRange2);
+		logger.debug("Byte Range 2: " + byteRange2);
 		try {
-			logger.info("Signing with Pdfbox Wrapper");
+			logger.debug("Signing with Pdfbox Wrapper");
 			byte[] signature = signer.sign(data, byteRange, this.parameters, this.requestedSignature);
 			return signature;
 		} catch (PdfAsException e) {

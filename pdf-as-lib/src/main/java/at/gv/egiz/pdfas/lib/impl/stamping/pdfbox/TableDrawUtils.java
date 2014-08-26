@@ -394,9 +394,9 @@ public class TableDrawUtils {
 			sum += colsSizes[cols_idx];
 		}
 
-		logger.info("Table Col Sizes SUM {} Table Width {}", sum,
+		logger.debug("Table Col Sizes SUM {} Table Width {}", sum,
 				abstractTable.getWidth());
-		logger.info("Table Table Height {}", abstractTable.getHeight());
+		logger.debug("Table Table Height {}", abstractTable.getHeight());
 
 		return colsSizes;
 	}
