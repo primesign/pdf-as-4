@@ -706,12 +706,15 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		String holderFormComment = "q " + m00 + " " + m10 + " " + m01 + " "
 				+ m11 + " " + m02 + " " + m12 + " cm /" + innerFormName
 				+ " Do Q \n";
+		
+		logger.debug("Holder Form Stream: " + holderFormComment);
+		
 		// String innerFormComment = "q 1 0 0 1 0 0 cm /" + imageObjectName +
 		// " Do Q\n";
 		String innerFormComment = getStructure().getInnterFormStream()
 				.getInputStreamAsString();
 
-		// logger.debug("Inner Form Stream: " + innerFormComment);
+		//logger.debug("Inner Form Stream: " + innerFormComment);
 
 		// appendRawCommands(getStructure().getInnterFormStream().createOutputStream(),
 		// getStructure().getInnterFormStream().getInputStreamAsString());
@@ -811,7 +814,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		logger.debug("rectangle of signature has been created");
 	}
 
-	public void createAffineTransform(byte[] params) {
+	public void createAffineTransform(float[] params) {
 		AffineTransform transform = new AffineTransform(params[0], params[1],
 				params[2], params[3], params[4], params[5]);
 		// transform.rotate(90);

@@ -50,7 +50,8 @@ public class PDFAsVisualSignatureDesigner {
 	private InputStream imgageStream;
 	private String signatureFieldName = "sig"; // default
 	private float[] formaterRectangleParams = { 0, 0, 100, 50 }; // default
-	private byte[] AffineTransformParams = { 1, 0, 0, 1, 0, 0 }; // default
+	//private float[] AffineTransformParams = { 0, 1, -1, 0, 0, 0 }; // default
+	private float[] AffineTransformParams = { 1, 0, 0, 1, 0, 0 }; // default
 	private float imageSizeInPercents;
 	private PDDocument document = null;
 	private int page = 0;
@@ -326,7 +327,7 @@ public class PDFAsVisualSignatureDesigner {
 	 * 
 	 * @return Affine Transform parameters of for PDF Matrix
 	 */
-	public byte[] getAffineTransformParams() {
+	public float[] getAffineTransformParams() {
 		return AffineTransformParams;
 	}
 
@@ -336,7 +337,7 @@ public class PDFAsVisualSignatureDesigner {
 	 * @return Visible Signature Configuration Object
 	 */
 	public PDFAsVisualSignatureDesigner affineTransformParams(
-			byte[] affineTransformParams) {
+			float[] affineTransformParams) {
 		AffineTransformParams = affineTransformParams;
 		return this;
 	}
