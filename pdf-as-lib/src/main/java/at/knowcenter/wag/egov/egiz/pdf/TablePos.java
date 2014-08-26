@@ -253,11 +253,12 @@ public class TablePos implements Serializable
 		     			  }
 		     	case 'r': {
 	 		        		float flval=Float.parseFloat(commandval);
-	 		        		// TODO: check rotation to be only multiples of 90 degrees
-	 		        		if (flval<0)
-	 		        		{
-	 		        			throw new PdfAsException("Pos string (=" + pos_string + ") is invalid.");
-	 		        		} 	     		        
+	 		        		// reduce to 0 - 360 degrees
+	 		        		flval = flval % 360;
+	 		        		// we only support rotation in 90 degree steps
+	 		        		if(flval % 90 != 0) {
+	 		        			throw new PdfAsException("Pos string (=" + pos_string + ") is invalid. Rotation is only allowed to be a multiple of 90.");
+	 		        		}    
 	 		        		this.rotation = flval;
 	 		        		break;
 	 			  }
