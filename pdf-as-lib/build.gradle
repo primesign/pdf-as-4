@@ -118,11 +118,3 @@ distributions {
         }
     }
 }
-
-uploadArchives {
-	repositories {
-		flatDir {
-			dirs 'repos'
-		}
-	}
-}
