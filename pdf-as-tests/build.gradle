@@ -1,0 +1,147 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'PDF-AS-4 Test Library', 'JARMANIFEST': 'PDF-AS-LIB'
+	}
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+	maven { url "http://anonsvn.icesoft.org/repo/maven2/releases/" }
+}
+
+dependencies {
+	compile project (':pdf-as-lib')
+	compile project (':signature-standards:sigs-pkcs7detached')
+	compile project (':signature-standards:sigs-pades')
+	compile group: 'log4j', name: 'log4j', version: '1.2.17'
+	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
+	testCompile group: 'junit', name: 'junit', version: '4.+'
+	testCompile group: 'org.apache.pdfbox', name: 'preflight', version: '1.8.5'
+	testCompile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.6'
+	testCompile group: 'org.icepdf', name: 'icepdf-core', version: '5.0.7'
+}
+
+logger.info("Building tasks for Test suites")
+def suiteDir = new File(projectDir, "src/test/test-suites")
+logger.info("Searching: " + suiteDir.absolutePath)
+
+suiteDir.eachDir {	File subDir ->
+	def dirname = subDir.name
+	logger.info("Test Suite " + subDir.name + " found in " + subDir.absolutePath)
+	
+	task "runTestSuite${dirname.capitalize()}"(type: Test) {
+		description "runs tests from Test Suite: " + dirname
+		systemProperties 'test.dir': subDir.absolutePath
+		include '**/ParameterizedSignatureTestSuite.class'
+
+		beforeSuite { TestDescriptor descriptor ->
+			if(descriptor.getParent() == null) {
+				logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			}
+			if(descriptor.getClassName().equals("at.gv.egiz.param_tests.ParameterizedSignatureTestSuite")) {
+				logger.quiet("Starting suite: " + dirname + " (" + descriptor.getName() + ")")
+			}
+		}
+
+		afterSuite { TestDescriptor descriptor, TestResult result ->
+			if(descriptor.getClassName().equals("at.gv.egiz.param_tests.ParameterizedSignatureTestSuite")) {
+				logger.quiet("------------------");
+				logger.quiet("Ending suite: " + dirname);
+				logger.quiet("\tResult (SUCCESS/ERROR/SKIPPED/TOTAL): " +
+					result.getSuccessfulTestCount() + "/" +
+					result.getFailedTestCount() + "/" +
+					result.getSkippedTestCount() + "/" +
+					result.getTestCount());
+				float duration_ms = result.getEndTime() - result.getStartTime()
+				float duration_sec = duration_ms / 1000.0f
+				logger.quiet("\tDuration: " + duration_sec + " s [" + duration_ms + " ms]")
+				logger.quiet("\tReport @ file://" + subDir.absolutePath + "/index.html")
+			}
+			if(descriptor.getParent() == null) {
+				logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+			}
+		}
+
+		beforeTest { TestDescriptor descriptor ->
+			logger.quiet("------------------");
+			logger.info("Running test: " + descriptor.getName())
+		}
+
+		afterTest { TestDescriptor descriptor, TestResult result ->
+			float duration_ms = result.getEndTime() - result.getStartTime()
+			float duration_sec = duration_ms / 1000.0f
+			logger.quiet(result.getResultType().toString() + " => [" + 
+				descriptor.getName() + "] took " + duration_sec + " s [" + duration_ms + " ms]")
+			if(TestResult.ResultType.FAILURE.equals(result.getResultType())) {
+				if(result.getException() != null) {
+					logger.error("Failed test: " + result.getException().getMessage());
+					result.getException().printStackTrace();
+				} else {
+					logger.error("Failed test provided no exception");
+				}
+			}
+		}
+	}
+
+	test.dependsOn tasks.getByPath("runTestSuite${dirname.capitalize()}")
+	
+	
+	task "cleanTestSuite${dirname.capitalize()}"(type: Delete) {
+		outputs.upToDateWhen { false }
+		delete fileTree (dir: subDir.absolutePath, include: "index.html")
+		delete fileTree (dir: subDir.absolutePath, include: "**/test_result.html")
+	}
+	
+	task "cleanOutFolders${dirname.capitalize()}"() << {
+		subDir.eachDir { File tcDir -> 
+			File outDir = new File(tcDir, "out");
+			if(outDir.exists() && outDir.isDirectory()) {
+				outDir.eachFileRecurse { File mfile -> 
+					mfile.delete()
+				}
+				outDir.delete()
+			}
+		}
+	}
+	
+	clean.dependsOn tasks.getByPath("cleanOutFolders${dirname.capitalize()}")
+	clean.dependsOn tasks.getByPath("cleanTestSuite${dirname.capitalize()}")
+}
+
+tasks.getByPath(":pdf-as-lib:test").dependsOn test
+
+test {
+	include '**/DummyTest.class'
+
+	/*beforeSuite { TestDescriptor descriptor ->
+		logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+		logger.quiet("Starting suite: " + descriptor.getName())
+	}
+
+	afterSuite { TestDescriptor descriptor, TestResult result ->
+		logger.quiet("Ending suite: " + descriptor.getName());
+		logger.quiet("\tResult (SUCCESS/ERROR/SKIPPED/TOTAL): " +
+				result.getSuccessfulTestCount() + "/" +
+				result.getFailedTestCount() + "/" +
+				result.getSkippedTestCount() + "/" +
+				result.getTestCount());
+		logger.quiet("\tDuration: " + (result.getEndTime() - result.getStartTime()) + " MS");
+		if(descriptor.getClassName().equals("at.gv.egiz.param_tests.ParameterizedSignatureTestSuite")) {
+			logger.quiet("\tReport @ file:///" + subDir.absolutePath + "/index.html")
+		}
+		logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+	}*/
+
+	beforeTest { TestDescriptor descriptor ->
+		logger.quiet("------------------");
+		logger.quiet("Running test: " + descriptor.getName())
+	}
+
+	afterTest { TestDescriptor descriptor, TestResult result ->
+		logger.quiet("Ending test: " + descriptor.getName() + " result " + result)
+	}
+}
