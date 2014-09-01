@@ -11,6 +11,7 @@ repositories {
 	mavenLocal()
 	mavenCentral()
 	maven { url "http://anonsvn.icesoft.org/repo/maven2/releases/" }
+	maven { url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/" }
 }
 
 dependencies {
