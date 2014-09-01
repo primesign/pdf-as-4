@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import sun.misc.IOUtils;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;

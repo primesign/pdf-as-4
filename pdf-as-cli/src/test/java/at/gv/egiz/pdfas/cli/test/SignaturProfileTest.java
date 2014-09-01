@@ -30,7 +30,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import sun.misc.IOUtils;
+import org.apache.commons.io.IOUtils;
+
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
@@ -87,8 +88,7 @@ public class SignaturProfileTest {
 				}
 			}
 
-			byte[] input = IOUtils.readFully(new FileInputStream(sourcePDF),
-					-1, true);
+			byte[] input = IOUtils.toByteArray(new FileInputStream(sourcePDF));
 
 			IPlainSigner signer = new PAdESSignerKeystore(KS_FILE, KS_ALIAS, KS_PASS, KS_KEY_PASS, KS_TYPE);
 			
@@ -114,8 +114,7 @@ public class SignaturProfileTest {
 				fos.close();
 			}
 			
-			byte[] inputPDFA = IOUtils.readFully(new FileInputStream(sourcePDFA),
-					-1, true);
+			byte[] inputPDFA = IOUtils.toByteArray(new FileInputStream(sourcePDFA));
 			
 			Iterator<String> itPDFAProfiles = signaturePDFAProfiles.iterator();
 			while (itPDFAProfiles.hasNext()) {
