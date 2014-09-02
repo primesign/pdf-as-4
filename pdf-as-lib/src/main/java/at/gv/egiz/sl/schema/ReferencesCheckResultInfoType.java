@@ -70,7 +70,7 @@ import org.w3c.dom.Element;
 })
 public class ReferencesCheckResultInfoType {
 
-    @XmlElementRef(name = "FailedReference", namespace = "http://www.buergerkarte.at/namespaces/securitylayer/1.2#", type = JAXBElement.class, required = false)
+    @XmlElementRef(name = "FailedReference", namespace = "http://www.buergerkarte.at/namespaces/securitylayer/1.2#", type = JAXBElement.class)
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content;
