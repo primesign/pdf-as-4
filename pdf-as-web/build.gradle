@@ -4,8 +4,6 @@ apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
 apply plugin: 'jetty'
 
-sourceCompatibility = 1.5
-
 jar {
     manifest {
         attributes 'Implementation-Title': 'PDF-AS-WEB'

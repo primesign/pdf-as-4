@@ -17,7 +17,7 @@ subprojects {
 		deployerJars 'org.apache.maven.wagon:wagon-webdav:1.0-beta-2'
 	}
 
-	sourceCompatibility = 1.5
+	sourceCompatibility = 1.6
 	version = '4.0.0-RC11-SNAPSHOT'
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
