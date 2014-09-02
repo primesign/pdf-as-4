@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import sun.misc.IOUtils;
+import org.apache.commons.io.IOUtils;
+
 import at.gv.egiz.pdfas.api.ws.PDFASBulkSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASBulkSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
@@ -59,11 +60,11 @@ public class BulkRequestThread implements Runnable {
 		signer = new RemotePDFSigner(endpoint, false);
 
 		FileInputStream fis = new FileInputStream(
-				"/home/afitzek/Documents/arm_arm.pdf");
-		inputData = IOUtils.readFully(fis, -1, true);
+				"/home/afitzek/simple.pdf");
+		inputData = IOUtils.toByteArray(fis);
 
 		signParameters = new PDFASSignParameters();
-		signParameters.setConnector(Connector.JKS);
+		signParameters.setConnector(Connector.BKU);
 		signParameters.setPosition(null);
 		signParameters.setProfile("SIGNATURBLOCK_DE");
 
@@ -102,6 +103,7 @@ public class BulkRequestThread implements Runnable {
 					PDFASSignResponse bulkresponse = responses
 							.getSignResponses().get(j);
 					System.out.println("Thread: " + threadName + ", " +"ID: " + bulkresponse.getRequestID());
+					System.out.println("Thread: " + threadName + ", " +"URL: " + bulkresponse.getRedirectUrl());
 					if (bulkresponse.getError() != null) {
 						System.out.println("Thread: " + threadName + ", " + "ERROR: " + bulkresponse.getError());
 					} else {

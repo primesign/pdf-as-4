@@ -33,10 +33,10 @@ public class PerformanceTest {
 			List<BulkRequestThread> threads = new ArrayList<BulkRequestThread>();
 
 			URL endpoint = new URL(
-					"http://localhost:8080/pdf-as-web/wssign?wsdl");
+					"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
-			for (int i = 0; i < 10; i++) {
-				threads.add(new BulkRequestThread("T" + i, endpoint, 10, 10));
+			for (int i = 0; i < 2; i++) {
+				threads.add(new BulkRequestThread("T" + i, endpoint, 2, 2));
 			}
 			
 			

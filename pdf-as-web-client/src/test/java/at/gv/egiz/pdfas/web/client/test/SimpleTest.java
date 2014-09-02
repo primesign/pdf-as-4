@@ -25,13 +25,20 @@ package at.gv.egiz.pdfas.web.client.test;
 
 import java.io.FileInputStream;
 import java.net.URL;
+import java.util.List;
 
-import sun.misc.IOUtils;
+import org.apache.commons.io.IOUtils;
+
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
+import at.gv.egiz.pdfas.api.ws.PDFASVerifyRequest;
+import at.gv.egiz.pdfas.api.ws.PDFASVerifyResponse;
+import at.gv.egiz.pdfas.api.ws.PDFASVerifyResult;
+import at.gv.egiz.pdfas.api.ws.VerificationLevel;
 import at.gv.egiz.pdfas.web.client.RemotePDFSigner;
+import at.gv.egiz.pdfas.web.client.RemotePDFVerifier;
 
 public class SimpleTest {
 
@@ -39,10 +46,10 @@ public class SimpleTest {
 		try {
 			FileInputStream fis = new FileInputStream(
 					"/home/afitzek/simple.pdf");
-			byte[] inputData = IOUtils.readFully(fis, -1, true);
+			byte[] inputData = IOUtils.toByteArray(fis);
 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
-			signParameters.setConnector(Connector.MOBILEBKU);
+			signParameters.setConnector(Connector.JKS);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_SMALL_DE");
 
@@ -53,24 +60,40 @@ public class SimpleTest {
 
 			//URL endpoint = new
 			//URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
-			URL endpoint = new
-					URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
-			//URL endpoint = new URL(
-			//		"http://localhost:8080/pdf-as-web/wssign?wsdl");
+			//URL endpoint = new
+			//		URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
+			String baseUrl  = "http://demo.egiz.gv.at/demoportal-pdf_as/";
+			//String baseUrl  = "http://localhost:8080/pdf-as-web/";
 			//URL endpoint = new URL(
 			//		"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
-			RemotePDFSigner signer = new RemotePDFSigner(endpoint, false);
-
+			URL signEndpoint = new URL(baseUrl + "wssign?wsdl");
+			URL verifyEndpoint = new URL(baseUrl + "wsverify?wsdl");
+			
+			RemotePDFSigner signer = new RemotePDFSigner(signEndpoint, true);
+			RemotePDFVerifier verifier = new RemotePDFVerifier(verifyEndpoint, true);
+			
 			PDFASSignRequest signrequest = new PDFASSignRequest();
 			signrequest.setInputData(inputData);
 			signrequest.setParameters(signParameters);
 			signParameters.setTransactionId("MYID ....");
-			signParameters.setPosition("f:80;w:230;p:2");
 			System.out.println("Simple Request:"); 
 			PDFASSignResponse response = signer.signPDFDokument(signrequest);
 			
-			System.out.println("User URL: " + response.getRedirectUrl());
+			System.out.println("Sign Error: " + response.getError());
+			
+			PDFASVerifyRequest verifyRequest = new PDFASVerifyRequest();
+			verifyRequest.setInputData(response.getSignedPDF());
+			verifyRequest.setVerificationLevel(VerificationLevel.FULL_CERT_PATH);
+			
+			PDFASVerifyResponse verifyResponse = verifier.verifyPDFDokument(verifyRequest);
+			
+			List<PDFASVerifyResult> results = verifyResponse.getVerifyResults();
+			
+			for(int i = 0; i < results.size(); i++) {
+				PDFASVerifyResult result = results.get(i);
+				printVerifyResult(result);
+			}
 			
 			/*
 			 * System.out.println("Simple Request:"); byte[] outputFile =
@@ -123,6 +146,18 @@ public class SimpleTest {
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static void printVerifyResult(PDFASVerifyResult result) {
+		System.out.println(result.getSignatureIndex());
+		System.out.println("  Certificate: " + result.getCertificate());
+		System.out.println("  Cert Messag: " + result.getCertificateMessage());
+		System.out.println("  Cert Code  : " + result.getCertificateCode());
+		System.out.println("  Value Code : " + result.getValueCode());
+		System.out.println("  Value Messg: " + result.getValueMessage());
+		System.out.println("  SignedBy   : " + result.getSignedBy());
+		System.out.println("  Processed  : " + result.getProcessed());
+		System.out.println("  Signed Data: " + result.getSignedData());
 	}
 
 }
