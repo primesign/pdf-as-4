@@ -48,7 +48,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 	public static final String PatternRegex = "\\$(\\{[^\\$]*\\})";
 
-	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
