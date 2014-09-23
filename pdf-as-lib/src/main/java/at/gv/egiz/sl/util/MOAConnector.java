@@ -32,6 +32,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.cert.CertificateException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -66,12 +68,14 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 
-public class MOAConnector implements ISignatureConnector, IConfigurationConstants {
+public class MOAConnector implements ISignatureConnector,
+		IConfigurationConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(MOAConnector.class);
-	
-	private static final Logger moalogger = LoggerFactory.getLogger("at.knowcenter.wag.egov.egiz.sig.connectors.MOASSRepsonseLogger");
+
+	private static final Logger moalogger = LoggerFactory
+			.getLogger("at.knowcenter.wag.egov.egiz.sig.connectors.MOASSRepsonseLogger");
 
 	public static final String KEY_ID_PATTERN = "##KEYID##";
 	public static final String CONTENT_PATTERN = "##CONTENT##";
@@ -100,35 +104,58 @@ public class MOAConnector implements ISignatureConnector, IConfigurationConstant
 
 	public MOAConnector(Configuration config) throws CertificateException,
 			FileNotFoundException, IOException {
-		if(config.getValue(MOA_SIGN_CERTIFICATE) == null) {
-			logger.error(MOA_SIGN_CERTIFICATE + " not configured for MOA connector");
-			throw new PdfAsWrappedIOException(new PdfAsException("Please configure: " + MOA_SIGN_CERTIFICATE + " to use MOA connector"));
+		if (config.getValue(MOA_SIGN_CERTIFICATE) == null) {
+			logger.error(MOA_SIGN_CERTIFICATE
+					+ " not configured for MOA connector");
+			throw new PdfAsWrappedIOException(new PdfAsException(
+					"Please configure: " + MOA_SIGN_CERTIFICATE
+							+ " to use MOA connector"));
 		}
-		
-		if(!(config instanceof ISettings)) {
+
+		if (!(config instanceof ISettings)) {
 			logger.error("Configuration is no instance of ISettings");
-			throw new PdfAsWrappedIOException(new PdfAsException("Configuration is no instance of ISettings"));
+			throw new PdfAsWrappedIOException(new PdfAsException(
+					"Configuration is no instance of ISettings"));
 		}
-		
-		ISettings settings = (ISettings)config;
-		
+
+		ISettings settings = (ISettings) config;
+
 		String certificateValue = config.getValue(MOA_SIGN_CERTIFICATE);
-		
-		File certFile = new File(certificateValue); 
-		if(!certFile.isAbsolute()) {
-			certificateValue = settings.getWorkingDirectory() + "/" + 
-					config.getValue(MOA_SIGN_CERTIFICATE);
-			certFile = new File(certificateValue); 
+
+		if (certificateValue.startsWith("http")) {
+			logger.info("Loading certificate from url: " + certificateValue);
+			
+			try {
+				URL certificateURL = new URL(certificateValue);
+			
+				this.certificate = new X509Certificate(certificateURL.openStream());
+			} catch(MalformedURLException e) {
+				logger.error(certificateValue
+						+ " is not a valid url but!");
+				throw new PdfAsWrappedIOException(new PdfAsException(
+						certificateValue
+						+ " is not a valid url but!"));
+			}
+		} else {
+
+			File certFile = new File(certificateValue);
+			if (!certFile.isAbsolute()) {
+				certificateValue = settings.getWorkingDirectory() + "/"
+						+ config.getValue(MOA_SIGN_CERTIFICATE);
+				certFile = new File(certificateValue);
+			}
+
+			logger.info("Loading certificate from file: " + certificateValue);
+
+			this.certificate = new X509Certificate(
+					new FileInputStream(certFile));
 		}
-		
-		logger.info("Loading certificate: " + certificateValue);
-		
-		this.certificate = new X509Certificate(new FileInputStream(certFile));
 		this.moaEndpoint = config.getValue(MOA_SIGN_URL);
 		this.keyIdentifier = config.getValue(MOA_SIGN_KEY_ID);
 	}
 
-	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException {
+	public X509Certificate getCertificate(SignParameter parameter)
+			throws PdfAsException {
 		return this.certificate;
 	}
 
@@ -137,8 +164,8 @@ public class MOAConnector implements ISignatureConnector, IConfigurationConstant
 		return builder.build();
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter
-			, RequestedSignature requestedSignature) throws PdfAsException {
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter,
+			RequestedSignature requestedSignature) throws PdfAsException {
 		CloseableHttpClient client = null;
 		try {
 			client = buildHttpClient();
@@ -224,16 +251,21 @@ public class MOAConnector implements ISignatureConnector, IConfigurationConstant
 				if (cmsSignature != null) {
 					try {
 						byte[] cmsSignatureData = base64.decode(cmsSignature);
-						
-						VerifyResult verifyResult = SignatureUtils.verifySignature(cmsSignatureData, input);
 
-						if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
-								((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {
-							throw new PdfAsSignatureException("Certificates missmatch!");
+						VerifyResult verifyResult = SignatureUtils
+								.verifySignature(cmsSignatureData, input);
+
+						if (!StreamUtils.dataCompare(requestedSignature
+								.getCertificate().getFingerprintSHA(),
+								((X509Certificate) verifyResult
+										.getSignerCertificate())
+										.getFingerprintSHA())) {
+							throw new PdfAsSignatureException(
+									"Certificates missmatch!");
 						}
-						
+
 						return cmsSignatureData;
-					} catch(Exception e) {
+					} catch (Exception e) {
 						throw new PdfAsException("error.pdf.io.07", e);
 					}
 				} else {
