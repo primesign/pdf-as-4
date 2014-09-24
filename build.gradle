@@ -2,7 +2,6 @@ subprojects {
 	apply plugin: 'java'
 	apply plugin: 'eclipse'
 	apply plugin: 'maven'
-
 	group = 'at.gv.egiz.pdfas'
 
 	configurations {
@@ -18,7 +17,7 @@ subprojects {
 	}
 
 	sourceCompatibility = 1.6
-	version = '4.0.0-RC11-SNAPSHOT'
+	version = '4.0.0-RC11'
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
 		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
@@ -28,9 +27,6 @@ subprojects {
 		//tomcatVersion = '7.0.54';
 		tomcatVersion = '8.0.9';
 	  }
-	
-	
-	
 	
 	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': project.version  }
 	
