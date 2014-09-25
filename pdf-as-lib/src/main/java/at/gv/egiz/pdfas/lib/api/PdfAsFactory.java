@@ -23,8 +23,12 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
+import iaik.cms.ecc.ECCelerateProvider;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
+
+import java.security.Provider;
+import java.security.Security;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -61,13 +65,39 @@ public class PdfAsFactory {
 	// private static final String IMPL_VERSION = "Implementation-Version";
 	// private static final String SCM_REVISION = "SCMREVISION";
 
+	protected static void registerProvider(Provider provider, int position) {
+		String name = provider.getName();
+		if (Security.getProvider(name) == null) {
+			// register IAIK provider at first position
+			try {
+				Security.insertProviderAt(provider, position);
+			} catch (SecurityException e) {
+				logger.info("Failed to register required security Provider.", e);
+			}
+		} else {
+			logger.info("Required security Provider {} already registered.",
+					name);
+		}
+
+	}
+	
+	protected static void listRegisteredSecurityProviders() {
+		Provider[] providers = Security.getProviders();
+		logger.debug("Registered Security Providers:");
+		for(int i = 0; i < providers.length; i++) {
+			logger.debug("    {}: {} => {}", i, providers[i].getName(), providers[i].getInfo());
+		}
+	}
+
 	static {
 		/*
 		 * PropertyConfigurator.configure(ClassLoader
 		 * .getSystemResourceAsStream("resources/log4j.properties"));
 		 */
-		IAIK.addAsProvider();
-		ECCelerate.addAsProvider();
+		//IAIK.addAsProvider();
+		//ECCelerate.addAsProvider();
+		registerProvider(new IAIK(), 1);
+		registerProvider(new ECCelerate(), 2);
 
 		System.out
 				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
@@ -104,7 +134,8 @@ public class PdfAsFactory {
 					if (System.getProperty(DEFAULT_LOG4J_ENV) != null) {
 						String file = System.getProperty(DEFAULT_LOG4J_ENV);
 						File log4j = new File(file);
-						System.out.println("Configuring logging with: " + log4j.getAbsolutePath());
+						System.out.println("Configuring logging with: "
+								+ log4j.getAbsolutePath());
 						logger.info("Loading log4j configuration: "
 								+ log4j.getAbsolutePath());
 						if (log4j.exists()) {
@@ -117,18 +148,23 @@ public class PdfAsFactory {
 										+ log4j.getAbsolutePath());
 							} catch (FileNotFoundException e) {
 								e.printStackTrace();
-								System.err.println("Failed to initialize logging System. Defaulting to basic configuration!");
+								System.err
+										.println("Failed to initialize logging System. Defaulting to basic configuration!");
 								BasicConfigurator.configure();
 							}
 						} else {
-							System.err.println("Log4j File: " + log4j.getAbsolutePath() + " does not exist! Defaulting to basic configuration!");
+							System.err
+									.println("Log4j File: "
+											+ log4j.getAbsolutePath()
+											+ " does not exist! Defaulting to basic configuration!");
 							BasicConfigurator.configure();
 						}
 					} else {
 						File log4j = new File(configuration.getAbsolutePath()
 								+ File.separator + "cfg" + File.separator
 								+ "log4j.properties");
-						System.out.println("Configuring logging with: " + log4j.getAbsolutePath());
+						System.out.println("Configuring logging with: "
+								+ log4j.getAbsolutePath());
 						logger.info("Loading log4j configuration: "
 								+ log4j.getAbsolutePath());
 						if (log4j.exists()) {
@@ -141,15 +177,20 @@ public class PdfAsFactory {
 										+ log4j.getAbsolutePath());
 							} catch (FileNotFoundException e) {
 								e.printStackTrace();
-								System.err.println("Failed to initialize logging System. Defaulting to basic configuration!");
+								System.err
+										.println("Failed to initialize logging System. Defaulting to basic configuration!");
 								BasicConfigurator.configure();
 							}
 						} else {
-							System.err.println("Log4j File: " + log4j.getAbsolutePath() + " does not exist! Defaulting to basic configuration!");
+							System.err
+									.println("Log4j File: "
+											+ log4j.getAbsolutePath()
+											+ " does not exist! Defaulting to basic configuration!");
 							BasicConfigurator.configure();
 						}
 					}
 					log_configured = true;
+					listRegisteredSecurityProviders();
 				}
 			}
 		}
