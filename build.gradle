@@ -17,7 +17,7 @@ subprojects {
 	}
 
 	sourceCompatibility = 1.6
-	version = '4.0.0-RC11'
+	version = '4.0.1'
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
 		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
@@ -30,10 +30,43 @@ subprojects {
 	
 	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': project.version  }
 	
+	task copyDeps(type: Copy) {
+		from configurations.runtime
+		into (new File(rootDir, 'build/alldependencies')).toString()
+	}
+		
+	checkCVE.dependsOn copyDeps
+	
 	uploadArchives {
 		repositories.mavenDeployer {
 			repository(url: project.releaseRepoUrl)
 			snapshotRepository(url: project.snapshotRepoUrl)
+		}
+	}
+}
+
+configurations {
+	cveCheck
+}
+
+// Assign dependencies to the sshAntTask configuration.
+dependencies {
+	cveCheck 'org.owasp:dependency-check-ant:1.2.5'
+}
+
+task checkCVE << {
+	// Redefine checkCVEAnt Ant task, with the classpath property set to our newly defined
+	// cveCheck configuration classpath.
+	ant.taskdef(name: 'checkCVEAnt', classname: 'org.owasp.dependencycheck.taskdefs.DependencyCheckTask',
+		classpath: configurations.cveCheck.asPath)
+	
+	// executing checkCVEAnt Task
+	ant.checkCVEAnt(
+		applicationname: "PDF-AS",
+		reportoutputdirectory: (new File(rootDir, 'releases/cvecheck/' + project.name)).toString(),
+		reportformat: "ALL") {
+		fileset(dir: (new File(rootDir, 'build/alldependencies')).toString()) {
+			include(name: '**/**')
 		}
 	}
 }
