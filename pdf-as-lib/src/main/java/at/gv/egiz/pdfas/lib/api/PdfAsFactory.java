@@ -102,7 +102,7 @@ public class PdfAsFactory {
 		//IAIK.addAsProvider();
 		//ECCelerate.addAsProvider();
 		registerProvider(new IAIK(), 1);
-		registerProvider(new ECCelerate(), 2);
+		registerProvider(new ECCelerate(), -1);
 
 		System.out
 				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
