@@ -61,6 +61,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_SIG_POS_R = "sig-pos-r";
 	public static final String PARAM_SIG_POS_F = "sig-pos-f";
 	public static final String PARAM_SIG_IDX = "sig-idx";
+	public static final String PARAM_FILENAME = "filename";
 	
 	public static String getConnector(HttpServletRequest request) {
 		String connector = (String)request.getAttribute(PARAM_CONNECTOR);
@@ -73,6 +74,11 @@ public class PdfAsParameterExtractor {
 	public static String getTransactionId(HttpServletRequest request) {
 		String transactionId = (String)request.getAttribute(PARAM_TRANSACTION_ID);
 		return transactionId;
+	}
+	
+	public static String getFilename(HttpServletRequest request) {
+		String filename = (String)request.getAttribute(PARAM_FILENAME);
+		return filename;
 	}
 	
 	public static String getInvokeURL(HttpServletRequest request) {

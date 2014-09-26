@@ -261,6 +261,12 @@ public class ExternSignServlet extends HttpServlet {
 		String locale = PdfAsParameterExtractor.getLocale(request);
 		PdfAsHelper.setLocale(request, response, locale);
 		
+		String filename = PdfAsParameterExtractor.getFilename(request);
+		if(filename != null) {
+			logger.debug("Setting Filename in session: " + filename);
+			PdfAsHelper.setPDFFileName(request, filename);
+		}
+		
 		if(pdfData == null) {
 			throw new PdfAsException("No Signature data available");
 		}
