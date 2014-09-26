@@ -70,7 +70,12 @@ public class PdfAsFactory {
 		if (Security.getProvider(name) == null) {
 			// register IAIK provider at first position
 			try {
-				Security.insertProviderAt(provider, position);
+				if(position < 0) {
+					// add provider add default position.
+					Security.addProvider(provider);
+				} else {
+					Security.insertProviderAt(provider, position);
+				}
 			} catch (SecurityException e) {
 				logger.info("Failed to register required security Provider.", e);
 			}
@@ -97,7 +102,8 @@ public class PdfAsFactory {
 		//IAIK.addAsProvider();
 		//ECCelerate.addAsProvider();
 		registerProvider(new IAIK(), 1);
-		registerProvider(new ECCelerate(), 2);
+		registerProvider(new ECCelerate(), -1);
+		//registerProvider(new ECCelerate(), 2);
 
 		System.out
 				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
