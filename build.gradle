@@ -12,6 +12,7 @@ buildscript {
 allprojects {
 	apply plugin: 'com.github.ben-manes.versions'
 	repositories {  mavenCentral()  }
+	version = '4.0.1'
 }
 
 configurations {
@@ -60,7 +61,6 @@ subprojects {
 	}
 
 	sourceCompatibility = 1.6
-	version = '4.0.1'
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
 		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
@@ -88,6 +88,14 @@ subprojects {
 			snapshotRepository(url: project.snapshotRepoUrl)
 		}
 	}
+}
+
+task releases(type: Copy) {
+	from ('doc') {
+        include '*.pdf'
+    }
+	
+	into "releases/" + version + "/docs"
 }
 
 def getCheckedOutGitCommitHash() {

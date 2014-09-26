@@ -120,7 +120,7 @@ task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat, type: Copy) {
 }
 
 task injectPdfAsWebApp(dependsOn: putWebConfigIntoTomcat, type: Copy) {
-	war.execute();
+	//war.execute();
 	
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##/webapps/";
 	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
@@ -129,6 +129,8 @@ task injectPdfAsWebApp(dependsOn: putWebConfigIntoTomcat, type: Copy) {
 	into targetDir
 	rename '.*.war', 'pdf-as-web.war'
 }
+
+injectPdfAsWebApp.dependsOn war
 
 task buildTomcat(dependsOn: injectPdfAsWebApp, type: Zip) {
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##";
@@ -171,4 +173,10 @@ task releases(dependsOn: buildTomcat, type: Copy) {
 	into rootDir.toString() + "/releases/" + version
 }
 
+task releaseConfig(type: Copy) {
+	from 'src/main/configuration/pdf-as-web.properties'
+	into rootDir.toString() + "/releases/" + version + "/cfg"
+}
+
+releases.dependsOn releaseConfig
 releases.dependsOn buildTomcatTar

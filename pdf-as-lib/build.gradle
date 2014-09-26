@@ -60,11 +60,18 @@ dependencies {
 	testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
+task releaseConfig(type: Copy) {
+	from 'src/main/resources/config/config.zip'
+	into rootDir.toString() + "/releases/" + version + "/cfg"
+	rename 'config.zip', 'defaultConfig.zip'
+}
+
 task releases(type: Copy) {
 	from jar.outputs
 	into rootDir.toString() + "/releases/" + version
-	rename '.*.war', 'pdf-as-web.war'
 }
+
+releases.dependsOn releaseConfig
 
 task apidocs(type: Javadoc) {
 	classpath = configurations.compile
