@@ -1,48 +1,17 @@
-subprojects {
-	apply plugin: 'java'
-	apply plugin: 'eclipse'
-	apply plugin: 'maven'
-	group = 'at.gv.egiz.pdfas'
+buildscript {
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
+	
+	dependencies {
+		classpath 'com.github.ben-manes:gradle-versions-plugin:0.+'
+	}
+}
 
-	configurations {
-		deployerJars
-	}
-	
-	repositories { mavenCentral() }
-
-	dependencies { 
-		testCompile 'junit:junit:4.8.2' 
-		//to use WebDav protocol on upload
-		deployerJars 'org.apache.maven.wagon:wagon-webdav:1.0-beta-2'
-	}
-
-	sourceCompatibility = 1.6
-	version = '4.0.1'
-	project.ext{
-		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
-		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
-		version = version
-		pdfasversion = version
-		revision = getCheckedOutGitCommitHash()
-		//tomcatVersion = '7.0.54';
-		tomcatVersion = '8.0.9';
-	  }
-	
-	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': project.version  }
-	
-	task copyDeps(type: Copy) {
-		from configurations.runtime
-		into (new File(rootDir, 'build/alldependencies')).toString()
-	}
-		
-	checkCVE.dependsOn copyDeps
-	
-	uploadArchives {
-		repositories.mavenDeployer {
-			repository(url: project.releaseRepoUrl)
-			snapshotRepository(url: project.snapshotRepoUrl)
-		}
-	}
+allprojects {
+	apply plugin: 'com.github.ben-manes.versions'
+	repositories {  mavenCentral()  }
 }
 
 configurations {
@@ -67,6 +36,56 @@ task checkCVE << {
 		reportformat: "ALL") {
 		fileset(dir: (new File(rootDir, 'build/alldependencies')).toString()) {
 			include(name: '**/**')
+		}
+	}
+}
+
+
+subprojects {
+	apply plugin: 'java'
+	apply plugin: 'eclipse'
+	apply plugin: 'maven'
+	group = 'at.gv.egiz.pdfas'
+
+	configurations {
+		deployerJars
+	}
+	
+	repositories { mavenCentral() }
+
+	dependencies { 
+		testCompile 'junit:junit:4.8.2' 
+		//to use WebDav protocol on upload
+		//deployerJars 'org.apache.maven.wagon:wagon-webdav:1.0-beta-2'
+	}
+
+	sourceCompatibility = 1.6
+	version = '4.0.1'
+	project.ext{
+		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
+		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
+		version = version
+		pdfasversion = version
+		revision = getCheckedOutGitCommitHash()
+		//tomcatVersion = '7.0.54';
+		tomcatVersion = '8.0.9';
+		slf4jVersion = '1.7.7'
+		
+	  }
+	
+	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': project.version  }
+	
+	task copyDeps(type: Copy) {
+		from configurations.runtime
+		into (new File(rootDir, 'build/alldependencies')).toString()
+	}
+		
+	rootProject.checkCVE.dependsOn copyDeps
+	
+	uploadArchives {
+		repositories.mavenDeployer {
+			repository(url: project.releaseRepoUrl)
+			snapshotRepository(url: project.snapshotRepoUrl)
 		}
 	}
 }

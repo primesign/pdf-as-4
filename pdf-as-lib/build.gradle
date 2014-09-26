@@ -38,25 +38,25 @@ repositories {
 
 dependencies {
 	compile project (':pdf-as-common')
-	compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.3.1'
-	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.3.1'
-	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.5'
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
+	compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.3.5'
+	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.3.5'
+	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.7'
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2'
 	compile group: 'commons-io', name: 'commons-io', version: '2.4'
-	compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+	compile 'org.apache.commons:commons-collections4:4.0'
 	compile group: 'org.apache.axis2', name: 'axis2', version: '1.6.2'
 	compile group: 'org.apache.axis2', name: 'axis2-jaxws', version: '1.6.2'
 	compile group: 'org.apache.axis2', name: 'axis2-transport-local', version: '1.6.2'
-	compile group: 'ognl', name: 'ognl', version: '3.0.6'
+	compile group: 'ognl', name: 'ognl', version: '3.0.8'
 	compile files('libs/iaik_eccelerate_cms.jar')
 	compile files('libs/iaik_eccelerate.jar')
 	compile files('libs/iaik_jce.jar')
 	compile files('libs/iaik_jce_full.jar')
 	compile files('libs/iaik_cms.jar')
 	compile group: 'log4j', name: 'log4j', version: '1.2.17'
-	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.5'
-	compile group: 'com.google.zxing', name: 'core', version: '2.2'
-	compile group: 'com.google.zxing', name: 'javase', version: '2.2'
+	compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+	compile group: 'com.google.zxing', name: 'core', version: '3.1.0'
+	compile group: 'com.google.zxing', name: 'javase', version: '3.1.0'
 	testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
