@@ -62,14 +62,14 @@ dependencies {
 
 task releases(type: Copy) {
 	from jar.outputs
-	into rootDir.toString() + "/releases"
+	into rootDir.toString() + "/releases/" + version
 	rename '.*.war', 'pdf-as-web.war'
 }
 
 task apidocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava
-	destinationDir = new File(rootDir.toString() + "/releases/docs/api")
+	destinationDir = new File(rootDir.toString() + "/releases/" + version + "/docs/api")
 	title = "PDF-AS " + project.pdfasversion + " Documentation"
 	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PUBLIC
 	options.charSet = "ISO-8859-1"
@@ -86,7 +86,7 @@ task apidocs(type: Javadoc) {
 task fulldocs(type: Javadoc) {
 	classpath = configurations.compile
 	source = sourceSets.main.allJava
-	destinationDir = new File(rootDir.toString() + "/releases/docs/full")
+	destinationDir = new File(rootDir.toString() + "/releases/" + version + "/docs/full")
 	title = "PDF-AS " + project.pdfasversion + " Documentation"
 	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
 	options.charSet = "ISO-8859-1"

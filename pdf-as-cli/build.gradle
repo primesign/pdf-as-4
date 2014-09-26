@@ -12,7 +12,7 @@ repositories {
 task releases(type: Copy) {
 	from distZip.outputs
 	from distTar.outputs
-	into rootDir.toString() + "/releases"
+	into rootDir.toString() + "/releases/" + version
 }
 
 releases.dependsOn distZip

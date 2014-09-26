@@ -168,7 +168,7 @@ task releases(dependsOn: buildTomcat, type: Copy) {
 	from war.outputs
 	from archive
 	from tararchive
-	into rootDir.toString() + "/releases"
+	into rootDir.toString() + "/releases/" + version
 }
 
 releases.dependsOn buildTomcatTar

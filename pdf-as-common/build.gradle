@@ -13,7 +13,7 @@ repositories {
 
 task releases(type: Copy) {
 	from jar.outputs
-	into rootDir.toString() + "/releases"
+	into rootDir.toString() + "/releases/" + version
 }
 
 dependencies {
