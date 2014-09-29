@@ -37,9 +37,9 @@ public class ConfigurationImpl implements ISettings, Configuration {
 
 	protected Properties overwrittenProperties = new Properties();
 	
-	protected Settings settings;
+	protected ISettings settings;
 	
-	public ConfigurationImpl(Settings settings) {
+	public ConfigurationImpl(ISettings settings) {
 		this.settings = settings;
 	}
 	

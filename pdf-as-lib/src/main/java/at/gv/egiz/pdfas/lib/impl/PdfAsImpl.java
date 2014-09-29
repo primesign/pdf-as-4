@@ -94,11 +94,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsImpl.class);
 
-	private Settings settings;
+	private ISettings settings;
 
 	public PdfAsImpl(File cfgFile) {
 		logger.info("Initializing PDF-AS with config: " + cfgFile.getPath());
 		this.settings = new Settings(cfgFile);
+	}
+	
+	public PdfAsImpl(ISettings cfgObject) {
+		logger.info("Initializing PDF-AS with config: " + cfgObject.getClass().getName());
+		this.settings = cfgObject;
 	}
 
 	private void verifySignParameter(SignParameter parameter)

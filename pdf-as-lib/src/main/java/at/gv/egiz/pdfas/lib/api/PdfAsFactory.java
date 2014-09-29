@@ -23,12 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
-import iaik.cms.ecc.ECCelerateProvider;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
-
-import java.security.Provider;
-import java.security.Security;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -37,6 +33,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Provider;
+import java.security.Security;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -45,6 +43,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
@@ -70,7 +69,7 @@ public class PdfAsFactory {
 		if (Security.getProvider(name) == null) {
 			// register IAIK provider at first position
 			try {
-				if(position < 0) {
+				if (position < 0) {
 					// add provider add default position.
 					Security.addProvider(provider);
 				} else {
@@ -85,12 +84,13 @@ public class PdfAsFactory {
 		}
 
 	}
-	
+
 	protected static void listRegisteredSecurityProviders() {
 		Provider[] providers = Security.getProviders();
 		logger.debug("Registered Security Providers:");
-		for(int i = 0; i < providers.length; i++) {
-			logger.debug("    {}: {} => {}", i, providers[i].getName(), providers[i].getInfo());
+		for (int i = 0; i < providers.length; i++) {
+			logger.debug("    {}: {} => {}", i, providers[i].getName(),
+					providers[i].getInfo());
 		}
 	}
 
@@ -99,8 +99,8 @@ public class PdfAsFactory {
 		 * PropertyConfigurator.configure(ClassLoader
 		 * .getSystemResourceAsStream("resources/log4j.properties"));
 		 */
-		//IAIK.addAsProvider();
-		//ECCelerate.addAsProvider();
+		// IAIK.addAsProvider();
+		// ECCelerate.addAsProvider();
 		registerProvider(new IAIK(), 1);
 		registerProvider(new ECCelerate(), -1);
 
@@ -125,6 +125,84 @@ public class PdfAsFactory {
 	}
 
 	/**
+	 * Configure log.
+	 *
+	 * @param configuration the configuration
+	 */
+	private static void configureLog(File configuration) {
+		if (!log_configured) {
+
+			if (System.getProperty(DEFAULT_LOG4J_ENV) != null) {
+				String file = System.getProperty(DEFAULT_LOG4J_ENV);
+				File log4j = new File(file);
+				System.out.println("Configuring logging with: "
+						+ log4j.getAbsolutePath());
+				logger.info("Loading log4j configuration: "
+						+ log4j.getAbsolutePath());
+				if (log4j.exists()) {
+					try {
+						//if (configuration != null) {
+						//	System.setProperty("pdf-as.work-dir",
+						//			configuration.getAbsolutePath());
+						//}
+						PropertyConfigurator.configure(new FileInputStream(
+								log4j));
+						logger.info("Configured Log4j with: "
+								+ log4j.getAbsolutePath());
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+						System.err
+								.println("Failed to initialize logging System. Defaulting to basic configuration!");
+						BasicConfigurator.configure();
+					}
+				} else {
+					System.err
+							.println("Log4j File: "
+									+ log4j.getAbsolutePath()
+									+ " does not exist! Defaulting to basic configuration!");
+					BasicConfigurator.configure();
+				}
+			} else {
+				if (configuration != null) {
+					File log4j = new File(configuration.getAbsolutePath()
+							+ File.separator + "cfg" + File.separator
+							+ "log4j.properties");
+					System.out.println("Configuring logging with: "
+							+ log4j.getAbsolutePath());
+					logger.info("Loading log4j configuration: "
+							+ log4j.getAbsolutePath());
+					if (log4j.exists()) {
+						try {
+							//System.setProperty("pdf-as.work-dir",
+							//		configuration.getAbsolutePath());
+							PropertyConfigurator.configure(new FileInputStream(
+									log4j));
+							logger.info("Configured Log4j with: "
+									+ log4j.getAbsolutePath());
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+							System.err
+									.println("Failed to initialize logging System. Defaulting to basic configuration!");
+							BasicConfigurator.configure();
+						}
+					} else {
+						System.err
+								.println("Log4j File: "
+										+ log4j.getAbsolutePath()
+										+ " does not exist! Defaulting to basic configuration!");
+						BasicConfigurator.configure();
+					}
+				} else {
+					System.err.println("Failed to initialize logging System. Defaulting to basic configuration!");
+					BasicConfigurator.configure();
+				}
+			}
+			log_configured = true;
+			listRegisteredSecurityProviders();
+		}
+	}
+
+	/**
 	 * Create a new instance of PDF-AS
 	 * 
 	 * @param configuration
@@ -134,73 +212,27 @@ public class PdfAsFactory {
 	public static PdfAs createPdfAs(File configuration) {
 		if (!log_configured) {
 			synchronized (log_mutex) {
-				if (!log_configured) {
-
-					if (System.getProperty(DEFAULT_LOG4J_ENV) != null) {
-						String file = System.getProperty(DEFAULT_LOG4J_ENV);
-						File log4j = new File(file);
-						System.out.println("Configuring logging with: "
-								+ log4j.getAbsolutePath());
-						logger.info("Loading log4j configuration: "
-								+ log4j.getAbsolutePath());
-						if (log4j.exists()) {
-							try {
-								System.setProperty("pdf-as.work-dir",
-										configuration.getAbsolutePath());
-								PropertyConfigurator
-										.configure(new FileInputStream(log4j));
-								logger.info("Configured Log4j with: "
-										+ log4j.getAbsolutePath());
-							} catch (FileNotFoundException e) {
-								e.printStackTrace();
-								System.err
-										.println("Failed to initialize logging System. Defaulting to basic configuration!");
-								BasicConfigurator.configure();
-							}
-						} else {
-							System.err
-									.println("Log4j File: "
-											+ log4j.getAbsolutePath()
-											+ " does not exist! Defaulting to basic configuration!");
-							BasicConfigurator.configure();
-						}
-					} else {
-						File log4j = new File(configuration.getAbsolutePath()
-								+ File.separator + "cfg" + File.separator
-								+ "log4j.properties");
-						System.out.println("Configuring logging with: "
-								+ log4j.getAbsolutePath());
-						logger.info("Loading log4j configuration: "
-								+ log4j.getAbsolutePath());
-						if (log4j.exists()) {
-							try {
-								System.setProperty("pdf-as.work-dir",
-										configuration.getAbsolutePath());
-								PropertyConfigurator
-										.configure(new FileInputStream(log4j));
-								logger.info("Configured Log4j with: "
-										+ log4j.getAbsolutePath());
-							} catch (FileNotFoundException e) {
-								e.printStackTrace();
-								System.err
-										.println("Failed to initialize logging System. Defaulting to basic configuration!");
-								BasicConfigurator.configure();
-							}
-						} else {
-							System.err
-									.println("Log4j File: "
-											+ log4j.getAbsolutePath()
-											+ " does not exist! Defaulting to basic configuration!");
-							BasicConfigurator.configure();
-						}
-					}
-					log_configured = true;
-					listRegisteredSecurityProviders();
-				}
+				configureLog(configuration);
 			}
 		}
 
 		return new PdfAsImpl(configuration);
+	}
+
+	/**
+	 * Creates a new PdfAs object.
+	 *
+	 * @param settings the settings
+	 * @return the pdf as
+	 */
+	public static PdfAs createPdfAs(ISettings settings) {
+		if (!log_configured) {
+			synchronized (log_mutex) {
+				configureLog(null);
+			}
+		}
+		
+		return new PdfAsImpl(settings);
 	}
 
 	/**
