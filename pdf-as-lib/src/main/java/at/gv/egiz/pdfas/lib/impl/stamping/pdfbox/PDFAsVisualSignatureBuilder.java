@@ -589,6 +589,15 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 						float origWidth = (float) img.getWidth();
 						float origHeight = (float) img.getHeight();
 
+						if (table.style != null) {
+							if (table.style.getImageScaleToFit() != null) {
+								iwidth = table.style.getImageScaleToFit()
+										.getWidth();
+								iheight = table.style.getImageScaleToFit()
+										.getHeight();
+							}
+						}
+
 						float wfactor = iwidth / origWidth;
 						float hfactor = iheight / origHeight;
 						float scaleFactor = wfactor;
@@ -600,16 +609,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 								.floor((double) (scaleFactor * origWidth));
 						iheight = (float) Math
 								.floor((double) (scaleFactor * origHeight));
-
-						if (table.style != null) {
-							if (table.style.getImageScaleToFit() != null) {
-								iwidth = table.style.getImageScaleToFit()
-										.getWidth();
-								iheight = table.style.getImageScaleToFit()
-										.getHeight();
-							}
-						}
-
+						
 						logger.debug("Scaling image to: " + iwidth + " x "
 								+ iheight);
 
