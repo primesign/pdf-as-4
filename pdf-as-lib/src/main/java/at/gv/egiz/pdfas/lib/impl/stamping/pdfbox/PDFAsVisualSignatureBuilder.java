@@ -785,12 +785,12 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		PDRectangle rect = new PDRectangle();
 
 		Point2D upSrc = new Point2D.Float();
-		upSrc.setLocation(properties.getxAxis() + properties.getWidth() + 10,
+		upSrc.setLocation(properties.getxAxis() + properties.getWidth(),
 				properties.getPageHeight() - properties.getyAxis());
 
 		Point2D llSrc = new Point2D.Float();
 		llSrc.setLocation(properties.getxAxis(), properties.getPageHeight()
-				- properties.getyAxis() - properties.getHeight() - 10);
+				- properties.getyAxis() - properties.getHeight());
 		AffineTransform transform = new AffineTransform();
 		transform.setToIdentity();
 		if (degrees % 360 != 0) {
