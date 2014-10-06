@@ -66,9 +66,9 @@ public class ValueResolver implements IProfileConstants, IResolver {
 		logger.debug("Resolving value with value: " + value);
 
 		if (key.equals(SIG_DATE)) {
-			//if (value == null) {
-			value = defaultDateFormat;
-			//}
+			if (value == null) {
+				value = defaultDateFormat;
+			}
 			// Value holds the date format!
 			SimpleDateFormat formater = new SimpleDateFormat(value);
 			//formater.setTimeZone(TimeZone.getTimeZone("UTC"));
