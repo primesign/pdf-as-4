@@ -12,6 +12,9 @@ build/
 *.iws
 out/
 
+pdf-as-tests/src/test/test-suites/*
+pdf-as-tests/src/test/test-suites/*/
+!pdf-as-tests/src/test/test-suites/public/
 pdf-as-tests/src/test/test-suites/**/index.html
 pdf-as-tests/src/test/test-suites/**/test_result.html
 pdf-as-tests/src/test/test-suites/**/out
