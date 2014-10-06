@@ -197,9 +197,9 @@ public class PDFBoxTable {
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 
-				float colWidth = colWidths[j];
+				float colWidth = 0;//colWidths[j];
 
-				int colsleft = cell.getColSpan() - 1;
+				int colsleft = cell.getColSpan();
 
 				if (j + colsleft > colWidths.length) {
 					throw new IOException(

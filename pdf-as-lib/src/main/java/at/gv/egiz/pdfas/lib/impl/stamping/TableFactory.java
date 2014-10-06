@@ -34,6 +34,7 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -97,12 +98,13 @@ public class TableFactory implements IProfileConstants {
      * @param tableID
      *          is the name of the table definition in the settings file
      * @return a new abstract signature table
+     * @throws PdfAsSettingsException 
      * @see at.knowcenter.wag.egov.egiz.table.Style
      * @see at.knowcenter.wag.egov.egiz.table.Table
      * @see at.knowcenter.wag.egov.egiz.table.Entry
      */
     public static Table createSigTable(SignatureProfileSettings profile, String tableID, OperationStatus operationStatus,
-    		ICertificateProvider certProvider)
+    		ICertificateProvider certProvider) throws PdfAsSettingsException
     {
         String table_key_prefix = SIG_OBJ + profile.getProfileID() + "." + TABLE;
         String table_key = table_key_prefix + tableID;
@@ -198,7 +200,7 @@ public class TableFactory implements IProfileConstants {
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
-                            //entry.setColSpan(2);
+                            entry.setColSpan(2);
                             entry.setStyle(defaultValueStyle_);
                             row.add(entry);
                         }
@@ -212,7 +214,7 @@ public class TableFactory implements IProfileConstants {
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
-                            //entry.setColSpan(2);
+                            entry.setColSpan(2);
                             entry.setStyle(defaultCaptionStyle_);
                             row.add(entry);
                         }
@@ -260,7 +262,7 @@ public class TableFactory implements IProfileConstants {
                 sig_table.addRow(table_def, row);
             }
         }
-
+        sig_table.normalize();
         return sig_table;
     }
 

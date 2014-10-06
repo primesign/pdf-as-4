@@ -49,9 +49,12 @@
 package at.knowcenter.wag.egov.egiz.table;
 
 import java.io.Serializable;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 
 /**
  * This class implements an abstract table definition. The table contains table
@@ -216,12 +219,75 @@ public class Table implements Serializable
   public void addRow(String rowNumber, ArrayList<Entry> row)
   {
     rows_.put(rowNumber, row);
-    if (row.size() > maxCols_)
-    {
-      maxCols_ = row.size();
-    }
+    calculateMaxCols(row);
   }
 
+  private void calculateMaxCols(ArrayList<Entry> newrow) {
+	  int colCount = calculateRowSize(newrow);
+	  if (colCount > maxCols_)
+	    {
+	      maxCols_ = colCount;
+	    }
+  }
+  
+  private int calculateRowSize(ArrayList<Entry> newrow) {
+	  int colCount = 0;
+	  for(int i = 0; i < newrow.size(); i++) {
+		  colCount += newrow.get(i).getColSpan();
+	  }
+	  return colCount;
+  }
+  
+  private void recalculateMaxCol() {
+	  Iterator<ArrayList<Entry>> rowIt = getRows().iterator();
+	  while(rowIt.hasNext()) {
+		  ArrayList<Entry> row = rowIt.next();
+		  calculateMaxCols(row);
+	  }
+  }
+  
+  private boolean recursiveNorm = false;
+  
+  /**
+   * Expands the last cell of each column to fill the table
+ * @throws PdfAsSettingsException 
+   */
+  public void normalize() throws PdfAsSettingsException {	  
+	  Iterator<ArrayList<Entry>> rowIt = getRows().iterator();
+	  while(rowIt.hasNext()) {
+		  ArrayList<Entry> row = rowIt.next();
+		  
+		  // This row fits just fine
+		  if(row.size() == maxCols_) {
+			  continue;
+		  }
+		  
+		  int rowSize = calculateRowSize(row);
+		  
+		  // This row fits just fine including row spans
+		  if(rowSize == maxCols_) {
+			  continue;
+		  }
+		  
+		  int missingColumns = maxCols_ - rowSize;
+		  
+		  if(missingColumns < 0) {
+			  // wrong max Col value!
+			  // recalculate the maximum Columns and normalize again!
+			  if(recursiveNorm) {
+				 throw new PdfAsSettingsException("Failed to build virtual model of signatur block table."); 
+			  }
+			  recalculateMaxCol();
+			  recursiveNorm = true;
+			  normalize();
+			  recursiveNorm = false;
+			  break;
+		  } else {
+			  row.get(row.size() - 1).setColSpan(row.get(row.size() - 1).getColSpan() + missingColumns);
+		  }
+	  }
+  }
+  
   /**
    * The toString method, used for tests or debugging.
    */

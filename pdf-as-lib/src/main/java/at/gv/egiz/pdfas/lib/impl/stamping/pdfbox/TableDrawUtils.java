@@ -93,23 +93,36 @@ public class TableDrawUtils {
 				Style inherit_style = Style.doInherit(abstractTable.style, cell.getStyle());
 				cell.setStyle(inherit_style);
 
+				float colWidth = 0;//colWidths[j];
+
+				int colsleft = cell.getColSpan();
+
+				if (j + colsleft > colsSizes.length) {
+					throw new PdfAsException(
+							"Configuration is wrong. Cannot determine column width!");
+				}
+
+				for (int k = 0; k < colsleft; k++) {
+					colWidth = colWidth + colsSizes[j + k];
+				}
+				
 				drawDebugPadding(contentStream, contentx, contenty, padding,
-						colsSizes[j], abstractTable.getRowHeights()[i], settings);
+						colWidth, abstractTable.getRowHeights()[i], settings);
 
 				switch (cell.getType()) {
 				case Entry.TYPE_CAPTION:
 					drawCaption(page, contentStream, contentx, contenty,
-							colsSizes[j], abstractTable.getRowHeights()[i],
+							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
 					break;
 				case Entry.TYPE_VALUE:
 					drawValue(page, contentStream, contentx, contenty,
-							colsSizes[j], abstractTable.getRowHeights()[i],
+							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
 					break;
 				case Entry.TYPE_IMAGE:
 					drawImage(page, contentStream, contentx, contenty,
-							colsSizes[j], abstractTable.getRowHeights()[i],
+							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources,
 							images, settings);
 					break;
@@ -122,7 +135,7 @@ public class TableDrawUtils {
 					tbl_value.table.setStyle(inherit_styletab);
 
 					drawTable(page, contentStream, contentx, contenty
-							- abstractTable.getRowHeights()[i], colsSizes[j],
+							- abstractTable.getRowHeights()[i], colWidth,
 							abstractTable.getRowHeights()[i], tbl_value, doc,
 							true, formResources, images, settings);
 					break;
@@ -132,7 +145,10 @@ public class TableDrawUtils {
 				}
 
 				// Move content pointer
-				contentx += colsSizes[j];
+				contentx += colWidth;
+				
+				int span = cell.getColSpan() - 1;
+				j += span;
 			}
 
 			// Move content pointer
