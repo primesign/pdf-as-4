@@ -380,7 +380,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			if (requestedSignature.isVisual()) {
 
 				// if(requestedSignature.getSignaturePosition().)
-
+				/*
 				PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
 				if (acroForm != null) {
 
@@ -424,7 +424,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 				} else {
 					logger.warn("Failed to apply rotation! [Cannot find acroForm!]");
-				}
+				}*/
 			}
 
 			// pdfbox patched (FIS -> IS)
