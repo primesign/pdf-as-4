@@ -53,7 +53,7 @@ public class SignatureUtils {
 							}
 						}
 					} catch (Throwable e) {
-						logger.error("Failed to extract Signature Name!", e);
+						logger.info("Found a different Signature, we do not need to count this.");
 					}
 				}
 			}
