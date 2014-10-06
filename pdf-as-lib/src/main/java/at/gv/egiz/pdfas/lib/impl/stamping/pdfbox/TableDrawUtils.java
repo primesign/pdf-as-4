@@ -29,21 +29,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSDocument;
-import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
@@ -94,8 +89,8 @@ public class TableDrawUtils {
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 
-				Style inherit_style = Style.doInherit(cell.getStyle(),
-						abstractTable.style);
+				// Cell only contains default values so table style is the primary style
+				Style inherit_style = Style.doInherit(abstractTable.style, cell.getStyle());
 				cell.setStyle(inherit_style);
 
 				drawDebugPadding(contentStream, contentx, contenty, padding,
