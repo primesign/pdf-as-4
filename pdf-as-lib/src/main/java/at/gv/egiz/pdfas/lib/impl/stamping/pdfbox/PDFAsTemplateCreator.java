@@ -42,6 +42,8 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+
 public class PDFAsTemplateCreator extends PDFTemplateCreator {
 
 	PDFAsVisualSignatureBuilder pdfBuilder;
@@ -54,7 +56,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
 
 	
 	public InputStream buildPDF(PDFAsVisualSignatureDesigner properties)
-			throws IOException {
+			throws IOException, PdfAsException {
 		logger.debug("pdf building has been started");
         PDFTemplateStructure pdfStructure = pdfBuilder.getStructure();
 
@@ -106,7 +108,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         		properties.getRotation());
         
         // inner formstream, form and resource (hlder form containts inner form)
-        this.pdfBuilder.createInnerFormStream(template);
+        this.pdfBuilder.createInnerFormStreamPdfAs(template);
         this.pdfBuilder.createInnerFormResource();
         PDResources innerFormResource = pdfStructure.getInnerFormResources();
         this.pdfBuilder.createInnerForm(innerFormResource, pdfStructure.getInnterFormStream(), formater);

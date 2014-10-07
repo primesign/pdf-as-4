@@ -33,6 +33,8 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleS
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
@@ -77,7 +79,11 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	public void buildSignature() throws IOException {
 		PDFAsVisualSignatureBuilder builder = new PDFAsVisualSignatureBuilder(this, this.settings, designer);
 		PDFAsTemplateCreator creator = new PDFAsTemplateCreator(builder);
-		setVisibleSignature(creator.buildPDF(designer));
+		try {
+			setVisibleSignature(creator.buildPDF(designer));
+		} catch (PdfAsException e) {
+			throw new PdfAsWrappedIOException(e);
+		}
 	}
 
 	public PDFBoxTable getMainTable() {

@@ -633,8 +633,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		}
 	}
 
-	@Override
-	public void createInnerFormStream(PDDocument template) {
+	public void createInnerFormStreamPdfAs(PDDocument template) throws PdfAsException {
 		try {
 
 			// Hint we have to create all PDXObjectImages before creating the
@@ -661,7 +660,8 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			logger.debug("Strean of another form (inner form - it would be inside holder form) has been created");
 
 		} catch (Throwable e) {
-			e.printStackTrace();
+			logger.error("Failed to create visual signature block", e);
+			throw new PdfAsException("Failed to create visual signature block", e);
 		}
 	}
 
