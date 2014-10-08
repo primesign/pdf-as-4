@@ -33,7 +33,7 @@ dependencies {
 	compile 'org.apache.httpcomponents:httpclient:4.3.5'
 	compile "org.hibernate:hibernate-core:4.3.6.Final"
 	compile "org.hibernate:hibernate-entitymanager:4.3.6.Final"
-	compile "mysql:mysql-connector-java:5.1.33"
+	//compile "mysql:mysql-connector-java:5.1.33"
 	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.5'
 	providedCompile "javax.servlet:servlet-api:2.5"
     testCompile group: 'junit', name: 'junit', version: '4.+'
