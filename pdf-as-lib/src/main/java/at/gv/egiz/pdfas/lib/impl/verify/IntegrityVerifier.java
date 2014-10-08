@@ -19,12 +19,13 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 
 public class IntegrityVerifier implements IVerifier {
 
 	private static final Logger logger = LoggerFactory
-			.getLogger(FullVerifier.class);
+			.getLogger(IntegrityVerifier.class);
 	
 	public List<VerifyResult> verify(byte[] signature, byte[] signatureContent,
 			Date verificationTime) throws PdfAsException {
@@ -91,5 +92,10 @@ public class IntegrityVerifier implements IVerifier {
 
 	public void setConfiguration(Configuration config) {
 		
+	}
+
+	@Override
+	public SignatureVerificationLevel getLevel() {
+		return SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
 	}
 }

@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,21 @@ public class VerifierDispatcher {
 	public static final String CONF_VERIFIER = "default.verifier";
 
 	public Map<String, HashMap<String, IVerifyFilter>> filterMap = new HashMap<String, HashMap<String, IVerifyFilter>>();
+
+	private static List<IVerifier> verifiers = new ArrayList<IVerifier>();
+
+	private static ServiceLoader<IVerifier> verfierLoader = ServiceLoader
+			.load(IVerifier.class);
+
+	static {
+		for (IVerifier verfier : verfierLoader) {
+			verifiers.add(verfier);
+		}
+		
+		for (IVerifier verfier : verifiers) {
+			logger.info("Registered Verifier: " + verfier.getClass().getName());
+		}
+	}
 
 	private String[] getClasses(ISettings settings) {
 		String confVerifiers = settings.getValue(CONF_VERIFIER_LIST);
@@ -140,7 +156,7 @@ public class VerifierDispatcher {
 				}
 			}
 		} catch (Throwable e) {
-			e.printStackTrace();
+			logger.error("Failed to create Verifing dispatcher", e);
 		}
 
 	}
@@ -154,12 +170,12 @@ public class VerifierDispatcher {
 		return filters.get(subfilter);
 	}
 
-	public IVerifier getVerifierByLevel(SignatureVerificationLevel level) {
-		switch (level) {
-		case INTEGRITY_ONLY_VERIFICATION:
-			return new IntegrityVerifier();
-		default:
-			return new FullVerifier();
+	public IVerifier getVerifierByLevel(SignatureVerificationLevel level) throws PdfAsException {
+		for (IVerifier verifier : verifiers) {
+			if(verifier.getLevel().equals(level)) {
+				return verifier;
+			}
 		}
+		throw new PdfAsException("No Verifier with level " + level.toString() + " available!");
 	}
 }
