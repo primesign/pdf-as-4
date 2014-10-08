@@ -16,6 +16,7 @@ repositories {
 
 dependencies {
 	compile project (':pdf-as-lib')
+	compile project (':pdf-as-moa')
 	compile project (':signature-standards:sigs-pkcs7detached')
 	compile project (':signature-standards:sigs-pades')
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'

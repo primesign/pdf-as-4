@@ -1,0 +1,80 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'java-library-distribution'
+
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'PDF-AS-4 MOA Library', 'JARMANIFEST': 'PDF-AS-LIB'
+	}
+}
+
+buildscript {
+	repositories {
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies { classpath("commons-io:commons-io:2.4") }
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = [ 'src/main/java', 'src/generated/java' ]
+		}
+	}
+}
+
+configurations { 
+	ws 
+	
+	pdfDoclet { extendsFrom compile }
+}
+
+project.ext {
+	wsdlDir = file("src/main/resources/wsdl")
+	generatedWsdlDir = file("src/generated/java")
+	wsdlsToGenerate = [
+			   ['-xjc', 
+				    "$wsdlDir/MOA-SPSS-1.5.2.wsdl"],
+	 ]
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+	compile project (':pdf-as-lib')
+	compile group: 'log4j', name: 'log4j', version: '1.2.17'
+	compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+	testCompile group: 'junit', name: 'junit', version: '4.+'
+	ws group: 'org.apache.cxf', name: 'cxf-tools', version: cxfVersion
+	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-databinding-jaxb', version: cxfVersion
+	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-frontend-jaxws', version: cxfVersion
+}
+
+task wsdl2Java() {
+	if (!wsdlDir.listFiles()) {
+		// do nothing
+	} else {
+		inputs.files wsdlDir.listFiles()
+		outputs.files generatedWsdlDir
+		doLast {
+			wsdlsToGenerate.each { argsin ->
+				argsin.add(argsin.size - 1, '-d')
+				argsin.add(argsin.size - 1, generatedWsdlDir)
+				javaexec {
+					classpath configurations.ws
+					main = 'org.apache.cxf.tools.wsdlto.WSDLToJava'
+					args = argsin
+					systemProperties = ['exitOnFinish':'TRUE']
+				}
+			}
+		}
+	}
+}
+
+test {
+	systemProperties 'property': 'value'
+}

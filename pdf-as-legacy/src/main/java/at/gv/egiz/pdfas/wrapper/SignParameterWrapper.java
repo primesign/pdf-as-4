@@ -34,9 +34,9 @@ import at.gv.egiz.pdfas.api.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.api.sign.SignParameters;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.moa.MOAConnector;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
-import at.gv.egiz.sl.util.MOAConnector;
 
 public class SignParameterWrapper {
 
