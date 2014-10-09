@@ -18,8 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.w3._2000._09.xmldsig.KeyInfoType;
 import org.w3._2000._09.xmldsig.X509DataType;
 
-import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
-
 import at.gv.e_government.reference.namespace.moa._20020822.CMSContentBaseType;
 import at.gv.e_government.reference.namespace.moa._20020822.CMSDataObjectOptionalMetaType;
 import at.gv.e_government.reference.namespace.moa._20020822.CheckResultType;
@@ -53,7 +51,8 @@ public class MOAVerifier implements IVerifier {
 		List<VerifyResult> resultList = new ArrayList<VerifyResult>();
 		try {
 			logger.info("verification with MOA @ " + this.moaEndpoint);
-			URL moaUrl = new URL(this.moaEndpoint);
+
+			URL moaUrl = new URL(this.moaEndpoint + "?wsdl");
 			
 			SignatureVerificationService service = new SignatureVerificationService(moaUrl);
 			

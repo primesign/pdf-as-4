@@ -136,7 +136,7 @@ public class MOAConnector implements ISignatureConnector,
 		logger.info("signing with MOA @ " + this.moaEndpoint);
 		URL moaUrl;
 		try {
-			moaUrl = new URL(this.moaEndpoint);
+			moaUrl = new URL(this.moaEndpoint+"?wsdl");
 		} catch (MalformedURLException e1) {
 			throw new PdfAsException("Invalid MOA endpoint!", e1);
 		}

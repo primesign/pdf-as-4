@@ -75,6 +75,11 @@ task wsdl2Java() {
 	}
 }
 
+task releases(type: Copy) {
+	from jar.outputs
+	into rootDir.toString() + "/releases/" + version
+}
+
 test {
 	systemProperties 'property': 'value'
 }
