@@ -1,11 +1,13 @@
 package at.gv.egiz.pdfas.api.ws;
 
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlType(name = "VerificationLevel")
 public enum VerificationLevel {
 
-	INTEGRITY_ONLY("intOnly"), FULL_CERT_PATH("full");
+	@XmlEnumValue("intOnly") INTEGRITY_ONLY("intOnly"), 
+	@XmlEnumValue("full") FULL_CERT_PATH("full");
 
 	private final String name;
 

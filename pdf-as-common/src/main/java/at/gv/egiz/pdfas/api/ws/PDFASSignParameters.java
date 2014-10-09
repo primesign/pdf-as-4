@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.api.ws;
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlType(name="SignParameters")
@@ -38,10 +39,15 @@ public class PDFASSignParameters implements Serializable {
 
 	@XmlType(name="Connector")
 	public enum Connector {
+		@XmlEnumValue("jks")
 		JKS("jks"),
+		@XmlEnumValue("moa")
 		MOA("moa"),
+		@XmlEnumValue("bku")
 		BKU("bku"),
+		@XmlEnumValue("mobilebku")
 		MOBILEBKU("mobilebku"),
+		@XmlEnumValue("onlinebku")
 		ONLINEBKU("onlinebku");
 		
 		
