@@ -53,91 +53,110 @@ public class PDFASSigningImpl implements PDFASSigning {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFASSigningImpl.class);
-	
-	/*public byte[] signPDFDokument(byte[] inputDocument,
-			PDFASSignParameters parameters) {
-		checkSoapSignEnabled();
-		try {
-			return PdfAsHelper.synchornousServerSignature(inputDocument,
-					parameters);
-		} catch (Throwable e) {
-			logger.error("Server Signature failed.", e);
-			if (WebConfiguration.isShowErrorDetails()) {
-				throw new WebServiceException("Server Signature failed.", e);
-			} else {
-				throw new WebServiceException("Server Signature failed.");
-			}
-		}
-	}*/
+
+	/*
+	 * public byte[] signPDFDokument(byte[] inputDocument, PDFASSignParameters
+	 * parameters) { checkSoapSignEnabled(); try { return
+	 * PdfAsHelper.synchornousServerSignature(inputDocument, parameters); }
+	 * catch (Throwable e) { logger.error("Server Signature failed.", e); if
+	 * (WebConfiguration.isShowErrorDetails()) { throw new
+	 * WebServiceException("Server Signature failed.", e); } else { throw new
+	 * WebServiceException("Server Signature failed."); } } }
+	 */
 
 	public PDFASSignResponse signPDFDokument(PDFASSignRequest request) {
+		logger.debug("Starting SOAP Sign Request");
 		checkSoapSignEnabled();
 		if (request == null) {
 			logger.warn("SOAP Sign Request is null!");
 			return null;
 		}
+		
 		PDFASSignResponse response = new PDFASSignResponse();
 		try {
-			if(request.getParameters().getConnector().equals(Connector.MOA) || 
-					request.getParameters().getConnector().equals(Connector.JKS)) {
+			if(request.getParameters().getConnector() == null) {
+				throw new WebServiceException(
+						"Invalid connector value!");
+			}
+			
+			if (request.getParameters().getConnector().equals(Connector.MOA)
+					|| request.getParameters().getConnector()
+							.equals(Connector.JKS)) {
 				// Plain server based signatures!!
-				response = PdfAsHelper.synchornousServerSignature(request.getInputData(),
-					request.getParameters());
-				
-				
+				response = PdfAsHelper.synchornousServerSignature(
+						request.getInputData(), request.getParameters());
+
 				VerifyResult verifyResult = null;
-				if(request.getVerificationLevel().equals(VerificationLevel.FULL_CERT_PATH)) {
-					List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(response.getSignedPDF(), -1, 
-							SignatureVerificationLevel.FULL_VERIFICATION);
-					
-					if(verResults.size() != 1) {
-						throw new WebServiceException("Document verification failed!");
+				if (request.getVerificationLevel() != null && 
+						request.getVerificationLevel().equals(
+						VerificationLevel.FULL_CERT_PATH)) {
+					List<VerifyResult> verResults = PdfAsHelper
+							.synchornousVerify(
+									response.getSignedPDF(),
+									-1,
+									SignatureVerificationLevel.FULL_VERIFICATION);
+
+					if (verResults.size() != 1) {
+						throw new WebServiceException(
+								"Document verification failed!");
 					}
 					verifyResult = verResults.get(0);
 				} else {
-					List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(response.getSignedPDF(), -1, 
-							SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION);
-					
-					if(verResults.size() != 1) {
-						throw new WebServiceException("Document verification failed!");
+					List<VerifyResult> verResults = PdfAsHelper
+							.synchornousVerify(
+									response.getSignedPDF(),
+									-1,
+									SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION);
+
+					if (verResults.size() != 1) {
+						throw new WebServiceException(
+								"Document verification failed!");
 					}
 					verifyResult = verResults.get(0);
 				}
-				
-				response.getVerificationResponse().setCertificateCode(verifyResult.getCertificateCheck().getCode());
-				response.getVerificationResponse().setValueCode(verifyResult.getValueCheckCode().getCode());
+
+				response.getVerificationResponse().setCertificateCode(
+						verifyResult.getCertificateCheck().getCode());
+				response.getVerificationResponse().setValueCode(
+						verifyResult.getValueCheckCode().getCode());
 
 			} else {
 				// Signatures with user interaction!!
-				String id = RequestStore.getInstance().createNewStoreEntry(request);
-				
-				if(id == null) {
+				String id = RequestStore.getInstance().createNewStoreEntry(
+						request);
+
+				if (id == null) {
 					throw new WebServiceException("Failed to store request");
 				}
-				
+
 				String userEntryURL = PdfAsHelper.generateUserEntryURL(id);
-				
+
 				logger.debug("Generated request store: " + id);
 				logger.debug("Generated UI URL: " + userEntryURL);
-				
-				if(userEntryURL == null) {
-					throw new WebServiceException("Failed to generate User Entry URL");
+
+				if (userEntryURL == null) {
+					throw new WebServiceException(
+							"Failed to generate User Entry URL");
 				}
-				
+
 				response.setRedirectUrl(userEntryURL);
 			}
 		} catch (Throwable e) {
+			logger.error("Error in Soap Service", e);
 			if (e.getCause() != null) {
 				response.setError(e.getCause().getMessage());
 			} else {
 				response.setError(e.getMessage());
 			}
+		} finally {
+			logger.debug("Done SOAP Sign Request");
 		}
 		response.setRequestID(request.getRequestID());
 		return response;
 	}
 
 	public PDFASBulkSignResponse signPDFDokument(PDFASBulkSignRequest request) {
+		logger.debug("Starting SOAP BulkSign Request");
 		checkSoapSignEnabled();
 		List<PDFASSignResponse> responses = new ArrayList<PDFASSignResponse>();
 		if (request.getSignRequests() != null) {
@@ -150,9 +169,11 @@ public class PDFASSigningImpl implements PDFASSigning {
 			}
 			PDFASBulkSignResponse response = new PDFASBulkSignResponse();
 			response.setSignResponses(responses);
+			logger.debug("Done SOAP Sign Request");
 			return response;
 		}
 		logger.error("Server Signature failed. [PDFASBulkSignRequest is NULL]");
+		
 		if (WebConfiguration.isShowErrorDetails()) {
 			throw new WebServiceException("PDFASBulkSignRequest is NULL");
 		} else {
@@ -161,9 +182,9 @@ public class PDFASSigningImpl implements PDFASSigning {
 	}
 
 	private void checkSoapSignEnabled() {
-		if(!WebConfiguration.getSoapSignEnabled()) {
+		if (!WebConfiguration.getSoapSignEnabled()) {
 			throw new WebServiceException("Service disabled!");
 		}
- 	}
-	
+	}
+
 }

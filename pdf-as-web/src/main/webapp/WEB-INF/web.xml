@@ -29,15 +29,15 @@
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
-	<listener>
+	<!-- listener>
 	    <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
-	</listener>
+	</listener-->
 	
 	
-	<servlet>
+	<!-- servlet>
 	    <servlet-name>SOAPSign</servlet-name>
 	    <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
-	</servlet>
+	</servlet-->
 	<servlet>
 		<servlet-name>SignServlet</servlet-name>
 		<description>
@@ -45,6 +45,12 @@
 		</description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.ExternSignServlet</servlet-class>
 		<load-on-startup>0</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>CXFServlet</servlet-name>
+		<display-name>CXFServlet</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.SoapServiceServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>ProvidePDF</servlet-name>
@@ -116,9 +122,13 @@
 		servlet mappings, including zero. It is also legal to define more than one 
 		mapping for the same servlet, if you wish to. -->
 
-	<servlet-mapping>
+	<!-- servlet-mapping>
 		<servlet-name>SOAPSign</servlet-name>
 		<url-pattern>/wssign</url-pattern>
+	</servlet-mapping -->
+	<servlet-mapping>
+		<servlet-name>CXFServlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>SignServlet</servlet-name>

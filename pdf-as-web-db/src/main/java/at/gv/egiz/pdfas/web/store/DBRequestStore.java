@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
+import at.gv.egiz.pdfas.web.store.IRequestStore;
 import at.gv.egiz.pdfas.web.store.db.Request;
 
 public class DBRequestStore implements IRequestStore {
