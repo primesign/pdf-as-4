@@ -50,14 +50,14 @@ subprojects {
 
 	configurations {
 		deployerJars
+		cveCheck
 	}
 	
 	repositories { mavenCentral() }
 
 	dependencies { 
 		testCompile 'junit:junit:4.8.2' 
-		//to use WebDav protocol on upload
-		//deployerJars 'org.apache.maven.wagon:wagon-webdav:1.0-beta-2'
+		cveCheck 'org.owasp:dependency-check-ant:1.2.5'
 	}
 
 	sourceCompatibility = 1.6
@@ -79,8 +79,32 @@ subprojects {
 		from configurations.runtime
 		into (new File(rootDir, 'build/alldependencies')).toString()
 	}
+	
+	task copyDepsLocal(type: Copy) {
+		from configurations.runtime
+		into 'build/alldependencies'
+	}
 		
 	rootProject.checkCVE.dependsOn copyDeps
+	
+	task checkCVELocal << {
+		// Redefine checkCVEAnt Ant task, with the classpath property set to our newly defined
+		// cveCheck configuration classpath.
+		ant.taskdef(name: 'checkCVEAnt', classname: 'org.owasp.dependencycheck.taskdefs.DependencyCheckTask',
+			classpath: configurations.cveCheck.asPath)
+	
+		// executing checkCVEAnt Task
+		ant.checkCVEAnt(
+			applicationname: project.name,
+			reportoutputdirectory: (new File(rootDir, 'releases/' + version + '/cvecheck/' + project.name)).toString(),
+			reportformat: "ALL") {
+				fileset(dir: 'build/alldependencies') {
+				include(name: '**/**')
+			}
+		}
+	}
+	checkCVELocal.dependsOn copyDepsLocal
+
 	
 	uploadArchives {
 		repositories.mavenDeployer {
