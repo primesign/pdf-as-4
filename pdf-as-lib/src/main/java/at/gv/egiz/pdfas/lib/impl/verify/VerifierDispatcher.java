@@ -64,6 +64,8 @@ public class VerifierDispatcher {
 			verifiers.add(verfier);
 		}
 		
+		verifiers.add(new IntegrityVerifier());
+		
 		for (IVerifier verfier : verifiers) {
 			logger.info("Registered Verifier: " + verfier.getClass().getName());
 		}
