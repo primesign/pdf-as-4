@@ -60,6 +60,15 @@ subprojects {
 		cveCheck 'org.owasp:dependency-check-ant:1.2.5'
 	}
 
+	task sourcesJar(type: Jar, dependsOn: classes) {
+	    classifier = 'sources'
+	    from sourceSets.main.allSource
+	}
+
+	artifacts {
+	    archives sourcesJar
+	}
+
 	sourceCompatibility = 1.6
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
