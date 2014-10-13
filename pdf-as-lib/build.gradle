@@ -106,8 +106,14 @@ task releaseConfig(type: Copy) {
 
 task releases(type: Copy) {
 	from jar.outputs
+	from distZip.outputs
+	from distTar.outputs
 	into rootDir.toString() + "/releases/" + version
 }
+
+releases.dependsOn jar
+releases.dependsOn distZip
+releases.dependsOn distTar
 
 releases.dependsOn releaseConfig
 
@@ -153,13 +159,3 @@ test {
 	systemProperties 'property': 'value'
 }
 
-distributions {
-    main {
-        contents {
-            from { '../docs' }
-	    from('../doc/') {
-	       include '*.pdf'
-	    } 
-        }
-    }
-}
