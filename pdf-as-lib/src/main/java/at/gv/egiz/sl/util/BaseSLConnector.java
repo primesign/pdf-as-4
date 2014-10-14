@@ -33,6 +33,7 @@ import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.sl.schema.Base64OptRefContentType;
+import at.gv.egiz.sl.schema.Base64XMLLocRefOptRefContentType;
 import at.gv.egiz.sl.schema.CMSDataObjectRequiredMetaType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureRequestType;
 import at.gv.egiz.sl.schema.ExcludedByteRangeType;
@@ -42,7 +43,8 @@ import at.gv.egiz.sl.schema.InfoboxReadRequestType;
 import at.gv.egiz.sl.schema.MetaInfoType;
 import at.gv.egiz.sl.schema.ObjectFactory;
 
-public abstract class BaseSLConnector implements ISLConnector, IConfigurationConstants {
+public abstract class BaseSLConnector implements ISLConnector,
+		IConfigurationConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(BaseSLConnector.class);
@@ -58,7 +60,8 @@ public abstract class BaseSLConnector implements ISLConnector, IConfigurationCon
 
 	protected ObjectFactory of = new ObjectFactory();
 
-	public InfoboxReadRequestType createInfoboxReadRequest(SignParameter parameter) {
+	public InfoboxReadRequestType createInfoboxReadRequest(
+			SignParameter parameter) {
 		InfoboxReadRequestType request = new InfoboxReadRequestType();
 		request.setInfoboxIdentifier("Certificates");
 		InfoboxReadParamsAssocArrayType readData = new InfoboxReadParamsAssocArrayType();
@@ -71,87 +74,60 @@ public abstract class BaseSLConnector implements ISLConnector, IConfigurationCon
 		return request;
 	}
 
-	public RequestPackage createCMSRequest(byte[] signatureData, int[] byteRange, SignParameter parameter)
-			throws PDFIOException {
-		//if (base64) {
-			byte[] data = PDFUtils.blackOutSignature(signatureData, byteRange);
-
-			int[] exclude_range = PDFUtils.buildExcludeRange(byteRange);
-			logger.info("Exclude Byte Range: " + exclude_range[0] + " "
-					+ exclude_range[1]);
-
-			// == MetaInfoType
-			MetaInfoType metaInfoType = new MetaInfoType();
-			metaInfoType.setMimeType(PDF_MIME_TYPE);
-
-			// == Base64OptRefContentType
-			Base64OptRefContentType base64OptRefContentType = new Base64OptRefContentType();
-			base64OptRefContentType.setBase64Content(data);
-
-			// == CMSDataObjectRequiredMetaType
-			CMSDataObjectRequiredMetaType cmsDataObjectRequiredMetaType = new CMSDataObjectRequiredMetaType();
-			cmsDataObjectRequiredMetaType.setMetaInfo(metaInfoType);
-			cmsDataObjectRequiredMetaType.setContent(base64OptRefContentType);
-			if (byteRange.length > 0) {
-				ExcludedByteRangeType excludeByteRange = new ExcludedByteRangeType();
-				excludeByteRange.setFrom(new BigInteger(String
-						.valueOf(exclude_range[0])));
-				excludeByteRange.setTo(new BigInteger(String
-						.valueOf(exclude_range[1])));
-				cmsDataObjectRequiredMetaType
-						.setExcludedByteRange(excludeByteRange);
+	public RequestPackage createCMSRequest(byte[] signatureData,
+			int[] byteRange, SignParameter parameter) throws PDFIOException {
+		boolean base64 = true;
+		String requestType = parameter.getConfiguration().getValue(
+				SL_REQUEST_TYPE);
+		if (requestType != null) {
+			if (requestType.equals(SL_REQUEST_TYPE_BASE64)) {
+				base64 = true;
+			} else if (requestType.equals(SL_REQUEST_TYPE_UPLOAD)) {
+				base64 = true;
 			}
+		}
+		byte[] data = PDFUtils.blackOutSignature(signatureData, byteRange);
+		RequestPackage pack = new RequestPackage();
+		int[] exclude_range = PDFUtils.buildExcludeRange(byteRange);
+		logger.info("Exclude Byte Range: " + exclude_range[0] + " "
+				+ exclude_range[1]);
 
-			// == CreateCMSSignatureRequestType
-			CreateCMSSignatureRequestType request = new CreateCMSSignatureRequestType();
-			request.setKeyboxIdentifier(SecureSignatureKeypair);
-			request.setDataObject(cmsDataObjectRequiredMetaType);
-			request.setStructure(DETACHED);
+		// == MetaInfoType
+		MetaInfoType metaInfoType = new MetaInfoType();
+		metaInfoType.setMimeType(PDF_MIME_TYPE);
 
-			RequestPackage pack = new RequestPackage();
-			
-			pack.setRequestType(request);
-			return pack;
-		/*} else {
-			RequestPackage pack = new RequestPackage();
+		// == Base64OptRefContentType
+		Base64OptRefContentType base64OptRefContentType = new Base64OptRefContentType();
+
+		if (base64) {
+			base64OptRefContentType.setBase64Content(data);
+		} else {
+			base64OptRefContentType.setReference("formdata:fileupload");
 			pack.setSignatureData(signatureData);
 			pack.setByteRange(byteRange);
-			
-			int[] exclude_range = PDFUtils.buildExcludeRange(byteRange);
-			logger.info("Exclude Byte Range: " + exclude_range[0] + " "
-					+ exclude_range[1]);
+		}
 
-			// == MetaInfoType
-			MetaInfoType metaInfoType = new MetaInfoType();
-			metaInfoType.setMimeType(PDF_MIME_TYPE);
+		// == CMSDataObjectRequiredMetaType
+		CMSDataObjectRequiredMetaType cmsDataObjectRequiredMetaType = new CMSDataObjectRequiredMetaType();
+		cmsDataObjectRequiredMetaType.setMetaInfo(metaInfoType);
+		cmsDataObjectRequiredMetaType.setContent(base64OptRefContentType);
+		if (byteRange.length > 0) {
+			ExcludedByteRangeType excludeByteRange = new ExcludedByteRangeType();
+			excludeByteRange.setFrom(new BigInteger(String
+					.valueOf(exclude_range[0])));
+			excludeByteRange.setTo(new BigInteger(String
+					.valueOf(exclude_range[1])));
+			cmsDataObjectRequiredMetaType
+					.setExcludedByteRange(excludeByteRange);
+		}
 
-			// == File RefContentType
-			Base64XMLLocRefOptRefContentType  base64OptRefContentType = new Base64XMLLocRefOptRefContentType();
-			base64OptRefContentType.setLocRefContent("formdata:fileupload");
-			
-			DataObjectInfoType cmsObject = new DataObjectInfoType();
-			cmsObject.setDataObject(base64OptRefContentType);
-			// == CMSDataObjectRequiredMetaType
-			CMSDataObjectRequiredMetaType cmsDataObjectRequiredMetaType = new CMSDataObjectRequiredMetaType();
-			cmsDataObjectRequiredMetaType.setMetaInfo(metaInfoType);
-			cmsDataObjectRequiredMetaType.setContent(value);
-			if (byteRange.length > 0) {
-				ExcludedByteRangeType excludeByteRange = new ExcludedByteRangeType();
-				excludeByteRange.setFrom(new BigInteger(String
-						.valueOf(exclude_range[0])));
-				excludeByteRange.setTo(new BigInteger(String
-						.valueOf(exclude_range[1])));
-				cmsObject.
-						.setExcludedByteRange(excludeByteRange);
-			}
+		// == CreateCMSSignatureRequestType
+		CreateCMSSignatureRequestType request = new CreateCMSSignatureRequestType();
+		request.setKeyboxIdentifier(SecureSignatureKeypair);
+		request.setDataObject(cmsDataObjectRequiredMetaType);
+		request.setStructure(DETACHED);
 
-			// == CreateCMSSignatureRequestType
-			CreateCMSSignatureRequestType request = new CreateCMSSignatureRequestType();
-			request.setKeyboxIdentifier(SecureSignatureKeypair);
-			request.setDataObject(cmsDataObjectRequiredMetaType);
-			request.setStructure(DETACHED);		
-			pack.setRequestType(request);
-			return pack;
-		}*/
+		pack.setRequestType(request);
+		return pack;
 	}
 }
