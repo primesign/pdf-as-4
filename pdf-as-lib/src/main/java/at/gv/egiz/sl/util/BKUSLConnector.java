@@ -26,6 +26,7 @@ package at.gv.egiz.sl.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -77,6 +78,7 @@ public class BKUSLConnector extends BaseSLConnector {
 
 			MultipartEntityBuilder entityBuilder = MultipartEntityBuilder
 					.create();
+			entityBuilder.setCharset(Charset.forName("UTF-8"));
 			entityBuilder.addTextBody(XMLREQUEST, xmlRequest,
 					ContentType.TEXT_XML);
 
