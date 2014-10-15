@@ -28,8 +28,6 @@ import iaik.security.provider.IAIK;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,8 +36,6 @@ import java.security.Security;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.PropertyConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,13 +52,6 @@ public class PdfAsFactory {
 			.getLogger(PdfAsFactory.class);
 
 	private static final String DEFAULT_CONFIG_RES = "config/config.zip";
-
-	private static final String DEFAULT_LOG4J_ENV = "log4j.configuration";
-
-	// private static final String MAN_ATTRIBUTE = "JARMANIFEST";
-	// private static final String PDF_AS_LIB = "PDF-AS-LIB";
-	// private static final String IMPL_VERSION = "Implementation-Version";
-	// private static final String SCM_REVISION = "SCMREVISION";
 
 	protected static void registerProvider(Provider provider, int position) {
 		String name = provider.getName();
@@ -94,111 +83,39 @@ public class PdfAsFactory {
 		}
 	}
 
-	static {
-		/*
-		 * PropertyConfigurator.configure(ClassLoader
-		 * .getSystemResourceAsStream("resources/log4j.properties"));
-		 */
-		// IAIK.addAsProvider();
-		// ECCelerate.addAsProvider();
-		registerProvider(new IAIK(), 1);
-		registerProvider(new ECCelerate(), -1);
-
-		System.out
-				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-		System.out.println("+ PDF-AS: " + getVersion());
-		System.out.println("+ PDF-AS SCM Revision: " + getSCMRevision());
-		System.out.println("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
-		System.out.println("+ ECCelerate Version: "
-				+ ECCelerate.getInstance().getVersion());
-		System.out
-				.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-	}
-
-	private static boolean log_configured = false;
-	private static Object log_mutex = new Object();
-
-	public static void dontConfigureLog4j() {
-		synchronized (log_mutex) {
-			log_configured = true;
-		}
-	}
+	private static boolean initialized = false;
+	private static Object init_mutex = new Object();
 
 	/**
 	 * Configure log.
 	 *
-	 * @param configuration the configuration
+	 * @param configuration
+	 *            the configuration
 	 */
-	private static void configureLog(File configuration) {
-		if (!log_configured) {
+	private static void initialize(ISettings configuration) {
+		if (!initialized) {
+			synchronized (init_mutex) {
+				if (!initialized) {
+					initialized = true;
+					
+					registerProvider(new IAIK(), 1);
+					registerProvider(new ECCelerate(), -1);
 
-			if (System.getProperty(DEFAULT_LOG4J_ENV) != null) {
-				String file = System.getProperty(DEFAULT_LOG4J_ENV);
-				File log4j = new File(file);
-				System.out.println("Configuring logging with: "
-						+ log4j.getAbsolutePath());
-				logger.info("Loading log4j configuration: "
-						+ log4j.getAbsolutePath());
-				if (log4j.exists()) {
-					try {
-						//if (configuration != null) {
-						//	System.setProperty("pdf-as.work-dir",
-						//			configuration.getAbsolutePath());
-						//}
-						PropertyConfigurator.configure(new FileInputStream(
-								log4j));
-						logger.info("Configured Log4j with: "
-								+ log4j.getAbsolutePath());
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-						System.err
-								.println("Failed to initialize logging System. Defaulting to basic configuration!");
-						BasicConfigurator.configure();
-					}
-				} else {
-					System.err
-							.println("Log4j File: "
-									+ log4j.getAbsolutePath()
-									+ " does not exist! Defaulting to basic configuration!");
-					BasicConfigurator.configure();
-				}
-			} else {
-				if (configuration != null) {
-					File log4j = new File(configuration.getAbsolutePath()
-							+ File.separator + "cfg" + File.separator
-							+ "log4j.properties");
-					System.out.println("Configuring logging with: "
-							+ log4j.getAbsolutePath());
-					logger.info("Loading log4j configuration: "
-							+ log4j.getAbsolutePath());
-					if (log4j.exists()) {
-						try {
-							//System.setProperty("pdf-as.work-dir",
-							//		configuration.getAbsolutePath());
-							PropertyConfigurator.configure(new FileInputStream(
-									log4j));
-							logger.info("Configured Log4j with: "
-									+ log4j.getAbsolutePath());
-						} catch (FileNotFoundException e) {
-							e.printStackTrace();
-							System.err
-									.println("Failed to initialize logging System. Defaulting to basic configuration!");
-							BasicConfigurator.configure();
-						}
-					} else {
-						System.err
-								.println("Log4j File: "
-										+ log4j.getAbsolutePath()
-										+ " does not exist! Defaulting to basic configuration!");
-						BasicConfigurator.configure();
-					}
-				} else {
-					System.err.println("Failed to initialize logging System. Defaulting to basic configuration!");
-					BasicConfigurator.configure();
+					System.out
+							.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out.println("+ PDF-AS: " + getVersion());
+					System.out.println("+ PDF-AS SCM Revision: "
+							+ getSCMRevision());
+					System.out.println("+ IAIK-JCE Version: "
+							+ IAIK.getVersionInfo());
+					System.out.println("+ ECCelerate Version: "
+							+ ECCelerate.getInstance().getVersion());
+					System.out
+							.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					
+					listRegisteredSecurityProviders();
 				}
 			}
-			log_configured = true;
-			listRegisteredSecurityProviders();
 		}
 	}
 
@@ -210,28 +127,31 @@ public class PdfAsFactory {
 	 * @return
 	 */
 	public static PdfAs createPdfAs(File configuration) {
-		if (!log_configured) {
-			synchronized (log_mutex) {
-				configureLog(configuration);
+		PdfAs pdfas = new PdfAsImpl(configuration);
+
+		if (!initialized) {
+			synchronized (init_mutex) {
+				initialize((ISettings) pdfas.getConfiguration());
 			}
 		}
 
-		return new PdfAsImpl(configuration);
+		return pdfas;
 	}
 
 	/**
 	 * Creates a new PdfAs object.
 	 *
-	 * @param settings the settings
+	 * @param settings
+	 *            the settings
 	 * @return the pdf as
 	 */
 	public static PdfAs createPdfAs(ISettings settings) {
-		if (!log_configured) {
-			synchronized (log_mutex) {
-				configureLog(null);
+		if (!initialized) {
+			synchronized (init_mutex) {
+				initialize(settings);
 			}
 		}
-		
+
 		return new PdfAsImpl(settings);
 	}
 

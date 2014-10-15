@@ -7,7 +7,6 @@ import java.io.PrintStream;
 import java.net.URL;
 
 import org.apache.commons.io.output.TeeOutputStream;
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.Description;
@@ -107,14 +106,6 @@ public class ParameterizedSignatureTestSuite {
         TeeOutputStream teeStdErr = new TeeOutputStream(System.err, stderrLog);
         stderrSave = System.err;
         System.setErr(new PrintStream(teeStdErr));
-        if (CONFIGURE_LOGGING && log4j != null) {
-            try {
-                PropertyConfigurator.configure(new FileInputStream(log4j
-                        .getFile()));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
 
         String testDir = System.getProperty("test.dir");
         if (testDir == null)
