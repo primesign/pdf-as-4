@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 
 public class VisBlockServlet extends HttpServlet {
@@ -85,7 +85,7 @@ public class VisBlockServlet extends HttpServlet {
 		} catch (CertificateException e) {
 			logger.error("CERT Error", e);
 			throw new ServletException("Failed to find certificate");
-		} catch (PdfAsException e) {
+		} catch (PDFASError e) {
 			logger.error("PDF_AS Error", e);
 			throw new ServletException("Generic Error");
 		} 

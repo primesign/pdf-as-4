@@ -57,7 +57,7 @@ import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
@@ -520,7 +520,7 @@ public class PdfAsHelper {
 	}
 
 	public static byte[] generateVisualBlock(String profile, int resolution)
-			throws IOException, CertificateException, PdfAsException {
+			throws IOException, CertificateException, PDFASError {
 		X509Certificate cert = new X509Certificate(
 				PdfAsHelper.class.getResourceAsStream("/qualified.cer"));
 		Configuration config = pdfAs.getConfiguration();
