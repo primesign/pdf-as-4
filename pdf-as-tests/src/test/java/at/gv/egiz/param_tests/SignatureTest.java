@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.param_tests.provider.BaseSignatureDataProvider;
 import at.gv.egiz.param_tests.provider.BaseSignatureTestData;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
@@ -89,7 +90,7 @@ public class SignatureTest {
      * @throws PdfAsException
      */
     protected File signPDFFile() throws IOException, FileNotFoundException,
-            CertificateException, PdfAsException {
+            CertificateException, PDFASError, PdfAsException {
         File inputFile = new File(baseTestData.getPdfFile());
         File outputPdfFile = new File(baseTestData.getOutputFile());
         DataSource dataSource = new ByteArrayDataSource(

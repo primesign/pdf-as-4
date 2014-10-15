@@ -30,6 +30,7 @@ import at.gv.egiz.param_tests.provider.PDFAProvider;
 import at.gv.egiz.param_tests.serialization.SerializiationManager;
 import at.gv.egiz.param_tests.serialization.html.PDFAHTMLSerizalier;
 import at.gv.egiz.param_tests.testinfo.PDFATestInfo;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 
 /**
@@ -97,10 +98,11 @@ public class PDFASignatureTest extends SignatureTest {
      * @throws FileNotFoundException
      * @throws IOException
      * @throws PdfAsException
+     * @throws PDFASError 
      */
     @Test
     public void pdfaTest() throws CertificateException, FileNotFoundException,
-            IOException, PdfAsException {
+            IOException, PdfAsException, PDFASError {
         PDFATestInfo testInfo = SerializiationManager.getInstance()
                 .createTestInfo(PDFATestInfo.class, baseTestData);
         assertTrue("No input file given", baseTestData.getPdfFile() != null);

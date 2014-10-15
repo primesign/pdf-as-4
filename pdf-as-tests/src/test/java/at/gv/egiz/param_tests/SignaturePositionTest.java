@@ -32,6 +32,7 @@ import at.gv.egiz.param_tests.provider.SignaturePositionProvider;
 import at.gv.egiz.param_tests.serialization.SerializiationManager;
 import at.gv.egiz.param_tests.serialization.html.SignaturePositionHTMLSerializer;
 import at.gv.egiz.param_tests.testinfo.SignaturePositionTestInfo;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 
 /**
@@ -191,11 +192,12 @@ public class SignaturePositionTest extends SignatureTest {
      * @throws PdfAsException
      * @throws IndexOutOfBoundsException
      * @throws PrinterException
+     * @throws PDFASError 
      */
     @Test
     public void signaturePositionTest() throws FileNotFoundException,
             CertificateException, IOException, PdfAsException,
-            IndexOutOfBoundsException, PrinterException {
+            IndexOutOfBoundsException, PrinterException, PDFASError {
         SignaturePositionTestInfo testInfo = SerializiationManager
                 .getInstance().createTestInfo(SignaturePositionTestInfo.class,
                         baseTestData);
