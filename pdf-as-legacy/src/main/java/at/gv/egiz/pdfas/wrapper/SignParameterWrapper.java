@@ -26,14 +26,15 @@ package at.gv.egiz.pdfas.wrapper;
 import java.io.OutputStream;
 import java.util.Enumeration;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.exceptions.ErrorCode;
 import at.gv.egiz.pdfas.api.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.api.sign.SignParameters;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.moa.MOAConnector;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.sl.util.BKUSLConnector;
@@ -45,7 +46,6 @@ public class SignParameterWrapper {
 
 	private SignParameter signParameter4;
 	private SignParameters signParameters;
-	private ByteArrayDataSink output;
 
 	public SignParameterWrapper(SignParameters signParameters,
 			SignParameter signParameter4) {
@@ -54,9 +54,7 @@ public class SignParameterWrapper {
 	}
 
 	public void syncOldToNew() throws PdfAsException {
-		output = new ByteArrayDataSink();
-		this.signParameter4.setOutput(output);
-
+		
 		if (this.signParameters.getSignaturePositioning() != null) {
 			// Create positioning string
 			String posString = this.signParameters.getSignaturePositioning()
@@ -106,11 +104,11 @@ public class SignParameterWrapper {
 		}
 	}
 
-	public void syncNewToOld() throws PdfAsException {
+	public void syncNewToOld(SignResult result) throws PdfAsException {
 		try {
 			OutputStream os = this.signParameters.getOutput()
 					.createOutputStream("application/pdf");
-			os.write(output.getData());
+			IOUtils.copy(result.getOutputDocument(), os);
 			os.close();
 		} catch (Exception e) {
 			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,

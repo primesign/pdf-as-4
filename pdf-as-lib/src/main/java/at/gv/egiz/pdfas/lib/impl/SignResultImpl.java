@@ -23,23 +23,23 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import java.io.InputStream;
 import java.security.cert.X509Certificate;
 
-import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 
 public class SignResultImpl implements SignResult {
 
-	protected DataSink dataSink;
+	protected InputStream dataSink;
 	protected X509Certificate certificate;
 	protected SignaturePosition position;
 	
-	public SignResultImpl(DataSink dataSink) {
+	public SignResultImpl(InputStream dataSink) {
 		this.dataSink = dataSink;
 	}
 	
-	public DataSink getOutputDocument() {
+	public InputStream getOutputDocument() {
 		return this.dataSink;
 	}
 

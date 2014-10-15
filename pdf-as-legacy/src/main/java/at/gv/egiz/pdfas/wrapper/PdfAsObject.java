@@ -101,7 +101,7 @@ public class PdfAsObject implements PdfAs {
 				request = (StatusRequestImpl) this.pdfas4.process(request);
 				if(request.isReady()) {
 					at.gv.egiz.pdfas.lib.api.sign.SignResult result = this.pdfas4.finishSign(request);
-					sdi.wrapper.syncNewToOld();
+					sdi.wrapper.syncNewToOld(result);
 					SignResultImpl oldresult = new SignResultImpl(sdi.wrapper.getSignParameters().getOutput(), 
 							sdi.getX509Certificate(), new at.gv.egiz.pdfas.wrapper.SignaturePositionImpl(
 									result.getSignaturePosition()));

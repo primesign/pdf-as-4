@@ -23,8 +23,9 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import javax.activation.DataSource;
+
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 
 public class PdfAsParameterImpl implements PdfAsParameter {

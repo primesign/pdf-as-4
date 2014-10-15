@@ -11,6 +11,8 @@ import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.activation.DataSource;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -21,14 +23,13 @@ import at.gv.egiz.param_tests.provider.BaseSignatureDataProvider;
 import at.gv.egiz.param_tests.provider.BaseSignatureTestData;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.moa.MOAConnector;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
@@ -94,7 +95,6 @@ public class SignatureTest {
         DataSource dataSource = new ByteArrayDataSource(
                 StreamUtils.inputStreamToByteArray(new FileInputStream(
                         inputFile)));
-        ByteArrayDataSink dataSink = new ByteArrayDataSink();
         pdfAs = null;
 
         pdfAs = PdfAsFactory.createPdfAs(new File(baseTestData
@@ -148,7 +148,6 @@ public class SignatureTest {
             slConnector = new PAdESSigner(new BKUSLConnector(configuration));
         }
 
-        signParameter.setOutput(dataSink);
         signParameter.setPlainSigner(slConnector);
         signParameter.setDataSource(dataSource);
         // this is not needed for PDF-A test
@@ -157,11 +156,11 @@ public class SignatureTest {
         signParameter.setSignatureProfileId(baseTestData.getProfilID());
         logger.debug("Starting signature for " + baseTestData.getPdfFile());
         logger.debug("Selected signature Profile " + baseTestData.getProfilID());
-        /* SignResult result = */pdfAs.sign(signParameter);
+        SignResult result = pdfAs.sign(signParameter);
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(outputPdfFile, false);
-            fos.write(dataSink.getData());
+            IOUtils.copy(result.getOutputDocument(), fos);
             fos.close();
         } catch (IOException e) {
             logger.debug("IO exception occured while writing PDF output file",

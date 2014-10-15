@@ -6,7 +6,6 @@ import java.awt.Image;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -14,15 +13,10 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
-import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 
 public class PDFToImage {
 

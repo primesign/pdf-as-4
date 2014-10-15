@@ -32,11 +32,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -57,6 +58,7 @@ import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
+import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
@@ -100,9 +102,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		logger.info("Initializing PDF-AS with config: " + cfgFile.getPath());
 		this.settings = new Settings(cfgFile);
 	}
-	
+
 	public PdfAsImpl(ISettings cfgObject) {
-		logger.info("Initializing PDF-AS with config: " + cfgObject.getClass().getName());
+		logger.info("Initializing PDF-AS with config: "
+				+ cfgObject.getClass().getName());
 		this.settings = cfgObject;
 	}
 
@@ -123,14 +126,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 		}
 
-		if (parameter.getDataSource() == null
-				|| parameter.getDataSource().getByteData() == null) {
+		if (parameter.getDataSource() == null) {
 			throw new PdfAsValidationException("error.pdf.sig.10", null);
 		}
 
-		if (parameter.getOutput() == null) {
-			throw new PdfAsValidationException("error.pdf.sig.11", null);
-		}
 	}
 
 	private void verifyVerifyParameter(VerifyParameter parameter)
@@ -140,8 +139,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			throw new PdfAsSettingsException("Invalid settings object!");
 		}
 
-		if (parameter.getDataSource() == null
-				|| parameter.getDataSource().getByteData() == null) {
+		if (parameter.getDataSource() == null) {
 			throw new PdfAsValidationException("error.pdf.verify.01", null);
 		}
 	}
@@ -162,8 +160,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			status = new OperationStatus(settings, parameter);
 
 			// set Original PDF Document Data
-			status.getPdfObject().setOriginalDocument(
-					parameter.getDataSource().getByteData());
+			status.getPdfObject()
+					.setOriginalDocument(parameter.getDataSource());
 
 			PDDocument doc = status.getPdfObject().getDocument();
 			PDFUtils.checkPDFPermissions(doc);
@@ -227,33 +225,32 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			List<VerifyResult> result = new ArrayList<VerifyResult>();
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			VerifierDispatcher verifier = new VerifierDispatcher(settings);
-			doc = PDDocument.load(new ByteArrayInputStream(parameter
-					.getDataSource().getByteData()));
+			doc = PDDocument.load(parameter.getDataSource().getInputStream());
 
 			COSDictionary trailer = doc.getDocument().getTrailer();
-			if(trailer == null) {
+			if (trailer == null) {
 				// No signatures ...
 				return result;
 			}
 			COSDictionary root = (COSDictionary) trailer
 					.getDictionaryObject(COSName.ROOT);
-			if(root == null) {
+			if (root == null) {
 				// No signatures ...
 				return result;
 			}
 			COSDictionary acroForm = (COSDictionary) root
 					.getDictionaryObject(COSName.ACRO_FORM);
-			if(acroForm == null) {
+			if (acroForm == null) {
 				// No signatures ...
 				return result;
 			}
 			COSArray fields = (COSArray) acroForm
 					.getDictionaryObject(COSName.FIELDS);
-			if(fields == null) {
+			if (fields == null) {
 				// No signatures ...
 				return result;
 			}
-			
+
 			int lastSig = -1;
 			for (int i = 0; i < fields.size(); i++) {
 				COSDictionary field = (COSDictionary) fields.getObject(i);
@@ -262,6 +259,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 					lastSig = i;
 				}
 			}
+
+			byte[] inputData = IOUtils.toByteArray(parameter.getDataSource()
+					.getInputStream());
 			
 			for (int i = 0; i < fields.size(); i++) {
 				COSDictionary field = (COSDictionary) fields.getObject(i);
@@ -273,11 +273,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 						// verify only specific siganture!
 						verifyThis = signatureToVerify == currentSignature;
 					}
-					
-					if(signatureToVerify == -2) {
+
+					if (signatureToVerify == -2) {
 						verifyThis = i == lastSig;
 					}
-					
+
 					if (verifyThis) {
 						logger.trace("Found Signature: ");
 						COSBase base = field.getDictionaryObject("V");
@@ -303,13 +303,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 						COSString content = (COSString) dict
 								.getDictionaryObject("Contents");
-
+	
 						ByteArrayOutputStream contentData = new ByteArrayOutputStream();
 						for (int j = 0; j < bytes.length; j = j + 2) {
 							int offset = bytes[j];
 							int length = bytes[j + 1];
-							contentData.write(parameter.getDataSource()
-									.getByteData(), offset, length);
+
+							contentData.write(inputData, offset, length);
 						}
 						contentData.close();
 
@@ -317,13 +317,17 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 								dict.getNameAsString("Filter"),
 								dict.getNameAsString("SubFilter"));
 
-						IVerifier lvlVerifier = verifier.getVerifierByLevel(parameter.getSignatureVerificationLevel());
-						lvlVerifier.setConfiguration(parameter.getConfiguration());
+						IVerifier lvlVerifier = verifier
+								.getVerifierByLevel(parameter
+										.getSignatureVerificationLevel());
+						lvlVerifier.setConfiguration(parameter
+								.getConfiguration());
 						if (verifyFilter != null) {
 							List<VerifyResult> results = verifyFilter.verify(
 									contentData.toByteArray(),
 									content.getBytes(),
-									parameter.getVerificationTime(), bytes, lvlVerifier);
+									parameter.getVerificationTime(), bytes,
+									lvlVerifier);
 							if (results != null && !results.isEmpty()) {
 								result.addAll(results);
 							}
@@ -402,7 +406,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 				// set Original PDF Document Data
 				status.getPdfObject().setOriginalDocument(
-						status.getSignParamter().getDataSource().getByteData());
+						status.getSignParamter().getDataSource());
 
 				// STAMPER!
 				// stampPdf(status);
@@ -452,16 +456,20 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			String signature = new COSString(request.getSignature())
 					.getHexString();
 			byte[] pdfSignature = signature.getBytes();
-			//byte[] input = PDFUtils.blackOutSignature(status.getPdfObject().getSignedDocument(), 
-			//		request.getSignatureDataByteRange());
-			VerifyResult verifyResult = SignatureUtils.verifySignature(request.getSignature(), request.getSignatureData());
-			RequestedSignature requestedSignature = request.getStatus().getRequestedSignature();
-			
-			if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
-					((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {
+			// byte[] input =
+			// PDFUtils.blackOutSignature(status.getPdfObject().getSignedDocument(),
+			// request.getSignatureDataByteRange());
+			VerifyResult verifyResult = SignatureUtils.verifySignature(
+					request.getSignature(), request.getSignatureData());
+			RequestedSignature requestedSignature = request.getStatus()
+					.getRequestedSignature();
+
+			if (!StreamUtils.dataCompare(requestedSignature.getCertificate()
+					.getFingerprintSHA(), ((X509Certificate) verifyResult
+					.getSignerCertificate()).getFingerprintSHA())) {
 				throw new PdfAsSignatureException("Certificates missmatch!");
 			}
-			
+
 			for (int i = 0; i < pdfSignature.length; i++) {
 				status.getPdfObject().getSignedDocument()[offset + i] = pdfSignature[i];
 			}
@@ -501,14 +509,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			throws IOException {
 		// ================================================================
 		// Create SignResult
-		SignResultImpl result = new SignResultImpl(status.getSignParamter()
-				.getOutput());
-		OutputStream outputStream = result.getOutputDocument()
-				.createOutputStream();
-
-		outputStream.write(status.getPdfObject().getSignedDocument());
-
-		outputStream.close();
+		SignResultImpl result = new SignResultImpl(new ByteArrayInputStream(
+				status.getPdfObject().getSignedDocument()));
 
 		result.setSignerCertificate(status.getRequestedSignature()
 				.getCertificate());
@@ -518,28 +520,28 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		return result;
 	}
 
-	public Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution)
-			throws PdfAsException {
-		
+	public Image generateVisibleSignaturePreview(SignParameter parameter,
+			X509Certificate cert, int resolution) throws PdfAsException {
+
 		OperationStatus status = null;
 		try {
 			// Status initialization
 			if (!(parameter.getConfiguration() instanceof ISettings)) {
 				throw new PdfAsSettingsException("Invalid settings object!");
 			}
-			
+
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			status = new OperationStatus(settings, parameter);
-		
+
 			RequestedSignature requestedSignature = new RequestedSignature(
 					status);
 			requestedSignature.setCertificate(cert);
-			
+
 			if (!requestedSignature.isVisual()) {
 				logger.warn("Profile is invisible so not block image is generated");
 				return null;
 			}
-			
+
 			PDFObject pdfObject = status.getPdfObject();
 
 			PDDocument origDoc = new PDDocument();
@@ -547,42 +549,41 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			origDoc.save(baos);
 			baos.close();
-			
-			pdfObject.setOriginalDocument(baos.toByteArray());
+
+			pdfObject.setOriginalDocument(new ByteArrayDataSource(baos.toByteArray()));
 
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(),
 							pdfObject.getStatus().getSettings());
-			
-			// create Table describtion
-			Table main = TableFactory.createSigTable(
-						signatureProfileSettings, MAIN, pdfObject.getStatus(),
-						requestedSignature);
 
-			IPDFStamper stamper = StamperFactory
-						.createDefaultStamper(pdfObject.getStatus()
-						.getSettings());
+			// create Table describtion
+			Table main = TableFactory.createSigTable(signatureProfileSettings,
+					MAIN, pdfObject.getStatus(), requestedSignature);
+
+			IPDFStamper stamper = StamperFactory.createDefaultStamper(pdfObject
+					.getStatus().getSettings());
 
 			IPDFVisualObject visualObject = stamper.createVisualPDFObject(
-						pdfObject, main);
-					
+					pdfObject, main);
+
 			SignatureProfileConfiguration signatureProfileConfiguration = pdfObject
 					.getStatus().getSignatureProfileConfiguration(
 							requestedSignature.getSignatureProfileID());
-			
+
 			String signaturePosString = signatureProfileConfiguration
 					.getDefaultPositioning();
 			PositioningInstruction positioningInstruction = null;
-			if(signaturePosString != null) {
-				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "", origDoc,
+			if (signaturePosString != null) {
+				positioningInstruction = Positioning.determineTablePositioning(
+						new TablePos(signaturePosString), "", origDoc,
 						visualObject, false);
 			} else {
-				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
-						visualObject, false);
+				positioningInstruction = Positioning.determineTablePositioning(
+						new TablePos(), "", origDoc, visualObject, false);
 			}
-			
+
 			origDoc.close();
-			
+
 			SignaturePositionImpl position = new SignaturePositionImpl();
 			position.setX(positioningInstruction.getX());
 			position.setY(positioningInstruction.getY());
@@ -591,44 +592,49 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			position.setWidth(visualObject.getWidth());
 
 			requestedSignature.setSignaturePosition(position);
-			
+
 			PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
-				pdfObject.getStatus().getSettings(), pdfObject, (PdfBoxVisualObject) visualObject,
-				positioningInstruction);
+					pdfObject.getStatus().getSettings(), pdfObject,
+					(PdfBoxVisualObject) visualObject, positioningInstruction);
 
 			properties.buildSignature();
-			PDDocument visualDoc = PDDocument.load(properties.getVisibleSignature());
-			//PDPageable pageable = new PDPageable(visualDoc);
+			PDDocument visualDoc = PDDocument.load(properties
+					.getVisibleSignature());
+			// PDPageable pageable = new PDPageable(visualDoc);
 			List<PDPage> pages = new ArrayList<PDPage>();
 			visualDoc.getDocumentCatalog().getPages().getAllKids(pages);
-			
+
 			PDPage firstPage = pages.get(0);
-			
+
 			float stdRes = 72;
 			float targetRes = resolution;
 			float factor = targetRes / stdRes;
-			
-			BufferedImage outputImage = firstPage.convertToImage(BufferedImage.TYPE_4BYTE_ABGR, (int)targetRes);
-			
-			BufferedImage cutOut = new BufferedImage((int)(position.getWidth() * factor), (int)(position.getHeight() * factor), 
+
+			BufferedImage outputImage = firstPage.convertToImage(
+					BufferedImage.TYPE_4BYTE_ABGR, (int) targetRes);
+
+			BufferedImage cutOut = new BufferedImage(
+					(int) (position.getWidth() * factor),
+					(int) (position.getHeight() * factor),
 					BufferedImage.TYPE_4BYTE_ABGR);
-			
+
 			Graphics2D graphics = (Graphics2D) cutOut.getGraphics();
-	        
-	        graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut.getHeight(),
-	        		(int)(1 * factor), 
-	        		(int)(outputImage.getHeight() - ((position.getHeight() + 1) * factor)),
-	        		(int)((1 + position.getWidth()) * factor), 
-	        		(int)(outputImage.getHeight() - ((position.getHeight() + 1) * factor) + (position.getHeight() * factor)),
-	        		null);
+
+			graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut
+					.getHeight(), (int) (1 * factor), (int) (outputImage
+					.getHeight() - ((position.getHeight() + 1) * factor)),
+					(int) ((1 + position.getWidth()) * factor),
+					(int) (outputImage.getHeight()
+							- ((position.getHeight() + 1) * factor) + (position
+							.getHeight() * factor)), null);
 			return cutOut;
-		} catch(PdfAsException e) {
+		} catch (PdfAsException e) {
 			logger.error("PDF-AS  Exception", e);
 			throw e;
-		}	catch(Throwable e) {
+		} catch (Throwable e) {
 			logger.error("Throwable  Exception", e);
 			throw new PdfAsException("", e);
 		}
-		
+
 	}
 }

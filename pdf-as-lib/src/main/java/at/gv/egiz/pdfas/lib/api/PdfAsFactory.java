@@ -36,6 +36,8 @@ import java.security.Security;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.activation.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

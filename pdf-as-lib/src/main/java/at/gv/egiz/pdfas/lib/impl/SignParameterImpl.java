@@ -23,16 +23,16 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import javax.activation.DataSource;
+
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSink;
-import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
 public class SignParameterImpl extends PdfAsParameterImpl implements SignParameter {
 	protected String signatureProfileId = null;
 	protected String signaturePosition = null;
-	protected DataSink output = null;
+	protected DataSource output = null;
 	protected IPlainSigner signer = null;
 	
 	public SignParameterImpl(Configuration configuration, 
@@ -58,11 +58,11 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 		this.signaturePosition = signaturePosition;
 	}
 
-	public void setOutput(DataSink output) {
+	public void setOutput(DataSource output) {
 		this.output = output;
 	}
 
-	public DataSink getOutput() {
+	public DataSource getOutput() {
 		return this.output;
 	}
 

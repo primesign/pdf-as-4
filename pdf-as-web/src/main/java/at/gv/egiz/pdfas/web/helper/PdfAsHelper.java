@@ -48,6 +48,7 @@ import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,10 +58,8 @@ import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
@@ -112,14 +111,14 @@ public class PdfAsHelper {
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
 	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
 	private static final String VERIFICATION_RESULT = "VERIFICATION_RESULT";
-	
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
 
 	private static PdfAs pdfAs;
 	private static ObjectFactory of = new ObjectFactory();
 	private static Configuration pdfAsConfig;
-	
+
 	static {
 		reloadConfig();
 	}
@@ -135,11 +134,11 @@ public class PdfAsHelper {
 		pdfAsConfig = pdfAs.getConfiguration();
 		logger.info("Creating PDF-AS done");
 	}
-	
+
 	public static Configuration getPdfAsConfig() {
 		return pdfAsConfig;
 	}
-	
+
 	private static void validatePdfSize(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData)
 			throws PdfAsWebException {
@@ -368,15 +367,12 @@ public class PdfAsHelper {
 		signParameter.setSignatureProfileId(PdfAsParameterExtractor
 				.getSigType(request));
 
-		ByteArrayDataSink output = new ByteArrayDataSink();
-		signParameter.setOutput(output);
-
 		// set Signature Position
 		signParameter.setSignaturePosition(buildPosString(request, response));
 
-		pdfAs.sign(signParameter);
+		SignResult result = pdfAs.sign(signParameter);
 
-		return output.getData();
+		return IOUtils.toByteArray(result.getOutputDocument());
 	}
 
 	/**
@@ -426,24 +422,22 @@ public class PdfAsHelper {
 		// set Signature Profile (null use default ...)
 		signParameter.setSignatureProfileId(params.getProfile());
 
-		ByteArrayDataSink output = new ByteArrayDataSink();
-		signParameter.setOutput(output);
-
 		// set Signature Position
 		signParameter.setSignaturePosition(params.getPosition());
 
 		SignResult signResult = pdfAs.sign(signParameter);
 
 		PDFASSignResponse signResponse = new PDFASSignResponse();
-		signResponse.setSignedPDF(output.getData());
-		
+		signResponse.setSignedPDF(IOUtils.toByteArray(signResult
+				.getOutputDocument()));
+
 		PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
-		
+
 		verResponse.setSignerCertificate(signResult.getSignerCertificate()
 				.getEncoded());
 
 		signResponse.setVerificationResponse(verResponse);
-		
+
 		return signResponse;
 	}
 
@@ -496,9 +490,6 @@ public class PdfAsHelper {
 
 		// set Signature Profile (null use default ...)
 		signParameter.setSignatureProfileId(profile);
-
-		ByteArrayDataSink dataSink = new ByteArrayDataSink();
-		signParameter.setOutput(dataSink);
 
 		// set Signature Position
 		signParameter.setSignaturePosition(position);
@@ -679,38 +670,34 @@ public class PdfAsHelper {
 				logger.debug("Document ready!");
 
 				SignResult result = pdfAs.finishSign(statusRequest);
-				DataSink output = result.getOutputDocument();
-				if (output instanceof ByteArrayDataSink) {
-					ByteArrayDataSink byteDataSink = (ByteArrayDataSink) output;
-					byte[] signedPdf = byteDataSink.getData();
 
-					PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
-					List<VerifyResult> verResults = PdfAsHelper
-							.synchornousVerify(signedPdf, -2,
-									PdfAsHelper.getVerificationLevel(request));
+				byte[] signedPdf = IOUtils.toByteArray(result
+						.getOutputDocument());
 
-					if (verResults.size() != 1) {
-						throw new WebServiceException(
-								"Document verification failed!");
-					}
-					VerifyResult verifyResult = verResults.get(0);
+				PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
+				List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(
+						signedPdf, -2,
+						PdfAsHelper.getVerificationLevel(request));
 
-					verResponse.setCertificateCode(verifyResult
-							.getCertificateCheck().getCode());
-					verResponse.setValueCode(verifyResult.getValueCheckCode()
-							.getCode());
-
-					PdfAsHelper.setPDFASVerificationResponse(request, verResponse);
-					PdfAsHelper.setSignedPdf(request, response, signedPdf);
-					PdfAsHelper.gotoProvidePdf(context, request, response);
-
-					String signerCert = Base64.encodeBase64String(result
-							.getSignerCertificate().getEncoded());
-
-					PdfAsHelper.setSignerCertificate(request, signerCert);
-				} else {
-					throw new PdfAsWebException("No Signature data available");
+				if (verResults.size() != 1) {
+					throw new WebServiceException(
+							"Document verification failed!");
 				}
+				VerifyResult verifyResult = verResults.get(0);
+
+				verResponse.setCertificateCode(verifyResult
+						.getCertificateCheck().getCode());
+				verResponse.setValueCode(verifyResult.getValueCheckCode()
+						.getCode());
+
+				PdfAsHelper.setPDFASVerificationResponse(request, verResponse);
+				PdfAsHelper.setSignedPdf(request, response, signedPdf);
+				PdfAsHelper.gotoProvidePdf(context, request, response);
+
+				String signerCert = Base64.encodeBase64String(result
+						.getSignerCertificate().getEncoded());
+
+				PdfAsHelper.setSignerCertificate(request, signerCert);
 
 			} else {
 				throw new PdfAsWebException("Invalid state!");
@@ -752,7 +739,7 @@ public class PdfAsHelper {
 						.getResource("/template_generic_param.html")));
 		return xml;
 	}
-	
+
 	public static String getInvokeRedirectTemplateSL() throws IOException {
 		String xml = FileUtils.readFileToString(FileUtils
 				.toFile(PdfAsHelper.class
@@ -874,12 +861,10 @@ public class PdfAsHelper {
 		Object obj = session.getAttribute(PDF_INVOKE_URL);
 		return obj == null ? null : obj.toString();
 	}
-	
+
 	public static void setInvokeTarget(HttpServletRequest request,
 			HttpServletResponse response, String url) {
-		
-		
-		
+
 		HttpSession session = request.getSession();
 		session.setAttribute(PDF_INVOKE_TARGET, url);
 		logger.debug("External Invoke TARGET: " + url);
@@ -1046,7 +1031,7 @@ public class PdfAsHelper {
 		}
 		return SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
 	}
-	
+
 	public static void setPDFASVerificationResponse(HttpServletRequest request,
 			PDFASVerificationResponse resp) {
 		HttpSession session = request.getSession();

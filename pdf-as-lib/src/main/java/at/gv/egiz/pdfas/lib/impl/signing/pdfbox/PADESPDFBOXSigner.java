@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -42,11 +43,8 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
 import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDJpeg;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceCharacteristicsDictionary;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
@@ -75,7 +73,6 @@ import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
-import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.tagging.PDFBoxTaggingUtils;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
@@ -100,7 +97,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			// write to temporary file
 			FileOutputStream fos = new FileOutputStream(new File(fisTmpFile));
-			fos.write(pdfObject.getOriginalDocument());
+			IOUtils.copy(pdfObject.getOriginalDocument().getInputStream(), fos);
 
 			FileInputStream fis = new FileInputStream(new File(fisTmpFile));
 

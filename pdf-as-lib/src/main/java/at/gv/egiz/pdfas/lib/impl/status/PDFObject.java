@@ -23,8 +23,10 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.status;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+
+import javax.activation.DataSource;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
@@ -33,7 +35,7 @@ public class PDFObject {
 	private OperationStatus status;
 	
 	private PDDocument doc;
-	private byte[] originalDocument;
+	private DataSource originalDocument;
 	private byte[] signedDocument;
 
 	public PDFObject(OperationStatus operationStatus) {
@@ -60,16 +62,16 @@ public class PDFObject {
 		}
 	}
 	
-	public byte[] getOriginalDocument() {
+	public DataSource getOriginalDocument() {
 		return originalDocument;
 	}
 
-	public void setOriginalDocument(byte[] originalDocument) throws IOException {
+	public void setOriginalDocument(DataSource originalDocument) throws IOException {
 		this.originalDocument = originalDocument;
 		if(doc != null) {
 			doc.close();
 		}
-		this.doc = PDDocument.load(new ByteArrayInputStream(this.originalDocument));
+		this.doc = PDDocument.load(this.originalDocument.getInputStream());
 		if(this.doc != null) {
 			this.doc.getDocument().setWarnMissingClose(false);
 		}

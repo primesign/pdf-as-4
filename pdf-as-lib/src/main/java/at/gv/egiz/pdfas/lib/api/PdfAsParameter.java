@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
+import javax.activation.DataSource;
+
 public interface PdfAsParameter {
 
 	/**

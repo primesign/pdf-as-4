@@ -30,13 +30,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.activation.DataSource;
+
 import org.apache.commons.io.IOUtils;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
@@ -98,19 +98,17 @@ public class SignaturProfileTest {
 				System.out.println("Testing " + profile);
 
 				DataSource source = new ByteArrayDataSource(input);
-				ByteArrayDataSink sink = new ByteArrayDataSink();
 				
 				SignParameter signParameter = PdfAsFactory.createSignParameter(
 						config, source);
 				
 				signParameter.setPlainSigner(signer);
-				signParameter.setOutput(sink);
 				signParameter.setSignatureProfileId(profile);
 				
 				SignResult result = pdfas.sign(signParameter);
 				
 				FileOutputStream fos = new FileOutputStream(targetFolder + profile + ".pdf");
-				fos.write(sink.getData());
+				IOUtils.copy(result.getOutputDocument(), fos);
 				fos.close();
 			}
 			
@@ -122,19 +120,17 @@ public class SignaturProfileTest {
 				System.out.println("Testing " + profile);
 
 				DataSource source = new ByteArrayDataSource(inputPDFA);
-				ByteArrayDataSink sink = new ByteArrayDataSink();
 				
 				SignParameter signParameter = PdfAsFactory.createSignParameter(
 						config, source);
 				
 				signParameter.setPlainSigner(signer);
-				signParameter.setOutput(sink);
 				signParameter.setSignatureProfileId(profile);
 				
 				SignResult result = pdfas.sign(signParameter);
 				
 				FileOutputStream fos = new FileOutputStream(targetFolder + "PDFA_" + profile + ".pdf");
-				fos.write(sink.getData());
+				IOUtils.copy(result.getOutputDocument(), fos);
 				fos.close();
 			}
 		} catch (Throwable e) {

@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import javax.activation.DataSource;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -37,16 +39,16 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.io.IOUtils;
 
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSink;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.DataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
@@ -322,8 +324,6 @@ public class Main {
 				StreamUtils.inputStreamToByteArray(new FileInputStream(
 						inputFile)));
 
-		ByteArrayDataSink dataSink = new ByteArrayDataSink();
-
 		PdfAs pdfAs = null;
 
 		pdfAs = PdfAsFactory.createPdfAs(new File(configurationFile));
@@ -404,17 +404,17 @@ public class Main {
 			slConnector = new PAdESSigner(new BKUSLConnector(configuration));
 		}
 
-		signParameter.setOutput(dataSink);
 		signParameter.setPlainSigner(slConnector);
 		signParameter.setDataSource(dataSource);
 		signParameter.setSignaturePosition(positionString);
 		signParameter.setSignatureProfileId(profilID);
 		System.out.println("Starting signature for " + pdfFile);
 		System.out.println("Selected signature Profile " + profilID);
-		/*SignResult result = */pdfAs.sign(signParameter);
+		SignResult result = pdfAs.sign(signParameter);
 
 		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
-		fos.write(dataSink.getData());
+		IOUtils.copy(result.getOutputDocument(), fos);
+
 		fos.close();
 		System.out.println("Signed document " + outputFile);
 	}

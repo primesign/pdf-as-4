@@ -23,9 +23,9 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api.sign;
 
+import java.io.InputStream;
 import java.security.cert.X509Certificate;
 
-import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 
 public interface SignResult {
@@ -34,7 +34,7 @@ public interface SignResult {
 	 * 
 	 * @return Returns the filled output data sink.
 	 */
-	public DataSink getOutputDocument();
+	public InputStream getOutputDocument();
 
 	/**
 	 * Returns the certificate of the signer.

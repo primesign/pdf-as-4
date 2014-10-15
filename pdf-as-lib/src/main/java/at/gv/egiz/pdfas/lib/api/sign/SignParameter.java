@@ -23,7 +23,6 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api.sign;
 
-import at.gv.egiz.pdfas.lib.api.DataSink;
 import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 
 public interface SignParameter extends PdfAsParameter {
@@ -52,18 +51,6 @@ public interface SignParameter extends PdfAsParameter {
 	 * @param signaturePosition The signature position string
 	 */
 	public void setSignaturePosition(String signaturePosition);
-
-	/**
-	 * Sets the data sink for the signature process
-	 * @param output
-	 */
-	public void setOutput(DataSink output);
-	
-	/**
-	 * Gets the data sink for the signature process
-	 * @return
-	 */
-	public DataSink getOutput();
 	
 	/**
 	 * Sets the signer to use
