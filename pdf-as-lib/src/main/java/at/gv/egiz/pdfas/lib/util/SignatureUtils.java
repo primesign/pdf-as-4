@@ -16,11 +16,12 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 
-public class SignatureUtils {
+public class SignatureUtils implements ErrorConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(SignatureUtils.class);
@@ -68,7 +69,7 @@ public class SignatureUtils {
 	}
 
 	
-	public static VerifyResult verifySignature(byte[] signature, byte[] input) throws PdfAsSignatureException {
+	public static VerifyResult verifySignature(byte[] signature, byte[] input) throws PDFASError {
 		//List<VerifyResult> results = new ArrayList<VerifyResult>();
 		try {
 			SignedData signedData = new SignedData(new ByteArrayInputStream(
@@ -79,11 +80,13 @@ public class SignatureUtils {
 			// get the signer infos
 			SignerInfo[] signerInfos = signedData.getSignerInfos();
 			if (signerInfos.length == 0) {
-				throw new PdfAsSignatureException("Invalid Signature (no signer info created!)", null);
+				logger.error("Invalid signature (no signer information)");
+				throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 			}
 			
 			if (signerInfos.length != 1) {
-				throw new PdfAsSignatureException("Invalid Signature (multiple signer infos found!)", null);
+				logger.error("Invalid signature (multiple signer information)");
+				throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 			}
 			// verify the signatures
 			//for (int i = 0; i < signerInfos.length; i++) {
@@ -114,15 +117,15 @@ public class SignatureUtils {
 					verifyResult.setSignerCertificate(signedData
 							.getCertificate(signerInfos[0]
 									.getSignerIdentifier()));
-					throw new PdfAsSignatureException("error.pdf.sig.08", ex);
+					throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG, ex);
 				}
 				
 				return verifyResult;
 			//}
 		} catch (CMSException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.08", e);
+			throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG, e);
 		} catch (IOException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.08", e);
+			throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG, e);
 		}
 		
 		

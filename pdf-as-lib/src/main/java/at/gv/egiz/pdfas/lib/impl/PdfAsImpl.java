@@ -32,7 +32,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -48,11 +47,10 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -91,7 +89,8 @@ import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
 
-public class PdfAsImpl implements PdfAs, IConfigurationConstants {
+public class PdfAsImpl implements PdfAs, IConfigurationConstants,
+		ErrorConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsImpl.class);
@@ -109,11 +108,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		this.settings = cfgObject;
 	}
 
-	private void verifySignParameter(SignParameter parameter)
-			throws PdfAsException {
+	private void verifySignParameter(SignParameter parameter) throws PDFASError {
 		// Status initialization
 		if (!(parameter.getConfiguration() instanceof ISettings)) {
-			throw new PdfAsSettingsException("Invalid settings object!");
+			throw new PDFASError(ERROR_SET_INVALID_SETTINGS_OBJ);
 		}
 
 		ISettings settings = (ISettings) parameter.getConfiguration();
@@ -121,30 +119,31 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		String signatureProfile = parameter.getSignatureProfileId();
 		if (signatureProfile != null) {
 			if (!settings.hasPrefix("sig_obj." + signatureProfile)) {
-				throw new PdfAsValidationException("error.pdf.sig.09",
-						signatureProfile);
+				throw new PDFASError(ERROR_SIG_INVALID_PROFILE,
+						PDFASError.buildInfoString(ERROR_SIG_INVALID_PROFILE,
+								signatureProfile));
 			}
 		}
 
 		if (parameter.getDataSource() == null) {
-			throw new PdfAsValidationException("error.pdf.sig.10", null);
+			throw new PDFASError(ERROR_NO_INPUT);
 		}
 
 	}
 
 	private void verifyVerifyParameter(VerifyParameter parameter)
-			throws PdfAsException {
+			throws PDFASError {
 		// Status initialization
 		if (!(parameter.getConfiguration() instanceof ISettings)) {
-			throw new PdfAsSettingsException("Invalid settings object!");
+			throw new PDFASError(ERROR_SET_INVALID_SETTINGS_OBJ);
 		}
 
 		if (parameter.getDataSource() == null) {
-			throw new PdfAsValidationException("error.pdf.verify.01", null);
+			throw new PDFASError(ERROR_NO_INPUT);
 		}
 	}
 
-	public SignResult sign(SignParameter parameter) throws PdfAsException {
+	public SignResult sign(SignParameter parameter) throws PDFASError {
 
 		logger.trace("sign started");
 
@@ -204,7 +203,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		} catch (Throwable e) {
 			logger.error("Failed to create signature [" + e.getMessage() + "]",
 					e);
-			throw new PdfAsException("error.pdf.sig.01", e);
+			throw ErrorExtractor.searchPdfAsError(e);
 		} finally {
 			if (status != null) {
 				status.clear();
@@ -214,7 +213,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 	}
 
 	public List<VerifyResult> verify(VerifyParameter parameter)
-			throws PdfAsException {
+			throws PDFASError {
 
 		verifyVerifyParameter(parameter);
 
@@ -262,7 +261,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			byte[] inputData = IOUtils.toByteArray(parameter.getDataSource()
 					.getInputStream());
-			
+
 			for (int i = 0; i < fields.size(); i++) {
 				COSDictionary field = (COSDictionary) fields.getObject(i);
 				String type = field.getNameAsString("FT");
@@ -303,7 +302,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 						COSString content = (COSString) dict
 								.getDictionaryObject("Contents");
-	
+
 						ByteArrayOutputStream contentData = new ByteArrayOutputStream();
 						for (int j = 0; j < bytes.length; j = j + 2) {
 							int offset = bytes[j];
@@ -339,10 +338,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			return result;
 		} catch (IOException e) {
 			logger.error("Failed to verify document", e);
-			throw new PDFIOException("error.pdf.verify.02", e);
+			throw ErrorExtractor.searchPdfAsError(e);
 		} catch (PdfAsException e) {
 			logger.error("Failed to verify document", e);
-			throw new PdfAsException("error.pdf.verify.02", e);
+			throw ErrorExtractor.searchPdfAsError(e);
 		} finally {
 			if (doc != null) {
 				try {
@@ -358,8 +357,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 		return new ConfigurationImpl(this.settings);
 	}
 
-	public StatusRequest startSign(SignParameter parameter)
-			throws PdfAsException {
+	public StatusRequest startSign(SignParameter parameter) throws PDFASError {
 
 		verifySignParameter(parameter);
 
@@ -386,14 +384,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			return request;
 		} catch (Throwable e) {
 			logger.error("startSign", e);
-			throw new PdfAsException("error.pdf.sig.03", e);
+			throw ErrorExtractor.searchPdfAsError(e);
 		}
 	}
 
-	public StatusRequest process(StatusRequest statusRequest)
-			throws PdfAsException {
+	public StatusRequest process(StatusRequest statusRequest) throws PDFASError {
 		if (!(statusRequest instanceof StatusRequestImpl)) {
-			throw new PdfAsException("error.pdf.sig.04");
+			throw new PDFASError(ERROR_SIG_INVALID_STATUS);
 		}
 
 		StatusRequestImpl request = (StatusRequestImpl) statusRequest;
@@ -446,7 +443,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 
 			} catch (Throwable e) {
 				logger.error("process", e);
-				throw new PdfAsException("error.pdf.sig.05", e);
+				throw ErrorExtractor.searchPdfAsError(e);
 			}
 		} else if (request.needSignature()) {
 			request.setNeedSignature(false);
@@ -467,7 +464,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			if (!StreamUtils.dataCompare(requestedSignature.getCertificate()
 					.getFingerprintSHA(), ((X509Certificate) verifyResult
 					.getSignerCertificate()).getFingerprintSHA())) {
-				throw new PdfAsSignatureException("Certificates missmatch!");
+				throw new PDFASError(ERROR_SIG_CERTIFICATE_MISSMATCH);
 			}
 
 			for (int i = 0; i < pdfSignature.length; i++) {
@@ -475,29 +472,29 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			}
 			request.setIsReady(true);
 		} else {
-			throw new PdfAsException("error.pdf.sig.04");
+			throw new PDFASError(ERROR_SIG_INVALID_STATUS);
 		}
 
 		return request;
 	}
 
-	public SignResult finishSign(StatusRequest statusRequest)
-			throws PdfAsException {
+	public SignResult finishSign(StatusRequest statusRequest) throws PDFASError {
 		if (!(statusRequest instanceof StatusRequestImpl)) {
-			throw new PdfAsException("error.pdf.sig.04");
+			throw new PDFASError(ERROR_SIG_INVALID_STATUS);
 		}
 
 		StatusRequestImpl request = (StatusRequestImpl) statusRequest;
 		OperationStatus status = request.getStatus();
 
 		if (!request.isReady()) {
-			throw new PdfAsException("error.pdf.sig.04");
+			throw new PDFASError(ERROR_SIG_INVALID_STATUS);
 		}
 
 		try {
 			return createSignResult(status);
 		} catch (IOException e) {
-			throw new PdfAsException("error.pdf.sig.06", e);
+			// new PdfAsException("error.pdf.sig.06", e);
+			throw ErrorExtractor.searchPdfAsError(e);
 		} finally {
 			if (status != null) {
 				status.clear();
@@ -521,21 +518,27 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 	}
 
 	public Image generateVisibleSignaturePreview(SignParameter parameter,
-			X509Certificate cert, int resolution) throws PdfAsException {
+			java.security.cert.X509Certificate cert, int resolution) throws PDFASError {
 
 		OperationStatus status = null;
 		try {
 			// Status initialization
 			if (!(parameter.getConfiguration() instanceof ISettings)) {
-				throw new PdfAsSettingsException("Invalid settings object!");
+				throw new PDFASError(ERROR_SET_INVALID_SETTINGS_OBJ);
 			}
-
+			X509Certificate iaikCert;
+			if(!(cert instanceof X509Certificate)) {
+				iaikCert = new X509Certificate(cert.getEncoded());
+			} else {
+				iaikCert = (X509Certificate)cert;
+			}
+			
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			status = new OperationStatus(settings, parameter);
 
 			RequestedSignature requestedSignature = new RequestedSignature(
 					status);
-			requestedSignature.setCertificate(cert);
+			requestedSignature.setCertificate(iaikCert);
 
 			if (!requestedSignature.isVisual()) {
 				logger.warn("Profile is invisible so not block image is generated");
@@ -550,7 +553,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			origDoc.save(baos);
 			baos.close();
 
-			pdfObject.setOriginalDocument(new ByteArrayDataSource(baos.toByteArray()));
+			pdfObject.setOriginalDocument(new ByteArrayDataSource(baos
+					.toByteArray()));
 
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(),
@@ -630,10 +634,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants {
 			return cutOut;
 		} catch (PdfAsException e) {
 			logger.error("PDF-AS  Exception", e);
-			throw e;
+			throw ErrorExtractor.searchPdfAsError(e);
 		} catch (Throwable e) {
 			logger.error("Throwable  Exception", e);
-			throw new PdfAsException("", e);
+			throw ErrorExtractor.searchPdfAsError(e);
 		}
 
 	}

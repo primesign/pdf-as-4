@@ -49,6 +49,8 @@ import at.gv.e_government.reference.namespace.moa._20020822.MetaInfoType;
 import at.gv.e_government.reference.namespace.moa._20020822_.MOAFault;
 import at.gv.e_government.reference.namespace.moa._20020822_.SignatureCreationPortType;
 import at.gv.e_government.reference.namespace.moa._20020822_.SignatureCreationService;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
@@ -194,8 +196,13 @@ public class MOAConnector implements ISignatureConnector,
 			// done the signature!
 			byte[] cmsSignatureData = (byte[])resp;
 
-			VerifyResult verifyResult = SignatureUtils
-					.verifySignature(cmsSignatureData, input);
+			VerifyResult verifyResult;
+			try {
+				verifyResult = SignatureUtils
+						.verifySignature(cmsSignatureData, input);
+			} catch (PDFASError e) {
+				throw new PdfAsErrorCarrier(e);
+			}
 
 			if (!StreamUtils.dataCompare(requestedSignature
 					.getCertificate().getFingerprintSHA(),

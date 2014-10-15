@@ -27,17 +27,17 @@ import iaik.x509.X509Certificate;
 
 import java.security.cert.CertificateException;
 import java.util.Iterator;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
-import at.gv.egiz.pdfas.lib.impl.SignResultImpl;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
@@ -90,7 +90,12 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		CreateCMSSignatureResponseType response = connector
 				.sendCMSRequest(pack, parameter);
 		
-		VerifyResult verifyResult = SignatureUtils.verifySignature(response.getCMSSignature(), input);
+		VerifyResult verifyResult;
+		try {
+			verifyResult = SignatureUtils.verifySignature(response.getCMSSignature(), input);
+		} catch (PDFASError e) {
+			throw new PdfAsErrorCarrier(e);
+		}
 
 		if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
 				((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {

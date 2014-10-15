@@ -21,33 +21,47 @@
  * The "NOTICE" text file is part of the distribution. Any derivative works
  * that you distribute must include a readable copy of the "NOTICE" text file.
  ******************************************************************************/
-package at.gv.egiz.pdfas.common.exceptions;
+package at.gv.egiz.pdfas.common.messages;
 
-public class SLPdfAsException extends PdfAsException {
+import java.util.Locale;
+import java.util.ResourceBundle;
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1261346424827136327L;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	private int code;
-	private String info;
+public class ErrorCodeResolver {
+	private static final String messageResource = "resources.messages.error";
+    private static final String missingMsg = "No Information for code: ";
 
-	public SLPdfAsException(int code, String info) {
-		super();
-		this.code = code;
-		this.info = info;
-	}
+    private static final Logger logger = LoggerFactory.getLogger(ErrorCodeResolver.class);
 
-	public int getCode() {
-		return code;
-	}
+    private static ResourceBundle bundle;
 
-	public String getInfo() {
-		return info;
-	}
+    static {
+        bundle = ResourceBundle.getBundle(messageResource);
+        if(bundle == null) {
+            logger.error("Failed to load resource bundle!!");
+            System.err.println("Failed to load resource bundle!!");
+        }
+    }
 
-	protected String localizeMessage(String msgId) {
-		return String.format("%d : %s", code, info);
-	}
+    public static void forceLocale(Locale locale) {
+        bundle = ResourceBundle.getBundle(messageResource, locale);
+    }
+
+    public static String resolveMessage(long code) {
+    	String msgId = String.valueOf(code);
+        if(bundle == null) {
+            return missingMsg + msgId;
+        }
+        
+        if(bundle.containsKey(msgId)) {
+            String value = bundle.getString(msgId);
+            if(value == null) {
+                return missingMsg + msgId;
+            }
+            return value;
+        }
+        return missingMsg + msgId;
+    }
 }

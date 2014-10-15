@@ -41,6 +41,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.IOUtils;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -241,8 +242,12 @@ public class Main {
 			System.err.println("Invalid arguments: " + e.getMessage());
 			usage();
 			System.exit(-1);
-		} catch (Exception e) {
-			System.err.println("PDF-AS Error: " + e.getMessage());
+		} catch (PDFASError e) {
+			System.err.println("PDF-AS Error: [" + e.getCode() + "]" + e.getMessage());
+			e.printStackTrace(System.err);
+			System.exit(-1);
+		} catch (Throwable e) {
+			System.err.println("Unhandled PDF-AS Error: " + e.getMessage());
 			e.printStackTrace(System.err);
 			System.exit(-1);
 		}

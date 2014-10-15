@@ -115,6 +115,11 @@ public class PdfAsObject implements PdfAs {
 				throw new PdfAsException(
 						ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
 				
+			} catch (at.gv.egiz.pdfas.common.exceptions.PDFASError e) {
+				e.printStackTrace();
+				throw new PdfAsException(
+						ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
+				
 			}
 		} else {
 			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
@@ -142,7 +147,7 @@ public class PdfAsObject implements PdfAs {
 			}
 
 			return new VerifyResultsImpl(resultList);
-		} catch (at.gv.egiz.pdfas.common.exceptions.PdfAsException e) {
+		} catch (at.gv.egiz.pdfas.common.exceptions.PDFASError e) {
 			throw new PdfAsException(0, e.getMessage());
 		}
 	}
@@ -264,6 +269,11 @@ public class PdfAsObject implements PdfAs {
 		} catch (CertificateException e) {
 			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
 					e.getMessage());
+		} catch (at.gv.egiz.pdfas.common.exceptions.PDFASError e) {
+			e.printStackTrace();
+			throw new PdfAsException(
+					ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
+			
 		}
 	}
 
