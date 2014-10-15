@@ -64,7 +64,6 @@ dependencies {
 	compile group: 'ognl', name: 'ognl', version: '3.0.8'
 	compile files('libs/iaik_eccelerate_cms.jar')
 	compile files('libs/iaik_eccelerate.jar')
-	compile files('libs/iaik_jce.jar')
 	compile files('libs/iaik_jce_full.jar')
 	compile files('libs/iaik_cms.jar')
 	compile group: 'log4j', name: 'log4j', version: '1.2.17'
