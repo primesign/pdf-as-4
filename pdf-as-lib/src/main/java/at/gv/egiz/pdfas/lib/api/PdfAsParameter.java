@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
+import java.util.Map;
+
 import javax.activation.DataSource;
 
 public interface PdfAsParameter {
@@ -51,7 +53,31 @@ public interface PdfAsParameter {
 	 */
 	public void setDataSource(DataSource dataSource);
 	
+	/**
+	 * Gets the transaction id.
+	 *
+	 * @return the transaction id
+	 */
 	public String getTransactionId();
 	
+	/**
+	 * Sets the transaction id.
+	 *
+	 * @param id the new transaction id
+	 */
 	public void setTransactionId(String id);
+	
+	/**
+	 * Gets the preprocessor arguments.
+	 *
+	 * @return the preprocessor arguments
+	 */
+	public Map<String, String> getPreprocessorArguments();
+	
+	/**
+	 * Sets the preprocessor arguments.
+	 *
+	 * @param map the map
+	 */
+	public void setPreprocessorArguments(Map<String, String> map);
 }

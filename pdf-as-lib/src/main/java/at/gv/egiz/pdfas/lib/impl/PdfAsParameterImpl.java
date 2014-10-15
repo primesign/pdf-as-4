@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import java.util.Map;
+
 import javax.activation.DataSource;
 
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -33,6 +35,7 @@ protected Configuration configuration;
 	
 	protected DataSource dataSource;
 	protected String transactionId;
+	protected Map<String, String> preProcessorProps;
 	
 	public PdfAsParameterImpl(Configuration configuration, 
 			DataSource dataSource) {
@@ -63,5 +66,15 @@ protected Configuration configuration;
 
 	public void setTransactionId(String id) {
 		this.transactionId = id;
+	}
+
+	@Override
+	public Map<String, String> getPreprocessorArguments() {
+		return preProcessorProps;
+	}
+
+	@Override
+	public void setPreprocessorArguments(Map<String, String> map) {
+		this.preProcessorProps = map;
 	}
 }
