@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +48,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 	public static final String PatternRegex = "\\$(\\{[^\\$]*\\})";
 
-	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+	public static final String defaultDateFormat = "yyyy-MM-dd'T'HH:mm:ssXXX";
 
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
@@ -69,11 +70,17 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			if (value == null) {
 				value = defaultDateFormat;
 			}
+			
 			// Value holds the date format!
-			SimpleDateFormat formater = new SimpleDateFormat(value);
-			//formater.setTimeZone(TimeZone.getTimeZone("UTC"));
+			//
+			SimpleDateFormat fdf = new SimpleDateFormat(value);
+			String timeZone = settings.getProfileTimeZone();
+			
+			if(timeZone != null) {
+				fdf.setTimeZone(TimeZone.getTimeZone("timeZone"));
+			}
 			Calendar cal = Calendar.getInstance();
-			return formater.format(cal.getTime());
+			return fdf.format(cal.getTime());
 		}
 		
 		if (value != null) {

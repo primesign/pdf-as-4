@@ -199,6 +199,10 @@ public class SignatureProfileSettings implements IProfileConstants {
 		return this.getValue(SIGNFIELD_VALUE);
 	}
 	
+	public String getProfileTimeZone() {
+		return this.getValue(TIMEZONE_BASE);
+	}
+	
 	public boolean isPDFA() {
 		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA1B_VALID);
 		if (entry != null) {

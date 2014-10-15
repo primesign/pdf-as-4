@@ -63,7 +63,7 @@ public class DefaultSignatureProfileSettings {
 	
 	public static final String VALUE_SIG_META_DEFAULT = "Informationen zur Pr\u00FCfung der elektronischen Signatur finden Sie unter: https://www.signaturpruefung.gv.at\n\nInformationen zur Pr\u00FCfung des Ausdrucks finden Sie unter: https://www.behoerde.gv.at/el_signatur/";
 	
-	public static final String VALUE_SIG_DATE_DEFAULT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+	public static final String VALUE_SIG_DATE_DEFAULT = "yyyy-MM-dd'T'HH:mm:ssXXX";
 	
 	static {
 		profileSettings.put(KEY_SIG_SUBJECT, new SignatureProfileEntry(KEY_SIG_SUBJECT, KEY_SIG_SUBJECT_DEFAULT, VALUE_SIG_SUBJECT_DEFAULT) );
