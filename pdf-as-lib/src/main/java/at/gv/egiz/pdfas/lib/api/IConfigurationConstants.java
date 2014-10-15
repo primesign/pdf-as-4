@@ -85,6 +85,8 @@ public interface IConfigurationConstants {
 	public static final String MOC_SIGN_URL = "moc.sign.url";
 	public static final String MOBILE_SIGN_URL = "mobile.sign.url";
 	
+	public static final String REGISTER_PROVIDER = "registerSecurityProvider";
+	
 	public static final String SL_REQUEST_TYPE = "sl.request.type";
 	public static final String SL_REQUEST_TYPE_BASE64 = "b64";
 	public static final String SL_REQUEST_TYPE_UPLOAD = "upload";

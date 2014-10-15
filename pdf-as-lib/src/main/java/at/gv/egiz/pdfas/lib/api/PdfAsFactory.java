@@ -46,7 +46,7 @@ import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
 import at.gv.egiz.pdfas.lib.impl.SignParameterImpl;
 import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
 
-public class PdfAsFactory {
+public class PdfAsFactory implements IConfigurationConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsFactory.class);
@@ -86,6 +86,36 @@ public class PdfAsFactory {
 	private static boolean initialized = false;
 	private static Object init_mutex = new Object();
 
+	private static void registerSecurityProvider(ISettings configuration) {
+		boolean doRegister = true;
+
+		String register = configuration.getValue(REGISTER_PROVIDER);
+		if (register != null) {
+			if (register.equals("false")) {
+				doRegister = false;
+			}
+		}
+
+		if (doRegister) {
+			logger.info("Registering Security Providers!");
+
+			registerProvider(new IAIK(), 1);
+			// TODO: register ECCelerate in second position when TLS issue is
+			// fixed
+			registerProvider(new ECCelerate(), -1);
+
+			teeInformation("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
+			teeInformation("+ ECCelerate Version: " + ECCelerate.getInstance().getVersion());
+		} else {
+			logger.info("Skipping Security Provider registration!");
+		}
+	}
+
+	private static void teeInformation(String str) {
+		System.out.println(str);
+		logger.info(str);
+	}
+
 	/**
 	 * Configure log.
 	 *
@@ -97,22 +127,13 @@ public class PdfAsFactory {
 			synchronized (init_mutex) {
 				if (!initialized) {
 					initialized = true;
-					
-					registerProvider(new IAIK(), 1);
-					registerProvider(new ECCelerate(), -1);
 
-					System.out
-							.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-					System.out.println("+ PDF-AS: " + getVersion());
-					System.out.println("+ PDF-AS SCM Revision: "
-							+ getSCMRevision());
-					System.out.println("+ IAIK-JCE Version: "
-							+ IAIK.getVersionInfo());
-					System.out.println("+ ECCelerate Version: "
-							+ ECCelerate.getInstance().getVersion());
-					System.out
-							.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-					
+					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					teeInformation("+ PDF-AS: " + getVersion());
+					teeInformation("+ PDF-AS SCM Revision: " + getSCMRevision());
+					registerSecurityProvider(configuration);
+					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
 					listRegisteredSecurityProviders();
 				}
 			}
