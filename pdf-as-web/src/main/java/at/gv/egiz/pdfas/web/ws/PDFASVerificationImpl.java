@@ -4,6 +4,7 @@ import iaik.x509.X509Certificate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.jws.WebService;
 import javax.xml.ws.WebServiceException;
@@ -44,6 +45,11 @@ public class PDFASVerificationImpl implements PDFASVerification {
 				sigIdx = request.getSignatureIndex().intValue();
 			}
 
+			Map<String, String> preProcessor = null;
+			if(request.getPreprocessor() != null) {
+				preProcessor = request.getPreprocessor().getMap();
+			}
+			
 			SignatureVerificationLevel lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
 
 			if (request.getVerificationLevel().equals(
@@ -55,7 +61,7 @@ public class PDFASVerificationImpl implements PDFASVerification {
 			}
 
 			List<VerifyResult> results = PdfAsHelper.synchornousVerify(
-					request.getInputData(), sigIdx, lvl);
+					request.getInputData(), sigIdx, lvl, preProcessor);
 			
 			for(int i = 0; i < results.size(); i++) {
 				VerifyResult result = results.get(i);

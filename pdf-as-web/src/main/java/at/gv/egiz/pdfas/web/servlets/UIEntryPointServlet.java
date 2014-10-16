@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.web.servlets;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -147,12 +148,17 @@ public class UIEntryPointServlet extends HttpServlet {
 								"Invalid connector mobilebku is not supported");
 					}
 				}
-
+				Map<String, String> map = null;
+				if(pdfAsRequest.getParameters().getPreprocessor() != null) {
+					map = pdfAsRequest.getParameters().getPreprocessor().getMap();
+				}
+				
 				PdfAsHelper.startSignature(req, resp, getServletContext(),
 						pdfAsRequest.getInputData(), connector.toString(),
 						pdfAsRequest.getParameters().getPosition(),
 						pdfAsRequest.getParameters().getTransactionId(),
-						pdfAsRequest.getParameters().getProfile());
+						pdfAsRequest.getParameters().getProfile(), 
+						map);
 			} else {
 				throw new PdfAsWebException("Invalid connector ("
 						+ Connector.BKU + " | " + Connector.ONLINEBKU + " | "

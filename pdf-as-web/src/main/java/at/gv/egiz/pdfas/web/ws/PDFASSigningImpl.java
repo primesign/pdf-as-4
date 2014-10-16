@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.web.ws;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.jws.WebService;
 import javax.xml.ws.WebServiceException;
@@ -39,7 +40,6 @@ import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
-import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.api.ws.VerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
@@ -79,6 +79,11 @@ public class PDFASSigningImpl implements PDFASSigning {
 						"Invalid connector value!");
 			}
 			
+			Map<String, String> preProcessor = null;
+			if(request.getParameters().getPreprocessor() != null) {
+				preProcessor = request.getParameters().getPreprocessor().getMap();
+			}
+			
 			if (request.getParameters().getConnector().equals(Connector.MOA)
 					|| request.getParameters().getConnector()
 							.equals(Connector.JKS)) {
@@ -94,7 +99,8 @@ public class PDFASSigningImpl implements PDFASSigning {
 							.synchornousVerify(
 									response.getSignedPDF(),
 									-1,
-									SignatureVerificationLevel.FULL_VERIFICATION);
+									SignatureVerificationLevel.FULL_VERIFICATION, 
+									preProcessor);
 
 					if (verResults.size() != 1) {
 						throw new WebServiceException(
@@ -106,7 +112,8 @@ public class PDFASSigningImpl implements PDFASSigning {
 							.synchornousVerify(
 									response.getSignedPDF(),
 									-1,
-									SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION);
+									SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION, 
+									preProcessor);
 
 					if (verResults.size() != 1) {
 						throw new WebServiceException(

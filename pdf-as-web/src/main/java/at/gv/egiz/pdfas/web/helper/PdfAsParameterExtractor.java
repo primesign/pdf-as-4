@@ -23,6 +23,10 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.helper;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
@@ -63,6 +67,8 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_SIG_IDX = "sig-idx";
 	public static final String PARAM_FILENAME = "filename";
 	
+	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
+	
 	public static String getConnector(HttpServletRequest request) {
 		String connector = (String)request.getAttribute(PARAM_CONNECTOR);
 		if(connector != null) {
@@ -83,6 +89,22 @@ public class PdfAsParameterExtractor {
 	
 	public static String getInvokeURL(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_INVOKE_URL);
+	}
+	
+	public static Map<String, String> getPreProcessorMap(HttpServletRequest request) {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		Enumeration<String> parameterNames = request.getAttributeNames();
+		while(parameterNames.hasMoreElements()) {
+			String parameterName = parameterNames.nextElement();
+			if(parameterName.startsWith(PARAM_PREPROCESSOR_PREFIX)) {
+				String key = parameterName.substring(PARAM_PREPROCESSOR_PREFIX.length());
+				String value = (String)request.getAttribute(parameterName);
+				map.put(key, value);
+			}
+		}
+		
+		return map;
 	}
 	
 	public static SignatureVerificationLevel getVerificationLevel(HttpServletRequest request) {

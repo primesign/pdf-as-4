@@ -302,7 +302,7 @@ public class ExternSignServlet extends HttpServlet {
 			
 			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector, 
 					PdfAsHelper.buildPosString(request, response), transactionId, PdfAsParameterExtractor
-					.getSigType(request));
+					.getSigType(request), PdfAsParameterExtractor.getPreProcessorMap(request));
 			return;
 		} else if (connector.equals("jks") || connector.equals("moa")) {
 			// start synchronous siganture creation

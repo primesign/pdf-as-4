@@ -35,6 +35,7 @@ import java.net.URLEncoder;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.servlet.RequestDispatcher;
@@ -298,7 +299,7 @@ public class PdfAsHelper {
 	}
 
 	public static List<VerifyResult> synchornousVerify(byte[] pdfData,
-			int signIdx, SignatureVerificationLevel lvl) throws Exception {
+			int signIdx, SignatureVerificationLevel lvl, Map<String, String> preProcessor) throws Exception {
 		logger.debug("Verifing Signature index: " + signIdx);
 
 		Configuration config = pdfAs.getConfiguration();
@@ -308,6 +309,7 @@ public class PdfAsHelper {
 		VerifyParameter verifyParameter = PdfAsFactory.createVerifyParameter(
 				config, dataSource);
 
+		verifyParameter.setPreprocessorArguments(preProcessor);
 		verifyParameter.setSignatureVerificationLevel(lvl);
 		verifyParameter.setDataSource(dataSource);
 		verifyParameter.setConfiguration(config);
@@ -425,6 +427,11 @@ public class PdfAsHelper {
 		// set Signature Position
 		signParameter.setSignaturePosition(params.getPosition());
 
+		// Set Preprocessor 
+		if(params.getPreprocessor() != null) {
+			signParameter.setPreprocessorArguments(params.getPreprocessor().getMap());
+		}
+		
 		SignResult signResult = pdfAs.sign(signParameter);
 
 		PDFASSignResponse signResponse = new PDFASSignResponse();
@@ -444,7 +451,7 @@ public class PdfAsHelper {
 	public static void startSignature(HttpServletRequest request,
 			HttpServletResponse response, ServletContext context,
 			byte[] pdfData, String connector, String position,
-			String transactionId, String profile) throws Exception {
+			String transactionId, String profile, Map<String, String> preProcessor) throws Exception {
 
 		// TODO: Protect session so that only one PDF can be signed during one
 		// session
@@ -483,7 +490,7 @@ public class PdfAsHelper {
 			throw new PdfAsWebException(
 					"Invalid connector (bku | onlinebku | mobilebku | moa | jks)");
 		}
-
+		signParameter.setPreprocessorArguments(preProcessor);
 		signParameter.setPlainSigner(signer);
 		session.setAttribute(PDF_SIGNER, signer);
 		session.setAttribute(PDF_SL_INTERACTIVE, connector);
@@ -677,7 +684,7 @@ public class PdfAsHelper {
 				PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
 				List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(
 						signedPdf, -2,
-						PdfAsHelper.getVerificationLevel(request));
+						PdfAsHelper.getVerificationLevel(request), null);
 
 				if (verResults.size() != 1) {
 					throw new WebServiceException(

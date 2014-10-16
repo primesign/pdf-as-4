@@ -1,6 +1,8 @@
 package at.gv.egiz.pdfas.api.ws;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -17,6 +19,7 @@ public class PDFASVerifyRequest implements Serializable {
 	byte[] inputData;
 	VerificationLevel verificationLevel;
 	Integer sigIdx;
+	PDFASPropertyMap preprocessor;
 	
 	@XmlElement(required = true, nillable = false, name="requestID")
 	public String getRequestID() {
@@ -52,5 +55,14 @@ public class PDFASVerifyRequest implements Serializable {
 	
 	public void setSignatureIndex(Integer sigIdx) {
 		this.sigIdx = sigIdx;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="preprocessorArguments")
+	public PDFASPropertyMap getPreprocessor() {
+		return preprocessor;
+	}
+
+	public void setPreprocessor(PDFASPropertyMap preprocessor) {
+		this.preprocessor = preprocessor;
 	}
 }

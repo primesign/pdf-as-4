@@ -24,6 +24,8 @@
 package at.gv.egiz.pdfas.api.ws;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -76,6 +78,7 @@ public class PDFASSignParameters implements Serializable {
 	String invokeErrorUrl;
 	String transactionId;
 	String profile;
+	PDFASPropertyMap preprocessor;
 	
 	@XmlElement(required = true, nillable = false, name="connector")
 	public Connector getConnector() {
@@ -133,5 +136,15 @@ public class PDFASSignParameters implements Serializable {
 	public void setTransactionId(String transactionId) {
 		this.transactionId = transactionId;
 	}
+
+	@XmlElement(required = false, nillable = true, name="preprocessorArguments")
+	public PDFASPropertyMap getPreprocessor() {
+		return preprocessor;
+	}
+
+	public void setPreprocessor(PDFASPropertyMap preprocessor) {
+		this.preprocessor = preprocessor;
+	}
+	
 	
 }
