@@ -25,9 +25,7 @@ package at.gv.egiz.pdfas.lib.impl;
 
 import iaik.x509.X509Certificate;
 
-import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -38,13 +36,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.cos.COSArray;
-import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSString;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,10 +45,8 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.Settings;
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
@@ -67,30 +56,18 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.lib.backend.PDFASBackend;
+import at.gv.egiz.pdfas.lib.impl.backend.BackendLoader;
 import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
-import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
-import at.gv.egiz.pdfas.lib.impl.positioning.Positioning;
 import at.gv.egiz.pdfas.lib.impl.preprocessor.PreProcessorLoader;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
-import at.gv.egiz.pdfas.lib.impl.signing.PdfSignerFactory;
-import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PdfboxSignerWrapper;
-import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.SignatureDataExtractor;
-import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
-import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
-import at.gv.egiz.pdfas.lib.impl.stamping.StamperFactory;
-import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
-import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
-import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
+import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
-import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifier;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifierDispatcher;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
-import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
-import at.knowcenter.wag.egov.egiz.pdf.TablePos;
-import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		ErrorConstants {
@@ -160,16 +137,27 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			// execute pre Processors
 			signPreProcessing(parameter);
-			
+
+			// allocated Backend
+			PDFASBackend backend = BackendLoader.getPDFASBackend();
+
+			if (backend == null) {
+				throw new PDFASError(ERROR_NO_BACKEND);
+			}
+
 			ISettings settings = (ISettings) parameter.getConfiguration();
-			status = new OperationStatus(settings, parameter);
+			status = new OperationStatus(settings, parameter, backend);
+
+			IPdfSigner signer = backend.getPdfSigner();
+
+			status.setPdfObject(signer.buildPDFObject(status));
 
 			// set Original PDF Document Data
 			status.getPdfObject()
 					.setOriginalDocument(parameter.getDataSource());
 
-			PDDocument doc = status.getPdfObject().getDocument();
-			PDFUtils.checkPDFPermissions(doc);
+			// Check PDF Permissions
+			signer.checkPDFPermissions(status.getPdfObject());
 
 			// PlaceholderConfiguration placeholderConfiguration = status
 			// .getPlaceholderConfiguration();
@@ -196,9 +184,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			// this.stampPdf(status);
 
 			// Create signature
-			IPdfSigner signer = PdfSignerFactory.createPdfSigner();
-			signer.signPDF(status.getPdfObject(), requestedSignature,
-					new PdfboxSignerWrapper(status.getSignParamter()
+
+			signer.signPDF(status.getPdfObject(), requestedSignature, signer
+					.buildSignaturInterface(status.getSignParamter()
 							.getPlainSigner(), parameter, requestedSignature));
 
 			// ================================================================
@@ -225,140 +213,18 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 		// execute pre Processors
 		verifyPreProcessing(parameter);
-		
-		int signatureToVerify = parameter.getWhichSignature();
-		int currentSignature = 0;
-		PDDocument doc = null;
+
+		// allocated Backend
+		PDFASBackend backend = BackendLoader.getPDFASBackend();
+
+		if (backend == null) {
+			throw new PDFASError(ERROR_NO_BACKEND);
+		}
+
 		try {
-			List<VerifyResult> result = new ArrayList<VerifyResult>();
-			ISettings settings = (ISettings) parameter.getConfiguration();
-			VerifierDispatcher verifier = new VerifierDispatcher(settings);
-			doc = PDDocument.load(parameter.getDataSource().getInputStream());
-
-			COSDictionary trailer = doc.getDocument().getTrailer();
-			if (trailer == null) {
-				// No signatures ...
-				return result;
-			}
-			COSDictionary root = (COSDictionary) trailer
-					.getDictionaryObject(COSName.ROOT);
-			if (root == null) {
-				// No signatures ...
-				return result;
-			}
-			COSDictionary acroForm = (COSDictionary) root
-					.getDictionaryObject(COSName.ACRO_FORM);
-			if (acroForm == null) {
-				// No signatures ...
-				return result;
-			}
-			COSArray fields = (COSArray) acroForm
-					.getDictionaryObject(COSName.FIELDS);
-			if (fields == null) {
-				// No signatures ...
-				return result;
-			}
-
-			int lastSig = -1;
-			for (int i = 0; i < fields.size(); i++) {
-				COSDictionary field = (COSDictionary) fields.getObject(i);
-				String type = field.getNameAsString("FT");
-				if ("Sig".equals(type)) {
-					lastSig = i;
-				}
-			}
-
-			byte[] inputData = IOUtils.toByteArray(parameter.getDataSource()
-					.getInputStream());
-
-			for (int i = 0; i < fields.size(); i++) {
-				COSDictionary field = (COSDictionary) fields.getObject(i);
-				String type = field.getNameAsString("FT");
-				if ("Sig".equals(type)) {
-					boolean verifyThis = true;
-
-					if (signatureToVerify >= 0) {
-						// verify only specific siganture!
-						verifyThis = signatureToVerify == currentSignature;
-					}
-
-					if (signatureToVerify == -2) {
-						verifyThis = i == lastSig;
-					}
-
-					if (verifyThis) {
-						logger.trace("Found Signature: ");
-						COSBase base = field.getDictionaryObject("V");
-						COSDictionary dict = (COSDictionary) base;
-
-						logger.debug("Signer: " + dict.getNameAsString("Name"));
-						logger.debug("SubFilter: "
-								+ dict.getNameAsString("SubFilter"));
-						logger.debug("Filter: "
-								+ dict.getNameAsString("Filter"));
-						logger.debug("Modified: " + dict.getNameAsString("M"));
-						COSArray byteRange = (COSArray) dict
-								.getDictionaryObject("ByteRange");
-
-						StringBuilder sb = new StringBuilder();
-						int[] bytes = new int[byteRange.size()];
-						for (int j = 0; j < byteRange.size(); j++) {
-							bytes[j] = byteRange.getInt(j);
-							sb.append(" " + bytes[j]);
-						}
-
-						logger.debug("ByteRange" + sb.toString());
-
-						COSString content = (COSString) dict
-								.getDictionaryObject("Contents");
-
-						ByteArrayOutputStream contentData = new ByteArrayOutputStream();
-						for (int j = 0; j < bytes.length; j = j + 2) {
-							int offset = bytes[j];
-							int length = bytes[j + 1];
-
-							contentData.write(inputData, offset, length);
-						}
-						contentData.close();
-
-						IVerifyFilter verifyFilter = verifier.getVerifier(
-								dict.getNameAsString("Filter"),
-								dict.getNameAsString("SubFilter"));
-
-						IVerifier lvlVerifier = verifier
-								.getVerifierByLevel(parameter
-										.getSignatureVerificationLevel());
-						lvlVerifier.setConfiguration(parameter
-								.getConfiguration());
-						if (verifyFilter != null) {
-							List<VerifyResult> results = verifyFilter.verify(
-									contentData.toByteArray(),
-									content.getBytes(),
-									parameter.getVerificationTime(), bytes,
-									lvlVerifier);
-							if (results != null && !results.isEmpty()) {
-								result.addAll(results);
-							}
-						}
-					}
-					currentSignature++;
-				}
-			}
-			return result;
-		} catch (IOException e) {
-			logger.error("Failed to verify document", e);
+			return backend.getVerifier().verify(parameter);
+		} catch (Throwable e) {
 			throw ErrorExtractor.searchPdfAsError(e);
-		} catch (PdfAsException e) {
-			logger.error("Failed to verify document", e);
-			throw ErrorExtractor.searchPdfAsError(e);
-		} finally {
-			if (doc != null) {
-				try {
-					doc.close();
-				} catch (IOException e) {
-					logger.info("Failed to close doc");
-				}
-			}
 		}
 	}
 
@@ -380,9 +246,21 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			// execute pre Processors
 			signPreProcessing(parameter);
-			
+
+			// allocated Backend
+			PDFASBackend backend = BackendLoader.getPDFASBackend();
+
+			if (backend == null) {
+				throw new PDFASError(ERROR_NO_BACKEND);
+			}
+
 			ISettings settings = (ISettings) parameter.getConfiguration();
-			OperationStatus status = new OperationStatus(settings, parameter);
+			OperationStatus status = new OperationStatus(settings, parameter,
+					backend);
+
+			IPdfSigner signer = backend.getPdfSigner();
+
+			status.setPdfObject(signer.buildPDFObject(status));
 
 			RequestedSignature requestedSignature = new RequestedSignature(
 					status);
@@ -428,11 +306,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 						.getPDFFilter();
 				String pdfSubFilter = status.getSignParamter().getPlainSigner()
 						.getPDFSubFilter();
-				SignatureDataExtractor signatureDataExtractor = new SignatureDataExtractor(
-						request.getCertificate(), pdfFilter, pdfSubFilter,
-						status.getSigningDate());
 
-				IPdfSigner signer = PdfSignerFactory.createPdfSigner();
+				IPdfSigner signer = status.getBackend().getPdfSigner();
+
+				PDFASSignatureExtractor signatureDataExtractor = signer
+						.buildBlindSignaturInterface(request.getCertificate(),
+								pdfFilter, pdfSubFilter,
+								status.getSigningDate());
+
 				signer.signPDF(status.getPdfObject(),
 						status.getRequestedSignature(), signatureDataExtractor);
 
@@ -462,9 +343,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			// Inject signature byte[] into signedDocument
 			int offset = request.getSignatureDataByteRange()[1] + 1;
 
-			String signature = new COSString(request.getSignature())
-					.getHexString();
-			byte[] pdfSignature = signature.getBytes();
+			byte[] pdfSignature = status.getBackend().getPdfSigner()
+					.rewritePlainSignature(request.getSignature());
 			// byte[] input =
 			// PDFUtils.blackOutSignature(status.getPdfObject().getSignedDocument(),
 			// request.getSignatureDataByteRange());
@@ -517,53 +397,61 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 	private void listPreProcessors(List<PreProcessor> preProcessors) {
 		logger.debug("--------------");
 		logger.debug("Listing PreProcessors:");
-		
+
 		Iterator<PreProcessor> preProcessorsIterator = preProcessors.iterator();
 		int idx = 0;
-		while(preProcessorsIterator.hasNext()) {
+		while (preProcessorsIterator.hasNext()) {
 			PreProcessor preProcessor = preProcessorsIterator.next();
-			logger.debug("{}: {} [{}]", idx, preProcessor.getName(), preProcessor.getClass().getName());
+			logger.debug("{}: {} [{}]", idx, preProcessor.getName(),
+					preProcessor.getClass().getName());
 			idx++;
 		}
 		logger.debug("--------------");
 	}
-	
-	private void verifyPreProcessing(VerifyParameter parameter) throws PDFASError {
-		List<PreProcessor> preProcessors = PreProcessorLoader.getPreProcessors(parameter.getConfiguration());
-		
+
+	private void verifyPreProcessing(VerifyParameter parameter)
+			throws PDFASError {
+		List<PreProcessor> preProcessors = PreProcessorLoader
+				.getPreProcessors(parameter.getConfiguration());
+
 		listPreProcessors(preProcessors);
-		
+
 		logger.debug("executing PreProcessors for verifing:");
 		Iterator<PreProcessor> preProcessorsIterator = preProcessors.iterator();
-		
-		while(preProcessorsIterator.hasNext()) {
+
+		while (preProcessorsIterator.hasNext()) {
 			PreProcessor preProcessor = preProcessorsIterator.next();
-			logger.debug("executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+			logger.debug("executing: {} [{}]", preProcessor.getName(),
+					preProcessor.getClass().getName());
 			preProcessor.verify(parameter);
-			logger.debug("done executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+			logger.debug("done executing: {} [{}]", preProcessor.getName(),
+					preProcessor.getClass().getName());
 		}
-		
+
 		logger.debug("executing PreProcessors for verifing done");
 	}
-	
+
 	private void signPreProcessing(SignParameter parameter) throws PDFASError {
-		List<PreProcessor> preProcessors = PreProcessorLoader.getPreProcessors(parameter.getConfiguration());
-		
+		List<PreProcessor> preProcessors = PreProcessorLoader
+				.getPreProcessors(parameter.getConfiguration());
+
 		listPreProcessors(preProcessors);
-		
+
 		logger.debug("executing PreProcessors for signing:");
 		Iterator<PreProcessor> preProcessorsIterator = preProcessors.iterator();
-		
-		while(preProcessorsIterator.hasNext()) {
+
+		while (preProcessorsIterator.hasNext()) {
 			PreProcessor preProcessor = preProcessorsIterator.next();
-			logger.debug("executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+			logger.debug("executing: {} [{}]", preProcessor.getName(),
+					preProcessor.getClass().getName());
 			preProcessor.sign(parameter);
-			logger.debug("done executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+			logger.debug("done executing: {} [{}]", preProcessor.getName(),
+					preProcessor.getClass().getName());
 		}
-		
+
 		logger.debug("executing PreProcessors for signing done");
 	}
-	
+
 	private SignResult createSignResult(OperationStatus status)
 			throws IOException {
 		// ================================================================
@@ -580,7 +468,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 	}
 
 	public Image generateVisibleSignaturePreview(SignParameter parameter,
-			java.security.cert.X509Certificate cert, int resolution) throws PDFASError {
+			java.security.cert.X509Certificate cert, int resolution)
+			throws PDFASError {
 
 		OperationStatus status = null;
 		try {
@@ -589,14 +478,20 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				throw new PDFASError(ERROR_SET_INVALID_SETTINGS_OBJ);
 			}
 			X509Certificate iaikCert;
-			if(!(cert instanceof X509Certificate)) {
+			if (!(cert instanceof X509Certificate)) {
 				iaikCert = new X509Certificate(cert.getEncoded());
 			} else {
-				iaikCert = (X509Certificate)cert;
+				iaikCert = (X509Certificate) cert;
 			}
-			
+			// allocated Backend
+			PDFASBackend backend = BackendLoader.getPDFASBackend();
+
 			ISettings settings = (ISettings) parameter.getConfiguration();
-			status = new OperationStatus(settings, parameter);
+			status = new OperationStatus(settings, parameter, backend);
+
+			IPdfSigner signer = backend.getPdfSigner();
+
+			status.setPdfObject(signer.buildPDFObject(status));
 
 			RequestedSignature requestedSignature = new RequestedSignature(
 					status);
@@ -607,93 +502,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				return null;
 			}
 
-			PDFObject pdfObject = status.getPdfObject();
-
-			PDDocument origDoc = new PDDocument();
-			origDoc.addPage(new PDPage(PDPage.PAGE_SIZE_A4));
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			origDoc.save(baos);
-			baos.close();
-
-			pdfObject.setOriginalDocument(new ByteArrayDataSource(baos
-					.toByteArray()));
-
-			SignatureProfileSettings signatureProfileSettings = TableFactory
-					.createProfile(requestedSignature.getSignatureProfileID(),
-							pdfObject.getStatus().getSettings());
-
-			// create Table describtion
-			Table main = TableFactory.createSigTable(signatureProfileSettings,
-					MAIN, pdfObject.getStatus(), requestedSignature);
-
-			IPDFStamper stamper = StamperFactory.createDefaultStamper(pdfObject
-					.getStatus().getSettings());
-
-			IPDFVisualObject visualObject = stamper.createVisualPDFObject(
-					pdfObject, main);
-
-			SignatureProfileConfiguration signatureProfileConfiguration = pdfObject
-					.getStatus().getSignatureProfileConfiguration(
-							requestedSignature.getSignatureProfileID());
-
-			String signaturePosString = signatureProfileConfiguration
-					.getDefaultPositioning();
-			PositioningInstruction positioningInstruction = null;
-			if (signaturePosString != null) {
-				positioningInstruction = Positioning.determineTablePositioning(
-						new TablePos(signaturePosString), "", origDoc,
-						visualObject, false);
-			} else {
-				positioningInstruction = Positioning.determineTablePositioning(
-						new TablePos(), "", origDoc, visualObject, false);
-			}
-
-			origDoc.close();
-
-			SignaturePositionImpl position = new SignaturePositionImpl();
-			position.setX(positioningInstruction.getX());
-			position.setY(positioningInstruction.getY());
-			position.setPage(positioningInstruction.getPage());
-			position.setHeight(visualObject.getHeight());
-			position.setWidth(visualObject.getWidth());
-
-			requestedSignature.setSignaturePosition(position);
-
-			PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
-					pdfObject.getStatus().getSettings(), pdfObject,
-					(PdfBoxVisualObject) visualObject, positioningInstruction);
-
-			properties.buildSignature();
-			PDDocument visualDoc = PDDocument.load(properties
-					.getVisibleSignature());
-			// PDPageable pageable = new PDPageable(visualDoc);
-			List<PDPage> pages = new ArrayList<PDPage>();
-			visualDoc.getDocumentCatalog().getPages().getAllKids(pages);
-
-			PDPage firstPage = pages.get(0);
-
-			float stdRes = 72;
-			float targetRes = resolution;
-			float factor = targetRes / stdRes;
-
-			BufferedImage outputImage = firstPage.convertToImage(
-					BufferedImage.TYPE_4BYTE_ABGR, (int) targetRes);
-
-			BufferedImage cutOut = new BufferedImage(
-					(int) (position.getWidth() * factor),
-					(int) (position.getHeight() * factor),
-					BufferedImage.TYPE_4BYTE_ABGR);
-
-			Graphics2D graphics = (Graphics2D) cutOut.getGraphics();
-
-			graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut
-					.getHeight(), (int) (1 * factor), (int) (outputImage
-					.getHeight() - ((position.getHeight() + 1) * factor)),
-					(int) ((1 + position.getWidth()) * factor),
-					(int) (outputImage.getHeight()
-							- ((position.getHeight() + 1) * factor) + (position
-							.getHeight() * factor)), null);
-			return cutOut;
+			return signer.generateVisibleSignaturePreview(parameter, iaikCert,
+					resolution, status, requestedSignature);
 		} catch (PdfAsException e) {
 			logger.error("PDF-AS  Exception", e);
 			throw ErrorExtractor.searchPdfAsError(e);

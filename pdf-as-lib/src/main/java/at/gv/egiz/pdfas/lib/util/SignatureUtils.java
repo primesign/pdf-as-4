@@ -9,10 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.SignatureException;
 
-import org.apache.pdfbox.cos.COSArray;
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,49 +21,6 @@ public class SignatureUtils implements ErrorConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(SignatureUtils.class);
-
-	public static int countSignatures(PDDocument doc, String sigName) {
-		int count = 0;
-		COSDictionary trailer = doc.getDocument().getTrailer();
-		COSDictionary root = (COSDictionary) trailer
-				.getDictionaryObject(COSName.ROOT);
-		COSDictionary acroForm = (COSDictionary) root
-				.getDictionaryObject(COSName.ACRO_FORM);
-		COSArray fields = (COSArray) acroForm
-				.getDictionaryObject(COSName.FIELDS);
-		for (int i = 0; i < fields.size(); i++) {
-			COSDictionary field = (COSDictionary) fields.getObject(i);
-			String type = field.getNameAsString("FT");
-			if ("Sig".equals(type)) {
-				String name = field.getString(COSName.T);
-				if (name != null) {
-					logger.debug("Found Sig: " + name);
-					try {
-						if (name.startsWith(sigName)) {
-							String numberString = name.replace(sigName, "");
-
-							logger.debug("Found Number: " + numberString);
-
-							int SigIDX = Integer.parseInt(numberString);
-							if(SigIDX > count) {
-								count = SigIDX;
-							}
-						}
-					} catch (Throwable e) {
-						logger.info("Found a different Signature, we do not need to count this.");
-					}
-				}
-			}
-
-		}
-
-		count++;
-		
-		logger.debug("Returning sig number: " + count);
-		
-		return count;
-	}
-
 	
 	public static VerifyResult verifySignature(byte[] signature, byte[] input) throws PDFASError {
 		//List<VerifyResult> results = new ArrayList<VerifyResult>();

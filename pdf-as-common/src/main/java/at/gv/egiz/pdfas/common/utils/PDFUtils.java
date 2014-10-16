@@ -27,13 +27,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsValidationException;
 
 public class PDFUtils {
 
@@ -186,18 +183,5 @@ public class PDFUtils {
 			}
 		}
 		return null;
-	}
-
-	public static void checkPDFPermissions(PDDocument doc) throws PdfAsValidationException {
-
-		AccessPermission accessPermission = doc.getCurrentAccessPermission();
-		if (doc.isEncrypted()) {
-			throw new PdfAsValidationException("error.pdf.sig.12", null);
-		}
-
-		if (!accessPermission.isOwnerPermission()) {
-			throw new PdfAsValidationException("error.pdf.sig.12", null);
-		}
-
 	}
 }

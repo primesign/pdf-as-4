@@ -18,7 +18,6 @@ task releases(type: Copy) {
 
 dependencies {
 	compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
-	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.5'
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 	compile group: 'commons-io', name: 'commons-io', version: '2.4'
 	compile group: 'ognl', name: 'ognl', version: '3.0.6'

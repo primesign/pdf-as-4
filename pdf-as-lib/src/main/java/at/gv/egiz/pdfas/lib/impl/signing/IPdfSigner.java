@@ -23,13 +23,38 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing;
 
+import iaik.x509.X509Certificate;
+
+import java.awt.Image;
+import java.util.Calendar;
+
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.lib.impl.signing.sig_interface.PDFASSignatureInterface;
+import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 public interface IPdfSigner {
 
-    void signPDF(PDFObject pdfObject,
-                 RequestedSignature requestedSignature, PDFASSignatureInterface signer) throws PdfAsException;
+	PDFASSignatureInterface buildSignaturInterface(IPlainSigner signer,
+			SignParameter parameters, RequestedSignature requestedSignature);
+
+	PDFASSignatureExtractor buildBlindSignaturInterface(
+			X509Certificate certificate, String filter, String subfilter,
+			Calendar date);
+
+	PDFObject buildPDFObject(OperationStatus operationStatus);
+
+	void checkPDFPermissions(PDFObject object) throws PdfAsException;
+	
+	void signPDF(PDFObject pdfObject, RequestedSignature requestedSignature,
+			PDFASSignatureInterface signer) throws PdfAsException;
+	
+	byte[] rewritePlainSignature(byte[] plainSignature);
+	
+	public Image generateVisibleSignaturePreview(SignParameter parameter,
+			java.security.cert.X509Certificate cert, int resolution, OperationStatus status, 
+			RequestedSignature requestedSignature) throws PDFASError;
 }

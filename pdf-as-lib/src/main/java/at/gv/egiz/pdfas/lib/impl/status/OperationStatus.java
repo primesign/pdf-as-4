@@ -31,6 +31,7 @@ import java.util.Map;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.TempFileHelper;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.backend.PDFASBackend;
 import at.gv.egiz.pdfas.lib.impl.configuration.GlobalConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
@@ -43,7 +44,7 @@ public class OperationStatus implements Serializable {
 	private static final long serialVersionUID = -2985007198666388528L;
 
 	private SignParameter signParamter;
-	private PDFObject pdfObject = new PDFObject(this);
+	private PDFObject pdfObject;
 
 	private ISettings configuration;
 	private PlaceholderConfiguration placeholderConfiguration = null;
@@ -52,10 +53,12 @@ public class OperationStatus implements Serializable {
 	private TempFileHelper helper;
 	private RequestedSignature requestedSignature;
 	private Calendar signingDate;
+	private PDFASBackend backend;
 
-	public OperationStatus(ISettings configuration, SignParameter signParameter) {
+	public OperationStatus(ISettings configuration, SignParameter signParameter, PDFASBackend backend) {
 		this.configuration = configuration;
 		this.signParamter = signParameter;
+		this.backend = backend;
 		helper = new TempFileHelper(configuration);
 	}
 
@@ -71,7 +74,7 @@ public class OperationStatus implements Serializable {
 	}
 
 	// ========================================================================
-
+	
 	public void clear() {
 		if (this.helper != null) {
 			try {
@@ -84,6 +87,10 @@ public class OperationStatus implements Serializable {
 		}
 	}
 	
+	public PDFASBackend getBackend() {
+		return backend;
+	}
+
 	public RequestedSignature getRequestedSignature() {
 		return requestedSignature;
 	}
@@ -162,5 +169,4 @@ public class OperationStatus implements Serializable {
 		}
 		return null;
 	}
-	
 }

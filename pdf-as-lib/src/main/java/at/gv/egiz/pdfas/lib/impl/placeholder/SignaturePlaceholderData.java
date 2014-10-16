@@ -100,7 +100,7 @@ public class SignaturePlaceholderData {
       return tablePos;
    }
 
-   void setTablePos(TablePos tablePos) {
+   public void setTablePos(TablePos tablePos) {
       this.tablePos = tablePos;
    }
 
@@ -113,7 +113,7 @@ public class SignaturePlaceholderData {
       return profile;
    }
 
-   void setProfile(String profile) {
+   public void setProfile(String profile) {
       this.profile = profile;
    }
 
@@ -125,7 +125,7 @@ public class SignaturePlaceholderData {
       return type;
    }
 
-   void setType(String type) {
+   public void setType(String type) {
       this.type = type;
    }
 
@@ -138,7 +138,7 @@ public class SignaturePlaceholderData {
       return key;
    }
 
-   void setKey(String key) {
+   public void setKey(String key) {
       this.key = key;
    }
 
@@ -146,7 +146,7 @@ public class SignaturePlaceholderData {
       return getClass().toString() + ": profile=" + profile + "; type=" + type + "; sigKey=" + key + "; table pos=" + tablePos;
    }
 
-   void setPlaceholderName(String name) {
+   public void setPlaceholderName(String name) {
       this.placeholderName = name;
    }
 
@@ -168,7 +168,7 @@ public class SignaturePlaceholderData {
       return id;
    }
 
-   void setId(String id) {
+   public void setId(String id) {
       this.id = id;
    }
 

@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.DNUtils;
 import at.gv.egiz.pdfas.common.utils.OgnlUtils;
-import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 public class CertificateResolver implements IResolver {
@@ -47,7 +46,6 @@ public class CertificateResolver implements IResolver {
 
     private OgnlContext ctx;
     private X509Certificate certificate;
-    private OperationStatus operationStatus;
 
     public CertificateResolver(X509Certificate certificate, OperationStatus operationStatus) {
         this.certificate = certificate;
@@ -71,7 +69,7 @@ public class CertificateResolver implements IResolver {
 
         Map<String, String> iuiMap = new HashMap<String, String>();
         try {
-        	iuiMap.put("pdfVersion", String.valueOf(operationStatus.getPdfObject().getDocument().getDocument().getVersion()));
+        	iuiMap.put("pdfVersion", operationStatus.getPdfObject().getPDFVersion());
         } catch(Throwable e) {
         	logger.warn("Cannot determine pdfVersion: " + e.getMessage());
         }

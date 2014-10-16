@@ -24,7 +24,6 @@
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 
 /**
  * Created with IntelliJ IDEA.

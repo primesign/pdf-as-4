@@ -138,23 +138,23 @@ public class VerifierDispatcher {
 				while (it.hasNext()) {
 					FilterEntry entry = it.next();
 					HashMap<String, IVerifyFilter> filters = filterMap
-							.get(entry.getFilter().getName());
+							.get(entry.getFilter());
 					if (filters == null) {
 						filters = new HashMap<String, IVerifyFilter>();
-						filterMap.put(entry.getFilter().getName(), filters);
+						filterMap.put(entry.getFilter(), filters);
 					}
 
 					IVerifyFilter oldFilter = filters.get(entry.getSubFilter()
-							.getName());
+							);
 
 					if (oldFilter != null) {
 						throw new PdfAsException("Filter allready registered");
 					}
 
-					filters.put(entry.getSubFilter().getName(), filter);
+					filters.put(entry.getSubFilter(), filter);
 					logger.debug("Registered Filter: " + cls.getName()
-							+ " for " + entry.getFilter().getName() + "/"
-							+ entry.getSubFilter().getName());
+							+ " for " + entry.getFilter() + "/"
+							+ entry.getSubFilter());
 				}
 			}
 		} catch (Throwable e) {

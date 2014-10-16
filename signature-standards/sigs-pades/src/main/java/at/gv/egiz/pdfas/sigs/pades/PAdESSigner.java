@@ -24,19 +24,16 @@
 package at.gv.egiz.pdfas.sigs.pades;
 
 import iaik.x509.X509Certificate;
-
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.sl.util.ISLConnector;
 import at.gv.egiz.sl.util.ISignatureConnector;
 import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
-import at.gv.egiz.sl.util.ISLConnector;
 
-public class PAdESSigner implements IPlainSigner {
-
+public class PAdESSigner implements IPlainSigner, PAdESConstants {
+	
 	private ISignatureConnector plainSigner;
 	
 	public PAdESSigner(ISLConnector connector) {
@@ -57,11 +54,11 @@ public class PAdESSigner implements IPlainSigner {
 	}
 
 	public String getPDFSubFilter() {
-		return PDSignature.SUBFILTER_ETSI_CADES_DETACHED.getName();
+		return SUBFILTER_ETSI_CADES_DETACHED;
 	}
 
 	public String getPDFFilter() {
-		return PDSignature.FILTER_ADOBE_PPKLITE.getName();
+		return FILTER_ADOBE_PPKLITE;
 	}
 
 }

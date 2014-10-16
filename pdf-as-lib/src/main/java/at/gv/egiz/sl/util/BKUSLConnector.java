@@ -38,12 +38,12 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.exceptions.SLPdfAsException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -114,7 +114,7 @@ public class BKUSLConnector extends BaseSLConnector {
 			logger.trace(result.toString());
 			return result.toString();
 		} catch (PDFIOException e) {
-			throw new WrappedIOException(e);
+			throw new PdfAsWrappedIOException(e);
 		} finally {
 			if(client != null) {
 				client.close();

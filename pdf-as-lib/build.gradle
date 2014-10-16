@@ -55,7 +55,6 @@ repositories {
 
 dependencies {
 	compile project (':pdf-as-common')
-	compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.7'
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2'
 	compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.3.5'
 	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.3.5'

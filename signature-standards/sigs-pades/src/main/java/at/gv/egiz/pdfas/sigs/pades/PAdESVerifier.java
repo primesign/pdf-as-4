@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +39,7 @@ import at.gv.egiz.pdfas.lib.impl.verify.IVerifier;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 
-public class PAdESVerifier implements IVerifyFilter {
+public class PAdESVerifier implements IVerifyFilter, PAdESConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESVerifier.class);
@@ -73,8 +72,8 @@ public class PAdESVerifier implements IVerifyFilter {
 
 	public List<FilterEntry> getFiters() {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
-		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE,
-				PDSignature.SUBFILTER_ETSI_CADES_DETACHED));
+		result.add(new FilterEntry(FILTER_ADOBE_PPKLITE,
+				SUBFILTER_ETSI_CADES_DETACHED));
 		return result;
 	}
 

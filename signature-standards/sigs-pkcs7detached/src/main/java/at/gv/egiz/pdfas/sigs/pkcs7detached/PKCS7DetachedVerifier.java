@@ -23,35 +23,23 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.sigs.pkcs7detached;
 
-import iaik.asn1.ObjectID;
-import iaik.asn1.structures.AlgorithmID;
-import iaik.cms.ContentInfo;
-import iaik.cms.SignedData;
-import iaik.cms.SignerInfo;
-import iaik.x509.X509Certificate;
-
-import java.io.ByteArrayInputStream;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.verify.FilterEntry;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifier;
 import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
-import at.gv.egiz.pdfas.lib.impl.verify.SignatureCheckImpl;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 
-public class PKCS7DetachedVerifier implements IVerifyFilter {
+public class PKCS7DetachedVerifier implements IVerifyFilter, PKCS7DetachedConstants {
 
 	private static final Logger logger = LoggerFactory.getLogger(PKCS7DetachedVerifier.class);
 	
@@ -78,8 +66,7 @@ public class PKCS7DetachedVerifier implements IVerifyFilter {
 
 	public List<FilterEntry> getFiters() {
 		List<FilterEntry> result = new ArrayList<FilterEntry>();
-		result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED));
-		//result.add(new FilterEntry(PDSignature.FILTER_ADOBE_PPKLITE, PDSignature.SUBFILTER_ETSI_CADES_DETACHED));
+		result.add(new FilterEntry(FILTER_ADOBE_PPKLITE, SUBFILTER_ADBE_PKCS7_DETACHED));
 		return result;
 	}
 

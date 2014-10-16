@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +64,8 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 
-public class PAdESSignerKeystore implements IPlainSigner {
+public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 
-	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESSignerKeystore.class);
 
@@ -257,11 +255,11 @@ public class PAdESSignerKeystore implements IPlainSigner {
 	}
 
 	public String getPDFSubFilter() {
-		return PDSignature.SUBFILTER_ETSI_CADES_DETACHED.getName();
+		return SUBFILTER_ETSI_CADES_DETACHED;
 	}
 
 	public String getPDFFilter() {
-		return PDSignature.FILTER_ADOBE_PPKLITE.getName();
+		return FILTER_ADOBE_PPKLITE;
 	}
 
 }

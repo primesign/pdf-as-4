@@ -23,29 +23,29 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.verify;
 
-import org.apache.pdfbox.cos.COSName;
-
 public class FilterEntry {
-	private COSName filter;
-	private COSName subFilter;
-	
-	public FilterEntry(COSName filter, COSName subfilter) {
+	private String filter;
+	private String subFilter;
+
+	public FilterEntry(String filter, String subfilter) {
 		this.filter = filter;
 		this.subFilter = subfilter;
 	}
-	
-	public COSName getFilter() {
+
+	public String getFilter() {
 		return filter;
 	}
-	public void setFilter(COSName filter) {
+
+	public void setFilter(String filter) {
 		this.filter = filter;
 	}
-	public COSName getSubFilter() {
+
+	public String getSubFilter() {
 		return subFilter;
 	}
-	public void setSubFilter(COSName subFilter) {
+
+	public void setSubFilter(String subFilter) {
 		this.subFilter = subFilter;
 	}
-	
-	
+
 }

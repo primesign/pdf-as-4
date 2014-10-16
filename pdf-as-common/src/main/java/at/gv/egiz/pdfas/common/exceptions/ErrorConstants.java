@@ -5,6 +5,7 @@ public interface ErrorConstants {
 	
 	public static final long ERROR_GENERIC = 10000;
 	public static final long ERROR_NO_INPUT = 10001;
+	public static final long ERROR_NO_BACKEND = 10002;
 	
 	// Signature Errors
 	public static final long ERROR_SIG_INVALID_STATUS = 11004;

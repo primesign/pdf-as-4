@@ -43,7 +43,6 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.util.Date;
 
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +56,7 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
  * Creates a PKCS7 detached PDF signature
  *
  */
-public class PKCS7DetachedSigner implements IPlainSigner {
+public class PKCS7DetachedSigner implements IPlainSigner, PKCS7DetachedConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PKCS7DetachedSigner.class);
@@ -119,11 +118,11 @@ public class PKCS7DetachedSigner implements IPlainSigner {
 	}
 
 	public String getPDFSubFilter() {
-		return PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED.getName();
+		return SUBFILTER_ADBE_PKCS7_DETACHED;
 	}
 
 	public String getPDFFilter() {
-		return PDSignature.FILTER_ADOBE_PPKLITE.getName();
+		return FILTER_ADOBE_PPKLITE;
 	}
 
 }
