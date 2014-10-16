@@ -1,6 +1,7 @@
 package at.gv.egiz.pdfas.lib.api.preprocessor;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 
@@ -10,7 +11,15 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 public interface PreProcessor {
 	
 	/**
-	 * Sign.
+	 * Initialize this instance. This Method is called once when the 
+	 * PreProcessor is constructed!
+	 *
+	 * @param configuration the configuration
+	 */
+	public void initialize(Configuration configuration);
+	
+	/**
+	 * Sign. This Method is called once for each sign call.
 	 *
 	 * @param parameter the parameter
 	 * @throws PDFASError the PDFAS error
@@ -18,7 +27,7 @@ public interface PreProcessor {
 	public void sign(SignParameter parameter) throws PDFASError;
 	
 	/**
-	 * Verify.
+	 * Verify. This Method is called once for each verify call.
 	 *
 	 * @param parameter the parameter
 	 * @throws PDFASError the PDFAS error
@@ -27,9 +36,20 @@ public interface PreProcessor {
 	
 	
 	/**
-	 * Registration position.
-	 *
+	 * The Position in which the PreProcessor should be registered.
+	 * Lowest positions will be executed first.
+	 * 
+	 * Negative values mean that PDF-AS chooses where to register the PreProcessor
+	 * This should be used if the PreProcessor has no dependencies.
+	 * 
 	 * @return the int
 	 */
 	public int registrationPosition();
+	
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
+	public String getName();
 }

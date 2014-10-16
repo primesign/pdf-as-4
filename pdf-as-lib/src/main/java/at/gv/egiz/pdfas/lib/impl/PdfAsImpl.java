@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -61,6 +62,7 @@ import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
+import at.gv.egiz.pdfas.lib.api.preprocessor.PreProcessor;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
@@ -68,6 +70,7 @@ import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 import at.gv.egiz.pdfas.lib.impl.positioning.Positioning;
+import at.gv.egiz.pdfas.lib.impl.preprocessor.PreProcessorLoader;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.PdfSignerFactory;
 import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PdfboxSignerWrapper;
@@ -155,6 +158,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				throw new PdfAsSettingsException("Invalid settings object!");
 			}
 
+			// execute pre Processors
+			signPreProcessing(parameter);
+			
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			status = new OperationStatus(settings, parameter);
 
@@ -217,6 +223,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 		verifyVerifyParameter(parameter);
 
+		// execute pre Processors
+		verifyPreProcessing(parameter);
+		
 		int signatureToVerify = parameter.getWhichSignature();
 		int currentSignature = 0;
 		PDDocument doc = null;
@@ -369,6 +378,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				throw new PdfAsSettingsException("Invalid settings object!");
 			}
 
+			// execute pre Processors
+			signPreProcessing(parameter);
+			
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			OperationStatus status = new OperationStatus(settings, parameter);
 
@@ -502,6 +514,56 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		}
 	}
 
+	private void listPreProcessors(List<PreProcessor> preProcessors) {
+		logger.debug("--------------");
+		logger.debug("Listing PreProcessors:");
+		
+		Iterator<PreProcessor> preProcessorsIterator = preProcessors.iterator();
+		int idx = 0;
+		while(preProcessorsIterator.hasNext()) {
+			PreProcessor preProcessor = preProcessorsIterator.next();
+			logger.debug("{}: {} [{}]", idx, preProcessor.getName(), preProcessor.getClass().getName());
+			idx++;
+		}
+		logger.debug("--------------");
+	}
+	
+	private void verifyPreProcessing(VerifyParameter parameter) throws PDFASError {
+		List<PreProcessor> preProcessors = PreProcessorLoader.getPreProcessors(parameter.getConfiguration());
+		
+		listPreProcessors(preProcessors);
+		
+		logger.debug("executing PreProcessors for verifing:");
+		Iterator<PreProcessor> preProcessorsIterator = preProcessors.iterator();
+		
+		while(preProcessorsIterator.hasNext()) {
+			PreProcessor preProcessor = preProcessorsIterator.next();
+			logger.debug("executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+			preProcessor.verify(parameter);
+			logger.debug("done executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+		}
+		
+		logger.debug("executing PreProcessors for verifing done");
+	}
+	
+	private void signPreProcessing(SignParameter parameter) throws PDFASError {
+		List<PreProcessor> preProcessors = PreProcessorLoader.getPreProcessors(parameter.getConfiguration());
+		
+		listPreProcessors(preProcessors);
+		
+		logger.debug("executing PreProcessors for signing:");
+		Iterator<PreProcessor> preProcessorsIterator = preProcessors.iterator();
+		
+		while(preProcessorsIterator.hasNext()) {
+			PreProcessor preProcessor = preProcessorsIterator.next();
+			logger.debug("executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+			preProcessor.sign(parameter);
+			logger.debug("done executing: {} [{}]", preProcessor.getName(), preProcessor.getClass().getName());
+		}
+		
+		logger.debug("executing PreProcessors for signing done");
+	}
+	
 	private SignResult createSignResult(OperationStatus status)
 			throws IOException {
 		// ================================================================
