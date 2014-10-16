@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
+import java.util.Map;
+
 /**
  * Configuration interface
  *
@@ -77,4 +79,12 @@ public interface Configuration {
 	 * @param configurationPrefix The configuration key prefix
 	 */
 	public void removeProfile(String configurationPrefix);
+	
+	/**
+	 * Gets the values prefix.
+	 *
+	 * @param prefix the prefix
+	 * @return the values prefix
+	 */
+	public Map<String, String> getValuesPrefix(String prefix);
 }
