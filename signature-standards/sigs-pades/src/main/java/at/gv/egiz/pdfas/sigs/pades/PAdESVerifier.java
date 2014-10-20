@@ -41,19 +41,13 @@ import at.gv.egiz.pdfas.lib.impl.verify.VerifyResultImpl;
 
 public class PAdESVerifier implements IVerifyFilter, PAdESConstants {
 
+	@SuppressWarnings("unused")
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESVerifier.class);
-
-	private static final String MOA_VERIFY_URL = "moa.verify.url";
-	private static final String MOA_VERIFY_TRUSTPROFILE = "moa.verify.TrustProfileID";
-
-	private String moaEndpoint;
-	private String moaTrustProfile;
 
 	public PAdESVerifier() {
 	}
 
-	@SuppressWarnings("rawtypes")
 	public List<VerifyResult> verify(byte[] contentData,
 			byte[] signatureContent, Date verificationTime, int[] byteRange, IVerifier verifier)
 			throws PdfAsException {
@@ -78,8 +72,7 @@ public class PAdESVerifier implements IVerifyFilter, PAdESConstants {
 	}
 
 	public void setConfiguration(Configuration config) {
-		this.moaEndpoint = config.getValue(MOA_VERIFY_URL);
-		this.moaTrustProfile = config.getValue(MOA_VERIFY_TRUSTPROFILE);
+		// NOP
 	}
 
 }
