@@ -39,7 +39,20 @@ public class SignatureProfileConfiguration extends SpecificBaseConfiguration
 
 	public boolean isVisualSignature() {
 		String key = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + TABLE + SEPERATOR + MAIN;
-		return this.configuration.hasPrefix(key);
+		
+		String isVisibleKey = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + ISVISIBLE;
+		
+		String isVisibleValue = this.configuration.getValue(isVisibleKey);
+		
+		boolean isVisible = true;
+		
+		if(isVisibleValue != null) {
+			if(isVisibleValue.equals(FALSE)) {
+				isVisible = false;
+			}
+		}
+		
+		return this.configuration.hasPrefix(key) && isVisible;
 	}
 	
 	public String getDefaultPositioning() {
