@@ -27,15 +27,12 @@ import iaik.x509.X509Certificate;
 
 import java.awt.Image;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,9 +61,6 @@ import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
-import at.gv.egiz.pdfas.lib.impl.verify.IVerifier;
-import at.gv.egiz.pdfas.lib.impl.verify.IVerifyFilter;
-import at.gv.egiz.pdfas.lib.impl.verify.VerifierDispatcher;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 
 public class PdfAsImpl implements PdfAs, IConfigurationConstants,

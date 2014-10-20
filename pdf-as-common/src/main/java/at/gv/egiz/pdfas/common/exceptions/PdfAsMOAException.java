@@ -49,4 +49,36 @@ public class PdfAsMOAException extends PdfAsException {
 	protected String localizeMessage(String msgId) {
         return String.format(MessageResolver.resolveMessage(msgId), errorResponse, errorCode, faultCode, faultString);
     }
+
+	public String getFaultCode() {
+		return faultCode;
+	}
+
+	public void setFaultCode(String faultCode) {
+		this.faultCode = faultCode;
+	}
+
+	public String getFaultString() {
+		return faultString;
+	}
+
+	public void setFaultString(String faultString) {
+		this.faultString = faultString;
+	}
+
+	public String getErrorResponse() {
+		return errorResponse;
+	}
+
+	public void setErrorResponse(String errorResponse) {
+		this.errorResponse = errorResponse;
+	}
+
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
 }
