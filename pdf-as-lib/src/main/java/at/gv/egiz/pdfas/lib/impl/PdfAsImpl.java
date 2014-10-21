@@ -26,7 +26,6 @@ package at.gv.egiz.pdfas.lib.impl;
 import iaik.x509.X509Certificate;
 
 import java.awt.Image;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
@@ -450,9 +449,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			throws IOException {
 		// ================================================================
 		// Create SignResult
-		SignResultImpl result = new SignResultImpl(new ByteArrayInputStream(
-				status.getPdfObject().getSignedDocument()));
-
+		SignResultImpl result = new SignResultImpl();
+		status.getSignParamter().getSignatureResult().write(status.getPdfObject().getSignedDocument());
+		status.getSignParamter().getSignatureResult().flush();
 		result.setSignerCertificate(status.getRequestedSignature()
 				.getCertificate());
 		result.setSignaturePosition(status.getRequestedSignature()

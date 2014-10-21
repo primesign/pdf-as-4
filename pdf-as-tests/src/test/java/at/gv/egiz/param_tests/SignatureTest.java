@@ -101,9 +101,9 @@ public class SignatureTest {
         pdfAs = PdfAsFactory.createPdfAs(new File(baseTestData
                 .getConfigurationFile()));
         Configuration configuration = pdfAs.getConfiguration();
-
+        FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
         signParameter = PdfAsFactory.createSignParameter(configuration,
-                dataSource);
+                dataSource, fos);
 
         String id = UUID.randomUUID().toString();
         signParameter.setTransactionId(id);
@@ -157,11 +157,9 @@ public class SignatureTest {
         signParameter.setSignatureProfileId(baseTestData.getProfilID());
         logger.debug("Starting signature for " + baseTestData.getPdfFile());
         logger.debug("Selected signature Profile " + baseTestData.getProfilID());
-        SignResult result = pdfAs.sign(signParameter);
-        FileOutputStream fos = null;
+        @SuppressWarnings("unused")
+		SignResult result = pdfAs.sign(signParameter);
         try {
-            fos = new FileOutputStream(outputPdfFile, false);
-            IOUtils.copy(result.getOutputDocument(), fos);
             fos.close();
         } catch (IOException e) {
             logger.debug("IO exception occured while writing PDF output file",

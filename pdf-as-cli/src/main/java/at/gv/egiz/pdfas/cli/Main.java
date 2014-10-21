@@ -39,7 +39,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.io.IOUtils;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
@@ -51,8 +50,8 @@ import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.moa.MOAConnector;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
@@ -334,9 +333,9 @@ public class Main {
 		pdfAs = PdfAsFactory.createPdfAs(new File(configurationFile));
 
 		Configuration configuration = pdfAs.getConfiguration();
-
+		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
 		SignParameter signParameter = PdfAsFactory.createSignParameter(
-				configuration, dataSource);
+				configuration, dataSource, fos);
 
 		String id = UUID.randomUUID().toString();
 		signParameter.setTransactionId(id);
@@ -415,10 +414,9 @@ public class Main {
 		signParameter.setSignatureProfileId(profilID);
 		System.out.println("Starting signature for " + pdfFile);
 		System.out.println("Selected signature Profile " + profilID);
+		
+		@SuppressWarnings("unused")
 		SignResult result = pdfAs.sign(signParameter);
-
-		FileOutputStream fos = new FileOutputStream(outputPdfFile, false);
-		IOUtils.copy(result.getOutputDocument(), fos);
 
 		fos.close();
 		System.out.println("Signed document " + outputFile);

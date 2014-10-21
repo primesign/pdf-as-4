@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import java.io.OutputStream;
+
 import javax.activation.DataSource;
 
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -34,10 +36,12 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	protected String signaturePosition = null;
 	protected DataSource output = null;
 	protected IPlainSigner signer = null;
+	protected OutputStream outputStream = null;
 	
 	public SignParameterImpl(Configuration configuration, 
-			DataSource dataSource) {
+			DataSource dataSource, OutputStream outputStream) {
 		super(configuration, dataSource);
+		this.outputStream = outputStream;
 	}
 
 	// ========================================================================
@@ -58,20 +62,17 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 		this.signaturePosition = signaturePosition;
 	}
 
-	public void setOutput(DataSource output) {
-		this.output = output;
-	}
-
-	public DataSource getOutput() {
-		return this.output;
-	}
-
 	public void setPlainSigner(IPlainSigner signer) {
 		this.signer = signer;
 	}
 	
 	public IPlainSigner getPlainSigner() {
 		return this.signer;
+	}
+
+	@Override
+	public OutputStream getSignatureResult() {
+		return outputStream;
 	}
 	
 }

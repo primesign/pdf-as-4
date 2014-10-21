@@ -106,10 +106,10 @@ public class SignParameterWrapper {
 
 	public void syncNewToOld(SignResult result) throws PdfAsException {
 		try {
-			OutputStream os = this.signParameters.getOutput()
-					.createOutputStream("application/pdf");
-			IOUtils.copy(result.getOutputDocument(), os);
-			os.close();
+			//OutputStream os = this.signParameters.getOutput()
+			//		.createOutputStream("application/pdf");
+			//IOUtils.copy(result.getOutputDocument(), os);
+			//os.close();
 		} catch (Exception e) {
 			throw new PdfAsException(ErrorCode.SIGNATURE_COULDNT_BE_CREATED,
 					e.getMessage());

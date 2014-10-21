@@ -49,7 +49,6 @@ import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +88,7 @@ public class PdfAsHelper {
 
 	private static final String PDF_CONFIG = "PDF_CONFIG";
 	private static final String PDF_STATUS = "PDF_STATUS";
+	private static final String PDF_OUTPUT = "PDF_OUTPUT";
 	private static final String PDF_SL_CONNECTOR = "PDF_SL_CONNECTOR";
 	private static final String PDF_SIGNER = "PDF_SIGNER";
 	private static final String PDF_SL_INTERACTIVE = "PDF_SL_INTERACTIVE";
@@ -338,9 +338,11 @@ public class PdfAsHelper {
 
 		Configuration config = pdfAs.getConfiguration();
 
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
 		// Generate Sign Parameter
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
-				new ByteArrayDataSource(pdfData));
+				new ByteArrayDataSource(pdfData), baos);
 
 		// Get Connector
 		String connector = PdfAsParameterExtractor.getConnector(request);
@@ -374,7 +376,7 @@ public class PdfAsHelper {
 
 		SignResult result = pdfAs.sign(signParameter);
 
-		return IOUtils.toByteArray(result.getOutputDocument());
+		return baos.toByteArray();
 	}
 
 	/**
@@ -393,9 +395,11 @@ public class PdfAsHelper {
 			PDFASSignParameters params) throws Exception {
 		Configuration config = pdfAs.getConfiguration();
 
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		
 		// Generate Sign Parameter
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
-				new ByteArrayDataSource(pdfData));
+				new ByteArrayDataSource(pdfData), baos);
 
 		// Get Connector
 
@@ -435,8 +439,7 @@ public class PdfAsHelper {
 		SignResult signResult = pdfAs.sign(signParameter);
 
 		PDFASSignResponse signResponse = new PDFASSignResponse();
-		signResponse.setSignedPDF(IOUtils.toByteArray(signResult
-				.getOutputDocument()));
+		signResponse.setSignedPDF(baos.toByteArray());
 
 		PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
 
@@ -471,9 +474,12 @@ public class PdfAsHelper {
 		Configuration config = pdfAs.getConfiguration();
 		session.setAttribute(PDF_CONFIG, config);
 
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		session.setAttribute(PDF_OUTPUT, baos);
+		
 		// Generate Sign Parameter
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
-				new ByteArrayDataSource(pdfData));
+				new ByteArrayDataSource(pdfData), baos);
 
 		logger.info("Setting TransactionID: " + transactionId);
 
@@ -532,7 +538,7 @@ public class PdfAsHelper {
 				PdfAsHelper.class.getResourceAsStream("/qualified.cer"));
 		Configuration config = pdfAs.getConfiguration();
 		SignParameter parameter = PdfAsFactory
-				.createSignParameter(config, null);
+				.createSignParameter(config, null, null);
 		parameter.setSignatureProfileId(profile);
 		Image img = pdfAs.generateVisibleSignaturePreview(parameter, cert,
 				resolution);
@@ -677,13 +683,14 @@ public class PdfAsHelper {
 				logger.debug("Document ready!");
 
 				SignResult result = pdfAs.finishSign(statusRequest);
-
-				byte[] signedPdf = IOUtils.toByteArray(result
-						.getOutputDocument());
-
+				
+				ByteArrayOutputStream baos = (ByteArrayOutputStream) session
+						.getAttribute(PDF_OUTPUT);
+				baos.close();
+				
 				PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
 				List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(
-						signedPdf, -2,
+						baos.toByteArray(), -2,
 						PdfAsHelper.getVerificationLevel(request), null);
 
 				if (verResults.size() != 1) {
@@ -698,7 +705,7 @@ public class PdfAsHelper {
 						.getCode());
 
 				PdfAsHelper.setPDFASVerificationResponse(request, verResponse);
-				PdfAsHelper.setSignedPdf(request, response, signedPdf);
+				PdfAsHelper.setSignedPdf(request, response, baos.toByteArray());
 				PdfAsHelper.gotoProvidePdf(context, request, response);
 
 				String signerCert = Base64.encodeBase64String(result

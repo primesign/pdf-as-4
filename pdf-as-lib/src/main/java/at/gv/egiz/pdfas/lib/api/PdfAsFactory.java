@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.Provider;
 import java.security.Security;
 import java.util.zip.ZipEntry;
@@ -188,8 +189,8 @@ public class PdfAsFactory implements IConfigurationConstants {
 	 * @return
 	 */
 	public static SignParameter createSignParameter(
-			Configuration configuration, DataSource dataSource) {
-		SignParameter param = new SignParameterImpl(configuration, dataSource);
+			Configuration configuration, DataSource dataSource, OutputStream output) {
+		SignParameter param = new SignParameterImpl(configuration, dataSource, output);
 		return param;
 	}
 

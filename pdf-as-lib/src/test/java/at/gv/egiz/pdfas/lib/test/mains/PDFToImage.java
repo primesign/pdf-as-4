@@ -4,6 +4,7 @@ import iaik.x509.X509Certificate;
 
 import java.awt.Image;
 import java.awt.image.RenderedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -59,8 +60,10 @@ public class PDFToImage {
 				X509Certificate cert = new X509Certificate(new FileInputStream(
 						"/home/afitzek/qualified.cer"));
 
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				
 				SignParameter parameter = PdfAsFactory.createSignParameter(
-						config, null);
+						config, null, baos);
 				parameter.setSignatureProfileId(profile);
 				Image img = pdfas.generateVisibleSignaturePreview(parameter,
 						cert, 128);

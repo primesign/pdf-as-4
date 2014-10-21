@@ -98,17 +98,16 @@ public class SignaturProfileTest {
 				System.out.println("Testing " + profile);
 
 				DataSource source = new ByteArrayDataSource(input);
-				
+
+				FileOutputStream fos = new FileOutputStream(targetFolder + profile + ".pdf");
 				SignParameter signParameter = PdfAsFactory.createSignParameter(
-						config, source);
+						config, source, fos);
 				
 				signParameter.setPlainSigner(signer);
 				signParameter.setSignatureProfileId(profile);
 				
 				SignResult result = pdfas.sign(signParameter);
 				
-				FileOutputStream fos = new FileOutputStream(targetFolder + profile + ".pdf");
-				IOUtils.copy(result.getOutputDocument(), fos);
 				fos.close();
 			}
 			
@@ -120,17 +119,15 @@ public class SignaturProfileTest {
 				System.out.println("Testing " + profile);
 
 				DataSource source = new ByteArrayDataSource(inputPDFA);
-				
+				FileOutputStream fos = new FileOutputStream(targetFolder + "PDFA_" + profile + ".pdf");
 				SignParameter signParameter = PdfAsFactory.createSignParameter(
-						config, source);
+						config, source, fos);
 				
 				signParameter.setPlainSigner(signer);
 				signParameter.setSignatureProfileId(profile);
 				
 				SignResult result = pdfas.sign(signParameter);
 				
-				FileOutputStream fos = new FileOutputStream(targetFolder + "PDFA_" + profile + ".pdf");
-				IOUtils.copy(result.getOutputDocument(), fos);
 				fos.close();
 			}
 		} catch (Throwable e) {

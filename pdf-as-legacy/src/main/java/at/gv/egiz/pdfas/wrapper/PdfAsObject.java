@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.wrapper;
 import iaik.x509.X509Certificate;
 
 import java.io.File;
+import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
@@ -234,7 +235,9 @@ public class PdfAsObject implements PdfAs {
 
 			SignParameter signParameter4 = PdfAsFactory.createSignParameter(
 					this.configuration, new ByteArrayDataSource(signParameters
-							.getDocument().getAsByteArray()));
+							.getDocument().getAsByteArray()), 
+							signParameters.getOutput()
+							.createOutputStream("application/pdf"));
 
 			SignParameterWrapper wrapper = new SignParameterWrapper(
 					signParameters, signParameter4);
@@ -273,7 +276,10 @@ public class PdfAsObject implements PdfAs {
 			e.printStackTrace();
 			throw new PdfAsException(
 					ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
-			
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new PdfAsException(
+					ErrorCode.SIGNATURE_COULDNT_BE_CREATED, e.getMessage());
 		}
 	}
 

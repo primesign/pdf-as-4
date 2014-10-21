@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api.sign;
 
+import java.io.OutputStream;
+
 import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 
 public interface SignParameter extends PdfAsParameter {
@@ -65,4 +67,10 @@ public interface SignParameter extends PdfAsParameter {
 	 * @return
 	 */
 	public IPlainSigner getPlainSigner();
+	
+	/**
+	 * Gets the outputstream, where the signed document will be written to
+	 * @return
+	 */
+	public OutputStream getSignatureResult();
 }
