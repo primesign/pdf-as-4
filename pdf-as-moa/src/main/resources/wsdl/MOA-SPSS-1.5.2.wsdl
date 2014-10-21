@@ -3,7 +3,7 @@
   Web Service Description for MOA SP/SS 1.4
 -->
 <definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://reference.e-government.gv.at/namespace/moa/20020822#" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:moa="http://reference.e-government.gv.at/namespace/moa/20020822#" xmlns:xsd="http://www.w3.org/1999/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="MOA" targetNamespace="http://reference.e-government.gv.at/namespace/moa/20020822#">
-	<import namespace="http://reference.e-government.gv.at/namespace/moa/20020822#" location="../schemas/MOA-SPSS-1.5.2.xsd"/>
+	<import namespace="http://reference.e-government.gv.at/namespace/moa/20020822#" location="./MOA-SPSS-1.5.2.xsd"/>
 	<message name="CreateCMSSignatureInput">
 		<part name="body" element="moa:CreateCMSSignatureRequest"/>
 	</message>

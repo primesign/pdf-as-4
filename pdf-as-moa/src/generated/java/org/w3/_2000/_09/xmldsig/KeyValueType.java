@@ -67,10 +67,10 @@ public class KeyValueType {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link JAXBElement }{@code <}{@link DSAKeyValueType }{@code >}
      * {@link String }
-     * {@link JAXBElement }{@code <}{@link RSAKeyValueType }{@code >}
      * {@link Object }
+     * {@link JAXBElement }{@code <}{@link DSAKeyValueType }{@code >}
+     * {@link JAXBElement }{@code <}{@link RSAKeyValueType }{@code >}
      * {@link Element }
      * 
      * 
