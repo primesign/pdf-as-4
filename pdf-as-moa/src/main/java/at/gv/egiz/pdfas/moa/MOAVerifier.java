@@ -52,9 +52,9 @@ public class MOAVerifier implements IVerifier {
 		try {
 			logger.info("verification with MOA @ " + this.moaEndpoint);
 
-			URL moaUrl = new URL(this.moaEndpoint + "?wsdl");
+			//URL moaUrl = new URL(this.moaEndpoint + "?wsdl");
 			
-			SignatureVerificationService service = new SignatureVerificationService(moaUrl);
+			SignatureVerificationService service = new SignatureVerificationService();
 			
 			SignatureVerificationPortType verificationPort = service.getSignatureVerificationPort();
 			BindingProvider provider = (BindingProvider) verificationPort;

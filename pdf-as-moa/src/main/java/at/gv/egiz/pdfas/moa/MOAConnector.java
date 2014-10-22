@@ -136,13 +136,13 @@ public class MOAConnector implements ISignatureConnector,
 			RequestedSignature requestedSignature) throws PdfAsException {
 		
 		logger.info("signing with MOA @ " + this.moaEndpoint);
-		URL moaUrl;
+		/*URL moaUrl;
 		try {
 			moaUrl = new URL(this.moaEndpoint+"?wsdl");
 		} catch (MalformedURLException e1) {
 			throw new PdfAsException("Invalid MOA endpoint!", e1);
-		}
-		SignatureCreationService service = new SignatureCreationService(moaUrl);
+		}*/
+		SignatureCreationService service = new SignatureCreationService();
 		
 		SignatureCreationPortType creationPort = service.getSignatureCreationPort();
 		BindingProvider provider = (BindingProvider) creationPort;
