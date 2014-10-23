@@ -83,7 +83,7 @@ public abstract class BaseSLConnector implements ISLConnector,
 			if (requestType.equals(SL_REQUEST_TYPE_BASE64)) {
 				base64 = true;
 			} else if (requestType.equals(SL_REQUEST_TYPE_UPLOAD)) {
-				base64 = true;
+				base64 = false;
 			}
 		}
 		byte[] data = PDFUtils.blackOutSignature(signatureData, byteRange);
