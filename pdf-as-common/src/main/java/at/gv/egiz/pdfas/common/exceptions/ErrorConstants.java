@@ -8,7 +8,9 @@ public interface ErrorConstants {
 	public static final long ERROR_NO_BACKEND = 10002;
 	
 	// Signature Errors
+	public static final long ERROR_SIG_FAILED_OPEN_KS = 11002;
 	public static final long ERROR_SIG_INVALID_STATUS = 11004;
+	
 	public static final long ERROR_SIG_INVALID_BKU_SIG = 11008;
 	public static final long ERROR_SIG_INVALID_PROFILE = 11009;
 
@@ -18,4 +20,5 @@ public interface ErrorConstants {
 	
 	// Configuration Errors:
 	public static final long ERROR_SET_INVALID_SETTINGS_OBJ = 13001;
+	public static final long ERROR_INVALID_CERTIFICATE = 13002;
 }

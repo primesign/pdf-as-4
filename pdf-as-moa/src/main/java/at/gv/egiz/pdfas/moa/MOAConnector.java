@@ -75,54 +75,78 @@ public class MOAConnector implements ISignatureConnector,
 	private String moaEndpoint;
 	private String keyIdentifier;
 
+	public MOAConnector(Configuration config,
+			java.security.cert.Certificate certificate)
+			throws CertificateException, FileNotFoundException, IOException {
+		if(certificate != null) {
+			if(certificate instanceof X509Certificate) {
+				this.certificate = (X509Certificate)certificate;
+			} else {
+				this.certificate = new X509Certificate(certificate.getEncoded());
+			}
+		}
+		init(config);
+	}
+
 	public MOAConnector(Configuration config) throws CertificateException,
 			FileNotFoundException, IOException {
-		if (config.getValue(MOA_SIGN_CERTIFICATE) == null) {
-			logger.error(MOA_SIGN_CERTIFICATE
-					+ " not configured for MOA connector");
-			throw new PdfAsWrappedIOException(new PdfAsException(
-					"Please configure: " + MOA_SIGN_CERTIFICATE
-							+ " to use MOA connector"));
-		}
+		init(config);
+	}
 
-		if (!(config instanceof ISettings)) {
-			logger.error("Configuration is no instance of ISettings");
-			throw new PdfAsWrappedIOException(new PdfAsException(
-					"Configuration is no instance of ISettings"));
-		}
+	private void init(Configuration config) throws CertificateException,
+			FileNotFoundException, IOException {
 
-		ISettings settings = (ISettings) config;
+		// Load certificate if not set otherwise
+		if (this.certificate == null) {
 
-		String certificateValue = config.getValue(MOA_SIGN_CERTIFICATE);
-
-		if (certificateValue.startsWith("http")) {
-			logger.info("Loading certificate from url: " + certificateValue);
-			
-			try {
-				URL certificateURL = new URL(certificateValue);
-			
-				this.certificate = new X509Certificate(certificateURL.openStream());
-			} catch(MalformedURLException e) {
-				logger.error(certificateValue
-						+ " is not a valid url but!");
+			if (config.getValue(MOA_SIGN_CERTIFICATE) == null) {
+				logger.error(MOA_SIGN_CERTIFICATE
+						+ " not configured for MOA connector");
 				throw new PdfAsWrappedIOException(new PdfAsException(
-						certificateValue
-						+ " is not a valid url but!"));
-			}
-		} else {
-
-			File certFile = new File(certificateValue);
-			if (!certFile.isAbsolute()) {
-				certificateValue = settings.getWorkingDirectory() + "/"
-						+ config.getValue(MOA_SIGN_CERTIFICATE);
-				certFile = new File(certificateValue);
+						"Please configure: " + MOA_SIGN_CERTIFICATE
+								+ " to use MOA connector"));
 			}
 
-			logger.info("Loading certificate from file: " + certificateValue);
+			if (!(config instanceof ISettings)) {
+				logger.error("Configuration is no instance of ISettings");
+				throw new PdfAsWrappedIOException(new PdfAsException(
+						"Configuration is no instance of ISettings"));
+			}
 
-			this.certificate = new X509Certificate(
-					new FileInputStream(certFile));
+			ISettings settings = (ISettings) config;
+
+			String certificateValue = config.getValue(MOA_SIGN_CERTIFICATE);
+
+			if (certificateValue.startsWith("http")) {
+				logger.info("Loading certificate from url: " + certificateValue);
+
+				try {
+					URL certificateURL = new URL(certificateValue);
+
+					this.certificate = new X509Certificate(
+							certificateURL.openStream());
+				} catch (MalformedURLException e) {
+					logger.error(certificateValue + " is not a valid url but!");
+					throw new PdfAsWrappedIOException(new PdfAsException(
+							certificateValue + " is not a valid url but!"));
+				}
+			} else {
+
+				File certFile = new File(certificateValue);
+				if (!certFile.isAbsolute()) {
+					certificateValue = settings.getWorkingDirectory() + "/"
+							+ config.getValue(MOA_SIGN_CERTIFICATE);
+					certFile = new File(certificateValue);
+				}
+
+				logger.info("Loading certificate from file: "
+						+ certificateValue);
+
+				this.certificate = new X509Certificate(new FileInputStream(
+						certFile));
+			}
 		}
+		
 		this.moaEndpoint = config.getValue(MOA_SIGN_URL);
 		this.keyIdentifier = config.getValue(MOA_SIGN_KEY_ID);
 	}
@@ -134,20 +158,21 @@ public class MOAConnector implements ISignatureConnector,
 
 	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter,
 			RequestedSignature requestedSignature) throws PdfAsException {
-		
+
 		logger.info("signing with MOA @ " + this.moaEndpoint);
-		/*URL moaUrl;
-		try {
-			moaUrl = new URL(this.moaEndpoint+"?wsdl");
-		} catch (MalformedURLException e1) {
-			throw new PdfAsException("Invalid MOA endpoint!", e1);
-		}*/
+		/*
+		 * URL moaUrl; try { moaUrl = new URL(this.moaEndpoint+"?wsdl"); } catch
+		 * (MalformedURLException e1) { throw new
+		 * PdfAsException("Invalid MOA endpoint!", e1); }
+		 */
 		SignatureCreationService service = new SignatureCreationService();
-		
-		SignatureCreationPortType creationPort = service.getSignatureCreationPort();
+
+		SignatureCreationPortType creationPort = service
+				.getSignatureCreationPort();
 		BindingProvider provider = (BindingProvider) creationPort;
-		provider.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, this.moaEndpoint);
-		
+		provider.getRequestContext().put(
+				BindingProvider.ENDPOINT_ADDRESS_PROPERTY, this.moaEndpoint);
+
 		CreateCMSSignatureRequest request = new CreateCMSSignatureRequest();
 		request.setKeyIdentifier(this.keyIdentifier.trim());
 		SingleSignatureInfo sigInfo = new SingleSignatureInfo();
@@ -156,72 +181,69 @@ public class MOAConnector implements ISignatureConnector,
 		dataObjectInfo.setStructure("detached");
 		DataObject dataObject = new DataObject();
 		MetaInfoType metaInfoType = new MetaInfoType();
-		
+
 		metaInfoType.setMimeType("application/pdf");
-		
+
 		dataObject.setMetaInfo(metaInfoType);
-		
+
 		CMSContentBaseType content = new CMSContentBaseType();
 		content.setBase64Content(input);
-		
+
 		dataObject.setContent(content);
-		
+
 		dataObjectInfo.setDataObject(dataObject);
 		sigInfo.setDataObjectInfo(dataObjectInfo);
 		request.getSingleSignatureInfo().add(sigInfo);
-		
+
 		CreateCMSSignatureResponseType response;
 		try {
 			response = creationPort.createCMSSignature(request);
 		} catch (MOAFault e) {
 			logger.error("MOA signing failed!", e);
-			if(e.getFaultInfo() != null) {
-				throw new PdfAsMOAException(e.getFaultInfo().getErrorCode().toString(), 
-					e.getFaultInfo().getInfo(),
-					"", "");
+			if (e.getFaultInfo() != null) {
+				throw new PdfAsMOAException(e.getFaultInfo().getErrorCode()
+						.toString(), e.getFaultInfo().getInfo(), "", "");
 			} else {
-				throw new PdfAsMOAException("", 
-						e.getMessage(),
-						"", "");
+				throw new PdfAsMOAException("", e.getMessage(), "", "");
 			}
 		}
-		
-		if(response.getCMSSignatureOrErrorResponse().size() != 1) {
-			throw new PdfAsException("Invalid Response Count [" + response.getCMSSignatureOrErrorResponse().size()
+
+		if (response.getCMSSignatureOrErrorResponse().size() != 1) {
+			throw new PdfAsException("Invalid Response Count ["
+					+ response.getCMSSignatureOrErrorResponse().size()
 					+ "] from MOA!");
 		}
-		
+
 		Object resp = response.getCMSSignatureOrErrorResponse().get(0);
-		if(resp instanceof byte[]) {
+		if (resp instanceof byte[]) {
 			// done the signature!
-			byte[] cmsSignatureData = (byte[])resp;
+			byte[] cmsSignatureData = (byte[]) resp;
 
 			VerifyResult verifyResult;
 			try {
-				verifyResult = SignatureUtils
-						.verifySignature(cmsSignatureData, input);
+				verifyResult = SignatureUtils.verifySignature(cmsSignatureData,
+						input);
 			} catch (PDFASError e) {
 				throw new PdfAsErrorCarrier(e);
 			}
 
-			if (!StreamUtils.dataCompare(requestedSignature
-					.getCertificate().getFingerprintSHA(),
-					((X509Certificate) verifyResult
-							.getSignerCertificate())
-							.getFingerprintSHA())) {
-				throw new PdfAsSignatureException(
-						"Certificates missmatch!");
+			if (!StreamUtils.dataCompare(requestedSignature.getCertificate()
+					.getFingerprintSHA(), ((X509Certificate) verifyResult
+					.getSignerCertificate()).getFingerprintSHA())) {
+				throw new PdfAsSignatureException("Certificates missmatch!");
 			}
 
 			return cmsSignatureData;
-		} else if(resp instanceof ErrorResponseType) {
+		} else if (resp instanceof ErrorResponseType) {
 			ErrorResponseType err = (ErrorResponseType) resp;
-			
-			throw new PdfAsMOAException("", "",
-					err.getInfo(), err.getErrorCode().toString());
-			
+
+			throw new PdfAsMOAException("", "", err.getInfo(), err
+					.getErrorCode().toString());
+
 		} else {
-			throw new PdfAsException("MOA response is not byte[] nor error but: " + resp.getClass().getName());
+			throw new PdfAsException(
+					"MOA response is not byte[] nor error but: "
+							+ resp.getClass().getName());
 		}
 	}
 }
