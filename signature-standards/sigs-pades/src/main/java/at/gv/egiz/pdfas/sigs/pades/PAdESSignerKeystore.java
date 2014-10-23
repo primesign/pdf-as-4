@@ -49,6 +49,7 @@ import java.security.KeyStore.PrivateKeyEntry;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,6 +58,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
@@ -74,36 +76,7 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 	PrivateKey privKey;
 	X509Certificate cert;
 
-	private void loadKeystore(String file, String alias, String kspassword,
-			String keypassword, String type, String provider) throws Throwable {
-
-		String viusalProvider = (provider == null ? "IAIK" : provider);
-		logger.info("Opening Keystore: " + file + " with [" + viusalProvider
-				+ "]");
-
-		KeyStore ks = null;
-		if (provider == null) {
-			ks = KeyStore.getInstance(type);
-		} else {
-			ks = KeyStore.getInstance(type, provider);
-		}
-
-		if (ks == null) {
-			throw new PdfAsException("error.pdf.sig.14");
-		}
-		if (kspassword == null) {
-			throw new PdfAsException("error.pdf.sig.15");
-		}
-		FileInputStream is = null;
-		try {
-			is = new FileInputStream(file);
-			ks.load(is, kspassword.toCharArray());
-		} finally {
-			if (is != null) {
-				is.close();
-			}
-		}
-
+	private void readKeyStore(KeyStore ks, String alias, String keypassword)  throws Throwable {
 		if (keypassword == null) {
 			throw new PdfAsException("error.pdf.sig.16");
 		}
@@ -142,9 +115,57 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 
 		cert = new X509Certificate(c.getEncoded());
 	}
+	
+	private KeyStore buildKeyStoreFromFile(String file, String kspassword, 
+			String type, String provider)  throws Throwable {
+		String viusalProvider = (provider == null ? "IAIK" : provider);
+		logger.info("Opening Keystore: " + file + " with [" + viusalProvider
+				+ "]");
 
+		KeyStore ks = null;
+		if (provider == null) {
+			ks = KeyStore.getInstance(type);
+		} else {
+			ks = KeyStore.getInstance(type, provider);
+		}
+
+		if (ks == null) {
+			throw new PdfAsException("error.pdf.sig.14");
+		}
+		if (kspassword == null) {
+			throw new PdfAsException("error.pdf.sig.15");
+		}
+		FileInputStream is = null;
+		try {
+			is = new FileInputStream(file);
+			ks.load(is, kspassword.toCharArray());
+		} finally {
+			if (is != null) {
+				is.close();
+			}
+		}
+		return ks;
+	}
+	
+	private void loadKeystore(String file, String alias, String kspassword,
+			String keypassword, String type, String provider) throws Throwable {
+
+		KeyStore ks = buildKeyStoreFromFile(file, kspassword, type, provider);
+
+		readKeyStore(ks, alias, keypassword);
+	}
+
+	public PAdESSignerKeystore(KeyStore ks, String alias,
+			String keypassword) throws PDFASError {
+		try {
+			readKeyStore(ks, alias, keypassword);
+		} catch (Throwable e) {
+			throw new PDFASError(PDFASError.ERROR_SIG_FAILED_OPEN_KS, e);
+		}
+	}
+	
 	public PAdESSignerKeystore(String file, String alias, String kspassword,
-			String keypassword, String type) throws PdfAsException {
+			String keypassword, String type) throws PDFASError {
 		try {
 			// Load keystore with default security provider (IAIK)
 			loadKeystore(file, alias, kspassword, keypassword, type, null);
@@ -158,9 +179,35 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 				logger.error("Keystore IAIK provider error: ", e);
 				logger.error("Keystore " + fallBackProvider
 						+ " provider error: ", e1);
-				throw new PdfAsException("error.pdf.sig.02", e1);
+				throw new PDFASError(PDFASError.ERROR_SIG_FAILED_OPEN_KS, e1);
 			}
 		}
+	}
+	
+	public PAdESSignerKeystore(PrivateKey privKey, java.security.cert.Certificate cert) throws PDFASError {
+		if(cert == null) {
+			logger.error("PAdESSignerKeystore provided certificate is NULL");
+			throw new NullPointerException();
+		}
+		
+		if(privKey == null) {
+			logger.error("PAdESSignerKeystore provided private Key is NULL");
+			throw new NullPointerException();
+		}
+		
+		if(cert instanceof X509Certificate) {
+			this.cert = (X509Certificate)cert;
+		} else {
+			try {
+				this.cert = new X509Certificate(cert.getEncoded());
+			} catch (CertificateEncodingException e) {
+				throw new PDFASError(PDFASError.ERROR_INVALID_CERTIFICATE, e);
+			} catch (CertificateException e) {
+				throw new PDFASError(PDFASError.ERROR_INVALID_CERTIFICATE, e);
+			}
+		}
+		
+		this.privKey = privKey;
 	}
 
 	public X509Certificate getCertificate(SignParameter parameter) {
