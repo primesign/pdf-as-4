@@ -82,20 +82,28 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 				+ "]");
 
 		KeyStore ks = null;
-		if(provider == null) {
+		if (provider == null) {
 			ks = KeyStore.getInstance(type);
 		} else {
 			ks = KeyStore.getInstance(type, provider);
 		}
-		
+
 		if (ks == null) {
 			throw new PdfAsException("error.pdf.sig.14");
 		}
 		if (kspassword == null) {
 			throw new PdfAsException("error.pdf.sig.15");
 		}
+		FileInputStream is = null;
+		try {
+			is = new FileInputStream(file);
+			ks.load(is, kspassword.toCharArray());
+		} finally {
+			if (is != null) {
+				is.close();
+			}
+		}
 
-		ks.load(new FileInputStream(file), kspassword.toCharArray());
 		if (keypassword == null) {
 			throw new PdfAsException("error.pdf.sig.16");
 		}
@@ -148,7 +156,8 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 				logger.warn("Failed to open Keystore with IAIK provider!");
 			} catch (Throwable e1) {
 				logger.error("Keystore IAIK provider error: ", e);
-				logger.error("Keystore " + fallBackProvider +  " provider error: ", e1);
+				logger.error("Keystore " + fallBackProvider
+						+ " provider error: ", e1);
 				throw new PdfAsException("error.pdf.sig.02", e1);
 			}
 		}
