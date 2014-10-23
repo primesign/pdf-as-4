@@ -77,7 +77,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			String timeZone = settings.getProfileTimeZone();
 			
 			if(timeZone != null) {
-				fdf.setTimeZone(TimeZone.getTimeZone("timeZone"));
+				fdf.setTimeZone(TimeZone.getTimeZone(timeZone));
 			}
 			Calendar cal = Calendar.getInstance();
 			return fdf.format(cal.getTime());
