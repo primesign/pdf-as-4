@@ -215,7 +215,7 @@ public class TableDrawUtils {
 			ascent = ascent / 1000.0f * fontSize;
 			descent = descent / 1000.0f * fontSize;
 			
-			ty = ty + (descent * (-1));
+			//ty = ty + (descent * (-1));
 			
 			logger.debug("Text tx {} ty {} maxWidth {} textHeight {}", tx, ty,
 					maxWidth, textHeight);
@@ -236,9 +236,9 @@ public class TableDrawUtils {
 				contentStream.setFont(textFont, fontSize);
 			}
 
-			logger.debug("Writing: " + tx + " : " + (ty - fontSize) + " as "
+			logger.debug("Writing: " + tx + " : " + (ty - fontSize + (descent * (-1))) + " as "
 					+ cell.getType());
-			contentStream.moveTextPositionByAmount(tx, (ty - fontSize));
+			contentStream.moveTextPositionByAmount(tx, (ty - fontSize + (descent * (-1))));
 
 			contentStream.appendRawCommands(fontSize + " TL\n");
 			for (int k = 0; k < tlines.length; k++) {
