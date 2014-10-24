@@ -109,40 +109,51 @@ public class PdfAsFactory implements IConfigurationConstants {
 			// TODO: register ECCelerate in second position when TLS issue is
 			// fixed
 			registerProvider(new ECCelerate(), -1);
-
-			teeInformation("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
-			teeInformation("+ ECCelerate Version: " + ECCelerate.getInstance().getVersion());
 		} else {
 			logger.info("Skipping Security Provider registration!");
 		}
 	}
 
 	private static void teeInformation(String str) {
-		System.out.println(str);
+		// System.out.println(str);
 		logger.info(str);
 	}
 
 	private static void showRuntimeInformation() {
 		try {
-		RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
-		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-		teeInformation("+ OS Name: " + osBean.getName());
-		teeInformation("+ OS Version: " + osBean.getVersion());
-		teeInformation("+ OS Arch: " + osBean.getArch());
-		teeInformation("+ JAVA Version: " + runtimeBean.getSystemProperties().get("java.runtime.version"));
-		teeInformation("+ JAVA Spec ----------------------------------------------------------");
-		teeInformation("+ JAVA Spec Name: " + runtimeBean.getSpecName());
-		teeInformation("+ JAVA Spec Version: " + runtimeBean.getSpecVersion());
-		teeInformation("+ JAVA Spec Vendor: " + runtimeBean.getSpecVendor());
-		teeInformation("+ JAVA VM ----------------------------------------------------------");
-		teeInformation("+ JAVA VM Name: " + runtimeBean.getVmName());
-		teeInformation("+ JAVA VM Version: " + runtimeBean.getVmVersion());
-		teeInformation("+ JAVA VM Vendor: " + runtimeBean.getVmVendor());
-		} catch(Throwable e) {
+			RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
+			OperatingSystemMXBean osBean = ManagementFactory
+					.getOperatingSystemMXBean();
+			teeInformation("+ OS Name: " + osBean.getName());
+			teeInformation("+ OS Version: " + osBean.getVersion());
+			teeInformation("+ OS Arch: " + osBean.getArch());
+			teeInformation("+ JAVA Version: "
+					+ runtimeBean.getSystemProperties().get(
+							"java.runtime.version"));
+			teeInformation("+ JAVA Spec ----------------------------------------------------------");
+			teeInformation("+ JAVA Spec Name: " + runtimeBean.getSpecName());
+			teeInformation("+ JAVA Spec Version: "
+					+ runtimeBean.getSpecVersion());
+			teeInformation("+ JAVA Spec Vendor: " + runtimeBean.getSpecVendor());
+			teeInformation("+ JAVA VM ----------------------------------------------------------");
+			teeInformation("+ JAVA VM Name: " + runtimeBean.getVmName());
+			teeInformation("+ JAVA VM Version: " + runtimeBean.getVmVersion());
+			teeInformation("+ JAVA VM Vendor: " + runtimeBean.getVmVendor());
+		} catch (Throwable e) {
 			teeInformation("+ Failed to show runtime informations");
 		}
 	}
-	
+
+	private static void showSecProviderInfo() {
+		try {
+		teeInformation("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
+		teeInformation("+ ECCelerate Version: "
+				+ ECCelerate.getInstance().getVersion());
+		} catch (Throwable e) {
+			teeInformation("+ Failed to show security provider informations");
+		}
+	}
+
 	/**
 	 * Configure log.
 	 *
@@ -154,12 +165,12 @@ public class PdfAsFactory implements IConfigurationConstants {
 			synchronized (init_mutex) {
 				if (!initialized) {
 					initialized = true;
-
+					registerSecurityProvider(configuration);
 					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 					teeInformation("+ PDF-AS: " + getVersion());
 					teeInformation("+ PDF-AS SCM Revision: " + getSCMRevision());
 					showRuntimeInformation();
-					registerSecurityProvider(configuration);
+					showSecProviderInfo();
 					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
 					listRegisteredSecurityProviders();
@@ -214,8 +225,10 @@ public class PdfAsFactory implements IConfigurationConstants {
 	 * @return
 	 */
 	public static SignParameter createSignParameter(
-			Configuration configuration, DataSource dataSource, OutputStream output) {
-		SignParameter param = new SignParameterImpl(configuration, dataSource, output);
+			Configuration configuration, DataSource dataSource,
+			OutputStream output) {
+		SignParameter param = new SignParameterImpl(configuration, dataSource,
+				output);
 		return param;
 	}
 
