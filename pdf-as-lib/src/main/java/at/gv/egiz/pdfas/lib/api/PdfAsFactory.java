@@ -32,6 +32,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.security.Provider;
 import java.security.Security;
 import java.util.zip.ZipEntry;
@@ -119,6 +122,27 @@ public class PdfAsFactory implements IConfigurationConstants {
 		logger.info(str);
 	}
 
+	private static void showRuntimeInformation() {
+		try {
+		RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+		teeInformation("+ OS Name: " + osBean.getName());
+		teeInformation("+ OS Version: " + osBean.getVersion());
+		teeInformation("+ OS Arch: " + osBean.getArch());
+		teeInformation("+ JAVA Version: " + runtimeBean.getSystemProperties().get("java.runtime.version"));
+		teeInformation("+ JAVA Spec ----------------------------------------------------------");
+		teeInformation("+ JAVA Spec Name: " + runtimeBean.getSpecName());
+		teeInformation("+ JAVA Spec Version: " + runtimeBean.getSpecVersion());
+		teeInformation("+ JAVA Spec Vendor: " + runtimeBean.getSpecVendor());
+		teeInformation("+ JAVA VM ----------------------------------------------------------");
+		teeInformation("+ JAVA VM Name: " + runtimeBean.getVmName());
+		teeInformation("+ JAVA VM Version: " + runtimeBean.getVmVersion());
+		teeInformation("+ JAVA VM Vendor: " + runtimeBean.getVmVendor());
+		} catch(Throwable e) {
+			teeInformation("+ Failed to show runtime informations");
+		}
+	}
+	
 	/**
 	 * Configure log.
 	 *
@@ -134,6 +158,7 @@ public class PdfAsFactory implements IConfigurationConstants {
 					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 					teeInformation("+ PDF-AS: " + getVersion());
 					teeInformation("+ PDF-AS SCM Revision: " + getSCMRevision());
+					showRuntimeInformation();
 					registerSecurityProvider(configuration);
 					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 
