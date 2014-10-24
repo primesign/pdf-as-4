@@ -551,24 +551,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 				if (cell.getType() == Entry.TYPE_IMAGE) {
 					String img_ref = (String) cell.getValue();
 					if (!images.containsKey(img_ref)) {
-						File img_file = new File(img_ref);
-						if (!img_file.isAbsolute()) {
-							logger.debug("Image file declaration is relative. Prepending path of resources directory.");
-							logger.debug("Image Location: "
-									+ settings.getWorkingDirectory()
-									+ File.separator + img_ref);
-							img_file = new File(settings.getWorkingDirectory()
-									+ File.separator + img_ref);
-						} else {
-							logger.debug("Image file declaration is absolute. Skipping file relocation.");
-						}
-
-						if (!img_file.exists()) {
-							logger.debug("Image file \""
-									+ img_file.getCanonicalPath()
-									+ "\" doesn't exist.");
-							throw new PdfAsException("error.pdf.stamp.04");
-						}
+						File img_file = ImageUtils.getImageFile(img_ref, settings);
 
 						BufferedImage img = null;
 						try {

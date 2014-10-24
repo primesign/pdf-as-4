@@ -200,7 +200,7 @@ public class TableFactory implements IProfileConstants {
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
-                            entry.setColSpan(2);
+                            //entry.setColSpan(2);
                             entry.setStyle(defaultValueStyle_);
                             row.add(entry);
                         }
@@ -214,7 +214,7 @@ public class TableFactory implements IProfileConstants {
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
-                            entry.setColSpan(2);
+                            //entry.setColSpan(2);
                             entry.setStyle(defaultCaptionStyle_);
                             row.add(entry);
                         }

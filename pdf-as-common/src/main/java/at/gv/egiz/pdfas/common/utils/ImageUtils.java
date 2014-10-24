@@ -25,14 +25,32 @@ package at.gv.egiz.pdfas.common.utils;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
 
 public class ImageUtils {
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(ImageUtils.class);
 	
 	public static BufferedImage removeAlphaChannel(BufferedImage src) {
 		if (src.getColorModel().hasAlpha())
@@ -88,5 +106,47 @@ public class ImageUtils {
 				blues, pixel);
 		return new BufferedImage(icm2, raster, image.isAlphaPremultiplied(),
 				null);
+	}
+	
+	public static Dimension getImageDimensions(InputStream is) throws IOException {
+		ImageInputStream in = ImageIO.createImageInputStream(is);
+		try {
+		    final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+		    if (readers.hasNext()) {
+		        ImageReader reader = readers.next();
+		        try {
+		            reader.setInput(in);
+		            return new Dimension(reader.getWidth(0), reader.getHeight(0));
+		        } finally {
+		            reader.dispose();
+		        }
+		    }
+		    throw new IOException("Failed to read Image file");
+		} finally {
+		    if (in != null) in.close();
+		}
+	}
+	
+	public static File getImageFile(String imageFile, ISettings settings) throws PdfAsException, IOException {
+		File img_file = new File(imageFile);
+		if (!img_file.isAbsolute()) {
+			logger.debug("Image file declaration is relative. Prepending path of resources directory.");
+			logger.debug("Image Location: "
+					+ settings.getWorkingDirectory()
+					+ File.separator + imageFile);
+			img_file = new File(settings.getWorkingDirectory()
+					+ File.separator + imageFile);
+		} else {
+			logger.debug("Image file declaration is absolute. Skipping file relocation.");
+		}
+
+		if (!img_file.exists()) {
+			logger.debug("Image file \""
+					+ img_file.getCanonicalPath()
+					+ "\" doesn't exist.");
+			throw new PdfAsException("error.pdf.stamp.04");
+		}
+		
+		return img_file;
 	}
 }

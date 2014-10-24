@@ -25,12 +25,19 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class PdfBoxVisualObject implements IPDFVisualObject {
 
+	private static final Logger logger = LoggerFactory
+			.getLogger(PdfBoxVisualObject.class);
+	
 	private Table abstractTable;
 	private PDFBoxTable table;
 	private float width;
@@ -40,7 +47,7 @@ public class PdfBoxVisualObject implements IPDFVisualObject {
 	private ISettings settings;
 
 	public PdfBoxVisualObject(Table table, ISettings settings)
-			throws IOException {
+			throws IOException, PdfAsException {
 		this.abstractTable = table;
 		this.table = new PDFBoxTable(table, null, settings);
 		this.settings = settings;
@@ -54,8 +61,9 @@ public class PdfBoxVisualObject implements IPDFVisualObject {
 		try {
 			table = new PDFBoxTable(abstractTable, null, this.width,  settings);
 		} catch (IOException e) {
-			// should not occur
-			e.printStackTrace();
+			logger.error("Failed to fix width of Table!", e);
+		} catch (PdfAsException e) {
+			logger.error("Failed to fix width of Table!", e);
 		}
 	}
 
