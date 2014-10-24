@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 
@@ -22,7 +23,7 @@ public class KeystoreFileHandleClosed {
 	private static final String keyStoreType = "PKCS12";
 
 	@Test
-	public void test() throws IOException, PdfAsException {
+	public void test() throws IOException, PdfAsException, PDFASError {
 		
 		File origFileFile = new File(origFile);
 		File tmpKeyStoreFile = new File("/tmp/test.ks");
