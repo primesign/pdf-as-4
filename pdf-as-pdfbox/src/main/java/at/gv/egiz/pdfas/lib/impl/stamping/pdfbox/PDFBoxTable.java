@@ -528,10 +528,10 @@ public class PDFBoxTable {
 		case Entry.TYPE_IMAGE:
 			if (style != null && style.getImageScaleToFit() != null) {
 				//if (style.getImageScaleToFit().getHeight() < width) {
-					return style.getImageScaleToFit().getHeight();
+					return style.getImageScaleToFit().getHeight() + padding * 2;
 				//}
 			}
-			return width;
+			return width + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
@@ -580,9 +580,9 @@ public class PDFBoxTable {
 			}
 		case Entry.TYPE_IMAGE:
 			if (style != null && style.getImageScaleToFit() != null) {
-				return style.getImageScaleToFit().getHeight();
+				return style.getImageScaleToFit().getHeight() + padding * 2;
 			}
-			return 80.f;
+			return 80.f + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
