@@ -596,10 +596,10 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 						logger.debug("Scaling image to: " + iwidth + " x "
 								+ iheight);
 
-						if (img.getAlphaRaster() == null
-								&& img.getColorModel().hasAlpha()) {
+						if (img.getColorModel().hasAlpha()) {
 							img = ImageUtils.removeAlphaChannel(img);
 						}
+						//img = ImageUtils.convertRGBAToIndexed(img); 
 
 						PDXObjectImage pdImage = new PDPixelMap(template, img);
 
