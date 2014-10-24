@@ -166,6 +166,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signer.setPDSignature(signature);
 			SignatureOptions options = new SignatureOptions();
+			options.setPreferedSignatureSize(0x1000);
 
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
@@ -359,7 +360,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				// }
 				// }
 
-				options.setPreferedSignatureSize(0x1000);
 				options.setPage(positioningInstruction.getPage());
 				options.setVisualSignature(properties.getVisibleSignature());
 			}
