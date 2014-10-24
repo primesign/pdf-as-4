@@ -23,9 +23,11 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.common.utils;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.IndexColorModel;
@@ -51,15 +53,8 @@ public class ImageUtils {
 			.getLogger(ImageUtils.class);
 	
 	public static BufferedImage removeAlphaChannel(BufferedImage src) {
-		/*if (src.getColorModel().hasAlpha())
+		if (src.getColorModel().hasAlpha())
         {
-            // extract the alpha information
-           // WritableRaster alphaRaster = src.
-            //ColorModel cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_GRAY), 
-            //        false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-            //alpha = new BufferedImage(cm, alphaRaster, false, null);
-            // create a RGB image without alpha
-            
             BufferedImage image = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_RGB);
             Graphics2D g = image.createGraphics();
             g.setComposite(AlphaComposite.Src);
@@ -67,8 +62,8 @@ public class ImageUtils {
             g.dispose();
             return image;
         }
-		return src;*/
-		
+		return src;
+		/*
 		BufferedImage rgbImage = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
         for (int x = 0; x < src.getWidth(); ++x)
         {
@@ -77,7 +72,7 @@ public class ImageUtils {
                 rgbImage.setRGB(x, y, src.getRGB(x, y) & 0xFFFFFF);
             }
         }
-        return rgbImage;
+        return rgbImage;*/
 	}
 	
 	public static BufferedImage convertRGBAToIndexed(BufferedImage src) {
