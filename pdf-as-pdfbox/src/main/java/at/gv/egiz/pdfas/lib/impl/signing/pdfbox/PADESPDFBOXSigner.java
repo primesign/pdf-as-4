@@ -131,6 +131,24 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			FileInputStream fis = new FileInputStream(new File(fisTmpFile));
 
 			doc = pdfObject.getDocument();
+			
+			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
+					.checkPlaceholderSignature(pdfObject.getStatus(),
+							pdfObject.getStatus().getSettings());
+
+			TablePos tablePos = null;
+
+			if (signaturePlaceholderData != null) {
+				// Placeholder found!
+
+				if (signaturePlaceholderData.getProfile() != null) {
+					requestedSignature
+							.setSignatureProfileID(signaturePlaceholderData
+									.getProfile());
+				}
+
+				tablePos = signaturePlaceholderData.getTablePos();
+			}
 
 			PDSignature signature = new PDSignature();
 			signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
@@ -175,24 +193,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				SignatureProfileConfiguration signatureProfileConfiguration = pdfObject
 						.getStatus().getSignatureProfileConfiguration(
 								requestedSignature.getSignatureProfileID());
-
-				SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-						.checkPlaceholderSignature(pdfObject.getStatus(),
-								pdfObject.getStatus().getSettings());
-
-				TablePos tablePos = null;
-
-				if (signaturePlaceholderData != null) {
-					// Placeholder found!
-
-					if (signaturePlaceholderData.getProfile() != null) {
-						requestedSignature
-								.setSignatureProfileID(signaturePlaceholderData
-										.getProfile());
-					}
-
-					tablePos = signaturePlaceholderData.getTablePos();
-				}
 
 				if (tablePos == null) {
 					// ================================================================
