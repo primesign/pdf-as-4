@@ -131,10 +131,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			FileInputStream fis = new FileInputStream(new File(fisTmpFile));
 
 			doc = pdfObject.getDocument();
-			
+
 			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-					.checkPlaceholderSignature(pdfObject.getStatus(),
-							pdfObject.getStatus().getSettings());
+					.checkPlaceholderSignature(pdfObject.getStatus(), pdfObject
+							.getStatus().getSettings());
 
 			TablePos tablePos = null;
 
@@ -384,11 +384,16 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				if (fields != null) {
 					for (PDField pdField : fields) {
-						if (pdField instanceof PDSignatureField) {
-							if (((PDSignatureField) pdField).getSignature()
-									.getDictionary()
-									.equals(signature.getDictionary())) {
-								signatureField = (PDSignatureField) pdField;
+						if (pdField != null) {
+							if (pdField instanceof PDSignatureField) {
+								PDSignatureField tmpSigField = (PDSignatureField) pdField;
+								if (tmpSigField.getSignature() != null && 
+										tmpSigField.getSignature().getDictionary() != null) {
+									if (tmpSigField.getSignature().getDictionary()
+											.equals(signature.getDictionary())) {
+										signatureField = (PDSignatureField) pdField;
+									}
+								}
 							}
 						}
 					}
