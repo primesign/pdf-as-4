@@ -83,6 +83,8 @@ public interface IConfigurationConstants {
 	 */
 	public static final String MOA_SIGN_URL = "moa.sign.url";
 	
+	public static final String KEEP_INVALID_SIGNATURE = "report.invalidSign";
+	
 	public static final String MOC_SIGN_URL = "moc.sign.url";
 	public static final String MOBILE_SIGN_URL = "mobile.sign.url";
 	

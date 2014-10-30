@@ -3,6 +3,7 @@ package at.gv.egiz.pdfas.common.exceptions;
 public interface ErrorConstants {
 	public static final String STATUS_INFO_SIGDEVICE = "SigDevice";
 	public static final String STATUS_INFO_SIGDEVICEVERSION = "SigDeviceVersion";
+	public static final String STATUS_INFO_INVALIDSIG = "InvalidSignature";
 	
 	// Code below 10000 are reserved for SL Error Codes
 	

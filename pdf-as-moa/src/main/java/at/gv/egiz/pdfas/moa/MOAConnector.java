@@ -35,6 +35,7 @@ import java.security.cert.CertificateException;
 
 import javax.xml.ws.BindingProvider;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.utils.SettingsUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
@@ -232,6 +234,15 @@ public class MOAConnector implements ISignatureConnector,
 			try {
 				verifyResult = SignatureUtils.verifySignature(cmsSignatureData,
 						input);
+				if(SettingsUtils.getBooleanValue(requestedSignature.getStatus().getSettings(), 
+						IConfigurationConstants.KEEP_INVALID_SIGNATURE, false)) {
+					Base64 b64 = new Base64();
+					requestedSignature
+					.getStatus()
+					.getMetaInformations()
+					.put(ErrorConstants.STATUS_INFO_INVALIDSIG,
+							b64.encodeToString(cmsSignatureData));
+				}
 			} catch (PDFASError e) {
 				throw new PdfAsErrorCarrier(e);
 			}

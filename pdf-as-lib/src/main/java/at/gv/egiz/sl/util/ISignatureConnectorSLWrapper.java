@@ -28,6 +28,7 @@ import iaik.x509.X509Certificate;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
 
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,9 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.common.utils.SettingsUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
@@ -109,11 +112,20 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 				break;
 			}
 		}
-
+		
 		VerifyResult verifyResult;
 		try {
 			verifyResult = SignatureUtils.verifySignature(
 					response.getCMSSignature(), input);
+			if(SettingsUtils.getBooleanValue(requestedSignature.getStatus().getSettings(), 
+					IConfigurationConstants.KEEP_INVALID_SIGNATURE, false)) {
+				Base64 b64 = new Base64();
+				requestedSignature
+				.getStatus()
+				.getMetaInformations()
+				.put(ErrorConstants.STATUS_INFO_INVALIDSIG,
+						b64.encodeToString(response.getCMSSignature()));
+			}
 		} catch (PDFASError e) {
 			throw new PdfAsErrorCarrier(e);
 		}
