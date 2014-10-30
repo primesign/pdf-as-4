@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.security.cert.X509Certificate;
+import java.util.Map;
 
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 
@@ -52,4 +53,6 @@ public interface SignResult {
 	 *         return null if no position information is available.
 	 */
 	public SignaturePosition getSignaturePosition();
+	
+	public Map<String, String> getProcessInformations();
 }

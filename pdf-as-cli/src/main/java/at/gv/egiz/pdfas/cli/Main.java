@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.activation.DataSource;
@@ -39,6 +40,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
@@ -111,6 +114,8 @@ public class Main {
 
 	public static final String STANDARD_POSITION_STRING = "x:auto;y:auto;w:auto;p:auto;f:0";
 
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
+	
 	private static Options createOptions() {
 		Options cliOptions = new Options();
 
@@ -418,6 +423,13 @@ public class Main {
 		@SuppressWarnings("unused")
 		SignResult result = pdfAs.sign(signParameter);
 
+		Iterator<Entry<String, String>> infoIt = result.getProcessInformations().entrySet().iterator();
+		
+		while(infoIt.hasNext()) {
+			Entry<String, String> infoEntry = infoIt.next();
+			logger.debug("Process Information: {} = {}", infoEntry.getKey(), infoEntry.getValue());
+		}
+		
 		fos.close();
 		System.out.println("Signed document " + outputFile);
 	}

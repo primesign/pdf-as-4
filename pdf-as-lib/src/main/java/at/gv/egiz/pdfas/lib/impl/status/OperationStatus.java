@@ -54,6 +54,7 @@ public class OperationStatus implements Serializable {
 	private RequestedSignature requestedSignature;
 	private Calendar signingDate;
 	private PDFASBackend backend;
+	private Map<String, String> metaInformations = new HashMap<String, String>();
 
 	public OperationStatus(ISettings configuration, SignParameter signParameter, PDFASBackend backend) {
 		this.configuration = configuration;
@@ -168,5 +169,9 @@ public class OperationStatus implements Serializable {
 			return this.signParamter.getTransactionId();
 		}
 		return null;
+	}
+
+	public Map<String, String> getMetaInformations() {
+		return metaInformations;
 	}
 }

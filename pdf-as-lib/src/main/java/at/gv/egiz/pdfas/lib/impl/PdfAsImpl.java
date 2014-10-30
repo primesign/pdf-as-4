@@ -190,7 +190,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		} catch (Throwable e) {
 			logger.error("Failed to create signature [" + e.getMessage() + "]",
 					e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		} finally {
 			if (status != null) {
 				status.clear();
@@ -217,7 +217,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		try {
 			return backend.getVerifier().verify(parameter);
 		} catch (Throwable e) {
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, null);
 		}
 	}
 
@@ -230,7 +230,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		verifySignParameter(parameter);
 
 		StatusRequestImpl request = new StatusRequestImpl();
-
+		OperationStatus status = null;
 		try {
 			// Status initialization
 			if (!(parameter.getConfiguration() instanceof ISettings)) {
@@ -248,7 +248,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			}
 
 			ISettings settings = (ISettings) parameter.getConfiguration();
-			OperationStatus status = new OperationStatus(settings, parameter,
+			status = new OperationStatus(settings, parameter,
 					backend);
 
 			IPdfSigner signer = backend.getPdfSigner();
@@ -267,7 +267,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			return request;
 		} catch (Throwable e) {
 			logger.error("startSign", e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
 
@@ -329,7 +329,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			} catch (Throwable e) {
 				logger.error("process", e);
-				throw ErrorExtractor.searchPdfAsError(e);
+				throw ErrorExtractor.searchPdfAsError(e, status);
 			}
 		} else if (request.needSignature()) {
 			request.setNeedSignature(false);
@@ -379,7 +379,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			return createSignResult(status);
 		} catch (IOException e) {
 			// new PdfAsException("error.pdf.sig.06", e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		} finally {
 			if (status != null) {
 				status.clear();
@@ -456,7 +456,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				.getCertificate());
 		result.setSignaturePosition(status.getRequestedSignature()
 				.getSignaturePosition());
-
+		result.getProcessInformations().putAll(status.getMetaInformations());
 		return result;
 	}
 
@@ -499,10 +499,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 					resolution, status, requestedSignature);
 		} catch (PdfAsException e) {
 			logger.error("PDF-AS  Exception", e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		} catch (Throwable e) {
 			logger.error("Throwable  Exception", e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 
 	}

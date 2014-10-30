@@ -58,9 +58,11 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
@@ -72,6 +74,8 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 			.getLogger(PAdESSignerKeystore.class);
 
 	private static final String fallBackProvider = "SunJSSE";
+	
+	public static final String SIGNATURE_DEVICE = "JKS";
 
 	PrivateKey privKey;
 	X509Certificate cert;
@@ -277,6 +281,12 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 			RequestedSignature requestedSignature) throws PdfAsException {
 		try {
 			logger.info("Creating PAdES signature.");
+			
+			requestedSignature.getStatus().getMetaInformations()
+			.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
+			requestedSignature.getStatus().getMetaInformations()
+			.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION, PdfAsFactory.getVersion());
+			
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 
 			AlgorithmID[] algorithms = CertificateUtils.getAlgorithmIDs(cert);

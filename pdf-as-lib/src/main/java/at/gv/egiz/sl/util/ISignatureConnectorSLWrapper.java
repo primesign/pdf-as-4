@@ -31,6 +31,7 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -48,7 +49,9 @@ import at.gv.egiz.sl.schema.InfoboxReadResponseType;
 public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 
 	public static final String SL_USE_BASE64 = "";
-	
+
+	public static final String SIGNATURE_DEVICE = "BKU";
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(ISignatureConnectorSLWrapper.class);
 
@@ -58,7 +61,8 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		this.connector = connector;
 	}
 
-	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException {
+	public X509Certificate getCertificate(SignParameter parameter)
+			throws PdfAsException {
 		X509Certificate certificate = null;
 		try {
 			InfoboxReadRequestType request = connector
@@ -83,25 +87,43 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 		return certificate;
 	}
 
-	public byte[] sign(byte[] input, int[] byteRange, 
-			SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
-		RequestPackage pack = connector.createCMSRequest(
-				input, byteRange, parameter);
-		CreateCMSSignatureResponseType response = connector
-				.sendCMSRequest(pack, parameter);
-		
+	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter,
+			RequestedSignature requestedSignature) throws PdfAsException {
+		RequestPackage pack = connector.createCMSRequest(input, byteRange,
+				parameter);
+		CreateCMSSignatureResponseType response = connector.sendCMSRequest(
+				pack, parameter);
+
+		Iterator<BKUHeader> bkuHeaderIt = pack.getHeaders().iterator();
+
+		requestedSignature.getStatus().getMetaInformations()
+				.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
+		while (bkuHeaderIt.hasNext()) {
+			BKUHeader header = bkuHeaderIt.next();
+			if ("Server".equalsIgnoreCase(header.getName())) {
+				requestedSignature
+						.getStatus()
+						.getMetaInformations()
+						.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION,
+								header.getValue());
+				break;
+			}
+		}
+
 		VerifyResult verifyResult;
 		try {
-			verifyResult = SignatureUtils.verifySignature(response.getCMSSignature(), input);
+			verifyResult = SignatureUtils.verifySignature(
+					response.getCMSSignature(), input);
 		} catch (PDFASError e) {
 			throw new PdfAsErrorCarrier(e);
 		}
 
-		if(!StreamUtils.dataCompare(requestedSignature.getCertificate().getFingerprintSHA(),
-				((X509Certificate)verifyResult.getSignerCertificate()).getFingerprintSHA())) {
+		if (!StreamUtils.dataCompare(requestedSignature.getCertificate()
+				.getFingerprintSHA(), ((X509Certificate) verifyResult
+				.getSignerCertificate()).getFingerprintSHA())) {
 			throw new PdfAsSignatureException("Certificates missmatch!");
 		}
-		
+
 		return response.getCMSSignature();
 	}
 

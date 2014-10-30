@@ -622,10 +622,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			return cutOut;
 		} catch (PdfAsException e) {
 			logger.error("PDF-AS  Exception", e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		} catch (Throwable e) {
 			logger.error("Throwable  Exception", e);
-			throw ErrorExtractor.searchPdfAsError(e);
+			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
 }

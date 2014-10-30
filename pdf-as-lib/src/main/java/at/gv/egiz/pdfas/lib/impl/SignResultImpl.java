@@ -24,6 +24,8 @@
 package at.gv.egiz.pdfas.lib.impl;
 
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
 
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
@@ -32,6 +34,7 @@ public class SignResultImpl implements SignResult {
 
 	protected X509Certificate certificate;
 	protected SignaturePosition position;
+	protected Map<String, String> processInfo = new HashMap<String, String>();
 	
 	public SignResultImpl() {
 	}
@@ -50,6 +53,11 @@ public class SignResultImpl implements SignResult {
 
 	public void setSignaturePosition(SignaturePosition position) {
 		this.position = position;
+	}
+
+	@Override
+	public Map<String, String> getProcessInformations() {
+		return processInfo;
 	}
 
 }

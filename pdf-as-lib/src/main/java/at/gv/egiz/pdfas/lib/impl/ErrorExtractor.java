@@ -7,6 +7,7 @@ import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsMOAException;
 import at.gv.egiz.pdfas.common.exceptions.SLPdfAsException;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 public class ErrorExtractor implements ErrorConstants {
 
@@ -48,7 +49,7 @@ public class ErrorExtractor implements ErrorConstants {
 		return null;
 	}
 
-	public static PDFASError searchPdfAsError(Throwable e) {
+	public static PDFASError searchPdfAsError(Throwable e, OperationStatus status) {
 		Throwable cur = e;
 		PDFASError err = null;
 
@@ -68,6 +69,11 @@ public class ErrorExtractor implements ErrorConstants {
 		}
 		
 		if(err != null) {
+			
+			if(status != null) {
+				err.getProcessInformations().putAll(status.getMetaInformations());
+			}
+			
 			return err;
 		}
 		
@@ -89,11 +95,22 @@ public class ErrorExtractor implements ErrorConstants {
 		}
 
 		if (err != null) {
+			
+			if(status != null) {
+				err.getProcessInformations().putAll(status.getMetaInformations());
+			}
+			
 			return err;
 		}
 
 		logger.info("Cannot extract correct failure code from: ", e);
 		
-		return new PDFASError(ERROR_GENERIC, e);
+		err =  new PDFASError(ERROR_GENERIC, e);
+		
+		if(status != null) {
+			err.getProcessInformations().putAll(status.getMetaInformations());
+		}
+		
+		return err;
 	}
 }

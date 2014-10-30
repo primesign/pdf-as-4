@@ -46,14 +46,14 @@ public class SignatureUtils implements ErrorConstants {
 				VerifyResultImpl verifyResult = new VerifyResultImpl();
 				//results.add(verifyResult);
 				try {
-					logger.info("Signature Algo: {}, Digest {}", signedData
+					logger.debug("Signature Algo: {}, Digest {}", signedData
 							.getSignerInfos()[0].getSignatureAlgorithm(),
 							signedData.getSignerInfos()[0].getDigestAlgorithm());
 					// verify the signature for SignerInfo at index i
 					X509Certificate signer_cert = signedData.verify(0);
 					// if the signature is OK the certificate of the
 					// signer is returned
-					logger.info("Signature OK from signer: "
+					logger.debug("Signature OK from signer: "
 							+ signer_cert.getSubjectDN());
 					verifyResult.setSignerCertificate(signer_cert);
 

@@ -31,6 +31,7 @@ import java.nio.charset.Charset;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
@@ -69,7 +70,8 @@ public class BKUSLConnector extends BaseSLConnector {
 		return builder.build();
 	}
 
-	private String performHttpRequestToBKU(String xmlRequest, RequestPackage pack, SignParameter parameter)
+	private String performHttpRequestToBKU(String xmlRequest,
+			RequestPackage pack, SignParameter parameter)
 			throws ClientProtocolException, IOException, IllegalStateException {
 		CloseableHttpClient client = null;
 		try {
@@ -82,22 +84,36 @@ public class BKUSLConnector extends BaseSLConnector {
 			entityBuilder.addTextBody(XMLREQUEST, xmlRequest,
 					ContentType.TEXT_XML);
 
-			if(parameter != null) {
+			if (parameter != null) {
 				String transactionId = parameter.getTransactionId();
-				if(transactionId != null) {
+				if (transactionId != null) {
 					entityBuilder.addTextBody("TransactionId_", transactionId);
 				}
 			}
-			
-			if(pack != null && pack.getSignatureData() != null) {
-				entityBuilder.addBinaryBody("fileupload", 
-						PDFUtils.blackOutSignature(pack.getSignatureData(), pack.getByteRange()));
+
+			if (pack != null && pack.getSignatureData() != null) {
+				entityBuilder.addBinaryBody("fileupload", PDFUtils
+						.blackOutSignature(pack.getSignatureData(),
+								pack.getByteRange()));
 			}
 			post.setEntity(entityBuilder.build());
 
 			HttpResponse response = client.execute(post);
 			logger.debug("Response Code : "
 					+ response.getStatusLine().getStatusCode());
+
+			if(pack != null) {
+			Header[] headers = response.getAllHeaders();
+
+			if (headers != null) {
+				for (int i = 0; i < headers.length; i++) {
+					BKUHeader hdr = new BKUHeader(headers[i].getName(), headers[i].getValue());
+					logger.debug("Response Header : {}",
+							hdr.toString());
+					pack.getHeaders().add(hdr);
+				}
+			}
+			}
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(
 					response.getEntity().getContent()));
@@ -110,20 +126,21 @@ public class BKUSLConnector extends BaseSLConnector {
 			rd.close();
 			response = null;
 			rd = null;
-			
+
 			logger.trace(result.toString());
 			return result.toString();
 		} catch (PDFIOException e) {
 			throw new PdfAsWrappedIOException(e);
 		} finally {
-			if(client != null) {
+			if (client != null) {
 				client.close();
 			}
 		}
 	}
 
 	public InfoboxReadResponseType sendInfoboxReadRequest(
-			InfoboxReadRequestType request, SignParameter parameter) throws PdfAsException {
+			InfoboxReadRequestType request, SignParameter parameter)
+			throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
 		try {
@@ -131,7 +148,8 @@ public class BKUSLConnector extends BaseSLConnector {
 					.createInfoboxReadRequest(request));
 			logger.trace(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest, null, parameter);
+			String slResponse = performHttpRequestToBKU(slRequest, null,
+					parameter);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
@@ -161,8 +179,8 @@ public class BKUSLConnector extends BaseSLConnector {
 		throw new PdfAsException("error.pdf.io.03");
 	}
 
-	public CreateCMSSignatureResponseType sendCMSRequest(
-			RequestPackage pack, SignParameter parameter) throws PdfAsException {
+	public CreateCMSSignatureResponseType sendCMSRequest(RequestPackage pack,
+			SignParameter parameter) throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
 		try {
@@ -170,7 +188,8 @@ public class BKUSLConnector extends BaseSLConnector {
 					.createCreateCMSSignatureRequest(pack.getRequestType()));
 			logger.debug(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest, pack, parameter);
+			String slResponse = performHttpRequestToBKU(slRequest, pack,
+					parameter);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);

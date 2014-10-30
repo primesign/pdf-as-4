@@ -1,5 +1,8 @@
 package at.gv.egiz.pdfas.common.exceptions;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import at.gv.egiz.pdfas.common.messages.ErrorCodeResolver;
 
 /**
@@ -9,48 +12,58 @@ public class PDFASError extends Exception implements ErrorConstants {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1233586898708485346L;
-	
+
 	/** The code. */
 	private long code;
-	
+
+	private Map<String, String> metaInformations = new HashMap<String, String>();
+
 	/**
 	 * Instantiates a new PDFAS error.
 	 *
-	 * @param code the code
+	 * @param code
+	 *            the code
 	 */
 	public PDFASError(long code) {
 		super(ErrorCodeResolver.resolveMessage(code));
 		this.code = code;
 	}
-	
+
 	/**
 	 * Instantiates a new PDFAS error.
 	 *
-	 * @param code the code
-	 * @param e the e
+	 * @param code
+	 *            the code
+	 * @param e
+	 *            the e
 	 */
 	public PDFASError(long code, Throwable e) {
 		super(ErrorCodeResolver.resolveMessage(code), e);
 		this.code = code;
 	}
-	
+
 	/**
 	 * Instantiates a new PDFAS error.
 	 *
-	 * @param code the code
-	 * @param info the info
-	 * @param e the e
+	 * @param code
+	 *            the code
+	 * @param info
+	 *            the info
+	 * @param e
+	 *            the e
 	 */
 	public PDFASError(long code, String info, Throwable e) {
 		super(info, e);
 		this.code = code;
 	}
-	
+
 	/**
 	 * Instantiates a new PDFAS error.
 	 *
-	 * @param code the code
-	 * @param info the info
+	 * @param code
+	 *            the code
+	 * @param info
+	 *            the info
 	 */
 	public PDFASError(long code, String info) {
 		super(info);
@@ -65,7 +78,7 @@ public class PDFASError extends Exception implements ErrorConstants {
 	public long getCode() {
 		return code;
 	}
-	
+
 	/**
 	 * Gets the info.
 	 *
@@ -74,7 +87,7 @@ public class PDFASError extends Exception implements ErrorConstants {
 	public String getInfo() {
 		return this.getMessage();
 	}
-	
+
 	/**
 	 * Gets the code info.
 	 *
@@ -83,8 +96,18 @@ public class PDFASError extends Exception implements ErrorConstants {
 	public String getCodeInfo() {
 		return ErrorCodeResolver.resolveMessage(code);
 	}
-	
-	public static String buildInfoString(long code, Object ... args) {
+
+	/**
+	 * Gets the meta informations for the Error. This Map
+	 * is never null, but no information 
+	 *
+	 * @return the meta informations
+	 */
+	public Map<String, String> getProcessInformations() {
+		return metaInformations;
+	}
+
+	public static String buildInfoString(long code, Object... args) {
 		return String.format(ErrorCodeResolver.resolveMessage(code), args);
 	}
 }

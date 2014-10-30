@@ -1,6 +1,9 @@
 package at.gv.egiz.pdfas.common.exceptions;
 
 public interface ErrorConstants {
+	public static final String STATUS_INFO_SIGDEVICE = "SigDevice";
+	public static final String STATUS_INFO_SIGDEVICEVERSION = "SigDeviceVersion";
+	
 	// Code below 10000 are reserved for SL Error Codes
 	
 	public static final long ERROR_GENERIC = 10000;

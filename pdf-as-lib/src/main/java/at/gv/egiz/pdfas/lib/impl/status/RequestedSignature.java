@@ -92,7 +92,8 @@ public class RequestedSignature implements ICertificateProvider {
 	public void setSignaturePosition(SignaturePosition signaturePosition) {
 		this.signaturePosition = signaturePosition;
 	}
-    
-    
-    
+
+	public OperationStatus getStatus() {
+		return status;
+	}
 }

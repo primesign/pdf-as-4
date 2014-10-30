@@ -49,6 +49,7 @@ import at.gv.e_government.reference.namespace.moa._20020822.MetaInfoType;
 import at.gv.e_government.reference.namespace.moa._20020822_.MOAFault;
 import at.gv.e_government.reference.namespace.moa._20020822_.SignatureCreationPortType;
 import at.gv.e_government.reference.namespace.moa._20020822_.SignatureCreationService;
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -71,6 +72,8 @@ public class MOAConnector implements ISignatureConnector,
 	private static final Logger logger = LoggerFactory
 			.getLogger(MOAConnector.class);
 
+	public static final String SIGNATURE_DEVICE = "MOA";
+	
 	private X509Certificate certificate;
 	private String moaEndpoint;
 	private String keyIdentifier;
@@ -195,6 +198,12 @@ public class MOAConnector implements ISignatureConnector,
 		sigInfo.setDataObjectInfo(dataObjectInfo);
 		request.getSingleSignatureInfo().add(sigInfo);
 
+		requestedSignature.getStatus().getMetaInformations()
+		.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
+		// TODO: Find a way to get MOA-SPSS Version
+		requestedSignature.getStatus().getMetaInformations()
+		.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION, "UNKNOWN");
+		
 		CreateCMSSignatureResponseType response;
 		try {
 			response = creationPort.createCMSSignature(request);

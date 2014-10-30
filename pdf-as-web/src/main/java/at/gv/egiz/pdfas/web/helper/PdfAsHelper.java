@@ -620,7 +620,7 @@ public class PdfAsHelper {
 				|| connector.equals("mobilebku")) {
 			BKUSLConnector bkuSLConnector = (BKUSLConnector) session
 					.getAttribute(PDF_SL_CONNECTOR);
-
+			
 			if (statusRequest.needCertificate()) {
 				logger.debug("Needing Certificate from BKU");
 				// build SL Request to read certificate

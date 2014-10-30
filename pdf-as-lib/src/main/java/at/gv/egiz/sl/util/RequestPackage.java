@@ -23,12 +23,16 @@
  ******************************************************************************/
 package at.gv.egiz.sl.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import at.gv.egiz.sl.schema.CreateCMSSignatureRequestType;
 
 public class RequestPackage {
 	private CreateCMSSignatureRequestType requestType;
 	private byte[] signatureData;
 	private int[] byteRange;
+	private List<BKUHeader> headers = new ArrayList<BKUHeader>();
 	
 	public CreateCMSSignatureRequestType getRequestType() {
 		return requestType;
@@ -48,6 +52,7 @@ public class RequestPackage {
 	public void setByteRange(int[] byteRange) {
 		this.byteRange = byteRange;
 	}
-	
-	
+	public List<BKUHeader> getHeaders() {
+		return headers;
+	}
 }
