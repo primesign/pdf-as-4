@@ -66,6 +66,11 @@ public class ErrorExtractor implements ErrorConstants {
 				break;
 			}
 		}
+		
+		if(err != null) {
+			return err;
+		}
+		
 		cur = e;
 		// Search other reasons
 		for (int i = 0; i < MAX_CAUSE_DEPTH; i++) {
