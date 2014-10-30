@@ -23,7 +23,6 @@ configurations {
 	cveCheck
 }
 
-// Assign dependencies to the sshAntTask configuration.
 dependencies {
 	cveCheck 'org.owasp:dependency-check-ant:1.2.5'
 }
