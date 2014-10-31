@@ -61,6 +61,7 @@ import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
+import at.gv.egiz.sl.util.BKUHeader;
 
 public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		ErrorConstants {
@@ -160,9 +161,34 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			status.setRequestedSignature(requestedSignature);
 
+			try {
 			requestedSignature.setCertificate(status.getSignParamter()
 					.getPlainSigner().getCertificate(parameter));
+			} finally {
+				if (parameter instanceof BKUHeaderHolder) {
+					BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
 
+					Iterator<BKUHeader> bkuHeaderIt = holder.getProcessInfo()
+							.iterator();
+
+					while (bkuHeaderIt.hasNext()) {
+						BKUHeader header = bkuHeaderIt.next();
+						if ("Server".equalsIgnoreCase(header.getName())) {
+							requestedSignature
+									.getStatus()
+									.getMetaInformations()
+									.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION,
+											header.getValue());
+						} else if (ErrorConstants.STATUS_INFO_SIGDEVICE.equalsIgnoreCase(header.getName())) {
+							requestedSignature
+							.getStatus()
+							.getMetaInformations()
+							.put(ErrorConstants.STATUS_INFO_SIGDEVICE,
+									header.getValue());
+						}
+					}
+				}
+			}
 			// Only use this profileID because validation was done in
 			// RequestedSignature
 			String signatureProfileID = requestedSignature
@@ -177,11 +203,35 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			// this.stampPdf(status);
 
 			// Create signature
-
-			signer.signPDF(status.getPdfObject(), requestedSignature, signer
+			try {
+				signer.signPDF(status.getPdfObject(), requestedSignature, signer
 					.buildSignaturInterface(status.getSignParamter()
 							.getPlainSigner(), parameter, requestedSignature));
+			} finally {
+				if (parameter instanceof BKUHeaderHolder) {
+					BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
 
+					Iterator<BKUHeader> bkuHeaderIt = holder.getProcessInfo()
+							.iterator();
+
+					while (bkuHeaderIt.hasNext()) {
+						BKUHeader header = bkuHeaderIt.next();
+						if ("Server".equalsIgnoreCase(header.getName())) {
+							requestedSignature
+									.getStatus()
+									.getMetaInformations()
+									.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION,
+											header.getValue());
+						} else if (ErrorConstants.STATUS_INFO_SIGDEVICE.equalsIgnoreCase(header.getName())) {
+							requestedSignature
+							.getStatus()
+							.getMetaInformations()
+							.put(ErrorConstants.STATUS_INFO_SIGDEVICE,
+									header.getValue());
+						}
+					}
+				}
+			}
 			// ================================================================
 			// Create SignResult
 			SignResult result = createSignResult(status);

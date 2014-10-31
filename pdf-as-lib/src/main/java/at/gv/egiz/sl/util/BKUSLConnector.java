@@ -42,6 +42,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
@@ -49,6 +50,7 @@ import at.gv.egiz.pdfas.common.exceptions.SLPdfAsException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.impl.BKUHeaderHolder;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.ErrorResponseType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -59,6 +61,8 @@ public class BKUSLConnector extends BaseSLConnector {
 	private static final Logger logger = LoggerFactory
 			.getLogger(BKUSLConnector.class);
 
+	public static final String SIGNATURE_DEVICE = "BKU";
+	
 	private String bkuUrl;
 
 	public BKUSLConnector(Configuration config) {
@@ -102,17 +106,23 @@ public class BKUSLConnector extends BaseSLConnector {
 			logger.debug("Response Code : "
 					+ response.getStatusLine().getStatusCode());
 
-			if(pack != null) {
-			Header[] headers = response.getAllHeaders();
+			if (parameter instanceof BKUHeaderHolder) {
+				BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
+				Header[] headers = response.getAllHeaders();
 
-			if (headers != null) {
-				for (int i = 0; i < headers.length; i++) {
-					BKUHeader hdr = new BKUHeader(headers[i].getName(), headers[i].getValue());
-					logger.debug("Response Header : {}",
-							hdr.toString());
-					pack.getHeaders().add(hdr);
+				if (headers != null) {
+					for (int i = 0; i < headers.length; i++) {
+						BKUHeader hdr = new BKUHeader(headers[i].getName(),
+								headers[i].getValue());
+						logger.debug("Response Header : {}", hdr.toString());
+						holder.getProcessInfo().add(hdr);
+					}
 				}
-			}
+				
+				BKUHeader hdr = new BKUHeader(ErrorConstants.STATUS_INFO_SIGDEVICE,
+						SIGNATURE_DEVICE);
+				logger.debug("Response Header : {}", hdr.toString());
+				holder.getProcessInfo().add(hdr);
 			}
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(

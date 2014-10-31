@@ -88,7 +88,7 @@ public class Main {
 
 	public static final String CLI_ARG_VERIFY_WHICH_SHORT = "vw";
 	public static final String CLI_ARG_VERIFY_WHICH = "verify_which";
-	
+
 	public static final String CLI_ARG_VERIFY_LEVEL_SHORT = "vl";
 	public static final String CLI_ARG_VERIFY_LEVEL = "verify_level";
 	public static final String CLI_ARG_VERIFY_LEVEL_OPTION_FULL = "full";
@@ -115,7 +115,7 @@ public class Main {
 	public static final String STANDARD_POSITION_STRING = "x:auto;y:auto;w:auto;p:auto;f:0";
 
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
-	
+
 	private static Options createOptions() {
 		Options cliOptions = new Options();
 
@@ -182,12 +182,15 @@ public class Main {
 				true,
 				"[optional] zero based number of the signature to be verified. If omitted, all signatures are verified.");
 		cliOptions.addOption(verifywhichOption);
-		
+
 		Option verifyLevelOption = new Option(
 				CLI_ARG_VERIFY_LEVEL_SHORT,
 				CLI_ARG_VERIFY_LEVEL,
 				true,
-				"[optional] Verification Level Full certificate verification, or only integrity Verification (" + CLI_ARG_VERIFY_LEVEL_OPTION_FULL + " | " + CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY + ")");
+				"[optional] Verification Level Full certificate verification, or only integrity Verification ("
+						+ CLI_ARG_VERIFY_LEVEL_OPTION_FULL
+						+ " | "
+						+ CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY + ")");
 		cliOptions.addOption(verifyLevelOption);
 
 		Option outputOption = new Option(CLI_ARG_OUTPUT_SHORT, CLI_ARG_OUTPUT,
@@ -204,8 +207,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		// create the command line parser
-		
-		
+
 		CommandLineParser parser = new GnuParser();
 		ModeOfOperation mode = ModeOfOperation.INVALID;
 		try {
@@ -214,7 +216,8 @@ public class Main {
 			if (cli.hasOption(CLI_ARG_DEPLOY_SHORT)) {
 				PdfAsFactory.deployDefaultConfiguration(new File(
 						STANDARD_CONFIG_LOCATION));
-				System.out.println("Configuration was deployed to: " + STANDARD_CONFIG_LOCATION);
+				System.out.println("Configuration was deployed to: "
+						+ STANDARD_CONFIG_LOCATION);
 			}
 
 			if (cli.hasOption(CLI_ARG_MODE_SHORT)) {
@@ -247,7 +250,16 @@ public class Main {
 			usage();
 			System.exit(-1);
 		} catch (PDFASError e) {
-			System.err.println("PDF-AS Error: [" + e.getCode() + "]" + e.getMessage());
+			System.err.println("PDF-AS Error: [" + e.getCode() + "]"
+					+ e.getMessage());
+			Iterator<Entry<String, String>> infoIt = e.getProcessInformations()
+					.entrySet().iterator();
+
+			while (infoIt.hasNext()) {
+				Entry<String, String> infoEntry = infoIt.next();
+				logger.debug("Process Information: {} = {}",
+						infoEntry.getKey(), infoEntry.getValue());
+			}
 			e.printStackTrace(System.err);
 			System.exit(-1);
 		} catch (Throwable e) {
@@ -345,7 +357,7 @@ public class Main {
 		String id = UUID.randomUUID().toString();
 		signParameter.setTransactionId(id);
 		System.out.println("Transaction: " + id);
-		
+
 		IPlainSigner slConnector = null;
 
 		if (connector != null) {
@@ -419,17 +431,23 @@ public class Main {
 		signParameter.setSignatureProfileId(profilID);
 		System.out.println("Starting signature for " + pdfFile);
 		System.out.println("Selected signature Profile " + profilID);
-		
-		@SuppressWarnings("unused")
-		SignResult result = pdfAs.sign(signParameter);
 
-		Iterator<Entry<String, String>> infoIt = result.getProcessInformations().entrySet().iterator();
-		
-		while(infoIt.hasNext()) {
-			Entry<String, String> infoEntry = infoIt.next();
-			logger.debug("Process Information: {} = {}", infoEntry.getKey(), infoEntry.getValue());
+		SignResult result = null;
+		try {
+			result = pdfAs.sign(signParameter);
+		} finally {
+			if (result != null) {
+				Iterator<Entry<String, String>> infoIt = result
+						.getProcessInformations().entrySet().iterator();
+
+				while (infoIt.hasNext()) {
+					Entry<String, String> infoEntry = infoIt.next();
+					logger.debug("Process Information: {} = {}",
+							infoEntry.getKey(), infoEntry.getValue());
+				}
+			}
 		}
-		
+
 		fos.close();
 		System.out.println("Signed document " + outputFile);
 	}
@@ -451,29 +469,32 @@ public class Main {
 			String whichValue = cli.getOptionValue(CLI_ARG_VERIFY_WHICH_SHORT);
 			which = Integer.parseInt(whichValue);
 		}
-		
+
 		SignatureVerificationLevel lvl = SignatureVerificationLevel.FULL_VERIFICATION;
-		
+
 		if (cli.hasOption(CLI_ARG_VERIFY_LEVEL_SHORT)) {
 			String levelValue = cli.getOptionValue(CLI_ARG_VERIFY_LEVEL_SHORT);
-			if(levelValue.equals(CLI_ARG_VERIFY_LEVEL_OPTION_FULL)) {
+			if (levelValue.equals(CLI_ARG_VERIFY_LEVEL_OPTION_FULL)) {
 				lvl = SignatureVerificationLevel.FULL_VERIFICATION;
-			} else if(levelValue.equals(CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY)) {
+			} else if (levelValue.equals(CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY)) {
 				lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
 			} else {
-				System.out.println("Invalid value for verification Level: " + levelValue);
-				System.out.println("Allowed values are: " + CLI_ARG_VERIFY_LEVEL_OPTION_FULL 
-						+ ", " + CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY);
-				throw new Exception("Invalid value for verification Level: " + levelValue);
+				System.out.println("Invalid value for verification Level: "
+						+ levelValue);
+				System.out.println("Allowed values are: "
+						+ CLI_ARG_VERIFY_LEVEL_OPTION_FULL + ", "
+						+ CLI_ARG_VERIFY_LEVEL_OPTION_INT_ONLY);
+				throw new Exception("Invalid value for verification Level: "
+						+ levelValue);
 			}
 		}
 
 		String confOutputFile = null;
-		
+
 		if (cli.hasOption(CLI_ARG_OUTPUT_SHORT)) {
 			confOutputFile = cli.getOptionValue(CLI_ARG_OUTPUT_SHORT);
 		}
-		
+
 		String pdfFile = null;
 
 		pdfFile = cli.getArgs()[cli.getArgs().length - 1];

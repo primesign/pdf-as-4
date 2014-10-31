@@ -42,6 +42,7 @@ import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import at.gv.egiz.pdfas.lib.impl.BKUHeaderHolder;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
@@ -52,8 +53,6 @@ import at.gv.egiz.sl.schema.InfoboxReadResponseType;
 public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 
 	public static final String SL_USE_BASE64 = "";
-
-	public static final String SIGNATURE_DEVICE = "BKU";
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ISignatureConnectorSLWrapper.class);
@@ -86,7 +85,7 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 			}
 		} catch (CertificateException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		}
+		} 
 		return certificate;
 	}
 
@@ -94,49 +93,62 @@ public class ISignatureConnectorSLWrapper implements ISignatureConnector {
 			RequestedSignature requestedSignature) throws PdfAsException {
 		RequestPackage pack = connector.createCMSRequest(input, byteRange,
 				parameter);
-		CreateCMSSignatureResponseType response = connector.sendCMSRequest(
-				pack, parameter);
+		try {
+			CreateCMSSignatureResponseType response = connector.sendCMSRequest(
+					pack, parameter);
 
-		Iterator<BKUHeader> bkuHeaderIt = pack.getHeaders().iterator();
+			VerifyResult verifyResult;
+			try {
+				verifyResult = SignatureUtils.verifySignature(
+						response.getCMSSignature(), input);
+				if (SettingsUtils.getBooleanValue(requestedSignature
+						.getStatus().getSettings(),
+						IConfigurationConstants.KEEP_INVALID_SIGNATURE, false)) {
+					Base64 b64 = new Base64();
+					requestedSignature
+							.getStatus()
+							.getMetaInformations()
+							.put(ErrorConstants.STATUS_INFO_INVALIDSIG,
+									b64.encodeToString(response
+											.getCMSSignature()));
+				}
+			} catch (PDFASError e) {
+				throw new PdfAsErrorCarrier(e);
+			}
 
-		requestedSignature.getStatus().getMetaInformations()
-				.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
-		while (bkuHeaderIt.hasNext()) {
-			BKUHeader header = bkuHeaderIt.next();
-			if ("Server".equalsIgnoreCase(header.getName())) {
-				requestedSignature
+			if (!StreamUtils.dataCompare(requestedSignature.getCertificate()
+					.getFingerprintSHA(), ((X509Certificate) verifyResult
+					.getSignerCertificate()).getFingerprintSHA())) {
+				throw new PdfAsSignatureException("Certificates missmatch!");
+			}
+
+			return response.getCMSSignature();
+		} finally {
+			if (parameter instanceof BKUHeaderHolder) {
+				BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
+
+				Iterator<BKUHeader> bkuHeaderIt = holder.getProcessInfo()
+						.iterator();
+
+				while (bkuHeaderIt.hasNext()) {
+					BKUHeader header = bkuHeaderIt.next();
+					if ("Server".equalsIgnoreCase(header.getName())) {
+						requestedSignature
+								.getStatus()
+								.getMetaInformations()
+								.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION,
+										header.getValue());
+					} else if (ErrorConstants.STATUS_INFO_SIGDEVICE.equalsIgnoreCase(header.getName())) {
+						requestedSignature
 						.getStatus()
 						.getMetaInformations()
-						.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION,
+						.put(ErrorConstants.STATUS_INFO_SIGDEVICE,
 								header.getValue());
-				break;
+					}
+				}
 			}
 		}
-		
-		VerifyResult verifyResult;
-		try {
-			verifyResult = SignatureUtils.verifySignature(
-					response.getCMSSignature(), input);
-			if(SettingsUtils.getBooleanValue(requestedSignature.getStatus().getSettings(), 
-					IConfigurationConstants.KEEP_INVALID_SIGNATURE, false)) {
-				Base64 b64 = new Base64();
-				requestedSignature
-				.getStatus()
-				.getMetaInformations()
-				.put(ErrorConstants.STATUS_INFO_INVALIDSIG,
-						b64.encodeToString(response.getCMSSignature()));
-			}
-		} catch (PDFASError e) {
-			throw new PdfAsErrorCarrier(e);
-		}
 
-		if (!StreamUtils.dataCompare(requestedSignature.getCertificate()
-				.getFingerprintSHA(), ((X509Certificate) verifyResult
-				.getSignerCertificate()).getFingerprintSHA())) {
-			throw new PdfAsSignatureException("Certificates missmatch!");
-		}
-
-		return response.getCMSSignature();
 	}
 
 }
