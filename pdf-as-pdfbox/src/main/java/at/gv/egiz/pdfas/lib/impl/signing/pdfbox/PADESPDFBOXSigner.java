@@ -140,14 +140,18 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
-
+				logger.info("Placeholder data found.");
 				if (signaturePlaceholderData.getProfile() != null) {
+					logger.debug("Placeholder Profile set to: " + signaturePlaceholderData.getProfile());
 					requestedSignature
 							.setSignatureProfileID(signaturePlaceholderData
 									.getProfile());
 				}
 
 				tablePos = signaturePlaceholderData.getTablePos();
+				if(tablePos != null) {
+					logger.debug("Placeholder Position set to: " + tablePos.toString());
+				}
 			}
 
 			PDSignature signature = new PDSignature();
