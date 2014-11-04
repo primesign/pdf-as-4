@@ -223,8 +223,20 @@ public class BKUSLConnector extends BaseSLConnector {
 			
 			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (ClientProtocolException e) {
+			
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if(slError != null) {
+				throw slError;
+			}
+			
 			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (IOException e) {
+			
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if(slError != null) {
+				throw slError;
+			}
+			
 			throw new PDFIOException("error.pdf.io.03", e);
 		}
 
@@ -267,8 +279,16 @@ public class BKUSLConnector extends BaseSLConnector {
 			}
 			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (ClientProtocolException e) {
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if(slError != null) {
+				throw slError;
+			}
 			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (IOException e) {
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if(slError != null) {
+				throw slError;
+			}
 			throw new PDFIOException("error.pdf.io.03", e);
 		}
 
