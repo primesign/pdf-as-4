@@ -27,6 +27,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -62,7 +64,10 @@ public class BKUSLConnector extends BaseSLConnector {
 			.getLogger(BKUSLConnector.class);
 
 	public static final String SIGNATURE_DEVICE = "BKU";
-	
+
+	public static final String PATTERN_ERROR_CODE = "<.*:?ErrorCode>\\s*([0-9]+)\\s*</.*:?ErrorCode>";
+	public static final String PATTERN_ERROR_INFO = "<.*:?Info>\\s*(.*)\\s*</.*:?Info>";
+
 	private String bkuUrl;
 
 	public BKUSLConnector(Configuration config) {
@@ -72,6 +77,50 @@ public class BKUSLConnector extends BaseSLConnector {
 	private CloseableHttpClient buildHttpClient() {
 		HttpClientBuilder builder = HttpClientBuilder.create();
 		return builder.build();
+	}
+
+	public static SLPdfAsException generateLegacySLException(String xmlResponse) {
+		if (xmlResponse != null) {
+			if (xmlResponse.contains("ErrorResponse")) {
+				int errorCode = -1;
+				String errorInfo = null;
+				// Probably an ErrorResponse
+				Pattern patternErrorCode = Pattern.compile(PATTERN_ERROR_CODE,
+						Pattern.CASE_INSENSITIVE);
+				Matcher matcherErrorCode = patternErrorCode
+						.matcher(xmlResponse);
+				if (matcherErrorCode.find()) {
+					if (matcherErrorCode.groupCount() == 1) {
+						String errorCodeString = matcherErrorCode.group(1);
+						try {
+							errorCode = Integer.parseInt(errorCodeString);
+						} catch (NumberFormatException e) {
+							// Ignore
+							logger.trace(
+									"Failed to convert ErrorCode [{}] into number",
+									errorCodeString);
+						}
+					}
+				}
+
+				if (errorCode > 0) {
+
+					Pattern patternErrorInfo = Pattern.compile(
+							PATTERN_ERROR_INFO, Pattern.CASE_INSENSITIVE);
+					Matcher matcherErrorInfo = patternErrorInfo
+							.matcher(xmlResponse);
+
+					if (matcherErrorInfo.find()) {
+						if (matcherErrorInfo.groupCount() == 1) {
+							errorInfo = matcherErrorInfo.group(1);
+						}
+					}
+					
+					return new SLPdfAsException(errorCode, errorInfo);
+				}
+			}
+		}
+		return null;
 	}
 
 	private String performHttpRequestToBKU(String xmlRequest,
@@ -118,9 +167,9 @@ public class BKUSLConnector extends BaseSLConnector {
 						holder.getProcessInfo().add(hdr);
 					}
 				}
-				
-				BKUHeader hdr = new BKUHeader(ErrorConstants.STATUS_INFO_SIGDEVICE,
-						SIGNATURE_DEVICE);
+
+				BKUHeader hdr = new BKUHeader(
+						ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
 				logger.debug("Response Header : {}", hdr.toString());
 				holder.getProcessInfo().add(hdr);
 			}
@@ -153,18 +202,25 @@ public class BKUSLConnector extends BaseSLConnector {
 			throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
+		String slResponse = null;
 		try {
 			slRequest = SLMarschaller.marshalToString(of
 					.createInfoboxReadRequest(request));
 			logger.trace(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest, null,
+			slResponse = performHttpRequestToBKU(slRequest, null,
 					parameter);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
 
 		} catch (JAXBException e) {
+			
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if(slError != null) {
+				throw slError;
+			}
+			
 			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (ClientProtocolException e) {
 			throw new PDFIOException("error.pdf.io.03", e);
@@ -193,17 +249,22 @@ public class BKUSLConnector extends BaseSLConnector {
 			SignParameter parameter) throws PdfAsException {
 		JAXBElement<?> element = null;
 		String slRequest;
+		String slResponse = null;
 		try {
 			slRequest = SLMarschaller.marshalToString(of
 					.createCreateCMSSignatureRequest(pack.getRequestType()));
 			logger.debug(slRequest);
 
-			String slResponse = performHttpRequestToBKU(slRequest, pack,
+			slResponse = performHttpRequestToBKU(slRequest, pack,
 					parameter);
 
 			element = (JAXBElement<?>) SLMarschaller
 					.unmarshalFromString(slResponse);
 		} catch (JAXBException e) {
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if(slError != null) {
+				throw slError;
+			}
 			throw new PDFIOException("error.pdf.io.03", e);
 		} catch (ClientProtocolException e) {
 			throw new PDFIOException("error.pdf.io.03", e);
