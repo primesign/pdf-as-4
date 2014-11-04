@@ -119,6 +119,7 @@ public class SignatureProfileSettings implements IProfileConstants {
 		Map<String, String> others = configuration
 				.getValuesPrefix(profilePrefix);
 
+		if(others != null) {
 		Iterator<String> otherIterator = others.keySet().iterator();
 
 		while (otherIterator.hasNext()) {
@@ -137,7 +138,7 @@ public class SignatureProfileSettings implements IProfileConstants {
 
 			logger.debug("   Settings: " + key + " : " + value);
 		}
-		
+		}
 		
 		Iterator<SignatureProfileEntry> dumpIterator = 
 				profileInformations.values().iterator();
