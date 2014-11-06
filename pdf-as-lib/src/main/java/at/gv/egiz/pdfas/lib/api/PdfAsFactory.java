@@ -35,12 +35,14 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Field;
 import java.security.Provider;
 import java.security.Security;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import javax.activation.DataSource;
+import javax.crypto.Cipher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,6 +141,14 @@ public class PdfAsFactory implements IConfigurationConstants {
 			teeInformation("+ JAVA VM Name: " + runtimeBean.getVmName());
 			teeInformation("+ JAVA VM Version: " + runtimeBean.getVmVersion());
 			teeInformation("+ JAVA VM Vendor: " + runtimeBean.getVmVendor());
+			teeInformation("+ AES Max allowed Key Length: "
+					+ Cipher.getMaxAllowedKeyLength("AES"));
+			teeInformation("+ RSA Max allowed Key Length: "
+					+ Cipher.getMaxAllowedKeyLength("RSA"));
+			teeInformation("+ EC Max allowed Key Length: "
+					+ Cipher.getMaxAllowedKeyLength("EC"));
+			teeInformation("+ DSA Max allowed Key Length: "
+					+ Cipher.getMaxAllowedKeyLength("DSA"));
 		} catch (Throwable e) {
 			teeInformation("+ Failed to show runtime informations");
 		}
@@ -146,9 +156,9 @@ public class PdfAsFactory implements IConfigurationConstants {
 
 	private static void showSecProviderInfo() {
 		try {
-		teeInformation("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
-		teeInformation("+ ECCelerate Version: "
-				+ ECCelerate.getInstance().getVersion());
+			teeInformation("+ IAIK-JCE Version: " + IAIK.getVersionInfo());
+			teeInformation("+ ECCelerate Version: "
+					+ ECCelerate.getInstance().getVersion());
 		} catch (Throwable e) {
 			teeInformation("+ Failed to show security provider informations");
 		}
