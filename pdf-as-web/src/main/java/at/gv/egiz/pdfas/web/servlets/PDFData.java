@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 
 /**
  * Servlet implementation class PDFData
@@ -47,7 +48,7 @@ public class PDFData extends HttpServlet {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFData.class);
 	
-	private static String ORIGINAL_DIGEST = "origdigest";
+	
 	
 	/**
 	 * @see HttpServlet#HttpServlet()
@@ -78,7 +79,7 @@ public class PDFData extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 		byte[] signedData = PdfAsHelper.getSignedPdf(request, response);
 
-		String plainPDFDigest = request.getParameter(ORIGINAL_DIGEST);
+		String plainPDFDigest = PdfAsParameterExtractor.getOrigDigest(request);
 		
 		if (signedData != null) {
 			if(plainPDFDigest != null) {

@@ -66,7 +66,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_SIG_POS_F = "sig-pos-f";
 	public static final String PARAM_SIG_IDX = "sig-idx";
 	public static final String PARAM_FILENAME = "filename";
-	
+	public static final String PARAM_ORIGINAL_DIGEST = "origdigest";
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
 	
 	public static String getConnector(HttpServletRequest request) {
@@ -139,6 +139,11 @@ public class PdfAsParameterExtractor {
 		
 		return finalFormat;
 	}
+	
+	public static String getOrigDigest(HttpServletRequest request) {
+		String url = (String)request.getAttribute(PARAM_ORIGINAL_DIGEST);
+		return url;
+	} 
 	
 	public static String getInvokeErrorURL(HttpServletRequest request) {
 		String url = (String)request.getAttribute(PARAM_INVOKE_URL_ERROR);
