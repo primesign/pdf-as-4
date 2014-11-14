@@ -292,8 +292,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					List<PDPage> kids = new ArrayList<PDPage>();
 					rootPages.getAllKids(kids);
 					int pageNumber = positioningInstruction.getPage();
-					rootPages.getAllKids(kids);
-					PDPage page = kids.get(pageNumber);
+					//rootPages.getAllKids(kids);
+					PDPage page = kids.get(pageNumber-1);
 
 					logger.info("Placeholder name: "
 							+ signaturePlaceholderData.getPlaceholderName());
