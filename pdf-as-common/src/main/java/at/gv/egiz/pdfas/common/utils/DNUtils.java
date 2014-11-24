@@ -48,12 +48,12 @@ public class DNUtils {
         while(rdnIterator.hasNext()) {
             Rdn rdn = rdnIterator.next();
 
-            logger.debug(rdn.getType() + " = " + rdn.getValue().toString());
+            //logger.debug(rdn.getType() + " = " + rdn.getValue().toString());
             map.put(rdn.getType(), rdn.getValue().toString());
         }
         
         map.put("DN", dn);
-        logger.debug("DN = " + dn);
+        //logger.debug("DN = " + dn);
 
         return map;
     }
