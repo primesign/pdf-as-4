@@ -187,9 +187,13 @@ public class PdfAsHelper {
 			try {
 				Float.parseFloat(posX);
 			} catch (NumberFormatException e) {
-				throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_X
-								+ " has invalid value!", e);
+				if (!posX.equalsIgnoreCase("auto")) {
+					throw new PdfAsWebException(
+							PdfAsParameterExtractor.PARAM_SIG_POS_X
+									+ " has invalid value!", e);
+				} else {
+					sb.append("x:auto;");
+				}
 			}
 			sb.append("x:" + posX.trim() + ";");
 		} else {
@@ -200,9 +204,13 @@ public class PdfAsHelper {
 			try {
 				Float.parseFloat(posY);
 			} catch (NumberFormatException e) {
-				throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_Y
-								+ " has invalid value!", e);
+				if (!posY.equalsIgnoreCase("auto")) {
+					throw new PdfAsWebException(
+							PdfAsParameterExtractor.PARAM_SIG_POS_Y
+									+ " has invalid value!", e);
+				} else {
+					sb.append("y:auto;");
+				}
 			}
 			sb.append("y:" + posY.trim() + ";");
 		} else {
@@ -213,9 +221,13 @@ public class PdfAsHelper {
 			try {
 				Float.parseFloat(posW);
 			} catch (NumberFormatException e) {
+				if (!posW.equalsIgnoreCase("auto")) {
 				throw new PdfAsWebException(
 						PdfAsParameterExtractor.PARAM_SIG_POS_W
 								+ " has invalid value!", e);
+				} else {
+					sb.append("w:auto;");
+				}
 			}
 			sb.append("w:" + posW.trim() + ";");
 		} else {
@@ -241,9 +253,11 @@ public class PdfAsHelper {
 			try {
 				Float.parseFloat(posR);
 			} catch (NumberFormatException e) {
-				throw new PdfAsWebException(
+				if (!posR.equalsIgnoreCase("auto")) {
+					throw new PdfAsWebException(
 						PdfAsParameterExtractor.PARAM_SIG_POS_R
 								+ " has invalid value!", e);
+				}
 			}
 			sb.append("r:" + posR.trim() + ";");
 		} else {
@@ -254,9 +268,13 @@ public class PdfAsHelper {
 			try {
 				Float.parseFloat(posF);
 			} catch (NumberFormatException e) {
-				throw new PdfAsWebException(
+				if (!posF.equalsIgnoreCase("auto")) {
+					throw new PdfAsWebException(
 						PdfAsParameterExtractor.PARAM_SIG_POS_F
 								+ " has invalid value!", e);
+				} else {
+					sb.append("f:0;");
+				}
 			}
 			sb.append("f:" + posF.trim() + ";");
 		} else {
@@ -299,7 +317,8 @@ public class PdfAsHelper {
 	}
 
 	public static List<VerifyResult> synchornousVerify(byte[] pdfData,
-			int signIdx, SignatureVerificationLevel lvl, Map<String, String> preProcessor) throws Exception {
+			int signIdx, SignatureVerificationLevel lvl,
+			Map<String, String> preProcessor) throws Exception {
 		logger.debug("Verifing Signature index: " + signIdx);
 
 		Configuration config = pdfAs.getConfiguration();
@@ -339,7 +358,7 @@ public class PdfAsHelper {
 		Configuration config = pdfAs.getConfiguration();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
+
 		// Generate Sign Parameter
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
 				new ByteArrayDataSource(pdfData), baos);
@@ -396,7 +415,7 @@ public class PdfAsHelper {
 		Configuration config = pdfAs.getConfiguration();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
+
 		// Generate Sign Parameter
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
 				new ByteArrayDataSource(pdfData), baos);
@@ -431,11 +450,12 @@ public class PdfAsHelper {
 		// set Signature Position
 		signParameter.setSignaturePosition(params.getPosition());
 
-		// Set Preprocessor 
-		if(params.getPreprocessor() != null) {
-			signParameter.setPreprocessorArguments(params.getPreprocessor().getMap());
+		// Set Preprocessor
+		if (params.getPreprocessor() != null) {
+			signParameter.setPreprocessorArguments(params.getPreprocessor()
+					.getMap());
 		}
-		
+
 		SignResult signResult = pdfAs.sign(signParameter);
 
 		PDFASSignResponse signResponse = new PDFASSignResponse();
@@ -454,7 +474,8 @@ public class PdfAsHelper {
 	public static void startSignature(HttpServletRequest request,
 			HttpServletResponse response, ServletContext context,
 			byte[] pdfData, String connector, String position,
-			String transactionId, String profile, Map<String, String> preProcessor) throws Exception {
+			String transactionId, String profile,
+			Map<String, String> preProcessor) throws Exception {
 
 		// TODO: Protect session so that only one PDF can be signed during one
 		// session
@@ -476,7 +497,7 @@ public class PdfAsHelper {
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		session.setAttribute(PDF_OUTPUT, baos);
-		
+
 		// Generate Sign Parameter
 		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
 				new ByteArrayDataSource(pdfData), baos);
@@ -537,8 +558,8 @@ public class PdfAsHelper {
 		X509Certificate cert = new X509Certificate(
 				PdfAsHelper.class.getResourceAsStream("/qualified.cer"));
 		Configuration config = pdfAs.getConfiguration();
-		SignParameter parameter = PdfAsFactory
-				.createSignParameter(config, null, null);
+		SignParameter parameter = PdfAsFactory.createSignParameter(config,
+				null, null);
 		parameter.setSignatureProfileId(profile);
 		Image img = pdfAs.generateVisibleSignaturePreview(parameter, cert,
 				resolution);
@@ -620,7 +641,7 @@ public class PdfAsHelper {
 				|| connector.equals("mobilebku")) {
 			BKUSLConnector bkuSLConnector = (BKUSLConnector) session
 					.getAttribute(PDF_SL_CONNECTOR);
-			
+
 			if (statusRequest.needCertificate()) {
 				logger.debug("Needing Certificate from BKU");
 				// build SL Request to read certificate
@@ -683,11 +704,11 @@ public class PdfAsHelper {
 				logger.debug("Document ready!");
 
 				SignResult result = pdfAs.finishSign(statusRequest);
-				
+
 				ByteArrayOutputStream baos = (ByteArrayOutputStream) session
 						.getAttribute(PDF_OUTPUT);
 				baos.close();
-				
+
 				PDFASVerificationResponse verResponse = new PDFASVerificationResponse();
 				List<VerifyResult> verResults = PdfAsHelper.synchornousVerify(
 						baos.toByteArray(), -2,
