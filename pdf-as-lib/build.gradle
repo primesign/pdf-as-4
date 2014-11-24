@@ -150,8 +150,8 @@ task fulldocs(type: Javadoc) {
 	include('at/gv/egiz/**')
 }
 
-releases.dependsOn apidocs
-releases.dependsOn fulldocs
+//releases.dependsOn apidocs
+//releases.dependsOn fulldocs
 
 test {
 	systemProperties 'property': 'value'
