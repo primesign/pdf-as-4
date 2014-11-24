@@ -23,10 +23,12 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
@@ -68,6 +70,7 @@ public class PdfboxSignerWrapper implements PDFASPDFBOXSignatureInterface {
 		try {
 			logger.debug("Signing with Pdfbox Wrapper");
 			byte[] signature = signer.sign(data, byteRange, this.parameters, this.requestedSignature);
+
 			return signature;
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);

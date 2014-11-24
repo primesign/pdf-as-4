@@ -170,6 +170,12 @@ public class PositioningInstruction
     return this.rotation;
   }
 
+  
+  public void setRotation(float rotation)
+  {
+    this.rotation += rotation;
+  }
+
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

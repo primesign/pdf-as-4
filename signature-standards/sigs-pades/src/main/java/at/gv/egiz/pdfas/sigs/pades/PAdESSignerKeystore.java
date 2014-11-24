@@ -65,8 +65,10 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
+import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 
 public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 
@@ -305,8 +307,12 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 			while ((r = dataIs.read(buf)) > 0)
 				; // skip data
 			ContentInfo ci = new ContentInfo(si);
-
-			return ci.getEncoded();
+			byte[] signature = ci.getEncoded();
+			
+			VerifyResult verifyResult = SignatureUtils.verifySignature(
+					signature, input);
+			
+			return signature;
 		} catch (NoSuchAlgorithmException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (iaik.cms.CMSException e) {
@@ -316,6 +322,8 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 		} catch (CertificateException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		} catch (CodingException e) {
+			throw new PdfAsSignatureException("error.pdf.sig.01", e);
+		} catch (PDFASError e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		}
 	}

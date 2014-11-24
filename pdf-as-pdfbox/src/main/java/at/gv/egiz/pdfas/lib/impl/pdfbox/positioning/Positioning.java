@@ -23,6 +23,9 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.pdfbox.positioning;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -44,7 +47,7 @@ public class Positioning {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(Positioning.class);
-	
+
 	/**
 	 * The left/right margin.
 	 */
@@ -79,6 +82,63 @@ public class Positioning {
 				pdf_table, pos, legacy32);
 	}
 
+	private static PDRectangle rotateBox(PDRectangle cropBox, int rotation) {
+		if (rotation != 0) {
+			Point2D upSrc = new Point2D.Float();
+
+			upSrc.setLocation(cropBox.getUpperRightX(),
+					cropBox.getUpperRightY());
+
+			Point2D llSrc = new Point2D.Float();
+			llSrc.setLocation(cropBox.getLowerLeftX(), cropBox.getLowerLeftY());
+			AffineTransform transform = new AffineTransform();
+			transform.setToIdentity();
+			if (rotation % 360 != 0) {
+				transform.setToRotation(Math.toRadians(rotation * -1), llSrc.getX(),
+						llSrc.getY());
+			}
+			Point2D upDst = new Point2D.Float();
+			transform.transform(upSrc, upDst);
+
+			Point2D llDst = new Point2D.Float();
+			transform.transform(llSrc, llDst);
+			
+			float y1 = (float) upDst.getY();
+			float y2 = (float) llDst.getY();
+			
+			if(y1 > y2) {
+				float t = y1;
+				y1 = y2;
+				y2 = t;
+			}
+			
+			if(y1 < 0) {
+				y2 = y2 + -1 * y1;
+				y1 = 0;
+			}
+			
+			float x1 = (float) upDst.getX();
+			float x2 = (float) llDst.getX();
+			
+			if(x1 > x2) {
+				float t = x1;
+				x1 = x2;
+				x2 = t;
+			}
+			
+			if(x1 < 0) {
+				x2 = x2 + -1 * x1;
+				x1 = 0;
+			}
+			
+			cropBox.setUpperRightX(x2);
+			cropBox.setUpperRightY(y2);
+			cropBox.setLowerLeftY(y1);
+			cropBox.setLowerLeftX(x1);
+		}
+		return cropBox;
+	}
+
 	/**
 	 * Sets the width of the table according to the layout of the document and
 	 * calculates the y position where the PDFPTable should be placed.
@@ -94,7 +154,7 @@ public class Positioning {
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
 			TablePos pos, boolean legacy32) throws PdfAsException {
-		
+
 		PdfBoxUtils.checkPDFPermissions(pdfDataSource);
 		// get pages of currentdocument
 
@@ -114,13 +174,13 @@ public class Positioning {
 				// ") cannot be parsed.");
 			}
 		}
-		
+
 		PDPage pdPage = (PDPage) pdfDataSource.getDocumentCatalog()
 				.getAllPages().get(page - 1);
 		PDRectangle cropBox = pdPage.getCropBox();
 
 		// fallback to MediaBox if Cropbox not available!
-		
+
 		if (cropBox == null) {
 			cropBox = pdPage.findCropBox();
 		}
@@ -136,9 +196,20 @@ public class Positioning {
 		// Integer rotation = pdPage.getRotation();
 		// int page_rotation = rotation.intValue();
 
+		int rotation = pdPage.findRotation();
+
+		logger.debug("Original CropBox: " + cropBox.toString());
+		
+		//cropBox = rotateBox(cropBox, rotation);
+		
+		logger.debug("Rotated CropBox: " + cropBox.toString());
+		
 		float page_width = cropBox.getWidth();
 		float page_height = cropBox.getHeight();
 
+		logger.debug("CropBox width: " + page_width);
+		logger.debug("CropBox heigth: " + page_height);
+		
 		// now we can calculate x-position
 		float pre_pos_x = SIGNATURE_MARGIN_HORIZONTAL;
 		if (!pos.isXauto()) {
@@ -191,11 +262,11 @@ public class Positioning {
 		// fit
 		// Now we have to getfreespace in page and reguard footerline
 		float footer_line = pos.getFooterLine();
-		
+
 		float pre_page_length = PDFUtilities.calculatePageLength(pdfDataSource,
 				page - 1, page_height - footer_line, /* page_rotation, */
 				legacy32);
-		
+
 		if (pre_page_length == Float.NEGATIVE_INFINITY) {
 			// we do have an empty page or nothing in area above footerline
 			pre_page_length = page_height;

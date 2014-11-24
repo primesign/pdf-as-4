@@ -257,6 +257,34 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						.determineTablePositioning(tablePos, "", doc,
 								visualObject, legacy32Position);
 
+				if (positioningInstruction.isMakeNewPage()) {
+					int last = doc.getNumberOfPages() - 1;
+					PDDocumentCatalog root = doc.getDocumentCatalog();
+					PDPageNode rootPages = root.getPages();
+					List<PDPage> kids = new ArrayList<PDPage>();
+					rootPages.getAllKids(kids);
+					PDPage lastPage = kids.get(last);
+					rootPages.getCOSObject().setNeedToBeUpdate(true);
+					PDPage p = new PDPage(lastPage.findMediaBox());
+					p.setResources(new PDResources());
+
+					doc.addPage(p);
+				}
+				
+				// handle rotated page
+				PDDocumentCatalog documentCatalog = doc.getDocumentCatalog();
+				PDPageNode documentPages = documentCatalog.getPages();
+				List<PDPage> documentPagesKids = new ArrayList<PDPage>();
+				documentPages.getAllKids(documentPagesKids);
+				int targetPageNumber = positioningInstruction.getPage();
+				logger.debug("Target Page: " + targetPageNumber);
+				//rootPages.getAllKids(kids);
+				PDPage targetPage = documentPagesKids.get(targetPageNumber-1);
+				int rot = targetPage.findRotation();
+				logger.debug("adding Page rotation: " + rot);
+				positioningInstruction.setRotation(positioningInstruction.getRotation() + rot);
+				logger.debug("resulting Sign rotation: " + positioningInstruction.getRotation());
+				
 				SignaturePositionImpl position = new SignaturePositionImpl();
 				position.setX(positioningInstruction.getX());
 				position.setY(positioningInstruction.getY());
@@ -278,7 +306,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				 * sigbos.write(StreamUtils.inputStreamToByteArray(properties
 				 * .getVisibleSignature())); sigbos.close();
 				 */
-
+				
 				if (signaturePlaceholderData != null) {
 					// Placeholder found!
 					// replace placeholder
@@ -306,20 +334,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					page.findResources().getCOSObject().setNeedToBeUpdate(true);
 					logger.info("Placeholder name: "
 							+ signaturePlaceholderData.getPlaceholderName());
-				}
-
-				if (positioningInstruction.isMakeNewPage()) {
-					int last = doc.getNumberOfPages() - 1;
-					PDDocumentCatalog root = doc.getDocumentCatalog();
-					PDPageNode rootPages = root.getPages();
-					List<PDPage> kids = new ArrayList<PDPage>();
-					rootPages.getAllKids(kids);
-					PDPage lastPage = kids.get(last);
-					rootPages.getCOSObject().setNeedToBeUpdate(true);
-					PDPage p = new PDPage(lastPage.findMediaBox());
-					p.setResources(new PDResources());
-
-					doc.addPage(p);
 				}
 
 				if (signatureProfileSettings.isPDFA()) {
@@ -363,7 +377,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				// sigBlock.setTitle("Signature Table");
 				// }
 				// }
-
+				
 				options.setPage(positioningInstruction.getPage());
 				options.setVisualSignature(properties.getVisibleSignature());
 			}

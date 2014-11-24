@@ -135,7 +135,7 @@ public class BKUSLConnector extends BaseSLConnector {
 					.create();
 			entityBuilder.setCharset(Charset.forName("UTF-8"));
 			entityBuilder.addTextBody(XMLREQUEST, xmlRequest,
-					ContentType.TEXT_XML);
+					ContentType.TEXT_XML.withCharset(Charset.forName("UTF-8")));
 
 			if (parameter != null) {
 				String transactionId = parameter.getTransactionId();
