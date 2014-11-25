@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -146,6 +147,9 @@ public class Settings implements ISettings, IProfileConstants {
 			}
 		}
 
+		logger.debug("Settings: {}",
+				properties.size());
+		
 		// Resolve Parent Structures ...
 		while (!profiles.isEmpty()) {
 			List<String> removes = new ArrayList<String>();
@@ -166,15 +170,29 @@ public class Settings implements ISettings, IProfileConstants {
 						String parentBase = "sig_obj." + parent.getName();
 						String childBase = "sig_obj."
 								+ entry.getValue().getName();
+						
 						Iterator<String> parentKeyIt = this.getKeys(
-								parentBase).iterator();
+								parentBase+".").iterator();
 						while (parentKeyIt.hasNext()) {
 							String key = parentKeyIt.next();
 							String keyToCopy = key.substring(parentBase
 									.length());
-							if(!this.hasValue(childBase+keyToCopy)) {
-								properties.setProperty(childBase+keyToCopy, 
-										this.getValue(parentBase+keyToCopy));
+							//logger.debug("Profile: {} => {}",
+							//		key, childBase+keyToCopy);
+							String sourceKey = parentBase+keyToCopy;
+							String targetKey = childBase+keyToCopy;
+							
+							int idx = targetKey.indexOf("NOTE");
+							if(idx > 0) {
+								if(targetKey.indexOf("NOTE", idx+1) > 0) {
+									logger.debug("Profile: {} => {}",
+											parentBase, childBase);
+								}
+							}
+									
+							if(!this.hasValue(targetKey)) {
+								properties.setProperty(targetKey, 
+										this.getValue(sourceKey));
 								//logger.debug("Replaced: {} with Value from {}",
 								//		childBase+keyToCopy, parentBase+keyToCopy);
 							} else {
@@ -189,7 +207,6 @@ public class Settings implements ISettings, IProfileConstants {
 					}
 				}
 			}
-
 			
 			// Remove all Profiles from Remove List
 			
@@ -209,6 +226,10 @@ public class Settings implements ISettings, IProfileConstants {
 				profiles.remove(removeIt.next());
 			}
 		}
+		
+		logger.debug("Settings: {}",
+				properties.size());
+		
 	}
 
 	public void loadSettings(File workDirectory) throws PdfAsSettingsException {
