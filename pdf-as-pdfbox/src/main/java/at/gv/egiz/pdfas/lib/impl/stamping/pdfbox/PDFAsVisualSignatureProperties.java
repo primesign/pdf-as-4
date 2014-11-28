@@ -24,8 +24,11 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +64,35 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 			PDDocument origDoc = object.getDocument();
 
 			designer = new PDFAsVisualSignatureDesigner(origDoc, pos.getPage(), this, pos.isMakeNewPage());
+			List<?> pages = origDoc.getDocumentCatalog().getAllPages();
+			PDPage page = null;
+			if(pos.isMakeNewPage()) {
+				page = (PDPage) pages.get(pages.size()-1);
+			} else {
+				page = (PDPage) pages.get(pos.getPage() - 1);
+			}
+			logger.debug("PAGE width {} HEIGHT {}", designer.getPageWidth(), designer.getPageHeight());
+			logger.debug("POS X {} Y {}", pos.getX(), pos.getY());
+			int rot = page.findRotation();
 			float posy = designer.getPageHeight() - pos.getY();
-			designer.coordinates(pos.getX(), posy);
+			float posx = pos.getX();
+			/*switch (rot) {
+			case 90: // CW
+				posx = designer.getPageHeight() - pos.getY();
+				posy = designer.getPageWidth() - main.getWidth();
+				break;
+			case 180:
+				posy = pos.getY();
+				posx = designer.getPageWidth() - pos.getX();
+				break;
+			case 270: // CCW
+				posx = pos.getY();
+				posy = designer.getPageWidth() - pos.getX();
+				break;
+			}*/
+			logger.debug("ROT {}", rot);
+			logger.debug("COORD X {} Y {}", posx, posy);
+			designer.coordinates(posx, posy);
 			float[] form_rect = new float[] {0,0, main.getWidth() + 2, main.getHeight() + 2};
 			logger.debug("AP Rect: {} {} {} {}", form_rect[0], form_rect[1], form_rect[2], form_rect[3]);
 			designer.formaterRectangleParams(form_rect);

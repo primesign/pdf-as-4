@@ -257,6 +257,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						.determineTablePositioning(tablePos, "", doc,
 								visualObject, legacy32Position);
 
+				logger.debug("Positioning: {}" , positioningInstruction.toString());
+				
 				if (positioningInstruction.isMakeNewPage()) {
 					int last = doc.getNumberOfPages() - 1;
 					PDDocumentCatalog root = doc.getDocumentCatalog();
@@ -267,7 +269,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					rootPages.getCOSObject().setNeedToBeUpdate(true);
 					PDPage p = new PDPage(lastPage.findMediaBox());
 					p.setResources(new PDResources());
-
+					p.setRotation(lastPage.findRotation());
 					doc.addPage(p);
 				}
 				
@@ -281,8 +283,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				//rootPages.getAllKids(kids);
 				PDPage targetPage = documentPagesKids.get(targetPageNumber-1);
 				int rot = targetPage.findRotation();
-				logger.debug("adding Page rotation: " + rot);
-				positioningInstruction.setRotation(positioningInstruction.getRotation() + rot);
+				logger.debug("Page rotation: " + rot);
+				//positioningInstruction.setRotation(positioningInstruction.getRotation() + rot);
 				logger.debug("resulting Sign rotation: " + positioningInstruction.getRotation());
 				
 				SignaturePositionImpl position = new SignaturePositionImpl();
@@ -486,13 +488,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			helper.deleteFile(fisTmpFile);
 
 		} catch (IOException e) {
-			logger.error(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} catch (SignatureException e) {
-			logger.error(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} catch (COSVisitorException e) {
-			logger.error(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
 			if (doc != null) {
@@ -639,10 +641,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							.getHeight() * factor)), null);
 			return cutOut;
 		} catch (PdfAsException e) {
-			logger.error("PDF-AS  Exception", e);
+			logger.warn("PDF-AS  Exception", e);
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		} catch (Throwable e) {
-			logger.error("Throwable  Exception", e);
+			logger.warn("Unexpected Throwable  Exception", e);
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}

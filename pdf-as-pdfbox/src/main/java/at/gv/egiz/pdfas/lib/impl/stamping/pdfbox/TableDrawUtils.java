@@ -251,7 +251,7 @@ public class TableDrawUtils {
 			contentStream.endText();
 
 		} catch (IOException e) {
-			logger.error("IO Exception", e);
+			logger.warn("IO Exception", e);
 			throw new PdfAsException("Error", e);
 		}
 	}
@@ -285,7 +285,7 @@ public class TableDrawUtils {
 					padding, abstractTable, doc, cell, fontSize, textHeight,
 					valign, halign, tlines, textFont, formResources, settings);
 		} catch (IOException e) {
-			logger.error("IO Exception", e);
+			logger.warn("IO Exception", e);
 			throw new PdfAsException("Error", e);
 		}
 	}
@@ -319,7 +319,7 @@ public class TableDrawUtils {
 					padding, abstractTable, doc, cell, fontSize, textHeight,
 					valign, halign, tlines, textFont, formResources, settings);
 		} catch (IOException e) {
-			logger.error("IO Exception", e);
+			logger.warn("IO Exception", e);
 			throw new PdfAsException("Error", e);
 		}
 	}
@@ -336,7 +336,7 @@ public class TableDrawUtils {
 						
 			String img_ref = (String) cell.getValue();
 			if (!images.containsKey(img_ref)) {
-				logger.error("Image not prepared! : " + img_ref);
+				logger.warn("Image not prepared! : " + img_ref);
 				throw new PdfAsException("Image not prepared! : " + img_ref);
 			}
 			ImageObject image = images.get(img_ref);
@@ -375,7 +375,7 @@ public class TableDrawUtils {
 			contentStream.drawXObject(pdImage, imgx, imgy - image.getHeight(),
 					image.getWidth(), image.getHeight());
 		} catch (IOException e) {
-			logger.error("IO Exception", e);
+			logger.warn("IO Exception", e);
 			throw new PdfAsException("Error", e);
 		}
 

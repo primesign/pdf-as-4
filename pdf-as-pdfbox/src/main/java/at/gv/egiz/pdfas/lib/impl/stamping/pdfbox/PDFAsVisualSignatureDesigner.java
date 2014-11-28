@@ -55,6 +55,7 @@ public class PDFAsVisualSignatureDesigner {
 	private float imageSizeInPercents;
 	private PDDocument document = null;
 	private int page = 0;
+	private int pageRotation = 0;
 	private boolean newpage = false;
 	PDFAsVisualSignatureProperties properties;
 
@@ -93,13 +94,25 @@ public class PDFAsVisualSignatureDesigner {
 		if(newpage) {
 			PDPage lastPage = (PDPage) pages.get(pages.size()-1);
 			PDRectangle mediaBox = lastPage.findMediaBox();
-			this.pageHeight(mediaBox.getHeight());
-			this.pageWidth = mediaBox.getWidth();
+			pageRotation = lastPage.findRotation() % 360;
+			if(pageRotation == 90 || pageRotation == 270) {
+				this.pageHeight(mediaBox.getWidth());
+				this.pageWidth = mediaBox.getHeight();
+			} else {
+				this.pageHeight(mediaBox.getHeight());
+				this.pageWidth = mediaBox.getWidth();
+			}
 		} else {
 			PDPage firstPage = (PDPage) pages.get(page - 1);
 			PDRectangle mediaBox = firstPage.findMediaBox();
-			this.pageHeight(mediaBox.getHeight());
-			this.pageWidth = mediaBox.getWidth();
+			pageRotation = firstPage.findRotation() % 360;
+			if(pageRotation == 90 || pageRotation == 270) {
+				this.pageHeight(mediaBox.getWidth());
+				this.pageWidth = mediaBox.getHeight();
+			} else {
+				this.pageHeight(mediaBox.getHeight());
+				this.pageWidth = mediaBox.getWidth();
+			}
 		}
 		float x = this.pageWidth;
 		float y = 0;
@@ -405,6 +418,14 @@ public class PDFAsVisualSignatureDesigner {
 		return pageHeight;
 	}
 
+	/**
+	 * 
+	 * @return page height
+	 */
+	public int getPageRotation() {
+		return pageRotation;
+	}
+	
 	/**
 	 * get image size in percents
 	 * 

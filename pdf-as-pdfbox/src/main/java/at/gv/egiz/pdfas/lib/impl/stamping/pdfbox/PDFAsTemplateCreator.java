@@ -90,7 +90,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         //AffineTransform transform = pdfStructure.getAffineTransform();
        
         // rectangle, formatter, image. /AcroForm/DR/XObject contains that form
-        this.pdfBuilder.createSignatureRectangle(pdSignatureField, properties, properties.getRotation());
+        this.pdfBuilder.createSignatureRectangle(pdSignatureField, properties, properties.getRotation() + properties.getPageRotation());
         this.pdfBuilder.createFormaterRectangle(properties.getFormaterRectangleParams());
         PDRectangle formater = pdfStructure.getFormaterRectangle();
         
@@ -105,7 +105,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         
         // that is /AP entry the appearance dictionary.
         this.pdfBuilder.createAppearanceDictionary(pdfStructure.getHolderForm(), pdSignatureField, 
-        		properties.getRotation());
+        		properties.getRotation() + properties.getPageRotation());
         
         // inner formstream, form and resource (hlder form containts inner form)
         this.pdfBuilder.createInnerFormStreamPdfAs(template);
@@ -157,7 +157,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         }
         catch (COSVisitorException e)
         {
-            logger.error("COSVisitorException: can't get apereance stream ", e);
+            logger.warn("COSVisitorException: can't get apereance stream ", e);
         }
         logger.debug("stream returning started, size= " + in.available());
         

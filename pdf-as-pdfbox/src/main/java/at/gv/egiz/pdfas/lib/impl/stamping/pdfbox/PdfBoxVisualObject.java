@@ -61,9 +61,9 @@ public class PdfBoxVisualObject implements IPDFVisualObject {
 		try {
 			table = new PDFBoxTable(abstractTable, null, this.width,  settings);
 		} catch (IOException e) {
-			logger.error("Failed to fix width of Table!", e);
+			logger.warn("Failed to fix width of Table!", e);
 		} catch (PdfAsException e) {
-			logger.error("Failed to fix width of Table!", e);
+			logger.warn("Failed to fix width of Table!", e);
 		}
 	}
 

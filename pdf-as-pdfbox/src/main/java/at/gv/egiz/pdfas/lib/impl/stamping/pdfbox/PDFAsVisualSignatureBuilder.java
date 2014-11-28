@@ -257,7 +257,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			logger.debug("Strean of another form (inner form - it would be inside holder form) has been created");
 
 		} catch (Throwable e) {
-			logger.error("Failed to create visual signature block", e);
+			logger.warn("Failed to create visual signature block", e);
 			throw new PdfAsException("Failed to create visual signature block", e);
 		}
 	}
@@ -330,6 +330,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		PDPage page = new PDPage();
 		page.setMediaBox(new PDRectangle(properties.getPageWidth(), properties
 				.getPageHeight()));
+		page.setRotation(properties.getPageRotation());
 		getStructure().setPage(page);
 		logger.debug("PDF page has been created");
 	}
@@ -339,7 +340,6 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		template.getDocumentCatalog().setAcroForm(theAcroForm);
 		getStructure().setAcroForm(theAcroForm);
 		logger.debug("Acro form page has been created");
-
 	}
 
 	public void createSignatureField(PDAcroForm acroForm) throws IOException {
@@ -388,18 +388,55 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		Point2D llSrc = new Point2D.Float();
 		llSrc.setLocation(properties.getxAxis(), properties.getPageHeight()
 				- properties.getyAxis() - properties.getHeight());
+		
+		rect.setUpperRightX((float) upSrc.getX());
+		rect.setUpperRightY((float) upSrc.getY());
+		rect.setLowerLeftY((float) llSrc.getY());
+		rect.setLowerLeftX((float) llSrc.getX());
+		logger.debug("orig rectangle of signature has been created: {}",
+				rect.toString());
+		
 		AffineTransform transform = new AffineTransform();
 		transform.setToIdentity();
 		if (degrees % 360 != 0) {
 			transform.setToRotation(Math.toRadians(degrees), llSrc.getX(),
 					llSrc.getY());
 		}
+		
+		
 		Point2D upDst = new Point2D.Float();
 		transform.transform(upSrc, upDst);
 
 		Point2D llDst = new Point2D.Float();
 		transform.transform(llSrc, llDst);
+		
+		float xPos = properties.getxAxis();
+		float yPos = properties.getPageHeight() - properties.getyAxis();
+		logger.debug("POS {} x {}", xPos, yPos);
+		logger.debug("SIZE {} x {}", properties.getWidth(), properties.getHeight());
+		// translate according to page! rotation
+		int pageRotation = properties.getPageRotation();
+		AffineTransform translate = new AffineTransform();
+		switch(pageRotation) {
+			case 90:
+				translate.setToTranslation(properties.getPageHeight()
+				- (properties.getPageHeight()
+				- properties.getyAxis()) - properties.getxAxis() + properties.getHeight(), properties.getxAxis() + properties.getHeight() - (properties.getPageHeight()
+				- properties.getyAxis()));
+			break;
+			case 180:
+				//translate.setToTranslation(properties.getPageWidth() - properties.getxAxis() - properties.getxAxis(), 
+				//		properties.getPageHeight() - properties.getyAxis() + properties.getHeight());
+				translate.setToTranslation(properties.getPageWidth() - 2 * xPos,properties.getPageHeight() - 2 * (yPos - properties.getHeight())); 
+				break;
+			case 270:
+				translate.setToTranslation(-properties.getHeight() + yPos - xPos, properties.getPageWidth() - (yPos - properties.getHeight()) - xPos);
+				break;
+		}
 
+		translate.transform(upDst, upDst);
+		translate.transform(llDst, llDst);
+		
 		rect.setUpperRightX((float) upDst.getX());
 		rect.setUpperRightY((float) upDst.getY());
 		rect.setLowerLeftY((float) llDst.getY());
