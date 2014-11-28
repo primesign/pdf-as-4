@@ -20,7 +20,6 @@ releases.dependsOn distTar
 
 dependencies {
 	compile project (':pdf-as-lib')
-	compile project (':pdf-as-legacy')
 	compile project (':signature-standards:sigs-pkcs7detached')
 	compile project (':signature-standards:sigs-pades')
 	compile project (':pdf-as-moa')
