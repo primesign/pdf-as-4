@@ -98,14 +98,14 @@ public class PDFSignatureData extends HttpServlet {
 				os.write(res.getSignatureData());
 				os.close();
 			} else {
-				logger.error("Verification DATA not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
+				logger.warn("Verification DATA not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
 		} catch (NumberFormatException e) {
-			logger.error("Verification DATA not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
+			logger.warn("Verification DATA not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		} catch (PdfAsException e) {
-			logger.error("Verification DATA not found:", e);
+			logger.warn("Verification DATA not found:", e);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		} 
 	}

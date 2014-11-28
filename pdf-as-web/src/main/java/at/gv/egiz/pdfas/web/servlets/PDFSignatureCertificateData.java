@@ -99,17 +99,17 @@ public class PDFSignatureCertificateData  extends HttpServlet {
 				os.write(res.getSignerCertificate().getEncoded());
 				os.close();
 			} else {
-				logger.error("Verification CERT not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
+				logger.warn("Verification CERT not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			}
 		} catch (NumberFormatException e) {
-			logger.error("Verification CERT not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
+			logger.warn("Verification CERT not found! for id " + request.getParameter(SIGN_ID) + " in session " + request.getSession().getId());
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		} catch (PdfAsException e) {
-			logger.error("Verification CERT not found:", e);
+			logger.warn("Verification CERT not found:", e);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		} catch (CertificateEncodingException e) {
-			logger.error("Verification CERT invalid:", e);
+			logger.warn("Verification CERT invalid:", e);
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		} 
 	}

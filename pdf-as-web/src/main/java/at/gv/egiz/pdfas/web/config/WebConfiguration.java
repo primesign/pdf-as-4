@@ -323,7 +323,7 @@ public class WebConfiguration implements IConfigurationConstants {
 						return true;
 					}
 				} catch (Throwable e) {
-					logger.error("Error in matching regex: " + pattern, e);
+					logger.warn("Error in matching regex: " + pattern, e);
 				}
 			}
 

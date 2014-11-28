@@ -293,7 +293,7 @@ public class PdfAsHelper {
 			try {
 				signIdx = Integer.parseInt(signidxString);
 			} catch (Throwable e) {
-				logger.error("Failed to parse Signature Index: "
+				logger.warn("Failed to parse Signature Index: "
 						+ signidxString);
 			}
 		}
@@ -1097,12 +1097,12 @@ public class PdfAsHelper {
 		if (obj != null) {
 			try {
 				if (!(obj instanceof List<?>)) {
-					logger.error("Invalid object type");
+					logger.warn("Invalid object type");
 					return null;
 				}
 				return (List<VerifyResult>) obj;
 			} catch (Throwable e) {
-				logger.error("Invalid object type");
+				logger.warn("Invalid object type");
 			}
 		}
 		return null;

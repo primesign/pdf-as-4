@@ -234,7 +234,12 @@ public class PDFPage extends PDFTextStripper {
 			// this depicts the current end of path-related page content
 			float lowerBoundYPositionFromTop;
 
-			PDRectangle boundaryBox = this.getCurrentPage().findMediaBox();
+			PDRectangle boundaryBox = this.getCurrentPage().findCropBox();
+				
+			if(boundaryBox == null) {
+				boundaryBox = this.getCurrentPage().findMediaBox();
+			}
+					
 			float pageHeight;
 
 			switch (this.getCurrentPage().findRotation()) {

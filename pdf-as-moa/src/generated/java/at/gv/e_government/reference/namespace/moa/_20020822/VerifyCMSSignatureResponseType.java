@@ -40,9 +40,9 @@ import org.w3._2000._09.xmldsig.KeyInfoType;
 public class VerifyCMSSignatureResponseType {
 
     @XmlElementRefs({
+        @XmlElementRef(name = "SignerInfo", namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", type = JAXBElement.class),
         @XmlElementRef(name = "SignatureCheck", namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", type = JAXBElement.class),
-        @XmlElementRef(name = "CertificateCheck", namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", type = JAXBElement.class),
-        @XmlElementRef(name = "SignerInfo", namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", type = JAXBElement.class)
+        @XmlElementRef(name = "CertificateCheck", namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", type = JAXBElement.class)
     })
     protected List<JAXBElement<?>> signerInfoAndSignatureCheckAndCertificateCheck;
 
@@ -64,8 +64,8 @@ public class VerifyCMSSignatureResponseType {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link JAXBElement }{@code <}{@link CheckResultType }{@code >}
      * {@link JAXBElement }{@code <}{@link KeyInfoType }{@code >}
+     * {@link JAXBElement }{@code <}{@link CheckResultType }{@code >}
      * {@link JAXBElement }{@code <}{@link CheckResultType }{@code >}
      * 
      * 

@@ -153,10 +153,10 @@ public class PDFBOXVerifier implements VerifyBackend {
 			}
 			return result;
 		} catch (IOException e) {
-			logger.error("Failed to verify document", e);
+			logger.warn("Failed to verify document", e);
 			throw ErrorExtractor.searchPdfAsError(e, null);
 		} catch (PdfAsException e) {
-			logger.error("Failed to verify document", e);
+			logger.warn("Failed to verify document", e);
 			throw ErrorExtractor.searchPdfAsError(e, null);
 		} finally {
 			if (doc != null) {

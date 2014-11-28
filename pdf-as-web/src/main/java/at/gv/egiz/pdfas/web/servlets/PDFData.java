@@ -85,9 +85,9 @@ public class PDFData extends HttpServlet {
 			if(plainPDFDigest != null) {
 				String signatureDataHash = PdfAsHelper.getSignatureDataHash(request);
 				if(!plainPDFDigest.equalsIgnoreCase(signatureDataHash)) {
-					logger.error("Digest Hash mismatch!");
-					logger.error("Requested digest: " + plainPDFDigest);
-					logger.error("Saved     digest: " + signatureDataHash);
+					logger.warn("Digest Hash mismatch!");
+					logger.warn("Requested digest: " + plainPDFDigest);
+					logger.warn("Saved     digest: " + signatureDataHash);
 					
 					PdfAsHelper.setSessionException(request, response,
 							"Signature Data digest do not match!", null);

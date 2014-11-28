@@ -99,7 +99,7 @@ public class VerifyServlet extends HttpServlet {
 			byte[] pdfData = RemotePDFFetcher.fetchPdfFile(pdfUrl);
 			doVerify(request, response, pdfData);
 		} catch (Throwable e) {
-			logger.error("Generic Error: ", e);
+			logger.warn("Generic Error: ", e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
@@ -187,7 +187,7 @@ public class VerifyServlet extends HttpServlet {
 												name);
 									}
 								} catch (Throwable e) {
-									logger.error("In resolving filename", e);
+									logger.warn("In resolving filename", e);
 								}
 								if (filecontent.length < 10) {
 									filecontent = null;
@@ -233,7 +233,7 @@ public class VerifyServlet extends HttpServlet {
 
 			doVerify(request, response, filecontent);
 		} catch (Throwable e) {
-			logger.error("Generic Error: ", e);
+			logger.warn("Generic Error: ", e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);

@@ -147,7 +147,7 @@ public class Settings implements ISettings, IProfileConstants {
 			}
 		}
 
-		logger.debug("Settings: {}",
+		logger.debug("Configured Settings: {}",
 				properties.size());
 		
 		// Resolve Parent Structures ...
@@ -181,14 +181,6 @@ public class Settings implements ISettings, IProfileConstants {
 							//		key, childBase+keyToCopy);
 							String sourceKey = parentBase+keyToCopy;
 							String targetKey = childBase+keyToCopy;
-							
-							int idx = targetKey.indexOf("NOTE");
-							if(idx > 0) {
-								if(targetKey.indexOf("NOTE", idx+1) > 0) {
-									logger.debug("Profile: {} => {}",
-											parentBase, childBase);
-								}
-							}
 									
 							if(!this.hasValue(targetKey)) {
 								properties.setProperty(targetKey, 
@@ -227,7 +219,7 @@ public class Settings implements ISettings, IProfileConstants {
 			}
 		}
 		
-		logger.debug("Settings: {}",
+		logger.debug("Derived Settings: {}",
 				properties.size());
 		
 	}

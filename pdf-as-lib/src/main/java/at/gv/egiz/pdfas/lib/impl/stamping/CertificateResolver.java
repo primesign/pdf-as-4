@@ -57,14 +57,14 @@ public class CertificateResolver implements IResolver {
             Map<String, String> issuerDNMap = DNUtils.dnToMap(certificate.getIssuerDN().getName());
             this.ctx.put("issuer", issuerDNMap);
         } catch (InvalidNameException e) {
-            logger.error("Failed to build issuer Map", e);
+            logger.warn("Failed to build issuer Map", e);
         }
 
         try {
             Map<String, String> subjectDNMap = DNUtils.dnToMap(certificate.getSubjectDN().getName());
             this.ctx.put("subject", subjectDNMap);
         } catch (InvalidNameException e) {
-            logger.error("Failed to build subject Map", e);
+            logger.warn("Failed to build subject Map", e);
         }
 
         Map<String, String> iuiMap = new HashMap<String, String>();

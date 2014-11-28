@@ -83,10 +83,10 @@ public class VisBlockServlet extends HttpServlet {
 			throw new ServletException(PARAM_RESOLUTION
 					+ " invalid value! Not a Number");
 		} catch (CertificateException e) {
-			logger.error("CERT Error", e);
+			logger.warn("CERT Error", e);
 			throw new ServletException("Failed to find certificate");
 		} catch (PDFASError e) {
-			logger.error("PDF_AS Error", e);
+			logger.warn("PDF_AS Error", e);
 			throw new ServletException("Generic Error");
 		} 
 	}

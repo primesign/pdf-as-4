@@ -112,7 +112,7 @@ public class PDFASVerificationImpl implements PDFASVerification {
 				response.getVerifyResults().add(webResult);
 			}
 		} catch (Exception e) {
-			logger.error("Failed to verify PDF", e);
+			logger.warn("Failed to verify PDF", e);
 			if (WebConfiguration.isShowErrorDetails()) {
 				throw new WebServiceException("Generic Error", e);
 			} else {

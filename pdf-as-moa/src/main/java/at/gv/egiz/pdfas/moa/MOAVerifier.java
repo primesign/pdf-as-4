@@ -177,7 +177,7 @@ public class MOAVerifier implements IVerifier {
 			}
 			resultList.add(result);
 		} catch (Throwable e) {
-			logger.error("Verification failed", e);
+			logger.warn("Verification failed", e);
 			throw new PdfAsException("error.pdf.verify.02", e);
 		}
 		return resultList;

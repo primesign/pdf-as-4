@@ -149,7 +149,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 				response.setRedirectUrl(userEntryURL);
 			}
 		} catch (Throwable e) {
-			logger.error("Error in Soap Service", e);
+			logger.warn("Error in Soap Service", e);
 			if (e.getCause() != null) {
 				response.setError(e.getCause().getMessage());
 			} else {
@@ -179,7 +179,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 			logger.debug("Done SOAP Sign Request");
 			return response;
 		}
-		logger.error("Server Signature failed. [PDFASBulkSignRequest is NULL]");
+		logger.warn("Server Signature failed. [PDFASBulkSignRequest is NULL]");
 		
 		if (WebConfiguration.isShowErrorDetails()) {
 			throw new WebServiceException("PDFASBulkSignRequest is NULL");

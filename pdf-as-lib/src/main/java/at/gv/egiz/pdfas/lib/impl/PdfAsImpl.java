@@ -238,7 +238,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			return result;
 		} catch (Throwable e) {
-			logger.error("Failed to create signature [" + e.getMessage() + "]",
+			logger.warn("Failed to create signature [" + e.getMessage() + "]",
 					e);
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		} finally {
@@ -316,7 +316,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			return request;
 		} catch (Throwable e) {
-			logger.error("startSign", e);
+			logger.warn("startSign", e);
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
@@ -378,7 +378,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				request.setNeedSignature(true);
 
 			} catch (Throwable e) {
-				logger.error("process", e);
+				logger.warn("process", e);
 				throw ErrorExtractor.searchPdfAsError(e, status);
 			}
 		} else if (request.needSignature()) {
@@ -548,10 +548,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			return signer.generateVisibleSignaturePreview(parameter, iaikCert,
 					resolution, status, requestedSignature);
 		} catch (PdfAsException e) {
-			logger.error("PDF-AS  Exception", e);
+			logger.warn("PDF-AS  Exception", e);
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		} catch (Throwable e) {
-			logger.error("Throwable  Exception", e);
+			logger.warn("Throwable  Exception", e);
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 

@@ -66,7 +66,7 @@ public class IntegrityVerifier implements IVerifier {
 						signedCertificate = signerInfos[0]
 								.getSignedAttribute(ObjectID.signingCertificateV2);
 						if (signedCertificate == null) {
-							logger.error("Signature ERROR missing signed Signing Certificate: ");
+							logger.warn("Signature ERROR missing signed Signing Certificate: ");
 
 							throw new SignatureException("Signature ERROR missing signed Signing Certificate");
 						} else {
@@ -80,12 +80,12 @@ public class IntegrityVerifier implements IVerifier {
 									// OK
 									logger.debug("Found and verified SigningCertificateV2");
 								} else {
-									logger.error("Signature ERROR certificate missmatch: ");
+									logger.warn("Signature ERROR certificate missmatch, misbehaving Sign Backend?");
 
 									throw new SignatureException("Signature ERROR certificate missmatch");
 								}
 							} catch (Throwable e) {
-								logger.error("Signature ERROR wrong encoding for ESSCertIDv2");
+								logger.error("Signature ERROR wrong encoding for ESSCertIDv2, misbehaving Signature Backend?");
 
 								throw new SignatureException("Signature ERROR wrong encoding for ESSCertIDv2");
 							}
@@ -99,12 +99,12 @@ public class IntegrityVerifier implements IVerifier {
 								// OK
 								logger.debug("Found and verified SigningCertificate");
 							} else {
-								logger.error("Signature ERROR certificate missmatch");
+								logger.warn("Signature ERROR certificate missmatch");
 
 								throw new SignatureException("Signature ERROR certificate missmatch");
 							}
 						} catch (Throwable e) {
-							logger.error("Signature ERROR wrong encoding for ESSCertIDv2");
+							logger.error("Signature ERROR wrong encoding for ESSCertIDv2, misbehaving Signature Backend?");
 
 							throw new SignatureException("Signature ERROR wrong encoding for ESSCertIDv2", e);
 						}

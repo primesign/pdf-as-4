@@ -131,7 +131,7 @@ public class MOAConnector implements ISignatureConnector,
 					this.certificate = new X509Certificate(
 							certificateURL.openStream());
 				} catch (MalformedURLException e) {
-					logger.error(certificateValue + " is not a valid url but!");
+					logger.error(certificateValue + " is not a valid url but starts with http!");
 					throw new PdfAsWrappedIOException(new PdfAsException(
 							certificateValue + " is not a valid url but!"));
 				}
@@ -210,7 +210,7 @@ public class MOAConnector implements ISignatureConnector,
 		try {
 			response = creationPort.createCMSSignature(request);
 		} catch (MOAFault e) {
-			logger.error("MOA signing failed!", e);
+			logger.warn("MOA signing failed!", e);
 			if (e.getFaultInfo() != null) {
 				throw new PdfAsMOAException(e.getFaultInfo().getErrorCode()
 						.toString(), e.getFaultInfo().getInfo(), "", "");

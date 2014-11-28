@@ -94,7 +94,7 @@ public class DataURLServlet extends HttpServlet {
 				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType, getServletContext());
 			} else if(jaxbObject.getValue() instanceof ErrorResponseType) {
 				ErrorResponseType errorResponseType = (ErrorResponseType)jaxbObject.getValue();
-				logger.error("SecurityLayer: " + errorResponseType.getErrorCode() + " " + errorResponseType.getInfo());
+				logger.warn("SecurityLayer: " + errorResponseType.getErrorCode() + " " + errorResponseType.getInfo());
 				throw new PdfAsSecurityLayerException(errorResponseType.getInfo(), 
 						errorResponseType.getErrorCode());
 			} else {
@@ -102,7 +102,7 @@ public class DataURLServlet extends HttpServlet {
 						9999);
 			}
 		} catch (Exception e) {
-			logger.error("Error in DataURL Servlet. " , e);
+			logger.warn("Error in DataURL Servlet. " , e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);

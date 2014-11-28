@@ -194,7 +194,7 @@ public class ExternSignServlet extends HttpServlet {
 									}
 								}
 								catch(Throwable e) {
-									logger.error("In resolving filename", e);
+									logger.warn("In resolving filename", e);
 								}
 								if(filecontent.length < 10) {
 									filecontent = null;

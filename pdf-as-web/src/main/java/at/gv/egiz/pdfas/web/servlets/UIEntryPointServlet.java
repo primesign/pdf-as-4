@@ -166,7 +166,7 @@ public class UIEntryPointServlet extends HttpServlet {
 			}
 
 		} catch (Throwable e) {
-			logger.error("Failed to process Request: ", e);
+			logger.warn("Failed to process Request: ", e);
 			PdfAsHelper.setSessionException(req, resp, e.getMessage(), e);
 			PdfAsHelper.gotoError(getServletContext(), req, resp);
 		}

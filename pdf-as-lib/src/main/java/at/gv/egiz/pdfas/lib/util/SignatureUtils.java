@@ -45,12 +45,12 @@ public class SignatureUtils implements ErrorConstants {
 			// get the signer infos
 			SignerInfo[] signerInfos = signedData.getSignerInfos();
 			if (signerInfos.length == 0) {
-				logger.error("Invalid signature (no signer information)");
+				logger.warn("Invalid signature (no signer information)");
 				throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 			}
 
 			if (signerInfos.length != 1) {
-				logger.error("Invalid signature (multiple signer information)");
+				logger.warn("Invalid signature (multiple signer information)");
 				throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 			}
 			// verify the signatures
@@ -72,7 +72,7 @@ public class SignatureUtils implements ErrorConstants {
 					signedCertificate = signerInfos[0]
 							.getSignedAttribute(ObjectID.signingCertificateV2);
 					if (signedCertificate == null) {
-						logger.error("Signature ERROR missing signed Signing Certificate: ");
+						logger.warn("Signature ERROR missing signed Signing Certificate: ");
 
 						throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 					} else {
@@ -84,12 +84,12 @@ public class SignatureUtils implements ErrorConstants {
 								// OK
 								logger.debug("Found and verified SigningCertificateV2");
 							} else {
-								logger.error("Signature ERROR certificate missmatch: ");
+								logger.error("Signature ERROR certificate missmatch, misbehaving Signature Backend?");
 
 								throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 							}
 						} catch (Throwable e) {
-							logger.error("Signature ERROR wrong encoding for ESSCertIDv2:");
+							logger.error("Signature ERROR wrong encoding for ESSCertIDv2, misbehaving Signature Backend?");
 
 							throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG, e);
 						} 
@@ -102,12 +102,12 @@ public class SignatureUtils implements ErrorConstants {
 							// OK
 							logger.debug("Found and verified SigningCertificate");
 						} else {
-							logger.error("Signature ERROR certificate missmatch");
+							logger.warn("Signature ERROR certificate missmatch, misbehaving Signature Backend?");
 
 							throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG);
 						}
 					} catch (Throwable e) {
-						logger.error("Signature ERROR wrong encoding for ESSCertIDv2");
+						logger.error("Signature ERROR wrong encoding for ESSCertIDv2, misbehaving Signature Backend?");
 
 						throw new PDFASError(ERROR_SIG_INVALID_BKU_SIG, e);
 					}
@@ -121,7 +121,7 @@ public class SignatureUtils implements ErrorConstants {
 			} catch (SignatureException ex) {
 				// if the signature is not OK a SignatureException
 				// is thrown
-				logger.error(
+				logger.warn(
 						"Signature ERROR from signer: "
 								+ signedData.getCertificate(
 										signerInfos[0].getSignerIdentifier())

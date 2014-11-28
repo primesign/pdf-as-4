@@ -59,8 +59,8 @@ public class PGPDataType {
      * <p>
      * You are getting this "catch-all" property because of the following reason: 
      * The field name "PGPKeyPacket" is used by two different parts of a schema. See: 
-     * line 0 of http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd
-     * line 0 of http://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd
+     * line 218 of file:/home/afitzek/devel/pdf-as-4/src/pdf-as-4/pdf-as-moa/src/main/resources/wsdl/xmldsig-core-schema.xsd
+     * line 213 of file:/home/afitzek/devel/pdf-as-4/src/pdf-as-4/pdf-as-moa/src/main/resources/wsdl/xmldsig-core-schema.xsd
      * <p>
      * To get rid of this property, apply a property customization to one 
      * of both of the following declarations to change their names: 
@@ -81,8 +81,8 @@ public class PGPDataType {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link JAXBElement }{@code <}{@link byte[]}{@code >}
      * {@link Object }
+     * {@link JAXBElement }{@code <}{@link byte[]}{@code >}
      * {@link JAXBElement }{@code <}{@link byte[]}{@code >}
      * {@link Element }
      * 

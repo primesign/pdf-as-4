@@ -44,7 +44,7 @@ public class RemotePDFFetcher {
 		try {
 			url = new URL(pdfURL);
 		} catch (MalformedURLException e) {
-			logger.error("Not a valid URL!", e);
+			logger.warn("Not a valid URL!", e);
 			throw new PdfAsWebException("Not a valid URL!", e);
 		}
 		if (WebConfiguration.isProvidePdfURLinWhitelist(url.toExternalForm())) {
@@ -55,7 +55,7 @@ public class RemotePDFFetcher {
 					InputStream is = url.openStream();
 					return StreamUtils.inputStreamToByteArray(is);
 				} catch (Exception e) {
-					logger.error("Failed to fetch pdf document!", e);
+					logger.warn("Failed to fetch pdf document!", e);
 					throw new PdfAsWebException(
 							"Failed to fetch pdf document!", e);
 				}
