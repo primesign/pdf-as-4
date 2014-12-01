@@ -64,6 +64,29 @@ public class DBRequestStore implements IRequestStore {
 		}
 	}
 	
+	public void cleanOldRequestException() {
+		int seconds = WebConfiguration.getDBTimeout();
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.SECOND, (-1)* seconds);
+		Date date = calendar.getTime();
+		SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss"); 
+		logger.info("Clearing Entries before: " + dt.format(date));
+		Session session = null;
+		Transaction tx = null;
+		try {
+			session = sessions.openSession();
+			tx = session.beginTransaction();
+			Query query = session.createQuery("delete from Request as req" + 
+				" where req.created < :date");
+			query.setCalendar("date", calendar);
+			query.executeUpdate();
+		} finally {
+			if(session != null) {
+				session.close();
+			}
+		}
+	}
+	
 	public String createNewStoreEntry(PDFASSignRequest request) {
 		// Clean Old Requests
 		this.cleanOldRequests();
