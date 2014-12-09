@@ -124,365 +124,422 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		try {
 			fisTmpFile = helper.getStaticFilename();
 
-			// write to temporary file
-			FileOutputStream fos = new FileOutputStream(new File(fisTmpFile));
-			IOUtils.copy(pdfObject.getOriginalDocument().getInputStream(), fos);
-
-			FileInputStream fis = new FileInputStream(new File(fisTmpFile));
-
-			doc = pdfObject.getDocument();
-
-			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-					.checkPlaceholderSignature(pdfObject.getStatus(), pdfObject
-							.getStatus().getSettings());
-
-			TablePos tablePos = null;
-
-			if (signaturePlaceholderData != null) {
-				// Placeholder found!
-				logger.info("Placeholder data found.");
-				if (signaturePlaceholderData.getProfile() != null) {
-					logger.debug("Placeholder Profile set to: " + signaturePlaceholderData.getProfile());
-					requestedSignature
-							.setSignatureProfileID(signaturePlaceholderData
-									.getProfile());
+			FileOutputStream tmpOutputStream = null;
+			try {
+				// write to temporary file
+				tmpOutputStream = new FileOutputStream(new File(fisTmpFile));
+				InputStream tmpis = null;
+				try {
+					tmpis = pdfObject.getOriginalDocument().getInputStream();
+					IOUtils.copy(tmpis, tmpOutputStream);
+					tmpis.close();
+				} finally {
+					IOUtils.closeQuietly(tmpis);
 				}
 
-				tablePos = signaturePlaceholderData.getTablePos();
-				if(tablePos != null) {
-					logger.debug("Placeholder Position set to: " + tablePos.toString());
-				}
-			}
+				doc = pdfObject.getDocument();
 
-			PDSignature signature = new PDSignature();
-			signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
-																			// filter
-			signature
-					.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
+				SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
+						.checkPlaceholderSignature(pdfObject.getStatus(),
+								pdfObject.getStatus().getSettings());
 
-			SignatureProfileSettings signatureProfileSettings = TableFactory
-					.createProfile(requestedSignature.getSignatureProfileID(),
-							pdfObject.getStatus().getSettings());
+				TablePos tablePos = null;
 
-			ValueResolver resolver = new ValueResolver(requestedSignature,
-					pdfObject.getStatus());
-			String signerName = resolver.resolve("SIG_SUBJECT",
-					signatureProfileSettings.getValue("SIG_SUBJECT"),
-					signatureProfileSettings);
-
-			signature.setName(signerName);
-			signature.setSignDate(Calendar.getInstance());
-			String signerReason = signatureProfileSettings.getSigningReason();
-
-			if (signerReason == null) {
-				signerReason = "PAdES Signature";
-			}
-
-			signature.setReason(signerReason);
-			logger.debug("Signing reason: " + signerReason);
-
-			logger.debug("Signing @ "
-					+ signer.getSigningDate().getTime().toString());
-			// the signing date, needed for valid signature
-			// signature.setSignDate(signer.getSigningDate());
-
-			signer.setPDSignature(signature);
-			SignatureOptions options = new SignatureOptions();
-			options.setPreferedSignatureSize(0x1000);
-
-			// Is visible Signature
-			if (requestedSignature.isVisual()) {
-				logger.info("Creating visual siganture block");
-
-				SignatureProfileConfiguration signatureProfileConfiguration = pdfObject
-						.getStatus().getSignatureProfileConfiguration(
-								requestedSignature.getSignatureProfileID());
-
-				if (tablePos == null) {
-					// ================================================================
-					// PositioningStage (visual) -> find position or use fixed
-					// position
-
-					String posString = pdfObject.getStatus().getSignParamter()
-							.getSignaturePosition();
-
-					TablePos signaturePos = null;
-
-					String signaturePosString = signatureProfileConfiguration
-							.getDefaultPositioning();
-
-					if (signaturePosString != null) {
-						logger.debug("using signature Positioning: "
-								+ signaturePos);
-						signaturePos = new TablePos(signaturePosString);
-					}
-
-					logger.debug("using Positioning: " + posString);
-
-					if (posString != null) {
-						// Merge Signature Position
-						tablePos = new TablePos(posString, signaturePos);
-					} else {
-						// Fallback to signature Position!
-						tablePos = signaturePos;
-					}
-
-					if (tablePos == null) {
-						// Last Fallback default position
-						tablePos = new TablePos();
-					}
-				}
-				boolean legacy32Position = signatureProfileConfiguration
-						.getLegacy32Positioning();
-
-				// create Table describtion
-				Table main = TableFactory.createSigTable(
-						signatureProfileSettings, MAIN, pdfObject.getStatus(),
-						requestedSignature);
-
-				IPDFStamper stamper = StamperFactory
-						.createDefaultStamper(pdfObject.getStatus()
-								.getSettings());
-
-				IPDFVisualObject visualObject = stamper.createVisualPDFObject(
-						pdfObject, main);
-
-				/*
-				 * PDDocument originalDocument = PDDocument .load(new
-				 * ByteArrayInputStream(pdfObject.getStatus()
-				 * .getPdfObject().getOriginalDocument()));
-				 */
-
-				PositioningInstruction positioningInstruction = Positioning
-						.determineTablePositioning(tablePos, "", doc,
-								visualObject, legacy32Position);
-
-				logger.debug("Positioning: {}" , positioningInstruction.toString());
-				
-				if (positioningInstruction.isMakeNewPage()) {
-					int last = doc.getNumberOfPages() - 1;
-					PDDocumentCatalog root = doc.getDocumentCatalog();
-					PDPageNode rootPages = root.getPages();
-					List<PDPage> kids = new ArrayList<PDPage>();
-					rootPages.getAllKids(kids);
-					PDPage lastPage = kids.get(last);
-					rootPages.getCOSObject().setNeedToBeUpdate(true);
-					PDPage p = new PDPage(lastPage.findMediaBox());
-					p.setResources(new PDResources());
-					p.setRotation(lastPage.findRotation());
-					doc.addPage(p);
-				}
-				
-				// handle rotated page
-				PDDocumentCatalog documentCatalog = doc.getDocumentCatalog();
-				PDPageNode documentPages = documentCatalog.getPages();
-				List<PDPage> documentPagesKids = new ArrayList<PDPage>();
-				documentPages.getAllKids(documentPagesKids);
-				int targetPageNumber = positioningInstruction.getPage();
-				logger.debug("Target Page: " + targetPageNumber);
-				//rootPages.getAllKids(kids);
-				PDPage targetPage = documentPagesKids.get(targetPageNumber-1);
-				int rot = targetPage.findRotation();
-				logger.debug("Page rotation: " + rot);
-				//positioningInstruction.setRotation(positioningInstruction.getRotation() + rot);
-				logger.debug("resulting Sign rotation: " + positioningInstruction.getRotation());
-				
-				SignaturePositionImpl position = new SignaturePositionImpl();
-				position.setX(positioningInstruction.getX());
-				position.setY(positioningInstruction.getY());
-				position.setPage(positioningInstruction.getPage());
-				position.setHeight(visualObject.getHeight());
-				position.setWidth(visualObject.getWidth());
-
-				requestedSignature.setSignaturePosition(position);
-
-				PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
-						pdfObject.getStatus().getSettings(), pdfObject,
-						(PdfBoxVisualObject) visualObject,
-						positioningInstruction);
-
-				properties.buildSignature();
-
-				/*
-				 * ByteArrayOutputStream sigbos = new ByteArrayOutputStream();
-				 * sigbos.write(StreamUtils.inputStreamToByteArray(properties
-				 * .getVisibleSignature())); sigbos.close();
-				 */
-				
 				if (signaturePlaceholderData != null) {
 					// Placeholder found!
-					// replace placeholder
-					InputStream is = PADESPDFBOXSigner.class
-							.getResourceAsStream("/placeholder/empty.jpg");
-					PDJpeg img = new PDJpeg(doc, is);
-					img.getCOSObject().setNeedToBeUpdate(true);
+					logger.info("Placeholder data found.");
+					if (signaturePlaceholderData.getProfile() != null) {
+						logger.debug("Placeholder Profile set to: "
+								+ signaturePlaceholderData.getProfile());
+						requestedSignature
+								.setSignatureProfileID(signaturePlaceholderData
+										.getProfile());
+					}
 
-					PDDocumentCatalog root = doc.getDocumentCatalog();
-					PDPageNode rootPages = root.getPages();
-					List<PDPage> kids = new ArrayList<PDPage>();
-					rootPages.getAllKids(kids);
-					int pageNumber = positioningInstruction.getPage();
-					//rootPages.getAllKids(kids);
-					PDPage page = kids.get(pageNumber-1);
-
-					logger.info("Placeholder name: "
-							+ signaturePlaceholderData.getPlaceholderName());
-					COSDictionary xobjectsDictionary = (COSDictionary) page
-							.findResources().getCOSDictionary()
-							.getDictionaryObject(COSName.XOBJECT);
-					xobjectsDictionary.setItem(
-							signaturePlaceholderData.getPlaceholderName(), img);
-					xobjectsDictionary.setNeedToBeUpdate(true);
-					page.findResources().getCOSObject().setNeedToBeUpdate(true);
-					logger.info("Placeholder name: "
-							+ signaturePlaceholderData.getPlaceholderName());
-				}
-
-				if (signatureProfileSettings.isPDFA()) {
-					PDDocumentCatalog root = doc.getDocumentCatalog();
-					COSBase base = root.getCOSDictionary().getItem(
-							COSName.OUTPUT_INTENTS);
-					if (base == null) {
-						InputStream colorProfile = PDDocumentCatalog.class
-								.getResourceAsStream("/icm/sRGB Color Space Profile.icm");
-						try {
-							PDOutputIntent oi = new PDOutputIntent(doc,
-									colorProfile);
-							oi.setInfo("sRGB IEC61966-2.1");
-							oi.setOutputCondition("sRGB IEC61966-2.1");
-							oi.setOutputConditionIdentifier("sRGB IEC61966-2.1");
-							oi.setRegistryName("http://www.color.org");
-
-							root.addOutputIntent(oi);
-							root.getCOSObject().setNeedToBeUpdate(true);
-							logger.info("added Output Intent");
-						} catch (Throwable e) {
-							e.printStackTrace();
-							throw new PdfAsException(
-									"Failed to add Output Intent", e);
-						}
+					tablePos = signaturePlaceholderData.getTablePos();
+					if (tablePos != null) {
+						logger.debug("Placeholder Position set to: "
+								+ tablePos.toString());
 					}
 				}
 
-				// if (signatureProfileSettings.isPDFA()) { // Check for PDF-UA
-				// PDDocumentCatalog root = doc.getDocumentCatalog();
-				// PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
-				// if (treeRoot != null) { // Handle as PDF-UA
-				// logger.info("Tree Root: {}", treeRoot.toString());
-				// PDStructureElement docElement = PDFBoxTaggingUtils
-				// .getDocumentElement(treeRoot);
-				// PDStructureElement sigBlock = new PDStructureElement(
-				// "Table", docElement);
-				// root.getCOSObject().setNeedToBeUpdate(true);
-				// docElement.getCOSObject().setNeedToBeUpdate(true);
-				// treeRoot.getCOSObject().setNeedToBeUpdate(true);
-				// sigBlock.setTitle("Signature Table");
-				// }
-				// }
-				
-				options.setPage(positioningInstruction.getPage());
-				options.setVisualSignature(properties.getVisibleSignature());
-			}
+				PDSignature signature = new PDSignature();
+				signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
+																				// filter
+				signature.setSubFilter(COSName.getPDFName(signer
+						.getPDFSubFilter()));
 
-			doc.addSignature(signature, signer, options);
+				SignatureProfileSettings signatureProfileSettings = TableFactory
+						.createProfile(
+								requestedSignature.getSignatureProfileID(),
+								pdfObject.getStatus().getSettings());
 
-			String sigFieldName = signatureProfileSettings.getSignFieldValue();
+				ValueResolver resolver = new ValueResolver(requestedSignature,
+						pdfObject.getStatus());
+				String signerName = resolver.resolve("SIG_SUBJECT",
+						signatureProfileSettings.getValue("SIG_SUBJECT"),
+						signatureProfileSettings);
 
-			if (sigFieldName == null) {
-				sigFieldName = "PDF-AS Signatur";
-			}
+				signature.setName(signerName);
+				signature.setSignDate(Calendar.getInstance());
+				String signerReason = signatureProfileSettings
+						.getSigningReason();
 
-			int count = PdfBoxUtils.countSignatures(doc, sigFieldName);
+				if (signerReason == null) {
+					signerReason = "PAdES Signature";
+				}
 
-			sigFieldName = sigFieldName + count;
+				signature.setReason(signerReason);
+				logger.debug("Signing reason: " + signerReason);
 
-			PDAcroForm acroFormm = doc.getDocumentCatalog().getAcroForm();
-			if (acroFormm != null) {
-				@SuppressWarnings("unchecked")
-				List<PDField> fields = acroFormm.getFields();
-				PDSignatureField signatureField = null;
+				logger.debug("Signing @ "
+						+ signer.getSigningDate().getTime().toString());
+				// the signing date, needed for valid signature
+				// signature.setSignDate(signer.getSigningDate());
 
-				if (fields != null) {
-					for (PDField pdField : fields) {
-						if (pdField != null) {
-							if (pdField instanceof PDSignatureField) {
-								PDSignatureField tmpSigField = (PDSignatureField) pdField;
-								if (tmpSigField.getSignature() != null && 
-										tmpSigField.getSignature().getDictionary() != null) {
-									if (tmpSigField.getSignature().getDictionary()
-											.equals(signature.getDictionary())) {
-										signatureField = (PDSignatureField) pdField;
+				signer.setPDSignature(signature);
+				SignatureOptions options = new SignatureOptions();
+				options.setPreferedSignatureSize(0x1000);
+
+				// Is visible Signature
+				if (requestedSignature.isVisual()) {
+					logger.info("Creating visual siganture block");
+
+					SignatureProfileConfiguration signatureProfileConfiguration = pdfObject
+							.getStatus().getSignatureProfileConfiguration(
+									requestedSignature.getSignatureProfileID());
+
+					if (tablePos == null) {
+						// ================================================================
+						// PositioningStage (visual) -> find position or use
+						// fixed
+						// position
+
+						String posString = pdfObject.getStatus()
+								.getSignParamter().getSignaturePosition();
+
+						TablePos signaturePos = null;
+
+						String signaturePosString = signatureProfileConfiguration
+								.getDefaultPositioning();
+
+						if (signaturePosString != null) {
+							logger.debug("using signature Positioning: "
+									+ signaturePos);
+							signaturePos = new TablePos(signaturePosString);
+						}
+
+						logger.debug("using Positioning: " + posString);
+
+						if (posString != null) {
+							// Merge Signature Position
+							tablePos = new TablePos(posString, signaturePos);
+						} else {
+							// Fallback to signature Position!
+							tablePos = signaturePos;
+						}
+
+						if (tablePos == null) {
+							// Last Fallback default position
+							tablePos = new TablePos();
+						}
+					}
+					boolean legacy32Position = signatureProfileConfiguration
+							.getLegacy32Positioning();
+
+					// create Table describtion
+					Table main = TableFactory.createSigTable(
+							signatureProfileSettings, MAIN,
+							pdfObject.getStatus(), requestedSignature);
+
+					IPDFStamper stamper = StamperFactory
+							.createDefaultStamper(pdfObject.getStatus()
+									.getSettings());
+
+					IPDFVisualObject visualObject = stamper
+							.createVisualPDFObject(pdfObject, main);
+
+					/*
+					 * PDDocument originalDocument = PDDocument .load(new
+					 * ByteArrayInputStream(pdfObject.getStatus()
+					 * .getPdfObject().getOriginalDocument()));
+					 */
+
+					PositioningInstruction positioningInstruction = Positioning
+							.determineTablePositioning(tablePos, "", doc,
+									visualObject, legacy32Position);
+
+					logger.debug("Positioning: {}",
+							positioningInstruction.toString());
+
+					if (positioningInstruction.isMakeNewPage()) {
+						int last = doc.getNumberOfPages() - 1;
+						PDDocumentCatalog root = doc.getDocumentCatalog();
+						PDPageNode rootPages = root.getPages();
+						List<PDPage> kids = new ArrayList<PDPage>();
+						rootPages.getAllKids(kids);
+						PDPage lastPage = kids.get(last);
+						rootPages.getCOSObject().setNeedToBeUpdate(true);
+						PDPage p = new PDPage(lastPage.findMediaBox());
+						p.setResources(new PDResources());
+						p.setRotation(lastPage.findRotation());
+						doc.addPage(p);
+					}
+
+					// handle rotated page
+					PDDocumentCatalog documentCatalog = doc
+							.getDocumentCatalog();
+					PDPageNode documentPages = documentCatalog.getPages();
+					List<PDPage> documentPagesKids = new ArrayList<PDPage>();
+					documentPages.getAllKids(documentPagesKids);
+					int targetPageNumber = positioningInstruction.getPage();
+					logger.debug("Target Page: " + targetPageNumber);
+					// rootPages.getAllKids(kids);
+					PDPage targetPage = documentPagesKids
+							.get(targetPageNumber - 1);
+					int rot = targetPage.findRotation();
+					logger.debug("Page rotation: " + rot);
+					// positioningInstruction.setRotation(positioningInstruction.getRotation()
+					// + rot);
+					logger.debug("resulting Sign rotation: "
+							+ positioningInstruction.getRotation());
+
+					SignaturePositionImpl position = new SignaturePositionImpl();
+					position.setX(positioningInstruction.getX());
+					position.setY(positioningInstruction.getY());
+					position.setPage(positioningInstruction.getPage());
+					position.setHeight(visualObject.getHeight());
+					position.setWidth(visualObject.getWidth());
+
+					requestedSignature.setSignaturePosition(position);
+
+					PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
+							pdfObject.getStatus().getSettings(), pdfObject,
+							(PdfBoxVisualObject) visualObject,
+							positioningInstruction);
+
+					properties.buildSignature();
+
+					/*
+					 * ByteArrayOutputStream sigbos = new
+					 * ByteArrayOutputStream();
+					 * sigbos.write(StreamUtils.inputStreamToByteArray
+					 * (properties .getVisibleSignature())); sigbos.close();
+					 */
+
+					if (signaturePlaceholderData != null) {
+						// Placeholder found!
+						// replace placeholder
+						InputStream is = null;
+						try {
+							is = PADESPDFBOXSigner.class
+									.getResourceAsStream("/placeholder/empty.jpg");
+							PDJpeg img = new PDJpeg(doc, is);
+
+							img.getCOSObject().setNeedToBeUpdate(true);
+
+							PDDocumentCatalog root = doc.getDocumentCatalog();
+							PDPageNode rootPages = root.getPages();
+							List<PDPage> kids = new ArrayList<PDPage>();
+							rootPages.getAllKids(kids);
+							int pageNumber = positioningInstruction.getPage();
+							// rootPages.getAllKids(kids);
+							PDPage page = kids.get(pageNumber - 1);
+
+							logger.info("Placeholder name: "
+									+ signaturePlaceholderData
+											.getPlaceholderName());
+							COSDictionary xobjectsDictionary = (COSDictionary) page
+									.findResources().getCOSDictionary()
+									.getDictionaryObject(COSName.XOBJECT);
+							xobjectsDictionary.setItem(signaturePlaceholderData
+									.getPlaceholderName(), img);
+							xobjectsDictionary.setNeedToBeUpdate(true);
+							page.findResources().getCOSObject()
+									.setNeedToBeUpdate(true);
+							logger.info("Placeholder name: "
+									+ signaturePlaceholderData
+											.getPlaceholderName());
+						} finally {
+							IOUtils.closeQuietly(is);
+						}
+					}
+
+					if (signatureProfileSettings.isPDFA()) {
+						PDDocumentCatalog root = doc.getDocumentCatalog();
+						COSBase base = root.getCOSDictionary().getItem(
+								COSName.OUTPUT_INTENTS);
+						if (base == null) {
+							InputStream colorProfile = null;
+							try {
+								colorProfile = PDDocumentCatalog.class
+										.getResourceAsStream("/icm/sRGB Color Space Profile.icm");
+
+								try {
+									PDOutputIntent oi = new PDOutputIntent(doc,
+											colorProfile);
+									oi.setInfo("sRGB IEC61966-2.1");
+									oi.setOutputCondition("sRGB IEC61966-2.1");
+									oi.setOutputConditionIdentifier("sRGB IEC61966-2.1");
+									oi.setRegistryName("http://www.color.org");
+
+									root.addOutputIntent(oi);
+									root.getCOSObject().setNeedToBeUpdate(true);
+									logger.info("added Output Intent");
+								} catch (Throwable e) {
+									e.printStackTrace();
+									throw new PdfAsException(
+											"Failed to add Output Intent", e);
+								}
+							} finally {
+								IOUtils.closeQuietly(colorProfile);
+							}
+						}
+					}
+
+					// if (signatureProfileSettings.isPDFA()) { // Check for
+					// PDF-UA
+					// PDDocumentCatalog root = doc.getDocumentCatalog();
+					// PDStructureTreeRoot treeRoot =
+					// root.getStructureTreeRoot();
+					// if (treeRoot != null) { // Handle as PDF-UA
+					// logger.info("Tree Root: {}", treeRoot.toString());
+					// PDStructureElement docElement = PDFBoxTaggingUtils
+					// .getDocumentElement(treeRoot);
+					// PDStructureElement sigBlock = new PDStructureElement(
+					// "Table", docElement);
+					// root.getCOSObject().setNeedToBeUpdate(true);
+					// docElement.getCOSObject().setNeedToBeUpdate(true);
+					// treeRoot.getCOSObject().setNeedToBeUpdate(true);
+					// sigBlock.setTitle("Signature Table");
+					// }
+					// }
+
+					options.setPage(positioningInstruction.getPage());
+					options.setVisualSignature(properties.getVisibleSignature());
+				}
+
+				doc.addSignature(signature, signer, options);
+
+				String sigFieldName = signatureProfileSettings
+						.getSignFieldValue();
+
+				if (sigFieldName == null) {
+					sigFieldName = "PDF-AS Signatur";
+				}
+
+				int count = PdfBoxUtils.countSignatures(doc, sigFieldName);
+
+				sigFieldName = sigFieldName + count;
+
+				PDAcroForm acroFormm = doc.getDocumentCatalog().getAcroForm();
+				if (acroFormm != null) {
+					@SuppressWarnings("unchecked")
+					List<PDField> fields = acroFormm.getFields();
+					PDSignatureField signatureField = null;
+
+					if (fields != null) {
+						for (PDField pdField : fields) {
+							if (pdField != null) {
+								if (pdField instanceof PDSignatureField) {
+									PDSignatureField tmpSigField = (PDSignatureField) pdField;
+									if (tmpSigField.getSignature() != null
+											&& tmpSigField.getSignature()
+													.getDictionary() != null) {
+										if (tmpSigField
+												.getSignature()
+												.getDictionary()
+												.equals(signature
+														.getDictionary())) {
+											signatureField = (PDSignatureField) pdField;
+										}
 									}
 								}
 							}
 						}
+					} else {
+						logger.warn("Failed to name Signature Field! [Cannot find Field list in acroForm!]");
+					}
+
+					if (signatureField != null) {
+						signatureField.setPartialName(sigFieldName);
 					}
 				} else {
-					logger.warn("Failed to name Signature Field! [Cannot find Field list in acroForm!]");
+					logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 				}
 
-				if (signatureField != null) {
-					signatureField.setPartialName(sigFieldName);
+				if (requestedSignature.isVisual()) {
+
+					// if(requestedSignature.getSignaturePosition().)
+					/*
+					 * PDAcroForm acroForm =
+					 * doc.getDocumentCatalog().getAcroForm(); if (acroForm !=
+					 * null) {
+					 * 
+					 * @SuppressWarnings("unchecked") List<PDField> fields =
+					 * acroForm.getFields(); PDSignatureField signatureField =
+					 * null;
+					 * 
+					 * if (fields != null) { for (PDField pdField : fields) { if
+					 * (pdField instanceof PDSignatureField) { if
+					 * (((PDSignatureField) pdField).getSignature()
+					 * .getDictionary() .equals(signature.getDictionary())) {
+					 * signatureField = (PDSignatureField) pdField; } } } } else
+					 * { logger.warn(
+					 * "Failed to apply rotation! [Cannot find Field list in acroForm!]"
+					 * ); }
+					 * 
+					 * if (signatureField != null) { if
+					 * (signatureField.getWidget() != null) { if
+					 * (signatureField.getWidget()
+					 * .getAppearanceCharacteristics() == null) {
+					 * PDAppearanceCharacteristicsDictionary dict = new
+					 * PDAppearanceCharacteristicsDictionary( new
+					 * COSDictionary()); signatureField.getWidget()
+					 * .setAppearanceCharacteristics(dict); }
+					 * 
+					 * if (signatureField.getWidget()
+					 * .getAppearanceCharacteristics() != null) {
+					 * signatureField.getWidget()
+					 * .getAppearanceCharacteristics() .setRotation(90); } } }
+					 * else { logger.warn(
+					 * "Failed to apply rotation! [Cannot find signature Field!]"
+					 * ); } } else { logger.warn(
+					 * "Failed to apply rotation! [Cannot find acroForm!]" ); }
+					 */
 				}
-			} else {
-				logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
+
+				FileInputStream tmpFileIs = null;
+
+				try {
+					tmpFileIs = new FileInputStream(new File(fisTmpFile));
+
+					doc.saveIncremental(tmpFileIs, tmpOutputStream);
+					tmpFileIs.close();
+				} finally {
+					IOUtils.closeQuietly(tmpFileIs);
+				}
+				tmpOutputStream.flush();
+				tmpOutputStream.close();
+			} finally {
+				IOUtils.closeQuietly(tmpOutputStream);
 			}
 
-			if (requestedSignature.isVisual()) {
+			FileInputStream readReadyFile = null;
+			try {
+				readReadyFile = new FileInputStream(new File(fisTmpFile));
 
-				// if(requestedSignature.getSignaturePosition().)
-				/*
-				 * PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
-				 * if (acroForm != null) {
-				 * 
-				 * @SuppressWarnings("unchecked") List<PDField> fields =
-				 * acroForm.getFields(); PDSignatureField signatureField = null;
-				 * 
-				 * if (fields != null) { for (PDField pdField : fields) { if
-				 * (pdField instanceof PDSignatureField) { if
-				 * (((PDSignatureField) pdField).getSignature() .getDictionary()
-				 * .equals(signature.getDictionary())) { signatureField =
-				 * (PDSignatureField) pdField; } } } } else { logger.warn(
-				 * "Failed to apply rotation! [Cannot find Field list in acroForm!]"
-				 * ); }
-				 * 
-				 * if (signatureField != null) { if (signatureField.getWidget()
-				 * != null) { if (signatureField.getWidget()
-				 * .getAppearanceCharacteristics() == null) {
-				 * PDAppearanceCharacteristicsDictionary dict = new
-				 * PDAppearanceCharacteristicsDictionary( new COSDictionary());
-				 * signatureField.getWidget()
-				 * .setAppearanceCharacteristics(dict); }
-				 * 
-				 * if (signatureField.getWidget()
-				 * .getAppearanceCharacteristics() != null) {
-				 * signatureField.getWidget() .getAppearanceCharacteristics()
-				 * .setRotation(90); } } } else { logger.warn(
-				 * "Failed to apply rotation! [Cannot find signature Field!]");
-				 * } } else {
-				 * logger.warn("Failed to apply rotation! [Cannot find acroForm!]"
-				 * ); }
-				 */
+				// write to resulting output stream
+				// ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				// bos.write();
+				// bos.close();
+
+				pdfObject.setSignedDocument(StreamUtils
+						.inputStreamToByteArray(readReadyFile));
+				readReadyFile.close();
+			} finally {
+				IOUtils.closeQuietly(readReadyFile);
 			}
-
-			// pdfbox patched (FIS -> IS)
-			doc.saveIncremental(fis, fos);
-			fis.close();
-			fos.flush();
-			fos.close();
-			fos = null;
-
-			fis = new FileInputStream(new File(fisTmpFile));
-
-			// write to resulting output stream
-			// ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			// bos.write();
-			// bos.close();
-
-			pdfObject
-					.setSignedDocument(StreamUtils.inputStreamToByteArray(fis));
-			fis.close();
-			fis = null;
 			System.gc();
 
 			helper.deleteFile(fisTmpFile);
