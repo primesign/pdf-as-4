@@ -541,9 +541,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				IOUtils.closeQuietly(readReadyFile);
 			}
 			System.gc();
-
-			helper.deleteFile(fisTmpFile);
-
 		} catch (IOException e) {
 			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
@@ -561,6 +558,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					logger.debug("Failed to close COS Doc!", e);
 					// Ignore
 				}
+			}
+			
+			if(fisTmpFile != null) {
+				helper.deleteFile(fisTmpFile);
 			}
 			logger.debug("Signature done!");
 
