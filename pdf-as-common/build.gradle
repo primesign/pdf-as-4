@@ -16,6 +16,9 @@ task releases(type: Copy) {
 	into rootDir.toString() + "/releases/" + version
 }
 
+releases.dependsOn jar
+releases.dependsOn sourcesJar
+
 dependencies {
 	compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'

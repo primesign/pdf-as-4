@@ -178,5 +178,8 @@ task releaseConfig(type: Copy) {
 	into rootDir.toString() + "/releases/" + version + "/cfg"
 }
 
+releases.dependsOn jar
+releases.dependsOn sourcesJar
+releases.dependsOn war
 releases.dependsOn releaseConfig
 releases.dependsOn buildTomcatTar

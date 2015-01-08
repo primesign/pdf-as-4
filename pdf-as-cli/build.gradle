@@ -15,6 +15,8 @@ task releases(type: Copy) {
 	into rootDir.toString() + "/releases/" + version
 }
 
+releases.dependsOn jar
+releases.dependsOn sourcesJar
 releases.dependsOn distZip
 releases.dependsOn distTar
 

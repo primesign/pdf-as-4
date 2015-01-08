@@ -29,6 +29,9 @@ task releases(type: Copy) {
 	into rootDir.toString() + "/releases/" + version
 }
 
+releases.dependsOn jar
+releases.dependsOn sourcesJar
+
 /*javadoc {
 	appName = 'PDF-AS-4 Legacy Library'
 	exclude = '/**'
