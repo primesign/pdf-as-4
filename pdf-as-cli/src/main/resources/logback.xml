@@ -8,7 +8,7 @@
   </appender>
    
   <logger name="at.gv.egiz" level="DEBUG"/>
-  <logger name="at.knowcenter" level="INFO"/>
+  <logger name="at.knowcenter" level="DEBUG"/>
    
   <root level="DEBUG">
     <appender-ref ref="STDOUT" />
