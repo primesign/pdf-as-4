@@ -50,15 +50,12 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
@@ -70,6 +67,8 @@ import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.PDFOperator;
 import org.apache.pdfbox.util.PDFStreamEngine;
 import org.apache.pdfbox.util.ResourceLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -99,8 +98,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 	/**
 	 * The log.
 	 */
-	private static Log log = LogFactory
-			.getLog(SignaturePlaceholderExtractor.class);
+	private static Logger logger = LoggerFactory
+			.getLogger(SignaturePlaceholderExtractor.class);
 
 	public static final String QR_PLACEHOLDER_IDENTIFIER = "PDF-AS-POS";
 	public static final int PLACEHOLDER_MATCH_MODE_STRICT = 0;
@@ -233,7 +232,9 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 						PDPage page = getCurrentPage();
 						Matrix ctm = getGraphicsState()
 								.getCurrentTransformationMatrix();
-						double rotationInRadians = (page.findRotation() * Math.PI) / 180;
+						int pageRotation = page.findRotation();
+						pageRotation = pageRotation % 360;
+						double rotationInRadians = Math.toRadians(pageRotation);//(page.findRotation() * Math.PI) / 180;
 
 						AffineTransform rotation = new AffineTransform();
 						rotation.setToRotation(rotationInRadians);
@@ -249,12 +250,27 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 								.multiply(rotationInverseMatrix);
 
 						float x = unrotatedCTM.getXPosition();
-						float y = unrotatedCTM.getYPosition()
-								+ unrotatedCTM.getYScale();
+						float yPos = unrotatedCTM.getYPosition();
+						float yScale = unrotatedCTM.getYScale();
+						float y = yPos + yScale;
 						float w = unrotatedCTM.getXScale();
-
+						
+						logger.debug("Page height: {}", page.findCropBox().getHeight());
+						logger.debug("Page width: {}", page.findCropBox().getWidth());
+						
+						if(pageRotation == 90) {
+							y = page.findCropBox().getWidth() - (y * (-1));
+						} else if(pageRotation == 180) {
+							x = page.findCropBox().getWidth() + x;
+							y = page.findCropBox().getHeight() - (y * (-1));
+						} else if(pageRotation == 270) {
+							x = page.findCropBox().getHeight() + x;
+						}
+						
 						String posString = "p:" + currentPage + ";x:" + x
 								+ ";y:" + y + ";w:" + w;
+
+						logger.debug("Found Placeholder at: {}", posString);
 						try {
 							data.setTablePos(new TablePos(posString));
 							data.setPlaceholderName(objectName.getName());
@@ -289,13 +305,13 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 			} else {
 				type = "Image type";
 			}
-			log.info("Unable to extract image for QRCode analysis. "
+			logger.info("Unable to extract image for QRCode analysis. "
 					+ type
 					+ " not supported. Add additional JAI Image filters to your classpath. Refer to https://jai.dev.java.net. Skipping image.");
 			return null;
 		}
 		if (bimg.getHeight() < 10 || bimg.getWidth() < 10) {
-			log.debug("Image too small for QRCode. Skipping image.");
+			logger.debug("Image too small for QRCode. Skipping image.");
 			return null;
 		}
 
@@ -304,7 +320,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 		Result result;
 		long before = System.currentTimeMillis();
 		try {
-			Hashtable<DecodeHintType, Vector<BarcodeFormat>> hints = new Hashtable<DecodeHintType, Vector<BarcodeFormat>>();
+			Hashtable<DecodeHintType, Object> hints = new Hashtable<DecodeHintType, Object>();
 			Vector<BarcodeFormat> formats = new Vector<BarcodeFormat>();
 			formats.add(BarcodeFormat.QR_CODE);
 			hints.put(DecodeHintType.POSSIBLE_FORMATS, formats);
@@ -323,7 +339,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 							String kvPair = data[i];
 							String[] kv = kvPair.split("=");
 							if (kv.length != 2) {
-								log.debug("Invalid parameter in placeholder data: "
+								logger.debug("Invalid parameter in placeholder data: "
 										+ kvPair);
 							} else {
 								if (kv[0]
@@ -345,24 +361,24 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 					return new SignaturePlaceholderData(profile, type, sigKey,
 							id);
 				} else {
-					log.warn("QR-Code found but does not start with \""
+					logger.warn("QR-Code found but does not start with \""
 							+ QR_PLACEHOLDER_IDENTIFIER
 							+ "\". Ignoring QR placeholder.");
 				}
 			}
 		} catch (ReaderException re) {
-			if (log.isDebugEnabled()) {
-				log.debug("Could not decode - not a placeholder. needed: "
+			if (logger.isDebugEnabled()) {
+				logger.debug("Could not decode - not a placeholder. needed: "
 						+ (System.currentTimeMillis() - before));
 			}
 			if (!(re instanceof NotFoundException)) {
-				if (log.isInfoEnabled()) {
-					log.info("Failed to decode image", re);
+				if (logger.isInfoEnabled()) {
+					logger.info("Failed to decode image", re);
 				}
 			}
 		} catch (ArrayIndexOutOfBoundsException e) {
-			if (log.isInfoEnabled()) {
-				log.info("Failed to decode image. Probably a zxing bug", e);
+			if (logger.isInfoEnabled()) {
+				logger.info("Failed to decode image. Probably a zxing bug", e);
 			}
 		}
 		return null;
