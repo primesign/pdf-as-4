@@ -77,6 +77,7 @@ public class PDFASSignParameters implements Serializable {
 	String invokeTarget;
 	String invokeErrorUrl;
 	String transactionId;
+	String keyIdentifier;
 	String profile;
 	PDFASPropertyMap preprocessor;
 	
@@ -135,6 +136,14 @@ public class PDFASSignParameters implements Serializable {
 	}
 	public void setTransactionId(String transactionId) {
 		this.transactionId = transactionId;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="keyIdentifier")
+	public String getKeyIdentifier() {
+		return keyIdentifier;
+	}
+	public void setKeyIdentifier(String keyIdentifier) {
+		this.keyIdentifier = keyIdentifier;
 	}
 
 	@XmlElement(required = false, nillable = true, name="preprocessorArguments")

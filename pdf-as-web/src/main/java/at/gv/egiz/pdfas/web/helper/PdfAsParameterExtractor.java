@@ -40,6 +40,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_FORMAT = "format";
 	public static final String PARAM_HTML = "html";
 	public static final String PARAM_JSON = "json";
+	public static final String PARAM_KEYIDENTIFIER = "keyId";
 	
 	public static final String[] AVAILABLE_FORMATS = new String[] {
 		PARAM_HTML, PARAM_JSON
@@ -80,6 +81,11 @@ public class PdfAsParameterExtractor {
 	public static String getTransactionId(HttpServletRequest request) {
 		String transactionId = (String)request.getAttribute(PARAM_TRANSACTION_ID);
 		return transactionId;
+	}
+	
+	public static String getKeyIdentifier(HttpServletRequest request) {
+		String keyIdentifier = (String)request.getAttribute(PARAM_KEYIDENTIFIER);
+		return keyIdentifier;
 	}
 	
 	public static String getFilename(HttpServletRequest request) {

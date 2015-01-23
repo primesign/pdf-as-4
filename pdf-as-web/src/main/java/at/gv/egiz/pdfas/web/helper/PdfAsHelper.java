@@ -222,9 +222,9 @@ public class PdfAsHelper {
 				Float.parseFloat(posW);
 			} catch (NumberFormatException e) {
 				if (!posW.equalsIgnoreCase("auto")) {
-				throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_W
-								+ " has invalid value!", e);
+					throw new PdfAsWebException(
+							PdfAsParameterExtractor.PARAM_SIG_POS_W
+									+ " has invalid value!", e);
 				} else {
 					sb.append("w:auto;");
 				}
@@ -255,8 +255,8 @@ public class PdfAsHelper {
 			} catch (NumberFormatException e) {
 				if (!posR.equalsIgnoreCase("auto")) {
 					throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_R
-								+ " has invalid value!", e);
+							PdfAsParameterExtractor.PARAM_SIG_POS_R
+									+ " has invalid value!", e);
 				}
 			}
 			sb.append("r:" + posR.trim() + ";");
@@ -270,8 +270,8 @@ public class PdfAsHelper {
 			} catch (NumberFormatException e) {
 				if (!posF.equalsIgnoreCase("auto")) {
 					throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_F
-								+ " has invalid value!", e);
+							PdfAsParameterExtractor.PARAM_SIG_POS_F
+									+ " has invalid value!", e);
 				} else {
 					sb.append("f:0;");
 				}
@@ -293,8 +293,7 @@ public class PdfAsHelper {
 			try {
 				signIdx = Integer.parseInt(signidxString);
 			} catch (Throwable e) {
-				logger.warn("Failed to parse Signature Index: "
-						+ signidxString);
+				logger.warn("Failed to parse Signature Index: " + signidxString);
 			}
 		}
 
@@ -374,12 +373,51 @@ public class PdfAsHelper {
 		if (connector.equals("moa")) {
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if (connector.equals("jks")) {
-			signer = new PAdESSignerKeystore(
-					WebConfiguration.getKeystoreFile(),
-					WebConfiguration.getKeystoreAlias(),
-					WebConfiguration.getKeystorePass(),
-					WebConfiguration.getKeystoreKeyPass(),
-					WebConfiguration.getKeystoreType());
+			
+			String keyIdentifier = PdfAsParameterExtractor.getKeyIdentifier(request);
+
+			boolean ksEnabled = false;
+			String ksFile = null;
+			String ksAlias = null;
+			String ksPass = null;
+			String ksKeyPass = null;
+			String ksType = null;
+
+			if (keyIdentifier != null) {
+				ksEnabled = WebConfiguration.getKeystoreEnabled(keyIdentifier);
+				ksFile = WebConfiguration.getKeystoreFile(keyIdentifier);
+				ksAlias = WebConfiguration.getKeystoreAlias(keyIdentifier);
+				ksPass = WebConfiguration.getKeystorePass(keyIdentifier);
+				ksKeyPass = WebConfiguration.getKeystoreKeyPass(keyIdentifier);
+				ksType = WebConfiguration.getKeystoreType(keyIdentifier);
+			} else {
+				ksEnabled = WebConfiguration.getKeystoreDefaultEnabled();
+				ksFile = WebConfiguration.getKeystoreDefaultFile();
+				ksAlias = WebConfiguration.getKeystoreDefaultAlias();
+				ksPass = WebConfiguration.getKeystoreDefaultPass();
+				ksKeyPass = WebConfiguration.getKeystoreDefaultKeyPass();
+				ksType = WebConfiguration.getKeystoreDefaultType();
+			}
+
+			if (!ksEnabled) {
+				if(keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector [" + keyIdentifier + "] disabled or not existing.");
+				} else {
+					throw new PdfAsWebException("DEFAULT JKS connector disabled.");
+				}
+			}
+
+			if (ksFile == null || ksAlias == null || ksPass == null
+					|| ksKeyPass == null || ksType == null) {
+				if(keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector [" + keyIdentifier + "] not correctly configured.");
+				} else {
+					throw new PdfAsWebException("DEFAULT JKS connector not correctly configured.");
+				}
+			}
+
+			signer = new PAdESSignerKeystore(ksFile, ksAlias, ksPass,
+					ksKeyPass, ksType);
 		} else {
 			throw new PdfAsWebException("Invalid connector (moa | jks)");
 		}
@@ -427,17 +465,53 @@ public class PdfAsHelper {
 			if (!WebConfiguration.getMOASSEnabled()) {
 				throw new PdfAsWebException("MOA connector disabled.");
 			}
+
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if (params.getConnector().equals(Connector.JKS)) {
-			if (!WebConfiguration.getKeystoreEnabled()) {
-				throw new PdfAsWebException("JKS connector disabled.");
+			String keyIdentifier = params.getKeyIdentifier();
+
+			boolean ksEnabled = false;
+			String ksFile = null;
+			String ksAlias = null;
+			String ksPass = null;
+			String ksKeyPass = null;
+			String ksType = null;
+
+			if (keyIdentifier != null) {
+				ksEnabled = WebConfiguration.getKeystoreEnabled(keyIdentifier);
+				ksFile = WebConfiguration.getKeystoreFile(keyIdentifier);
+				ksAlias = WebConfiguration.getKeystoreAlias(keyIdentifier);
+				ksPass = WebConfiguration.getKeystorePass(keyIdentifier);
+				ksKeyPass = WebConfiguration.getKeystoreKeyPass(keyIdentifier);
+				ksType = WebConfiguration.getKeystoreType(keyIdentifier);
+			} else {
+				ksEnabled = WebConfiguration.getKeystoreDefaultEnabled();
+				ksFile = WebConfiguration.getKeystoreDefaultFile();
+				ksAlias = WebConfiguration.getKeystoreDefaultAlias();
+				ksPass = WebConfiguration.getKeystoreDefaultPass();
+				ksKeyPass = WebConfiguration.getKeystoreDefaultKeyPass();
+				ksType = WebConfiguration.getKeystoreDefaultType();
 			}
-			signer = new PAdESSignerKeystore(
-					WebConfiguration.getKeystoreFile(),
-					WebConfiguration.getKeystoreAlias(),
-					WebConfiguration.getKeystorePass(),
-					WebConfiguration.getKeystoreKeyPass(),
-					WebConfiguration.getKeystoreType());
+
+			if (!ksEnabled) {
+				if(keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector [" + keyIdentifier + "] disabled or not existing.");
+				} else {
+					throw new PdfAsWebException("DEFAULT JKS connector disabled.");
+				}
+			}
+
+			if (ksFile == null || ksAlias == null || ksPass == null
+					|| ksKeyPass == null || ksType == null) {
+				if(keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector [" + keyIdentifier + "] not correctly configured.");
+				} else {
+					throw new PdfAsWebException("DEFAULT JKS connector not correctly configured.");
+				}
+			}
+
+			signer = new PAdESSignerKeystore(ksFile, ksAlias, ksPass,
+					ksKeyPass, ksType);
 		} else {
 			throw new PdfAsWebException("Invalid connector (moa | jks)");
 		}

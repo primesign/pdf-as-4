@@ -308,8 +308,23 @@ public class ExternSignServlet extends HttpServlet {
 			// start synchronous siganture creation
 			
 			if(connector.equals("jks")) {
-				if(!WebConfiguration.getKeystoreEnabled()) {
-					throw new PdfAsWebException("Invalid connector jks is not supported");
+				
+				String keyIdentifier = PdfAsParameterExtractor.getKeyIdentifier(request);
+
+				boolean ksEnabled = false;
+
+				if (keyIdentifier != null) {
+					ksEnabled = WebConfiguration.getKeystoreEnabled(keyIdentifier);
+				} else {
+					ksEnabled = WebConfiguration.getKeystoreDefaultEnabled();
+				}
+
+				if (!ksEnabled) {
+					if(keyIdentifier != null) {
+						throw new PdfAsWebException("JKS connector [" + keyIdentifier + "] disabled or not existing.");
+					} else {
+						throw new PdfAsWebException("DEFAULT JKS connector disabled.");
+					}
 				}
 			}
 			

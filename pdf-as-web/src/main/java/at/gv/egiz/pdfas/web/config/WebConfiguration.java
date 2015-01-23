@@ -54,12 +54,22 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String RELOAD_PASSWORD = "reload.pwd";
 	public static final String RELOAD_ENABLED = "reload.enabled";
 
-	public static final String KEYSTORE_ENABLED = "ks.enabled";
-	public static final String KEYSTORE_FILE = "ks.file";
-	public static final String KEYSTORE_TYPE = "ks.type";
-	public static final String KEYSTORE_PASS = "ks.pass";
-	public static final String KEYSTORE_ALIAS = "ks.key.alias";
-	public static final String KEYSTORE_KEY_PASS = "ks.key.pass";
+	public static final String KEYSTORE_LIST = "ksl";
+	public static final String KEYSTORE_DEFAULT = "ks";
+	
+	public static final String KEYSTORE_ENABLED = "enabled";
+	public static final String KEYSTORE_FILE = "file";
+	public static final String KEYSTORE_TYPE = "type";
+	public static final String KEYSTORE_PASS = "pass";
+	public static final String KEYSTORE_ALIAS = "key.alias";
+	public static final String KEYSTORE_KEY_PASS = "key.pass";
+	
+	public static final String KEYSTORE_DEFAULT_ENABLED = KEYSTORE_DEFAULT + "." + KEYSTORE_ENABLED;
+	public static final String KEYSTORE_DEFAULT_FILE = KEYSTORE_DEFAULT + "." + KEYSTORE_FILE;
+	public static final String KEYSTORE_DEFAULT_TYPE = KEYSTORE_DEFAULT + "." + KEYSTORE_TYPE;
+	public static final String KEYSTORE_DEFAULT_PASS = KEYSTORE_DEFAULT + "." + KEYSTORE_PASS;
+	public static final String KEYSTORE_DEFAULT_ALIAS = KEYSTORE_DEFAULT + "." + KEYSTORE_ALIAS;
+	public static final String KEYSTORE_DEFAULT_KEY_PASS = KEYSTORE_DEFAULT + "." + KEYSTORE_KEY_PASS;
 
 	public static final String WHITELIST_ENABLED = "whitelist.enabled";
 	public static final String WHITELIST_VALUE_PRE = "whitelist.url.";
@@ -202,24 +212,44 @@ public class WebConfiguration implements IConfigurationConstants {
 		return properties.getProperty(PDF_AS_WORK_DIR);
 	}
 
-	public static String getKeystoreFile() {
-		return properties.getProperty(KEYSTORE_FILE);
+	public static String getKeystoreDefaultFile() {
+		return properties.getProperty(KEYSTORE_DEFAULT_FILE);
 	}
 
-	public static String getKeystoreType() {
-		return properties.getProperty(KEYSTORE_TYPE);
+	public static String getKeystoreDefaultType() {
+		return properties.getProperty(KEYSTORE_DEFAULT_TYPE);
 	}
 
-	public static String getKeystorePass() {
-		return properties.getProperty(KEYSTORE_PASS);
+	public static String getKeystoreDefaultPass() {
+		return properties.getProperty(KEYSTORE_DEFAULT_PASS);
 	}
 
-	public static String getKeystoreAlias() {
-		return properties.getProperty(KEYSTORE_ALIAS);
+	public static String getKeystoreDefaultAlias() {
+		return properties.getProperty(KEYSTORE_DEFAULT_ALIAS);
 	}
 
-	public static String getKeystoreKeyPass() {
-		return properties.getProperty(KEYSTORE_KEY_PASS);
+	public static String getKeystoreDefaultKeyPass() {
+		return properties.getProperty(KEYSTORE_DEFAULT_KEY_PASS);
+	}
+	
+	public static String getKeystoreFile(String keyIdentifier) {
+		return properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_FILE);
+	}
+
+	public static String getKeystoreType(String keyIdentifier) {
+		return properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_TYPE);
+	}
+
+	public static String getKeystorePass(String keyIdentifier) {
+		return properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_PASS);
+	}
+
+	public static String getKeystoreAlias(String keyIdentifier) {
+		return properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_ALIAS);
+	}
+
+	public static String getKeystoreKeyPass(String keyIdentifier) {
+		return properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_KEY_PASS);
 	}
 
 	public static boolean getMOASSEnabled() {
@@ -232,8 +262,18 @@ public class WebConfiguration implements IConfigurationConstants {
 		return false;
 	}
 
-	public static boolean getKeystoreEnabled() {
-		String value = properties.getProperty(KEYSTORE_ENABLED);
+	public static boolean getKeystoreDefaultEnabled() {
+		String value = properties.getProperty(KEYSTORE_DEFAULT_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean getKeystoreEnabled(String keyIdentifier) {
+		String value = properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_ENABLED);
 		if (value != null) {
 			if (value.equals("true")) {
 				return true;
