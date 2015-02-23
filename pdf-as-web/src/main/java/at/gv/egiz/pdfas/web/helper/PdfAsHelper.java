@@ -75,6 +75,7 @@ import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.servlets.UIEntryPointServlet;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -90,6 +91,7 @@ public class PdfAsHelper {
 	private static final String PDF_STATUS = "PDF_STATUS";
 	private static final String PDF_OUTPUT = "PDF_OUTPUT";
 	private static final String PDF_SL_CONNECTOR = "PDF_SL_CONNECTOR";
+	private static final String PDF_STATISTICS = "PDF_STATISTICS";
 	private static final String PDF_SIGNER = "PDF_SIGNER";
 	private static final String PDF_SL_INTERACTIVE = "PDF_SL_INTERACTIVE";
 	private static final String PDF_SIGNED_DATA = "PDF_SIGNED_DATA";
@@ -875,6 +877,18 @@ public class PdfAsHelper {
 			HttpServletResponse response, byte[] signedData) {
 		HttpSession session = request.getSession();
 		session.setAttribute(PDF_SIGNED_DATA, signedData);
+	}
+	
+	public static void setStatisticEvent(HttpServletRequest request,
+			HttpServletResponse response, StatisticEvent event) {
+		HttpSession session = request.getSession();
+		session.setAttribute(PDF_STATISTICS, event);
+	}
+	
+	public static StatisticEvent getStatisticEvent(HttpServletRequest request,
+			HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		return (StatisticEvent)session.getAttribute(PDF_STATISTICS);
 	}
 
 	public static void setLocale(HttpServletRequest request,

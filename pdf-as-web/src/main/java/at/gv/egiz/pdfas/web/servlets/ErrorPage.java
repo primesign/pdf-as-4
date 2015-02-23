@@ -35,10 +35,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.HTMLFormater;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.UrlParameterExtractor;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 
 /**
  * Servlet implementation class ErrorPage
@@ -88,6 +92,20 @@ public class ErrorPage extends HttpServlet {
 			String errorURL = PdfAsHelper.getErrorURL(request, response);
 			Throwable e = PdfAsHelper
 					.getSessionException(request, response);
+			
+			StatisticEvent statisticEvent = PdfAsHelper.getStatisticEvent(request, response);
+			if(!statisticEvent.isLogged()) {
+				statisticEvent.setStatus(Status.ERROR);
+				statisticEvent.setException(e);
+				if(e instanceof PDFASError) {
+					statisticEvent.setErrorCode(((PDFASError)e).getCode());
+				}
+				statisticEvent.setEndNow();
+				statisticEvent.setTimestampNow();
+				StatisticFrontend.getInstance().storeEvent(statisticEvent);
+				statisticEvent.setLogged(true);
+			}
+			
 			String message = PdfAsHelper.getSessionErrMessage(request,
 					response);
 			if (errorURL != null && WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {

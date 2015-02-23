@@ -37,6 +37,9 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 
 /**
  * Servlet implementation class PDFData
@@ -79,6 +82,8 @@ public class PDFData extends HttpServlet {
 			HttpServletResponse response) throws ServletException, IOException {
 		byte[] signedData = PdfAsHelper.getSignedPdf(request, response);
 
+		StatisticEvent statisticEvent = PdfAsHelper.getStatisticEvent(request, response);
+		
 		String plainPDFDigest = PdfAsParameterExtractor.getOrigDigest(request);
 		
 		if (signedData != null) {
@@ -99,6 +104,15 @@ public class PDFData extends HttpServlet {
 			String pdfCert = PdfAsHelper.getSignerCertificate(request);
 			if(pdfCert != null) {
 				response.setHeader("Signer-Certificate", pdfCert);
+			}
+			
+			if(!statisticEvent.isLogged()) {
+				statisticEvent.setStatus(Status.OK);
+				
+				statisticEvent.setEndNow();
+				statisticEvent.setTimestampNow();
+				StatisticFrontend.getInstance().storeEvent(statisticEvent);
+				statisticEvent.setLogged(true);
 			}
 			
 			PDFASVerificationResponse resp = PdfAsHelper.getPDFASVerificationResponse(request);

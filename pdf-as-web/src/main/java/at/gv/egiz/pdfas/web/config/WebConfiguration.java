@@ -47,7 +47,8 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String MOBILE_BKU_URL = "bku.mobile.url";
 	public static final String ERROR_DETAILS = "error.showdetails";
 	public static final String PDF_AS_WORK_DIR = "pdfas.dir";
-
+	public static final String STATISTIC_BACKEND_LIST = "statistic.backends";
+	
 	public static final String MOA_SS_ENABLED = "moa.enabled";
 	public static final String SOAP_SIGN_ENABLED = "soap.sign.enabled";
 	public static final String SOAP_VERIFY_ENABLED = "soap.verify.enabled";
@@ -252,6 +253,19 @@ public class WebConfiguration implements IConfigurationConstants {
 		return properties.getProperty(KEYSTORE_LIST + "." + keyIdentifier + "." + KEYSTORE_KEY_PASS);
 	}
 
+	public static List<String> getStatisticBackends() {
+		List<String> statisticBackends = new ArrayList<String>();
+		String commaList = properties.getProperty(STATISTIC_BACKEND_LIST);
+		if(commaList != null) {
+			String[] commaLists = commaList.split(",");
+			for(int i = 0; i < commaLists.length; i++) {
+				statisticBackends.add(commaLists[i].trim());
+			}
+			return statisticBackends;
+		}
+		return null;
+	}
+	
 	public static boolean getMOASSEnabled() {
 		String value = properties.getProperty(MOA_SS_ENABLED);
 		if (value != null) {

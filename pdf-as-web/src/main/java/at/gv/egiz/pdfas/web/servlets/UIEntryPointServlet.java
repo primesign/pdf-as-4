@@ -43,6 +43,7 @@ import at.gv.egiz.pdfas.web.exception.PdfAsStoreException;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.helper.DigestHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.pdfas.web.store.RequestStore;
 
 public class UIEntryPointServlet extends HttpServlet {
@@ -85,6 +86,11 @@ public class UIEntryPointServlet extends HttpServlet {
 						+ " value");
 			}
 
+			StatisticEvent statisticEvent = RequestStore.getInstance()
+					.fetchStatisticEntry(storeId);
+
+			PdfAsHelper.setStatisticEvent(req, resp, statisticEvent);
+			
 			Connector connector = pdfAsRequest.getParameters().getConnector();
 
 			String invokeUrl = pdfAsRequest.getParameters().getInvokeURL();
@@ -149,16 +155,16 @@ public class UIEntryPointServlet extends HttpServlet {
 					}
 				}
 				Map<String, String> map = null;
-				if(pdfAsRequest.getParameters().getPreprocessor() != null) {
-					map = pdfAsRequest.getParameters().getPreprocessor().getMap();
+				if (pdfAsRequest.getParameters().getPreprocessor() != null) {
+					map = pdfAsRequest.getParameters().getPreprocessor()
+							.getMap();
 				}
-				
+
 				PdfAsHelper.startSignature(req, resp, getServletContext(),
 						pdfAsRequest.getInputData(), connector.toString(),
 						pdfAsRequest.getParameters().getPosition(),
 						pdfAsRequest.getParameters().getTransactionId(),
-						pdfAsRequest.getParameters().getProfile(), 
-						map);
+						pdfAsRequest.getParameters().getProfile(), map);
 			} else {
 				throw new PdfAsWebException("Invalid connector ("
 						+ Connector.BKU + " | " + Connector.ONLINEBKU + " | "

@@ -24,8 +24,10 @@
 package at.gv.egiz.pdfas.web.store;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 
 public interface IRequestStore {
-	public String createNewStoreEntry(PDFASSignRequest request);
+	public StatisticEvent fetchStatisticEntry(String id);
+	public String createNewStoreEntry(PDFASSignRequest request, StatisticEvent event);
 	public PDFASSignRequest fetchStoreEntry(String id);
 }

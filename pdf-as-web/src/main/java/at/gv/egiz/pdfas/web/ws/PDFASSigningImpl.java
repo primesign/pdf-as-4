@@ -41,10 +41,17 @@ import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASSigning;
 import at.gv.egiz.pdfas.api.ws.VerificationLevel;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
+import at.gv.egiz.pdfas.web.filter.UserAgentFilter;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 import at.gv.egiz.pdfas.web.store.RequestStore;
 
 @MTOM
@@ -72,12 +79,21 @@ public class PDFASSigningImpl implements PDFASSigning {
 			return null;
 		}
 		
+		StatisticEvent statisticEvent = new StatisticEvent();
+		statisticEvent.setSource(Source.SOAP);
+		statisticEvent.setOperation(Operation.SIGN);
+		statisticEvent.setUserAgent(UserAgentFilter.getUserAgent());
+		statisticEvent.setStartNow();
 		PDFASSignResponse response = new PDFASSignResponse();
 		try {
 			if(request.getParameters().getConnector() == null) {
 				throw new WebServiceException(
 						"Invalid connector value!");
 			}
+			
+			statisticEvent.setFilesize(request.getInputData().length);
+			statisticEvent.setProfileId(request.getParameters().getProfile());
+			statisticEvent.setDevice(request.getParameters().getConnector().toString());
 			
 			Map<String, String> preProcessor = null;
 			if(request.getParameters().getPreprocessor() != null) {
@@ -122,6 +138,21 @@ public class PDFASSigningImpl implements PDFASSigning {
 					verifyResult = verResults.get(0);
 				}
 
+				if(verifyResult.getValueCheckCode().getCode() == 0) {
+					statisticEvent.setStatus(Status.OK);
+					statisticEvent.setEndNow();
+					statisticEvent.setTimestampNow();
+					StatisticFrontend.getInstance().storeEvent(statisticEvent);
+					statisticEvent.setLogged(true);
+				} else {
+					statisticEvent.setStatus(Status.ERROR);
+					statisticEvent.setErrorCode(verifyResult.getValueCheckCode().getCode());
+					statisticEvent.setEndNow();
+					statisticEvent.setTimestampNow();
+					StatisticFrontend.getInstance().storeEvent(statisticEvent);
+					statisticEvent.setLogged(true);
+				}
+				
 				response.getVerificationResponse().setCertificateCode(
 						verifyResult.getCertificateCheck().getCode());
 				response.getVerificationResponse().setValueCode(
@@ -130,7 +161,7 @@ public class PDFASSigningImpl implements PDFASSigning {
 			} else {
 				// Signatures with user interaction!!
 				String id = RequestStore.getInstance().createNewStoreEntry(
-						request);
+						request, statisticEvent);
 
 				if (id == null) {
 					throw new WebServiceException("Failed to store request");
@@ -149,6 +180,17 @@ public class PDFASSigningImpl implements PDFASSigning {
 				response.setRedirectUrl(userEntryURL);
 			}
 		} catch (Throwable e) {
+			
+			statisticEvent.setStatus(Status.ERROR);
+			statisticEvent.setException(e);
+			if(e instanceof PDFASError) {
+				statisticEvent.setErrorCode(((PDFASError)e).getCode());
+			}
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			logger.warn("Error in Soap Service", e);
 			if (e.getCause() != null) {
 				response.setError(e.getCause().getMessage());
