@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,8 @@ public class PDFBoxTable {
 	float[] rowHeights;
 	float[] colWidths;
 
+	PDDocument originalDoc;
+	
 	private void normalizeContent(Table abstractTable) throws PdfAsException {
 		try {
 			int rows = abstractTable.getRows().size();
@@ -90,7 +93,7 @@ public class PDFBoxTable {
 		}
 	}
 
-	private void initializeStyle(Table abstractTable, PDFBoxTable parent)
+	private void initializeStyle(Table abstractTable, PDFBoxTable parent, PDDocument originalDoc)
 			throws IOException {
 		this.table = abstractTable;
 		try {
@@ -127,7 +130,7 @@ public class PDFBoxTable {
 								+ abstractTable.getName());
 			}
 
-			font = new PDFBoxFont(fontString, settings);
+			font = new PDFBoxFont(fontString, settings, originalDoc);
 
 			if (vfontString == null && parent != null && parent.style != null) {
 				vfontString = parent.style.getValueFont();
@@ -137,7 +140,7 @@ public class PDFBoxTable {
 								+ abstractTable.getName());
 			}
 
-			valueFont = new PDFBoxFont(vfontString, settings);
+			valueFont = new PDFBoxFont(vfontString, settings, originalDoc);
 		}
 		padding = style.getPadding();
 
@@ -145,9 +148,10 @@ public class PDFBoxTable {
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize,
-			ISettings settings) throws IOException, PdfAsException {
+			ISettings settings, PDDocument originalDoc) throws IOException, PdfAsException {
 		this.settings = settings;
-		initializeStyle(abstractTable, parent);
+		this.originalDoc = originalDoc;
+		initializeStyle(abstractTable, parent, originalDoc);
 		float[] relativSizes = abstractTable.getColsRelativeWith();
 		if (relativSizes != null) {
 			colWidths = new float[relativSizes.length];
@@ -178,9 +182,10 @@ public class PDFBoxTable {
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent,
-			ISettings settings) throws IOException, PdfAsException {
+			ISettings settings, PDDocument originalDoc) throws IOException, PdfAsException {
 		this.settings = settings;
-		initializeStyle(abstractTable, parent);
+		this.originalDoc = originalDoc;
+		initializeStyle(abstractTable, parent, originalDoc);
 		this.calculateWidthHeight();
 	}
 
@@ -342,7 +347,7 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						this.settings);
+						this.settings, originalDoc);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
@@ -550,13 +555,13 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						width, this.settings);
+						width, this.settings, this.originalDoc);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				// recreate here beacuse of fixed width!
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
 				pdfBoxTable = new PDFBoxTable(pdfBoxTable.table, this, width,
-						this.settings);
+						this.settings, this.originalDoc);
 				cell.setValue(pdfBoxTable);
 			} else {
 				throw new IOException("Failed to build PDFBox Table");
@@ -614,7 +619,7 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						this.settings);
+						this.settings, originalDoc);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();

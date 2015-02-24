@@ -28,6 +28,7 @@ import java.io.IOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.impl.pdfbox.PDFBOXObject;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
@@ -46,7 +47,8 @@ public class PdfBoxStamper implements IPDFStamper {
 	
 	public IPDFVisualObject createVisualPDFObject(PDFObject pdf, Table table) throws IOException {
 		try {
-			return new PdfBoxVisualObject(table, pdf.getStatus().getSettings());
+			PDFBOXObject pdfboxObject = (PDFBOXObject)pdf;
+			return new PdfBoxVisualObject(table, pdf.getStatus().getSettings(), pdfboxObject.getDocument());
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);
 		}

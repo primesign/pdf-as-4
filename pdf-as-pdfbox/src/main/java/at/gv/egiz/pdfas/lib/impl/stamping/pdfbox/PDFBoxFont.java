@@ -24,11 +24,22 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.fontbox.ttf.NameRecord;
+import org.apache.fontbox.ttf.NamingTable;
+import org.apache.fontbox.ttf.TTFParser;
+import org.apache.fontbox.ttf.TrueTypeFont;
+import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
@@ -39,10 +50,10 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 
 public class PDFBoxFont {
-	
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFBoxFont.class);
-	
+
 	private static final String HELVETICA = "HELVETICA";
 	private static final String COURIER = "COURIER";
 	private static final String TIMES_ROMAN = "TIMES_ROMAN";
@@ -50,32 +61,34 @@ public class PDFBoxFont {
 	private static final String NORMAL = "NORMAL";
 	private static final String ITALIC = "ITALIC";
 	private static final String SEP = ":";
-	
+
 	public static PDFont defaultFont = PDType1Font.HELVETICA;
 	public static float defaultFontSize = 8;
-	
+
 	private static Map<String, PDFont> fontStyleMap = new HashMap<String, PDFont>();
-	
+
+	private static Map<String, FontInfoCache> fontInfoCache = new HashMap<String, FontInfoCache>();
+
 	static {
-		fontStyleMap.put(HELVETICA+SEP+NORMAL, PDType1Font.HELVETICA);
-		fontStyleMap.put(HELVETICA+SEP+BOLD, PDType1Font.HELVETICA_BOLD);
-		
-		fontStyleMap.put(COURIER+SEP+NORMAL, PDType1Font.COURIER);
-		fontStyleMap.put(COURIER+SEP+BOLD, PDType1Font.COURIER_BOLD);
-		
-		fontStyleMap.put(TIMES_ROMAN+SEP+NORMAL, PDType1Font.TIMES_ROMAN);
-		fontStyleMap.put(TIMES_ROMAN+SEP+BOLD, PDType1Font.TIMES_BOLD);
-		fontStyleMap.put(TIMES_ROMAN+SEP+ITALIC, PDType1Font.TIMES_ITALIC);
+		fontStyleMap.put(HELVETICA + SEP + NORMAL, PDType1Font.HELVETICA);
+		fontStyleMap.put(HELVETICA + SEP + BOLD, PDType1Font.HELVETICA_BOLD);
+
+		fontStyleMap.put(COURIER + SEP + NORMAL, PDType1Font.COURIER);
+		fontStyleMap.put(COURIER + SEP + BOLD, PDType1Font.COURIER_BOLD);
+
+		fontStyleMap.put(TIMES_ROMAN + SEP + NORMAL, PDType1Font.TIMES_ROMAN);
+		fontStyleMap.put(TIMES_ROMAN + SEP + BOLD, PDType1Font.TIMES_BOLD);
+		fontStyleMap.put(TIMES_ROMAN + SEP + ITALIC, PDType1Font.TIMES_ITALIC);
 	}
-	
+
 	public static void showBuildinFonts() {
 		Iterator<String> it = fontStyleMap.keySet().iterator();
 		logger.info("Available Fonts:");
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			logger.info(it.next());
 		}
 	}
-	
+
 	PDFont font;
 	PDFont cachedfont = null;
 	float fontSize;
@@ -83,11 +96,97 @@ public class PDFBoxFont {
 	String ttfFontDesc;
 	PDDocument doc;
 	ISettings settings;
-	
-	private PDFont generateTTF(String fonttype, PDDocument doc) throws IOException {
+
+	private FontInfoCache getFontInfo(String pathName) {
+		synchronized (fontInfoCache) {
+
+			if (fontInfoCache.containsKey(pathName)) {
+				return fontInfoCache.get(pathName);
+			} else {
+				try {
+					String fontNameToLoad = null;
+					String fontFamilyToLoad = null;
+					InputStream ttfData = new FileInputStream(pathName);
+					try {
+						TrueTypeFont ttf = null;
+						TTFParser parser = new TTFParser();
+						ttf = parser.parseTTF(ttfData);
+						NamingTable naming = ttf.getNaming();
+						List<NameRecord> records = naming.getNameRecords();
+						for (int i = 0; i < records.size(); i++) {
+							NameRecord nr = records.get(i);
+							if (nr.getNameId() == NameRecord.NAME_POSTSCRIPT_NAME) {
+								fontNameToLoad = nr.getString();
+							} else if (nr.getNameId() == NameRecord.NAME_FONT_FAMILY_NAME) {
+								fontFamilyToLoad = nr.getString();
+							}
+						}
+					} finally {
+						ttfData.close();
+					}
+					FontInfoCache fontInfo = new FontInfoCache();
+					fontInfo.filename = pathName;
+					fontInfo.fontFamily = fontFamilyToLoad;
+					fontInfo.fontName = fontNameToLoad;
+					fontInfoCache.put(pathName, fontInfo);
+					return fontInfo;
+				} catch (Throwable e) {
+					logger.warn("Failed to generate FontInfo from file: {}", pathName);
+				}
+				return null;
+			}
+		}
+	}
+
+	private PDFont findCachedFont(PDDocument doc, FontInfoCache fontInfo) {
+		try {
+			List<COSObject> cosObjects = doc.getDocument().getObjectsByType(
+					COSName.FONT);
+
+			//COSName cosFontName = COSName.getPDFName(fontInfo.fontName);
+			//COSName cosFontFamily = COSName.getPDFName(fontInfo.fontFamily);
+
+			Iterator<COSObject> cosObjectIt = cosObjects.iterator();
+
+			while (cosObjectIt.hasNext()) {
+				COSObject cosObject = cosObjectIt.next();
+				COSDictionary baseObject = (COSDictionary) cosObject
+						.getObject();
+				if (baseObject instanceof COSDictionary) {
+					COSDictionary fontDictionary = (COSDictionary) baseObject;
+					COSBase subType = cosObject.getItem(COSName.SUBTYPE);
+					COSDictionary fontDescriptor = (COSDictionary)cosObject.getDictionaryObject(COSName.FONT_DESC);
+					String fontName = fontDescriptor.getNameAsString(COSName.FONT_NAME);
+					String fontFamily = fontDescriptor.getNameAsString(COSName.FONT_FAMILY);
+					logger.debug("Checking Font {} - {}", fontFamily, fontName);
+					if (COSName.TRUE_TYPE.equals(subType)) {
+						if (fontInfo.fontName != null && fontInfo.fontName.equals(fontName) && 
+							fontInfo.fontFamily != null && fontInfo.fontFamily.equals(fontFamily)) {
+							// Found it! :)
+							logger.info("Found Font {}", fontInfo.fontName);
+							return new PDTrueTypeFont(fontDictionary);
+						} else {
+							logger.debug("Font not found: {} is {}",
+									fontInfo.fontName, fontName);
+						}
+					} else {
+						logger.debug("Font not a TTF");
+					}
+				} else {
+					logger.debug("Font not a COSDictionary");
+				}
+			}
+		} catch (Throwable e) {
+			logger.info("Failed to find existing TTF fonts!", e);
+		}
+		return null;
+	}
+
+	private PDFont generateTTF(String fonttype, PDDocument doc)
+			throws IOException {
 		boolean cacheNow = false;
-		if(doc == null) {
-			if(this.doc == null) {
+		if (doc == null) {
+			if (this.doc == null) {
 				this.doc = new PDDocument();
 			}
 			doc = this.doc;
@@ -96,73 +195,97 @@ public class PDFBoxFont {
 		}
 		ttfFontDesc = fonttype;
 		String fontName = fonttype.replaceFirst("TTF:", "");
+		String fontPath = this.settings.getWorkingDirectory() + File.separator
+				+ "fonts" + File.separator + fontName;
+		
+		logger.debug("Font from: \"" + fontPath + "\".");
+
+		if(fontStyleMap.containsKey(fontPath)) {
+			return fontStyleMap.get(fontPath);
+		}
+		
+		FontInfoCache fontInfo = getFontInfo(fontPath);
+		
+		if(fontInfo != null) {
+		
+			PDFont font = findCachedFont(doc, fontInfo);
+
+			if (font != null) {
+				return font;
+			}
+		} 
 		
 		logger.debug("Instantiating font.");
-        String fontPath = this.settings.getWorkingDirectory()  + File.separator + "fonts" + File.separator + fontName;
-        logger.debug("Instantiating \"" + fontPath + "\".");
+		
+		//if (cacheNow) {
+			cachedfont = PDTrueTypeFont.loadTTF(doc, fontPath);
+			fontStyleMap.put(fontPath, cachedfont);
+			return cachedfont;
+		//} else {
+		//	return PDTrueTypeFont.loadTTF(doc, fontPath);
+		//}
 
-        if(cacheNow) {
-        	cachedfont = PDTrueTypeFont.loadTTF(doc, fontPath);
-        	return cachedfont;
-        } else {
-        	return PDTrueTypeFont.loadTTF(doc, fontPath);
-        }
 	}
-	
-	private PDFont generateFont(String fonttype, String fontder) throws IOException {
-		if(fonttype.startsWith("TTF:")) {
+
+	private PDFont generateFont(String fonttype, String fontder,
+			PDDocument originalDoc) throws IOException {
+		if (fonttype.startsWith("TTF:")) {
 			// Load TTF Font
-			return generateTTF(fonttype, null);
+			return generateTTF(fonttype, originalDoc);
 		} else {
-			if(fontder == null) {
+			if (fontder == null) {
 				fontder = NORMAL;
 			}
-			
+
 			String fontDesc = fonttype + SEP + fontder;
 			PDFont font = fontStyleMap.get(fontDesc);
-			if(font == null) {
+			if (font == null) {
 				showBuildinFonts();
 				throw new IOException("Invalid font descriptor");
 			}
 			return font;
 		}
 	}
-	
-	private void setFont(String desc) throws IOException {
+
+	private void setFont(String desc, PDDocument originalDoc)
+			throws IOException {
 		String[] fontArr = desc.split(",");
-		
-		if(fontArr.length == 3) {
-			font = generateFont(fontArr[0], fontArr[2]);
+
+		if (fontArr.length == 3) {
+			font = generateFont(fontArr[0], fontArr[2], originalDoc);
 			fontSize = Float.parseFloat(fontArr[1]);
-		} else if(fontArr.length == 2 && fontArr[0].startsWith("TTF:")) {
-			font = generateFont(fontArr[0], null);
+		} else if (fontArr.length == 2 && fontArr[0].startsWith("TTF:")) {
+			font = generateFont(fontArr[0], null, originalDoc);
 			fontSize = Float.parseFloat(fontArr[1]);
 		} else {
-			logger.warn("Using default font because: {} is not a valid font descriptor.", desc);
+			logger.warn(
+					"Using default font because: {} is not a valid font descriptor.",
+					desc);
 			this.font = defaultFont;
 			this.fontSize = defaultFontSize;
 		}
-		
+
 	}
 
-	public PDFBoxFont(String fontDesc, ISettings settings) throws IOException {
+	public PDFBoxFont(String fontDesc, ISettings settings,
+			PDDocument originalDoc) throws IOException {
 		this.settings = settings;
 		this.fontDesc = fontDesc;
 		logger.debug("Creating Font: " + fontDesc);
-		this.setFont(fontDesc);
+		this.setFont(fontDesc, originalDoc);
 	}
-	
+
 	public PDFont getFont(PDDocument doc) throws IOException {
-		if(cachedfont != null) {
+		if (cachedfont != null) {
 			return cachedfont;
 		}
-		if(font instanceof PDTrueTypeFont && doc != null) {
+		if (font instanceof PDTrueTypeFont && doc != null) {
 			return generateTTF(ttfFontDesc, doc);
 		} else {
 			return font;
 		}
 	}
-	
+
 	public float getFontSize() {
 		return fontSize;
 	}

@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.io.IOException;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +46,13 @@ public class PdfBoxVisualObject implements IPDFVisualObject {
 	private float y;
 	private int page;
 	private ISettings settings;
+	private PDDocument originalDoc;
 
-	public PdfBoxVisualObject(Table table, ISettings settings)
+	public PdfBoxVisualObject(Table table, ISettings settings, PDDocument originalDoc)
 			throws IOException, PdfAsException {
 		this.abstractTable = table;
-		this.table = new PDFBoxTable(table, null, settings);
+		this.originalDoc = originalDoc;
+		this.table = new PDFBoxTable(table, null, settings, originalDoc);
 		this.settings = settings;
 	}
 
@@ -59,7 +62,7 @@ public class PdfBoxVisualObject implements IPDFVisualObject {
 
 	public void fixWidth() {
 		try {
-			table = new PDFBoxTable(abstractTable, null, this.width,  settings);
+			table = new PDFBoxTable(abstractTable, null, this.width,  settings, this.originalDoc);
 		} catch (IOException e) {
 			logger.warn("Failed to fix width of Table!", e);
 		} catch (PdfAsException e) {
