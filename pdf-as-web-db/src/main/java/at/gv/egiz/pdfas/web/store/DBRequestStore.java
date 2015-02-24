@@ -16,78 +16,84 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.pdfas.web.store.IRequestStore;
 import at.gv.egiz.pdfas.web.store.db.Request;
+import at.gv.egiz.pdfas.web.store.db.StatisticRequest;
 
 public class DBRequestStore implements IRequestStore {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(DBRequestStore.class);
-	
+
 	private SessionFactory sessions;
 	private ServiceRegistry serviceRegistry;
-	
+
 	public DBRequestStore() {
 		Configuration cfg = new Configuration();
 		cfg.addAnnotatedClass(Request.class);
 		cfg.setProperties(WebConfiguration.getHibernateProps());
-		
+
 		serviceRegistry = new StandardServiceRegistryBuilder().applySettings(
 				cfg.getProperties()).build();
-		
+
 		sessions = cfg.buildSessionFactory(serviceRegistry);
 	}
-	
+
 	private void cleanOldRequests() {
 		int seconds = WebConfiguration.getDBTimeout();
 		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.SECOND, (-1)* seconds);
+		calendar.add(Calendar.SECOND, (-1) * seconds);
 		Date date = calendar.getTime();
-		SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss"); 
+		SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 		logger.info("Clearing Entries before: " + dt.format(date));
 		Session session = null;
 		Transaction tx = null;
 		try {
 			session = sessions.openSession();
 			tx = session.beginTransaction();
-			Query query = session.createQuery("delete from Request as req" + 
-				" where req.created < :date");
+			Query query = session.createQuery("delete from Request as req"
+					+ " where req.created < :date");
 			query.setCalendar("date", calendar);
 			query.executeUpdate();
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			logger.error("Failed to save Request", e);
 			tx.rollback();
 		} finally {
-			if(session != null) {
+			if (session != null) {
 				session.close();
 			}
 		}
 	}
-	
+
 	public void cleanOldRequestException() {
 		int seconds = WebConfiguration.getDBTimeout();
 		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.SECOND, (-1)* seconds);
+		calendar.add(Calendar.SECOND, (-1) * seconds);
 		Date date = calendar.getTime();
-		SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss"); 
+		SimpleDateFormat dt = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 		logger.info("Clearing Entries before: " + dt.format(date));
 		Session session = null;
-		Transaction tx = null;
 		try {
 			session = sessions.openSession();
-			tx = session.beginTransaction();
-			Query query = session.createQuery("delete from Request as req" + 
-				" where req.created < :date");
+			Query query = session.createQuery("delete from Request as req"
+					+ " where req.created < :date");
 			query.setCalendar("date", calendar);
 			query.executeUpdate();
+			
+			Query queryStat = session.createQuery("delete from StatisticRequest as req"
+					+ " where req.created < :date");
+			queryStat.setCalendar("date", calendar);
+			queryStat.executeUpdate();
 		} finally {
-			if(session != null) {
+			if (session != null) {
 				session.close();
 			}
 		}
 	}
-	
-	public String createNewStoreEntry(PDFASSignRequest request) {
+
+	public String createNewStoreEntry(PDFASSignRequest request,
+			StatisticEvent event) {
 		// Clean Old Requests
 		this.cleanOldRequests();
 		Session session = null;
@@ -99,15 +105,20 @@ public class DBRequestStore implements IRequestStore {
 			dbRequest.setSignRequest(request);
 			dbRequest.setCreated(Calendar.getInstance().getTime());
 			session.save(dbRequest);
-		
+
+			StatisticRequest statisticRequest = new StatisticRequest();
+			statisticRequest.setStatisticEvent(event);
+			statisticRequest.setCreated(Calendar.getInstance().getTime());
+			session.save(statisticRequest);
+			
 			tx.commit();
 			return dbRequest.getId();
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			logger.error("Failed to save Request", e);
 			tx.rollback();
 			return null;
 		} finally {
-			if(session != null) {
+			if (session != null) {
 				session.close();
 			}
 		}
@@ -116,30 +127,59 @@ public class DBRequestStore implements IRequestStore {
 	public PDFASSignRequest fetchStoreEntry(String id) {
 		// Clean Old Requests
 		this.cleanOldRequests();
-	
+
 		Session session = null;
 		Transaction tx = null;
 		try {
 			session = sessions.openSession();
 			tx = session.beginTransaction();
 			Request dbRequest = (Request) session.get(Request.class, id);
-			
+
 			PDFASSignRequest request = dbRequest.getSignRequest();
-			
+
 			session.delete(dbRequest);
-		
+
 			tx.commit();
 			return request;
-		} catch(Throwable e) {
+		} catch (Throwable e) {
 			logger.error("Failed to fetch Request", e);
 			tx.rollback();
 			return null;
 		} finally {
-			if(session != null) {
+			if (session != null) {
 				session.close();
 			}
 		}
-		
+
 	}
 
+	@Override
+	public StatisticEvent fetchStatisticEntry(String id) {
+		// Clean Old Requests
+		this.cleanOldRequests();
+
+		Session session = null;
+		Transaction tx = null;
+		try {
+			session = sessions.openSession();
+			tx = session.beginTransaction();
+			StatisticRequest dbRequest = (StatisticRequest) session.get(
+					StatisticRequest.class, id);
+
+			StatisticEvent request = dbRequest.getStatisticEvent();
+
+			session.delete(dbRequest);
+
+			tx.commit();
+			return request;
+		} catch (Throwable e) {
+			logger.error("Failed to fetch Request", e);
+			tx.rollback();
+			return null;
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+	}
 }
