@@ -39,36 +39,41 @@ public class StatisticFrontend implements StatisticBackend {
 
 		while (statisticIterator.hasNext()) {
 			StatisticBackend statisticBackend = statisticIterator.next();
-			
-			if(enabledBackends == null || enabledBackends.contains(statisticBackend
-					.getName())) {
+
+			if (enabledBackends == null
+					|| enabledBackends.contains(statisticBackend.getName())) {
 				logger.info("adding Statistic Logger {} [{}]", statisticBackend
 						.getName(), statisticBackend.getClass().getName());
-				
-				statisticBackends.add(statisticBackend);	
+
+				statisticBackends.add(statisticBackend);
 			} else {
-				logger.info("skipping Statistic Logger {} [{}]", statisticBackend
-						.getName(), statisticBackend.getClass().getName());
+				logger.info("skipping Statistic Logger {} [{}]",
+						statisticBackend.getName(), statisticBackend.getClass()
+								.getName());
 			}
 		}
-		
-		
-		Iterator<String> enabledBackendsIterator = enabledBackends
-				.iterator();
-		while (enabledBackendsIterator.hasNext()) {
-			String enabledBackend = enabledBackendsIterator.next();
-			statisticIterator = statisticBackends.iterator();
-			boolean found = false;
-			while (statisticIterator.hasNext()) {
-				StatisticBackend statisticBackend = statisticIterator.next();
-				if(statisticBackend.getName().equals(enabledBackend)) {
-					found = true;
-					break;
+
+		if (enabledBackends != null) {
+			Iterator<String> enabledBackendsIterator = enabledBackends
+					.iterator();
+			while (enabledBackendsIterator.hasNext()) {
+				String enabledBackend = enabledBackendsIterator.next();
+				statisticIterator = statisticBackends.iterator();
+				boolean found = false;
+				while (statisticIterator.hasNext()) {
+					StatisticBackend statisticBackend = statisticIterator
+							.next();
+					if (statisticBackend.getName().equals(enabledBackend)) {
+						found = true;
+						break;
+					}
 				}
- 			}
-			
-			if(!found) {
-				logger.warn("Failed to load statistic backend {}. Not in classpath?", enabledBackend);
+
+				if (!found) {
+					logger.warn(
+							"Failed to load statistic backend {}. Not in classpath?",
+							enabledBackend);
+				}
 			}
 		}
 	}
@@ -80,29 +85,28 @@ public class StatisticFrontend implements StatisticBackend {
 		return _instance;
 	}
 
-	
 	@Override
 	public String getName() {
 		return StatisticFrontend.class.getSimpleName();
 	}
-	
 
 	@Override
 	public void storeEvent(StatisticEvent statisticEvent) {
-		
-		if(statisticEvent == null) {
+
+		if (statisticEvent == null) {
 			logger.warn("Tried to log null as statisticEvent!");
 			return;
 		}
-		
-		if(statisticEvent.isLogged()) {
+
+		if (statisticEvent.isLogged()) {
 			logger.warn("Tried to relog statisticEvent!");
 			return;
 		}
-		
-		Iterator<StatisticBackend> statisticBackendIterator = statisticBackends.iterator();
-		
-		while(statisticBackendIterator.hasNext()) {
+
+		Iterator<StatisticBackend> statisticBackendIterator = statisticBackends
+				.iterator();
+
+		while (statisticBackendIterator.hasNext()) {
 			StatisticBackend statisticBackend = statisticBackendIterator.next();
 			statisticBackend.storeEvent(statisticEvent);
 		}

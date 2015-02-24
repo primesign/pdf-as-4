@@ -30,6 +30,7 @@ public class StatisticFileBackend implements StatisticBackend {
 		addCSVValue(String.valueOf(statisticEvent.getTimestamp()), sb);
 		addCSVValue(statisticEvent.getOperation().getName(), sb);
 		addCSVValue(statisticEvent.getDevice(), sb);
+		addCSVValue(statisticEvent.getSource().getName(), sb);
 		addCSVValue(statisticEvent.getProfileId(), sb);
 		addCSVValue(String.valueOf(statisticEvent.getFilesize()), sb);
 		addCSVValue(statisticEvent.getUserAgent(), sb);
