@@ -69,7 +69,7 @@ public class PDFBoxTable {
 	float[] colWidths;
 
 	PDDocument originalDoc;
-	
+
 	private void normalizeContent(Table abstractTable) throws PdfAsException {
 		try {
 			int rows = abstractTable.getRows().size();
@@ -93,8 +93,8 @@ public class PDFBoxTable {
 		}
 	}
 
-	private void initializeStyle(Table abstractTable, PDFBoxTable parent, PDDocument originalDoc)
-			throws IOException {
+	private void initializeStyle(Table abstractTable, PDFBoxTable parent,
+			PDDocument originalDoc) throws IOException {
 		this.table = abstractTable;
 		try {
 			normalizeContent(abstractTable);
@@ -148,7 +148,8 @@ public class PDFBoxTable {
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize,
-			ISettings settings, PDDocument originalDoc) throws IOException, PdfAsException {
+			ISettings settings, PDDocument originalDoc) throws IOException,
+			PdfAsException {
 		this.settings = settings;
 		this.originalDoc = originalDoc;
 		initializeStyle(abstractTable, parent, originalDoc);
@@ -177,19 +178,22 @@ public class PDFBoxTable {
 			}
 		}
 		calculateHeightsBasedOnWidths();
-		
-		logger.debug("Generating Table with fixed With {} got width {}", fixSize, getWidth());
+
+		logger.debug("Generating Table with fixed With {} got width {}",
+				fixSize, getWidth());
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent,
-			ISettings settings, PDDocument originalDoc) throws IOException, PdfAsException {
+			ISettings settings, PDDocument originalDoc) throws IOException,
+			PdfAsException {
 		this.settings = settings;
 		this.originalDoc = originalDoc;
 		initializeStyle(abstractTable, parent, originalDoc);
 		this.calculateWidthHeight();
 	}
 
-	private void calculateHeightsBasedOnWidths() throws IOException, PdfAsException {
+	private void calculateHeightsBasedOnWidths() throws IOException,
+			PdfAsException {
 		int rows = this.table.getRows().size();
 		rowHeights = new float[rows];
 		addPadding = new boolean[rows];
@@ -203,7 +207,7 @@ public class PDFBoxTable {
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 
-				float colWidth = 0;//colWidths[j];
+				float colWidth = 0;// colWidths[j];
 
 				int colsleft = cell.getColSpan();
 
@@ -288,16 +292,15 @@ public class PDFBoxTable {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
-				if(cell.getType() == Entry.TYPE_TABLE) {
-					PDFBoxTable tbl = (PDFBoxTable)cell.getValue();
-					if(rowHeights[i] != tbl.getHeight())
-					{
+				if (cell.getType() == Entry.TYPE_TABLE) {
+					PDFBoxTable tbl = (PDFBoxTable) cell.getValue();
+					if (rowHeights[i] != tbl.getHeight()) {
 						tbl.setHeight(rowHeights[i]);
 					}
 				}
 			}
 		}
-		
+
 		this.tableWidth = 0;
 
 		for (int i = 0; i < colWidths.length; i++) {
@@ -489,27 +492,31 @@ public class PDFBoxTable {
 			float maxLineHeight = 0;
 			try {
 				byte[] linebytes = StringUtils.applyWinAnsiEncoding(lines[i]);
-				for(int j = 0; j < linebytes.length; j++) {
-					float he = c.getFontHeight(linebytes, j, 1) / 1000 * fontSize;
-					if(he > maxLineHeight) {
+				for (int j = 0; j < linebytes.length; j++) {
+					float he = c.getFontHeight(linebytes, j, 1) / 1000
+							* fontSize;
+					if (he > maxLineHeight) {
 						maxLineHeight = he;
 					}
 				}
 			} catch (UnsupportedEncodingException e) {
 				logger.warn("failed to determine String height", e);
-				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000
+						* fontSize;
 			} catch (IOException e) {
 				logger.warn("failed to determine String height", e);
-				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000
+						* fontSize;
 			}
-			
+
 			heights[i] = maxLineHeight;
 		}
-		
+
 		return heights;
 	}
 
-	private float getCellHeight(Entry cell, float width) throws IOException, PdfAsException {
+	private float getCellHeight(Entry cell, float width) throws IOException,
+			PdfAsException {
 		boolean isValue = true;
 		switch (cell.getType()) {
 		case Entry.TYPE_CAPTION:
@@ -530,27 +537,19 @@ public class PDFBoxTable {
 					fontSize);
 			cell.setValue(concatLines(lines));
 			float[] heights = getStringHeights(lines, c, fontSize);
-			return fontSize * heights.length  + padding * 2;
+			return fontSize * heights.length + padding * 2;
 		case Entry.TYPE_IMAGE:
-			String imageFile = (String)cell.getValue();
-			File img_file = ImageUtils.getImageFile(imageFile, settings);
+			String imageFile = (String) cell.getValue();
 			if (style != null && style.getImageScaleToFit() != null) {
-				//if (style.getImageScaleToFit().getHeight() < width) {
-					return style.getImageScaleToFit().getHeight() + padding * 2;
-				//}
+				// if (style.getImageScaleToFit().getHeight() < width) {
+				return style.getImageScaleToFit().getHeight() + padding * 2;
+				// }
 			}
-			FileInputStream fis = new FileInputStream(img_file);
-			try {
-				Dimension dim = ImageUtils.getImageDimensions(fis);
-				if(dim.getHeight() > 80.0f) {
-					return width + padding * 2;
-				}
-				return (float)dim.getHeight() + padding * 2;
-			} finally {
-				if(fis != null) {
-					fis.close();
-				}
+			Dimension dim = ImageUtils.getImageDimensions(imageFile, settings);
+			if (dim.getHeight() > 80.0f) {
+				return width + padding * 2;
 			}
+			return (float) dim.getHeight() + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
@@ -598,23 +597,16 @@ public class PDFBoxTable {
 				return fontSize + padding * 2;
 			}
 		case Entry.TYPE_IMAGE:
-			String imageFile = (String)cell.getValue();
-			File img_file = ImageUtils.getImageFile(imageFile, settings);
+			String imageFile = (String) cell.getValue();
 			if (style != null && style.getImageScaleToFit() != null) {
 				return style.getImageScaleToFit().getHeight() + padding * 2;
 			}
-			FileInputStream fis = new FileInputStream(img_file);
-			try {
-				Dimension dim = ImageUtils.getImageDimensions(fis);
-				if(dim.getHeight() > 80.0f) {
-					return 80.0f + padding * 2;
-				}
-				return (float)dim.getHeight() + padding * 2;
-			} finally {
-				if(fis != null) {
-					fis.close();
-				}
+			Dimension dim = ImageUtils.getImageDimensions(imageFile, settings);
+			if (dim.getHeight() > 80.0f) {
+				return 80.0f + padding * 2;
 			}
+			return (float) dim.getHeight() + padding * 2;
+
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
@@ -648,10 +640,10 @@ public class PDFBoxTable {
 	public float getHeight() {
 		return tableHeight;
 	}
-	
+
 	public void setHeight(float height) {
 		float diff = height - this.getHeight();
-		if(diff > 0) {
+		if (diff > 0) {
 			this.rowHeights[rowHeights.length - 1] += diff;
 			calcTotals();
 		} else {

@@ -181,31 +181,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements 
 					String img_value = (String) cell.getValue();
 					String img_ref = createHashedId(img_value);
 					if (!images.containsKey(img_ref)) {
-						BufferedImage img = null;
-						
-						try {
-							File img_file = ImageUtils.getImageFile(img_value, settings);
-
-							try {
-								img = ImageIO.read(img_file);
-							} catch (IOException e) {
-								throw new PdfAsException("error.pdf.stamp.04", e);
-							}
-						} catch(PdfAsException | IOException e) {
-							ByteArrayInputStream bais = null;
-							try {
-								bais = new ByteArrayInputStream(Base64.decodeBase64(img_value));
-								img = ImageIO.read(bais);
-								bais.close();
-							} catch(Throwable e1) {
-								// Ignore value is not base 64!
-								logger.debug("Value is not base64: ", e1);
-								// rethrow e
-								throw e;
-							} finally {
-								IOUtils.closeQuietly(bais);
-							}
-						}
+						BufferedImage img = ImageUtils.getImage(img_value, settings);
 
 						float width = colsSizes[j];
 						float height = table.getRowHeights()[i] + padding * 2;

@@ -78,6 +78,7 @@ public class PDFASSignParameters implements Serializable {
 	String invokeErrorUrl;
 	String transactionId;
 	String keyIdentifier;
+	String qrCodeContent;
 	String profile;
 	PDFASPropertyMap preprocessor;
 	
@@ -144,6 +145,14 @@ public class PDFASSignParameters implements Serializable {
 	}
 	public void setKeyIdentifier(String keyIdentifier) {
 		this.keyIdentifier = keyIdentifier;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="qrCodeContent")
+	public String getQRCodeContent() {
+		return qrCodeContent;
+	}
+	public void setQRCodeContent(String qrCodeContent) {
+		this.qrCodeContent = qrCodeContent;
 	}
 
 	@XmlElement(required = false, nillable = true, name="preprocessorArguments")
