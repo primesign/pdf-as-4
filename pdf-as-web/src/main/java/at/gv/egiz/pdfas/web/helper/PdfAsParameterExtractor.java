@@ -69,6 +69,8 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_FILENAME = "filename";
 	public static final String PARAM_ORIGINAL_DIGEST = "origdigest";
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
+	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
+	
 	
 	public static String getConnector(HttpServletRequest request) {
 		String connector = (String)request.getAttribute(PARAM_CONNECTOR);
@@ -76,6 +78,11 @@ public class PdfAsParameterExtractor {
 			return connector;
 		} 
 		return PARAM_CONNECTOR_DEFAULT;
+	}
+	
+	public static String getQRCodeContent(HttpServletRequest request) {
+		String qrcodeContent = (String)request.getAttribute(PARAM_QRCODE_CONTENT);
+		return qrcodeContent;
 	}
 	
 	public static String getTransactionId(HttpServletRequest request) {

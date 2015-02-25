@@ -49,6 +49,7 @@ import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,6 +115,7 @@ public class PdfAsHelper {
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
 	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
 	private static final String VERIFICATION_RESULT = "VERIFICATION_RESULT";
+	private static final String QRCODE_CONTENT = "QR_CONT";
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
@@ -357,7 +359,7 @@ public class PdfAsHelper {
 		validatePdfSize(request, response, pdfData);
 
 		Configuration config = pdfAs.getConfiguration();
-
+		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		// Generate Sign Parameter
@@ -426,9 +428,34 @@ public class PdfAsHelper {
 
 		signParameter.setPlainSigner(signer);
 
+		String profileId = PdfAsParameterExtractor
+				.getSigType(request);
+		String qrCodeContent = PdfAsHelper.getQRCodeContent(request);
+		
+		if(qrCodeContent != null) {
+			if(profileId == null) {
+				// get default Profile 
+				profileId = config.getValue("sig_obj.type.default");
+			} 
+			
+			if(profileId == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profileId = "SIGNATURBLOCK_SMALL_DE";
+			}
+			
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profileId + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
+		
 		// set Signature Profile (null use default ...)
-		signParameter.setSignatureProfileId(PdfAsParameterExtractor
-				.getSigType(request));
+		signParameter.setSignatureProfileId(profileId);
 
 		// set Signature Position
 		signParameter.setSignaturePosition(buildPosString(request, response));
@@ -1108,6 +1135,20 @@ public class PdfAsHelper {
 			return obj.toString();
 		}
 		return "";
+	}
+	
+	public static void setQRCodeContent(HttpServletRequest request, String value) {
+		HttpSession session = request.getSession();
+		session.setAttribute(QRCODE_CONTENT, value);
+	}
+
+	public static String getQRCodeContent(HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(QRCODE_CONTENT);
+		if (obj != null) {
+			return obj.toString();
+		}
+		return null;
 	}
 
 	public static void setPDFFileName(HttpServletRequest request, String value) {

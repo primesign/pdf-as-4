@@ -305,6 +305,9 @@ public class ExternSignServlet extends HttpServlet {
 		SignatureVerificationLevel lvl = PdfAsParameterExtractor.getVerificationLevel(request);
 		PdfAsHelper.setVerificationLevel(request, lvl);
 		
+		String qrcodeContent = PdfAsParameterExtractor.getQRCodeContent(request);
+		PdfAsHelper.setQRCodeContent(request, qrcodeContent);
+		
 		String invokeTarget = PdfAsParameterExtractor.getInvokeTarget(request);
 		PdfAsHelper.setInvokeTarget(request, response, invokeTarget);
 		
