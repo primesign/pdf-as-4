@@ -547,8 +547,36 @@ public class PdfAsHelper {
 
 		signParameter.setPlainSigner(signer);
 
+		String profile = params.getProfile();
+		
+		//PdfAsHelper.getQRCodeContent(request);
+		// Get QR Code Content form param
+		String qrCodeContent = params.getQRCodeContent();
+		
+		if(qrCodeContent != null) {
+			if(profile == null) {
+				// get default Profile 
+				profile = config.getValue("sig_obj.type.default");
+			} 
+			
+			if(profile == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profile = "SIGNATURBLOCK_SMALL_DE";
+			}
+			
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profile + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
+		
 		// set Signature Profile (null use default ...)
-		signParameter.setSignatureProfileId(params.getProfile());
+		signParameter.setSignatureProfileId(profile);
 
 		// set Signature Position
 		signParameter.setSignaturePosition(params.getPosition());
@@ -625,6 +653,30 @@ public class PdfAsHelper {
 		session.setAttribute(PDF_SIGNER, signer);
 		session.setAttribute(PDF_SL_INTERACTIVE, connector);
 
+		String qrCodeContent = PdfAsHelper.getQRCodeContent(request);
+		
+		if(qrCodeContent != null) {
+			if(profile == null) {
+				// get default Profile 
+				profile = config.getValue("sig_obj.type.default");
+			} 
+			
+			if(profile == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profile = "SIGNATURBLOCK_SMALL_DE";
+			}
+			
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profile + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
+		
 		// set Signature Profile (null use default ...)
 		signParameter.setSignatureProfileId(profile);
 

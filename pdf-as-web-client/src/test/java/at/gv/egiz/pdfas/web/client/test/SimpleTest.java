@@ -52,19 +52,20 @@ public class SimpleTest {
 			signParameters.setConnector(Connector.JKS);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_SMALL_DE");
-			signParameters.setKeyIdentifier("test");
+			signParameters.setQRCodeContent("https://docs.google.com/document/d/1DSE9aO8-q9PAlRPyYpH1sgont4rSB_Q5BCeS-X3p6WA/edit?usp=sharing");
+			//signParameters.setKeyIdentifier("test");
 
 			PDFASSignRequest request = new PDFASSignRequest();
 			request.setInputData(inputData);
 			request.setParameters(signParameters);
 			request.setRequestID("SOME TEST ID");
-
+			
 			//URL endpoint = new
 			//URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
 			//URL endpoint = new
 			//		URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
-			//String baseUrl  = "http://demo.egiz.gv.at/demoportal-pdf_as/";
-			String baseUrl  = "http://localhost:8080/pdf-as-web/services/";
+			String baseUrl  = "http://demo.egiz.gv.at/demoportal-pdf_as/services/";
+			//String baseUrl  = "http://localhost:8080/pdf-as-web/services/";
 			//URL endpoint = new URL(
 			//		"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
