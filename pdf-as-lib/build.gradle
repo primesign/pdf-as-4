@@ -66,8 +66,8 @@ dependencies {
 	compile files('libs/iaik_jce_full.jar')
 	compile files('libs/iaik_cms.jar')
 	compile group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
-	compile group: 'com.google.zxing', name: 'core', version: '3.1.0'
-	compile group: 'com.google.zxing', name: 'javase', version: '3.1.0'
+	compile group: 'com.google.zxing', name: 'core', version: '3.2.0'
+	compile group: 'com.google.zxing', name: 'javase', version: '3.2.0'
 	testCompile group: 'junit', name: 'junit', version: '4.+'
 	ws group: 'org.apache.cxf', name: 'cxf-tools', version: cxfVersion
 	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-databinding-jaxb', version: cxfVersion
