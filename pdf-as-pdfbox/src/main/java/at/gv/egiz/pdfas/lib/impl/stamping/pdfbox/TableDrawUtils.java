@@ -54,7 +54,7 @@ public class TableDrawUtils {
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
-			Map<String, ImageObject> images, ISettings settings)
+			Map<String, ImageObject> images, ISettings settings, IDGenerator generator)
 			throws PdfAsException {
 
 		logger.debug("Drawing Table: X {} Y {} WIDTH {} HEIGHT {} \n{}", x, y,
@@ -69,14 +69,14 @@ public class TableDrawUtils {
 				doc, subtable, settings);
 
 		drawContent(page, contentStream, x, y, width, height, abstractTable,
-				doc, subtable, formResources, images, settings);
+				doc, subtable, formResources, images, settings, generator);
 	}
 
 	public static void drawContent(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
-			Map<String, ImageObject> images, ISettings settings)
+			Map<String, ImageObject> images, ISettings settings, IDGenerator generator)
 			throws PdfAsException {
 
 		float contentx = x;
@@ -124,7 +124,7 @@ public class TableDrawUtils {
 					drawImage(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources,
-							images, settings);
+							images, settings, generator);
 					break;
 				case Entry.TYPE_TABLE:
 
@@ -137,7 +137,7 @@ public class TableDrawUtils {
 					drawTable(page, contentStream, contentx, contenty
 							- abstractTable.getRowHeights()[i], colWidth,
 							abstractTable.getRowHeights()[i], tbl_value, doc,
-							true, formResources, images, settings);
+							true, formResources, images, settings, generator);
 					break;
 				default:
 					logger.warn("Unknown Cell entry type: " + cell.getType());
@@ -329,12 +329,12 @@ public class TableDrawUtils {
 			float width, float height, float padding,
 			PDFBoxTable abstractTable, PDDocument doc, Entry cell,
 			PDResources formResources, Map<String, ImageObject> images,
-			ISettings settings) throws PdfAsException {
+			ISettings settings, IDGenerator generator) throws PdfAsException {
 		try {
 			float innerHeight = height;
 			float innerWidth = width;
 						
-			String img_ref = (String) cell.getValue();
+			String img_ref = generator.createHashedId((String) cell.getValue());
 			if (!images.containsKey(img_ref)) {
 				logger.warn("Image not prepared! : " + img_ref);
 				throw new PdfAsException("Image not prepared! : " + img_ref);

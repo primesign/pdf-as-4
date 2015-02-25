@@ -26,10 +26,12 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +39,9 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -65,7 +70,7 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.ImageUtils;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 
-public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
+public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements IDGenerator {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFAsVisualSignatureBuilder.class);
@@ -116,6 +121,17 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		getStructure().setTemplate(template);
 	}
 
+	public String createHashedId(String value) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			md.reset();
+			return Hex.encodeHexString(md.digest(value.getBytes("UTF-8")));
+		} catch(Throwable e) {
+			logger.warn("Failed to generate ID for Image using value", e);
+			return value;
+		}
+	}
+	
 	private void readTableResources(PDFBoxTable table, PDDocument template)
 			throws PdfAsException, IOException {
 
@@ -162,15 +178,33 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 				if (cell.getType() == Entry.TYPE_IMAGE) {
-					String img_ref = (String) cell.getValue();
+					String img_value = (String) cell.getValue();
+					String img_ref = createHashedId(img_value);
 					if (!images.containsKey(img_ref)) {
-						File img_file = ImageUtils.getImageFile(img_ref, settings);
-
 						BufferedImage img = null;
+						
 						try {
-							img = ImageIO.read(img_file);
-						} catch (IOException e) {
-							throw new PdfAsException("error.pdf.stamp.04", e);
+							File img_file = ImageUtils.getImageFile(img_value, settings);
+
+							try {
+								img = ImageIO.read(img_file);
+							} catch (IOException e) {
+								throw new PdfAsException("error.pdf.stamp.04", e);
+							}
+						} catch(PdfAsException | IOException e) {
+							ByteArrayInputStream bais = null;
+							try {
+								bais = new ByteArrayInputStream(Base64.decodeBase64(img_value));
+								img = ImageIO.read(bais);
+								bais.close();
+							} catch(Throwable e1) {
+								// Ignore value is not base 64!
+								logger.debug("Value is not base64: ", e1);
+								// rethrow e
+								throw e;
+							} finally {
+								IOUtils.closeQuietly(bais);
+							}
 						}
 
 						float width = colsSizes[j];
@@ -250,7 +284,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			TableDrawUtils.drawTable(getStructure().getPage(), stream, 1, 1,
 					designer.getWidth(), designer.getHeight(),
 					properties.getMainTable(), template, false,
-					innerFormResources, images, settings);
+					innerFormResources, images, settings, this);
 			stream.close();
 			PDStream innterFormStream = getStructure().getPage().getContents();
 			getStructure().setInnterFormStream(innterFormStream);
