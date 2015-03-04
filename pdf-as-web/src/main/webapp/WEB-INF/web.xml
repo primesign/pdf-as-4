@@ -25,12 +25,21 @@
 		<filter-name>sitemesh</filter-name>
 		<filter-class>com.opensymphony.sitemesh.webapp.SiteMeshFilter</filter-class>
 	</filter>
+	<filter>
+		<filter-name>CORS</filter-name>
+		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+		<init-param>
+                <param-name>cors.allowOrigin</param-name>
+                <param-value>*</param-value>
+        </init-param>
+	</filter>
 	
 
 	<!-- filter-mapping>
 		<filter-name>sitemesh</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping-->
+	
 	<filter-mapping>
 		<filter-name>ExceptionCatchFilter</filter-name>
 		<url-pattern>/*</url-pattern>
@@ -39,7 +48,10 @@
 		<filter-name>UserAgentFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-
+	<filter-mapping>
+        <filter-name>CORS</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
 	<!-- listener>
 	    <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
 	</listener-->
