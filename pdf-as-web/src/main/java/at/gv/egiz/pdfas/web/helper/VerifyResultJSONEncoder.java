@@ -66,6 +66,10 @@ public class VerifyResultJSONEncoder implements VerifyResultEncoder {
 			}
 
 			sb.append("}");
+			
+			if(i < results.size() - 1) {
+				sb.append(",");
+			}
 		}
 		sb.append("]}");
 
