@@ -58,8 +58,10 @@ public class VerifyResultJSONEncoder implements VerifyResultEncoder {
 							+ "\"");
 				}
 				sb.append(", ");
-				sb.append("\"certificate\":\"signCert?SIGID=" + i + "\", ");
-				sb.append("\"signedData\":\"signData?SIGID=" + i + "\"");
+				sb.append("\"certificate\":\"signCert;jsessionid=" + request.getSession().getId() + 
+						"?SIGID=" + i + "\", ");
+				sb.append("\"signedData\":\"signData;jsessionid=" + request.getSession().getId() + 
+						"?SIGID=" + i + "\"");
 			} else {
 				sb.append("\"processed\":\"" + result.isVerificationDone()
 						+ "\"");
