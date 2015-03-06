@@ -147,8 +147,11 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 			PDPage page = (PDPage) iter.next();
 			try {
 				extractor.setCurrentPage(pageNr);
-				extractor.processStream(page, page.findResources(), page
+				if(page.getContents() != null && page.findResources() != null &&
+						page.getContents().getStream() != null) {
+					extractor.processStream(page, page.findResources(), page
 						.getContents().getStream());
+				}
 				SignaturePlaceholderData ret = matchPlaceholderPage(
 						extractor.placeholders, placeholderId, matchMode);
 				if (ret != null) {
@@ -158,6 +161,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine {
 				}
 			} catch (IOException e1) {
 				throw new PDFIOException("error.pdf.io.04", e1);
+			} catch(Throwable e) {
+				throw new PDFIOException("error.pdf.io.04", e);
 			}
 
 		}
