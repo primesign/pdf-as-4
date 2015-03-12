@@ -28,7 +28,21 @@ import java.io.OutputStream;
 import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 
 public interface SignParameter extends PdfAsParameter {
-	
+
+	// certification levels
+
+	/** Approval signature */
+	public static final int NOT_CERTIFIED = 0;
+
+	/** Author signature, no changes allowed */
+	public static final int CERTIFIED_NO_CHANGES_ALLOWED = 1;
+
+	/** Author signature, form filling allowed */
+	public static final int CERTIFIED_FORM_FILLING = 2;
+
+	/** Author signature, form filling and annotations allowed */
+	public static final int CERTIFIED_FORM_FILLING_AND_ANNOTATIONS = 3;
+
 	/**
 	 * Gets the signature profile to use
 	 * @return
@@ -73,4 +87,20 @@ public interface SignParameter extends PdfAsParameter {
 	 * @return
 	 */
 	public OutputStream getSignatureResult();
+
+	/**
+	 * Gets the signature certification level.
+	 *
+	 * @return the signature certification level
+	 */
+	int getSignatureCertificationLevel();
+
+	/**
+	 * Sets the signature certification level.
+	 *
+	 * @param signatureCertificationLevel
+	 *            the signature certificationLevellevel to set
+	 */
+	void setSignatureCertificationLevel(int signatureCertificationLevel);
+
 }
