@@ -44,6 +44,9 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	protected OutputStream outputStream = null;
 	protected List<BKUHeader> processInfo = new ArrayList<BKUHeader>();
 	
+	/** The certification level */
+	protected int signatureCertificationLevel = SignParameter.NOT_CERTIFIED;
+
 	public SignParameterImpl(Configuration configuration, 
 			DataSource dataSource, OutputStream outputStream) {
 		super(configuration, dataSource);
@@ -83,5 +86,15 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 
 	public List<BKUHeader> getProcessInfo() {
 		return processInfo;
+	}
+
+	@Override
+	public int getSignatureCertificationLevel() {
+		return signatureCertificationLevel;
+	}
+
+	@Override
+	public void setSignatureCertificationLevel(int signatureCertificationLevel) {
+		this.signatureCertificationLevel = signatureCertificationLevel;
 	}
 }

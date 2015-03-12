@@ -27,6 +27,7 @@ import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 
 
@@ -59,6 +60,7 @@ public class RequestedSignature implements ICertificateProvider {
     	} else {
     		this.tablePosition = new TablePos(status.getSignParamter().getSignaturePosition());
     	}
+
     }
     
     public boolean isVisual() {
@@ -95,5 +97,9 @@ public class RequestedSignature implements ICertificateProvider {
 
 	public OperationStatus getStatus() {
 		return status;
+	}
+
+	public int getSignatureCertificationLevel() {
+		return this.status.getSignParamter().getSignatureCertificationLevel();
 	}
 }
