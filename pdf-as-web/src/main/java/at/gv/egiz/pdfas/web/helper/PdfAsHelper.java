@@ -61,6 +61,7 @@ import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
@@ -375,6 +376,27 @@ public class PdfAsHelper {
 
 		IPlainSigner signer;
 		if (connector.equals("moa")) {
+			
+			String keyIdentifier = PdfAsParameterExtractor.getKeyIdentifier(request);
+
+			if (keyIdentifier != null) {
+				if(!WebConfiguration.isMoaEnabled(keyIdentifier)) {
+					throw new PdfAsWebException("MOA connector [" + keyIdentifier + "] disabled or not existing.");
+				}
+				
+				String url = WebConfiguration.getMoaURL(keyIdentifier);
+				String keyId = WebConfiguration.getMoaKeyID(keyIdentifier);
+				String certificate = WebConfiguration.getMoaCertificate(keyIdentifier);
+				
+				config.setValue(IConfigurationConstants.MOA_SIGN_URL, url);
+				config.setValue(IConfigurationConstants.MOA_SIGN_KEY_ID, keyId);
+				config.setValue(IConfigurationConstants.MOA_SIGN_CERTIFICATE, certificate);
+			} else {
+				if (!WebConfiguration.getMOASSEnabled()) {
+					throw new PdfAsWebException("MOA connector disabled.");
+				}
+			}
+			
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if (connector.equals("jks")) {
 			
@@ -491,10 +513,26 @@ public class PdfAsHelper {
 
 		IPlainSigner signer;
 		if (params.getConnector().equals(Connector.MOA)) {
-			if (!WebConfiguration.getMOASSEnabled()) {
-				throw new PdfAsWebException("MOA connector disabled.");
-			}
+			String keyIdentifier = params.getKeyIdentifier();
 
+			if (keyIdentifier != null) {
+				if(!WebConfiguration.isMoaEnabled(keyIdentifier)) {
+					throw new PdfAsWebException("MOA connector [" + keyIdentifier + "] disabled or not existing.");
+				}
+				
+				String url = WebConfiguration.getMoaURL(keyIdentifier);
+				String keyId = WebConfiguration.getMoaKeyID(keyIdentifier);
+				String certificate = WebConfiguration.getMoaCertificate(keyIdentifier);
+				
+				config.setValue(IConfigurationConstants.MOA_SIGN_URL, url);
+				config.setValue(IConfigurationConstants.MOA_SIGN_KEY_ID, keyId);
+				config.setValue(IConfigurationConstants.MOA_SIGN_CERTIFICATE, certificate);
+			} else {
+				if (!WebConfiguration.getMOASSEnabled()) {
+					throw new PdfAsWebException("MOA connector disabled.");
+				}
+			}
+			
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if (params.getConnector().equals(Connector.JKS)) {
 			String keyIdentifier = params.getKeyIdentifier();

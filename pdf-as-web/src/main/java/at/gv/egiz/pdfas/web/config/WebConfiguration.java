@@ -55,6 +55,11 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String RELOAD_PASSWORD = "reload.pwd";
 	public static final String RELOAD_ENABLED = "reload.enabled";
 
+	public static final String MOA_LIST = "moal";
+	public static final String MOA_URL = "url";
+	public static final String MOA_KEYID = "KeyIdentifier";
+	public static final String MOA_CERT = "Certificate";
+	
 	public static final String KEYSTORE_LIST = "ksl";
 	public static final String KEYSTORE_DEFAULT = "ks";
 	
@@ -231,6 +236,28 @@ public class WebConfiguration implements IConfigurationConstants {
 
 	public static String getKeystoreDefaultKeyPass() {
 		return properties.getProperty(KEYSTORE_DEFAULT_KEY_PASS);
+	}
+	
+	public static boolean isMoaEnabled(String keyIdentifier) {
+		String value = properties.getProperty(MOA_LIST + "." + keyIdentifier + ".enabled");
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static String getMoaURL(String keyIdentifier) {
+		return properties.getProperty(MOA_LIST + "." + keyIdentifier + "." + MOA_URL);
+	}
+	
+	public static String getMoaKeyID(String keyIdentifier) {
+		return properties.getProperty(MOA_LIST + "." + keyIdentifier + "." + MOA_KEYID);
+	}
+	
+	public static String getMoaCertificate(String keyIdentifier) {
+		return properties.getProperty(MOA_LIST + "." + keyIdentifier + "." + MOA_CERT);
 	}
 	
 	public static String getKeystoreFile(String keyIdentifier) {
