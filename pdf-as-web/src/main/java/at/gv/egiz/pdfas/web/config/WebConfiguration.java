@@ -48,6 +48,7 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String ERROR_DETAILS = "error.showdetails";
 	public static final String PDF_AS_WORK_DIR = "pdfas.dir";
 	public static final String STATISTIC_BACKEND_LIST = "statistic.backends";
+	public static final String ALLOW_EXT_OVERWRITE = "allow.ext.overwrite";
 	
 	public static final String MOA_SS_ENABLED = "moa.enabled";
 	public static final String SOAP_SIGN_ENABLED = "soap.sign.enabled";
@@ -236,6 +237,16 @@ public class WebConfiguration implements IConfigurationConstants {
 
 	public static String getKeystoreDefaultKeyPass() {
 		return properties.getProperty(KEYSTORE_DEFAULT_KEY_PASS);
+	}
+	
+	public static boolean isAllowExtOverwrite() {
+		String value = properties.getProperty(ALLOW_EXT_OVERWRITE);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static boolean isMoaEnabled(String keyIdentifier) {

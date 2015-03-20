@@ -24,8 +24,6 @@
 package at.gv.egiz.pdfas.api.ws;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -81,6 +79,7 @@ public class PDFASSignParameters implements Serializable {
 	String qrCodeContent;
 	String profile;
 	PDFASPropertyMap preprocessor;
+	PDFASPropertyMap overrides;
 	
 	@XmlElement(required = true, nillable = false, name="connector")
 	public Connector getConnector() {
@@ -164,5 +163,12 @@ public class PDFASSignParameters implements Serializable {
 		this.preprocessor = preprocessor;
 	}
 	
-	
+	@XmlElement(required = false, nillable = true, name="configurationOverrides")
+	public PDFASPropertyMap getOverrides() {
+		return overrides;
+	}
+
+	public void setOverrides(PDFASPropertyMap overrides) {
+		this.overrides = overrides;
+	}
 }

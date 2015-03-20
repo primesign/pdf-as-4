@@ -159,12 +159,19 @@ public class UIEntryPointServlet extends HttpServlet {
 					map = pdfAsRequest.getParameters().getPreprocessor()
 							.getMap();
 				}
+				
+				Map<String, String> overwrite = null;
+				if (pdfAsRequest.getParameters().getOverrides() != null) {
+					overwrite = pdfAsRequest.getParameters().getOverrides()
+							.getMap();
+				}
 
 				PdfAsHelper.startSignature(req, resp, getServletContext(),
 						pdfAsRequest.getInputData(), connector.toString(),
 						pdfAsRequest.getParameters().getPosition(),
 						pdfAsRequest.getParameters().getTransactionId(),
-						pdfAsRequest.getParameters().getProfile(), map);
+						pdfAsRequest.getParameters().getProfile(), map, 
+						overwrite);
 			} else {
 				throw new PdfAsWebException("Invalid connector ("
 						+ Connector.BKU + " | " + Connector.ONLINEBKU + " | "

@@ -69,6 +69,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_FILENAME = "filename";
 	public static final String PARAM_ORIGINAL_DIGEST = "origdigest";
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
+	public static final String PARAM_OVERWRITE_PREFIX = "pp:";
 	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
 	
 	
@@ -112,6 +113,22 @@ public class PdfAsParameterExtractor {
 			String parameterName = parameterNames.nextElement();
 			if(parameterName.startsWith(PARAM_PREPROCESSOR_PREFIX)) {
 				String key = parameterName.substring(PARAM_PREPROCESSOR_PREFIX.length());
+				String value = (String)request.getAttribute(parameterName);
+				map.put(key, value);
+			}
+		}
+		
+		return map;
+	}
+	
+	public static Map<String, String> getOverwriteMap(HttpServletRequest request) {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		Enumeration<String> parameterNames = request.getAttributeNames();
+		while(parameterNames.hasMoreElements()) {
+			String parameterName = parameterNames.nextElement();
+			if(parameterName.startsWith(PARAM_OVERWRITE_PREFIX)) {
+				String key = parameterName.substring(PARAM_OVERWRITE_PREFIX.length());
 				String value = (String)request.getAttribute(parameterName);
 				map.put(key, value);
 			}
