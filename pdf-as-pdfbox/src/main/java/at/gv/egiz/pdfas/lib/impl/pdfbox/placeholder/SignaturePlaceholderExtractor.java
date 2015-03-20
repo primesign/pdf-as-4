@@ -73,6 +73,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PlaceholderExtractionException;
+import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractorConstants;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderContext;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
@@ -94,17 +95,12 @@ import com.google.zxing.common.HybridBinarizer;
  * @author exthex
  *
  */
-public class SignaturePlaceholderExtractor extends PDFStreamEngine {
+public class SignaturePlaceholderExtractor extends PDFStreamEngine implements PlaceholderExtractorConstants{
 	/**
 	 * The log.
 	 */
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
-
-	public static final String QR_PLACEHOLDER_IDENTIFIER = "PDF-AS-POS";
-	public static final int PLACEHOLDER_MATCH_MODE_STRICT = 0;
-	public static final int PLACEHOLDER_MATCH_MODE_MODERATE = 1;
-	public static final int PLACEHOLDER_MATCH_MODE_LENIENT = 2;
 
 	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
 	private int currentPage = 0;

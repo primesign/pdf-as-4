@@ -43,6 +43,9 @@ public interface IConfigurationConstants {
 	
 	public static final String LEGACY_POSITIONING = ".legacy.pos";
 	
+	public static final String PLACEHOLDER_ID = "placeholder_id";
+	public static final String PLACEHOLDER_MODE = "placeholder_mode";
+	
 	public static final String PLACEHOLDER_SEARCH_ENABLED = "enable_placeholder_search";
 	public static final String DEFAULT_SIGNATURE_PROFILE = SIG_OBJECT + SEPERATOR + TYPE + SEPERATOR + DEFAULT;
 	
