@@ -128,7 +128,7 @@ task apidocs(type: Javadoc) {
 	options.windowTitle = "PDF-AS " + project.pdfasversion + " Library"
 	options.header = "<b>PDF-AS " + project.pdfasversion + " Library  " + project.pdfasversion + " [" + project.revision + "]</b>"
 	options.use = "true"
-	options.links("http://docs.oracle.com/javase/1.5.0/docs/api/")
+	options.links("http://docs.oracle.com/javase/1.7.0/docs/api/")
 	include('at/gv/egiz/pdfas/lib/api/**')
 }
 
@@ -145,7 +145,7 @@ task fulldocs(type: Javadoc) {
 	options.windowTitle = "PDF-AS " + project.pdfasversion + " Library"
 	options.header = "<b>PDF-AS " + project.pdfasversion + " Library  " + project.pdfasversion + " [" + project.revision + "]</b>"
 	options.use = "true"
-	options.links("http://docs.oracle.com/javase/1.5.0/docs/api/")
+	options.links("http://docs.oracle.com/javase/1.7.0/docs/api/")
 	include('at/knowcenter/wag/egiz/**')
 	include('at/gv/egiz/**')
 }
