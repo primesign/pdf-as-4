@@ -50,6 +50,8 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String STATISTIC_BACKEND_LIST = "statistic.backends";
 	public static final String ALLOW_EXT_OVERWRITE = "allow.ext.overwrite";
 	
+	public static final String ALLOW_EXT_WHITELIST_VALUE_PRE = "ext.overwrite.wl.";
+	
 	public static final String MOA_SS_ENABLED = "moa.enabled";
 	public static final String SOAP_SIGN_ENABLED = "soap.sign.enabled";
 	public static final String SOAP_VERIFY_ENABLED = "soap.verify.enabled";
@@ -94,11 +96,13 @@ public class WebConfiguration implements IConfigurationConstants {
 			.getLogger(WebConfiguration.class);
 
 	private static List<String> whiteListregEx = new ArrayList<String>();
-
+	private static List<String> overwritewhiteListregEx = new ArrayList<String>();
+	
 	public static void configure(String config) {
 
 		properties.clear();
 		whiteListregEx.clear();
+		overwritewhiteListregEx.clear();
 
 		try {
 			properties.load(new FileInputStream(config));
@@ -118,6 +122,23 @@ public class WebConfiguration implements IConfigurationConstants {
 						if (whitelist_expr != null) {
 							whiteListregEx.add(whitelist_expr);
 							logger.debug("URL Whitelist: " + whitelist_expr);
+						}
+					}
+				}
+			}
+		}
+		
+		if (isAllowExtOverwrite()) {
+			Iterator<Object> keyIt = properties.keySet().iterator();
+			while (keyIt.hasNext()) {
+				Object keyObj = keyIt.next();
+				if (keyObj != null) {
+					String key = keyObj.toString();
+					if (key.startsWith(ALLOW_EXT_WHITELIST_VALUE_PRE)) {
+						String whitelist_expr = properties.getProperty(key);
+						if (whitelist_expr != null) {
+							overwritewhiteListregEx.add(whitelist_expr);
+							logger.debug("Overwrite Whitelist: " + whitelist_expr);
 						}
 					}
 				}
@@ -245,6 +266,26 @@ public class WebConfiguration implements IConfigurationConstants {
 			if (value.equals("true")) {
 				return true;
 			}
+		}
+		return false;
+	}
+	
+	public static synchronized boolean isOverwriteAllowed(String key) {
+		if (isAllowExtOverwrite()) {
+
+			Iterator<String> patterns = whiteListregEx.iterator();
+			while (patterns.hasNext()) {
+				String pattern = patterns.next();
+				try {
+					if (key.matches(pattern)) {
+						return true;
+					}
+				} catch (Throwable e) {
+					logger.warn("Error in matching regex: " + pattern, e);
+				}
+			}
+
+			return false;
 		}
 		return false;
 	}

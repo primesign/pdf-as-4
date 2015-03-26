@@ -36,7 +36,6 @@ import java.security.cert.CertificateException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 import javax.servlet.RequestDispatcher;
@@ -362,16 +361,9 @@ public class PdfAsHelper {
 
 		Configuration config = pdfAs.getConfiguration();
 
-		if (WebConfiguration.isAllowExtOverwrite()) {
-			Map<String,String> configOverwrite = PdfAsParameterExtractor.getOverwriteMap(request);
-			if(configOverwrite != null) {
-				Iterator<Entry<String, String>> entryIt = configOverwrite.entrySet().iterator();
-				while (entryIt.hasNext()) {
-					Entry<String, String> entry = entryIt.next();
-					config.setValue(entry.getKey(), entry.getValue());
-				}
-			}
-		}
+
+		Map<String,String> configOverwrite = PdfAsParameterExtractor.getOverwriteMap(request);
+		ConfigurationOverwrite.overwriteConfiguration(configOverwrite, config);
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -502,6 +494,7 @@ public class PdfAsHelper {
 		// set Signature Position
 		signParameter.setSignaturePosition(buildPosString(request, response));
 
+		@SuppressWarnings("unused")
 		SignResult result = pdfAs.sign(signParameter);
 
 		return baos.toByteArray();
@@ -523,15 +516,8 @@ public class PdfAsHelper {
 			PDFASSignParameters params) throws Exception {
 		Configuration config = pdfAs.getConfiguration();
 
-		if (WebConfiguration.isAllowExtOverwrite()) {
-			if (params.getOverrides() != null) {
-				Iterator<Entry<String, String>> entryIt = params.getOverrides()
-						.getMap().entrySet().iterator();
-				while (entryIt.hasNext()) {
-					Entry<String, String> entry = entryIt.next();
-					config.setValue(entry.getKey(), entry.getValue());
-				}
-			}
+		if (WebConfiguration.isAllowExtOverwrite() && params.getOverrides() != null) {
+			ConfigurationOverwrite.overwriteConfiguration(params.getOverrides().getMap(), config);
 		}
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -702,13 +688,7 @@ public class PdfAsHelper {
 		Configuration config = pdfAs.getConfiguration();
 		session.setAttribute(PDF_CONFIG, config);
 
-		if (WebConfiguration.isAllowExtOverwrite() && overwrite != null) {
-			Iterator<Entry<String, String>> entryIt = overwrite.entrySet().iterator();
-			while (entryIt.hasNext()) {
-				Entry<String, String> entry = entryIt.next();
-				config.setValue(entry.getKey(), entry.getValue());
-			}
-		}
+		ConfigurationOverwrite.overwriteConfiguration(overwrite, config);
 		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		session.setAttribute(PDF_OUTPUT, baos);
