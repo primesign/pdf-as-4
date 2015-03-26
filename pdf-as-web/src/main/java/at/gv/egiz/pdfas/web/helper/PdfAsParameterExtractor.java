@@ -69,7 +69,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_FILENAME = "filename";
 	public static final String PARAM_ORIGINAL_DIGEST = "origdigest";
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
-	public static final String PARAM_OVERWRITE_PREFIX = "pp:";
+	public static final String PARAM_OVERWRITE_PREFIX = "ov:";
 	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
 	
 	
