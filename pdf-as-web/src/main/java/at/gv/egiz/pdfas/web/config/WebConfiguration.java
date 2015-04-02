@@ -273,7 +273,7 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static synchronized boolean isOverwriteAllowed(String key) {
 		if (isAllowExtOverwrite()) {
 
-			Iterator<String> patterns = whiteListregEx.iterator();
+			Iterator<String> patterns = overwritewhiteListregEx.iterator();
 			while (patterns.hasNext()) {
 				String pattern = patterns.next();
 				try {
