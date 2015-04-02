@@ -127,7 +127,7 @@
 		<servlet-name>ReloadServlet</servlet-name>
 		<display-name>ReloadServlet</display-name>
 		<description></description>
-		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFSignatureCertificateData</servlet-class>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.ReloadServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>UIEntryPointServlet</servlet-name>
