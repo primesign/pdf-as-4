@@ -200,7 +200,7 @@ public class Positioning {
 
 		logger.debug("Original CropBox: " + cropBox.toString());
 		
-		//cropBox = rotateBox(cropBox, rotation);
+		cropBox = rotateBox(cropBox, rotation);
 		
 		logger.debug("Rotated CropBox: " + cropBox.toString());
 		
