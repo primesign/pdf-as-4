@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
+import java.beans.DesignMode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -40,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PADESPDFBOXSigner;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 
@@ -49,12 +51,14 @@ public class TableDrawUtils {
 			.getLogger(TableDrawUtils.class);
 
 	public static final String TABLE_DEBUG = "debug.table";
-
+	
+	private static StringBuilder alternateTableCaption = new StringBuilder();
+	
 	public static void drawTable(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
-			Map<String, ImageObject> images, ISettings settings, IDGenerator generator)
+			Map<String, ImageObject> images, ISettings settings, IDGenerator generator, PDFAsVisualSignatureProperties properties)
 			throws PdfAsException {
 
 		logger.debug("Drawing Table: X {} Y {} WIDTH {} HEIGHT {} \n{}", x, y,
@@ -67,16 +71,16 @@ public class TableDrawUtils {
 
 		drawBorder(page, contentStream, x, y, width, height, abstractTable,
 				doc, subtable, settings);
-
+//append strings
 		drawContent(page, contentStream, x, y, width, height, abstractTable,
-				doc, subtable, formResources, images, settings, generator);
+				doc, subtable, formResources, images, settings, generator, properties);
 	}
 
 	public static void drawContent(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
-			Map<String, ImageObject> images, ISettings settings, IDGenerator generator)
+			Map<String, ImageObject> images, ISettings settings, IDGenerator generator, PDFAsVisualSignatureProperties properties)
 			throws PdfAsException {
 
 		float contentx = x;
@@ -114,11 +118,13 @@ public class TableDrawUtils {
 					drawCaption(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
+					addToAlternateTableCaption(cell);
 					break;
 				case Entry.TYPE_VALUE:
 					drawValue(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
+					addToAlternateTableCaption(cell);
 					break;
 				case Entry.TYPE_IMAGE:
 					drawImage(page, contentStream, contentx, contenty,
@@ -137,7 +143,7 @@ public class TableDrawUtils {
 					drawTable(page, contentStream, contentx, contenty
 							- abstractTable.getRowHeights()[i], colWidth,
 							abstractTable.getRowHeights()[i], tbl_value, doc,
-							true, formResources, images, settings, generator);
+							true, formResources, images, settings, generator,properties);
 					break;
 				default:
 					logger.warn("Unknown Cell entry type: " + cell.getType());
@@ -155,6 +161,7 @@ public class TableDrawUtils {
 			contenty -= abstractTable.getRowHeights()[i];
 			contentx = x;
 		}
+		properties.setAlternativeTableCaption(alternateTableCaption.toString());
 	}
 
 	private static void drawString(PDPage page,
@@ -280,7 +287,7 @@ public class TableDrawUtils {
 			Style cellStyle = cell.getStyle();
 			String valign = cellStyle.getVAlign();
 			String halign = cellStyle.getHAlign();
-
+			
 			drawString(page, contentStream, contentx, contenty, width, height,
 					padding, abstractTable, doc, cell, fontSize, textHeight,
 					valign, halign, tlines, textFont, formResources, settings);
@@ -592,5 +599,11 @@ public class TableDrawUtils {
 		}
 		return "";
 	}
+	
+	private static void addToAlternateTableCaption(Entry cell){
+		alternateTableCaption.append(cell.getValue());
+		alternateTableCaption.append("\n");//better for screen reader
+	}
+
 
 }

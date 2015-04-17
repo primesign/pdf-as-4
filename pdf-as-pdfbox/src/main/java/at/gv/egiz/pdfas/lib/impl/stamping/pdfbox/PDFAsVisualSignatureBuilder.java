@@ -260,7 +260,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements 
 			TableDrawUtils.drawTable(getStructure().getPage(), stream, 1, 1,
 					designer.getWidth(), designer.getHeight(),
 					properties.getMainTable(), template, false,
-					innerFormResources, images, settings, this);
+					innerFormResources, images, settings, this, properties);
 			stream.close();
 			PDStream innterFormStream = getStructure().getPage().getContents();
 			getStructure().setInnterFormStream(innterFormStream);

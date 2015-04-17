@@ -50,6 +50,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	private PDFAsVisualSignatureDesigner designer;
 	
 	private float rotationAngle = 0;
+	
+	private String alternativeTableCaption="";
 
 	public PDFAsVisualSignatureProperties(ISettings settings, PDFBOXObject object, 
 			PdfBoxVisualObject visObj, PositioningInstruction pos) {
@@ -124,6 +126,14 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 
 	public PDFAsVisualSignatureDesigner getDesigner() {
 		return designer;
+	}
+
+	public String getAlternativeTableCaption() {
+		return alternativeTableCaption;
+	}
+
+	public void setAlternativeTableCaption(String alternativeTableCaption) {
+		this.alternativeTableCaption = alternativeTableCaption;
 	}
 	
 }
