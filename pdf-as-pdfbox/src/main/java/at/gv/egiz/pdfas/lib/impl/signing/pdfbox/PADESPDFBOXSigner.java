@@ -554,6 +554,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							sigBlock.getCOSObject().setNeedToBeUpdate(true);
 							treeRoot.getCOSObject().setNeedToBeUpdate(true);
 							objectdic.getCOSObject().setNeedToBeUpdate(true);
+							docElement.getCOSObject().setNeedToBeUpdate(true);
+	
 						}
 					}catch(Exception e){
 						logger.error("Could not create PDF-UA conform document!");
