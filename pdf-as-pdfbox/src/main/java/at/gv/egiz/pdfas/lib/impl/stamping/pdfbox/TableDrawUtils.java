@@ -52,7 +52,7 @@ public class TableDrawUtils {
 
 	public static final String TABLE_DEBUG = "debug.table";
 	
-	private static StringBuilder alternateTableCaption = new StringBuilder();
+	private static StringBuilder alternateTableCaption;
 	
 	public static void drawTable(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
@@ -61,6 +61,8 @@ public class TableDrawUtils {
 			Map<String, ImageObject> images, ISettings settings, IDGenerator generator, PDFAsVisualSignatureProperties properties)
 			throws PdfAsException {
 
+		alternateTableCaption = new StringBuilder();
+		
 		logger.debug("Drawing Table: X {} Y {} WIDTH {} HEIGHT {} \n{}", x, y,
 				width, height, abstractTable.getOrigTable().toString());
 

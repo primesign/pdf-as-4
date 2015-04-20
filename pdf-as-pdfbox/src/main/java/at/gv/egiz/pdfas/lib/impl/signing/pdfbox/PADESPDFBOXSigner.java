@@ -53,6 +53,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDAttributeObject;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
@@ -110,7 +111,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			RequestedSignature requestedSignature,
 			PDFASSignatureInterface genericSigner) throws PdfAsException {
 		String fisTmpFile = null;
-		
+
 		PDFAsVisualSignatureProperties properties=null;
 
 		if (!(genericPdfObject instanceof PDFBOXObject)) {
@@ -475,100 +476,88 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 				}
 
-				//marked sig
-				if (signatureProfileSettings.isPDFA()) { // Check for
-					// PDF-UA
-					PDDocumentCatalog root = doc.getDocumentCatalog();
-					PDStructureTreeRoot treeRoot =
-							root.getStructureTreeRoot();
-					if (treeRoot != null) { // Handle as PDF-UA
+				// PDF-UA
+				if (signatureProfileSettings.isPDFUA()==true) { 
+					try{
+						PDDocumentCatalog root = doc.getDocumentCatalog();
+						PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
 
-						logger.info("Tree Root: {}", treeRoot.toString());
-						PDStructureTreeRoot rootElement = doc.getDocumentCatalog().getStructureTreeRoot();
-						List<Object> kids = rootElement.getKids();
+						if (treeRoot != null) { //check if structure tree available in pdf document
+							logger.info("Tree Root: {}", treeRoot.toString());
+							List<Object> kids = treeRoot.getKids();
 
-						PDStructureElement docElement = null;
+							if(kids==null){
+								logger.info("No kid-elements in structure tree Root, maybe not PDF/UA document");
+							}
 
-						for(Object k: kids){
-							if(k instanceof PDStructureElement){
-								if(((PDStructureElement) k).getStructureType().equals("Document")){
+							PDStructureElement docElement = null;
+							for(Object k: kids){
+								if(k instanceof PDStructureElement){
 									docElement=(PDStructureElement) k;
+									break;
+									//								if(((PDStructureElement) k).getStructureType().equals("Document")){
+									//									docElement=(PDStructureElement) k;
+									//								}
 								}
 							}
+
+							PDStructureElement sigBlock = new PDStructureElement(
+									"Form", docElement);
+
+							//create object dictionary and add as child element
+							COSDictionary objectdic= new COSDictionary();
+							objectdic.setName("Type", "OBJR");
+							objectdic.setItem("Pg", signatureField.getWidget().getPage());
+							objectdic.setItem("Obj", signatureField.getWidget());
+
+							List<Object> l = new ArrayList<Object>();
+							l.add(objectdic);
+							sigBlock.setKids(l);
+
+							sigBlock.setTitle("Signature Table");
+							sigBlock.setParent(docElement);
+							docElement.appendKid(sigBlock);
+
+							//Create and add Attribute dictionary to mitigate PAC warning
+							COSDictionary sigBlockDic = (COSDictionary) sigBlock.getCOSObject();
+							COSDictionary sub = new COSDictionary();
+
+							sub.setName("O", "Layout");
+							sub.setName("Placement", "Block");
+							sigBlockDic.setItem(COSName.A, sub);
+							sigBlockDic.setNeedToBeUpdate(true);
+
+
+							//Modify number tree
+							PDNumberTreeNode ntn = treeRoot.getParentTree();
+							if(ntn==null){
+								ntn = new PDNumberTreeNode(objectdic, null);
+								logger.info("No number-tree-node found!");
+							}
+
+							COSDictionary ntndic=ntn.getCOSDictionary();
+							COSArray ntndicnumbersarray = (COSArray)ntndic.getDictionaryObject(COSName.NUMS);
+							int arrindex = ntndicnumbersarray.size();
+							int treeindex = arrindex/2;
+
+							ntndicnumbersarray.add(arrindex, COSInteger.get(treeindex));
+							ntndicnumbersarray.add(arrindex+1, sigBlock.getCOSObject());
+
+							treeRoot.setParentTree(ntn);
+							treeRoot.setParentTreeNextKey(treeindex+1);
+
+							//setStructureParent
+							PDAnnotationWidget widg=signatureField.getWidget();
+							widg.setStructParent(treeindex);
+
+							ntndic.setNeedToBeUpdate(true);
+							sigBlock.getCOSObject().setNeedToBeUpdate(true);
+							treeRoot.getCOSObject().setNeedToBeUpdate(true);
+							objectdic.getCOSObject().setNeedToBeUpdate(true);
 						}
-
-						PDStructureElement sigBlock = new PDStructureElement(
-								"Form", docElement);
-
-						COSDictionary objectdic= new COSDictionary();
-						objectdic.setName("Type", "OBJR");
-						objectdic.setItem("Pg", signatureField.getWidget().getPage());
-						objectdic.setItem("Obj", signatureField.getWidget());
-
-						//page cannot be set here-->leads to pdfua syntax error
-						//						PDObjectReference pr = new PDObjectReference();
-						//						pr.setReferencedObject(signatureField.getWidget());
-
-
-
-						sigBlock.setTitle("Signature Table");
-
-						//						COSDictionary dict = new COSDictionary();//(COSDictionary) atto.getCOSObject();
-						//						dict.setName("O", "Layout");
-						//						dict.setName("Placement", "Block");	
-						//						PDAttributeObject atto =PDAttributeObject.create(dict);
-						//
-						//						sigBlock.addAttribute(atto);
-						//						atto.getCOSObject().setNeedToBeUpdate(true);
-
-
-
-
-						//PDMarkedContent pdm = new PDMarkedContent("test", properties)
-
-						List<Object> l = new ArrayList<Object>();
-						l.add(objectdic);
-						sigBlock.setKids(l);
-
-
-						sigBlock.setParent(docElement);
-						//sigBlock.setPage(signatureField.getWidget().getPage());
-						docElement.appendKid(sigBlock);
-
-						PDNumberTreeNode ntn = treeRoot.getParentTree();
-						if(ntn==null)
-							ntn = new PDNumberTreeNode(objectdic, null);
-
-						//int index=ntn.getUpperLimit();
-
-						COSDictionary ntndic=ntn.getCOSDictionary();
-						COSArray ntndicnumbersarray = (COSArray)ntndic.getDictionaryObject(COSName.NUMS);
-						int lastindex = ntndicnumbersarray.size();
-
-						ntndicnumbersarray.add(lastindex, new COSInteger(lastindex-1));
-						ntndicnumbersarray.add(lastindex+1, sigBlock.getCOSObject());
-
-						treeRoot.setParentTree(ntn);
-
-						treeRoot.setParentTreeNextKey(lastindex);
-
-
-						PDAnnotationWidget widg=signatureField.getWidget();
-						widg.setStructParent(lastindex-1);
-						ntndicnumbersarray.setNeedToBeUpdate(true);
-
-						ntndic.setNeedToBeUpdate(true);
-						docElement.getCOSObject().setNeedToBeUpdate(true);
-						sigBlock.getCOSObject().setNeedToBeUpdate(true);
-						docElement.getCOSObject().setNeedToBeUpdate(true);
-						rootElement.getCOSObject().setNeedToBeUpdate(true);
-						signatureField.getWidget().getPage().findResources().getCOSObject()
-						.setNeedToBeUpdate(true);
-
-
-						treeRoot.getCOSObject().setNeedToBeUpdate(true);
-						root.getCOSObject().setNeedToBeUpdate(true);
-						objectdic.getCOSObject().setNeedToBeUpdate(true);
+					}catch(Exception e){
+						logger.error("Could not create PDF-UA conform document!");
+						logger.debug(e.getMessage());
 					}
 				}
 
