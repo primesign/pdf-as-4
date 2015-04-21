@@ -320,15 +320,13 @@ public class PDFPage extends PDFTextStripper {
 			current_y = text.getY();
 		}
 		if (pageRotation == 90) {
-			current_y = text.getX();
+			current_y = text.getY();
 		}
 		if (pageRotation == 180) {
-			float page_height = this.getCurrentPage().findMediaBox().getHeight();
-			current_y = page_height - text.getY();
+			current_y = text.getY();
 		}
 		if (pageRotation == 270) {
-			float page_height = this.getCurrentPage().findMediaBox().getHeight();
-			current_y = page_height - text.getX();
+			current_y = text.getY();
 		}
 
 		if (current_y > this.effectivePageHeight) {
@@ -454,10 +452,8 @@ public class PDFPage extends PDFTextStripper {
 				if (pageRotation == 180) {
 					float min_y = findMinY(transformed_coordinates);
                     logger.debug("min_y = " + min_y);
-					float page_height = this.mypage.getCurrentPage().findMediaBox().getHeight();
-					actual_lowest_point = page_height
-							- findMaxY(transformed_coordinates);
-					actual_starting_point = page_height - min_y;
+					actual_lowest_point = findMaxY(transformed_coordinates);
+					actual_starting_point = actual_lowest_point + min_y;
 				}
 				if (pageRotation == 270) {
 					float min_x = findMinX(transformed_coordinates);
@@ -581,14 +577,14 @@ public class PDFPage extends PDFTextStripper {
 			current_y = page_height - anno.getRectangle().getLowerLeftY();
 		}
 		if (pageRotation == 90) {
-			current_y = anno.getRectangle().getLowerLeftX();
+			current_y = anno.getRectangle().getUpperRightX();
 		}
 		if (pageRotation == 180) {
 			current_y = anno.getRectangle().getUpperRightY();
 		}
 		if (pageRotation == 270) {
-			float page_height = page.findMediaBox().getHeight();
-			current_y = page_height - anno.getRectangle().getUpperRightX();
+			float page_width = page.findMediaBox().getWidth();
+			current_y = page_width - anno.getRectangle().getLowerLeftX() ;
 		}
 
 		if (current_y > this.effectivePageHeight) {
