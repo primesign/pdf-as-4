@@ -329,10 +329,8 @@ public class PDFPage extends PDFTextStripper {
 			current_y = text.getY();
 		}
 
-		if (current_y > this.effectivePageHeight) {
-			// logger_.debug("character is below footer_line. footer_line = " +
-			// this.footer_line + ", text.character=" + character + ", y=" +
-			// current_y);
+		if (current_y > this.effectivePageHeight) {			
+			this.max_character_ypos=this.effectivePageHeight;
 			return;
 		}
 
