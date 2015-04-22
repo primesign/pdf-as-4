@@ -549,6 +549,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							//setStructureParent
 							PDAnnotationWidget widg=signatureField.getWidget();
 							widg.setStructParent(treeindex);
+							
+							//add the Tabs /S Element for Tabbing through annots
+							PDPage p = signatureField.getWidget().getPage();
+							p.getCOSDictionary().setName("Tabs", "S");
+							p.getCOSObject().setNeedToBeUpdate(true);
 
 							ntndic.setNeedToBeUpdate(true);
 							sigBlock.getCOSObject().setNeedToBeUpdate(true);
