@@ -478,6 +478,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				// PDF-UA
 				if (signatureProfileSettings.isPDFUA()==true) { 
+					logger.info("Adding pdf/ua content.");
 					try{
 						PDDocumentCatalog root = doc.getDocumentCatalog();
 						PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
@@ -564,7 +565,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						}
 					}catch(Exception e){
 						logger.error("Could not create PDF-UA conform document!");
-						logger.debug(e.getMessage());
+						logger.error(e.getMessage());
 					}
 				}
 
