@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.pdfbox.PDFBOXObject;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 
@@ -50,10 +51,13 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	private PDFAsVisualSignatureDesigner designer;
 	
 	private float rotationAngle = 0;
+	
+	private SignatureProfileSettings signatureProfileSettings;
 
 	public PDFAsVisualSignatureProperties(ISettings settings, PDFBOXObject object, 
-			PdfBoxVisualObject visObj, PositioningInstruction pos) {
+			PdfBoxVisualObject visObj, PositioningInstruction pos, SignatureProfileSettings signatureProfileSettings) {
 		this.settings = settings;
+		this.signatureProfileSettings = signatureProfileSettings;
 		try {
 			main = visObj.getTable();
 		} catch (Throwable e) {
@@ -125,5 +129,10 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	public PDFAsVisualSignatureDesigner getDesigner() {
 		return designer;
 	}
+
+	public SignatureProfileSettings getSignatureProfileSettings() {
+		return signatureProfileSettings;
+	}
+	
 	
 }

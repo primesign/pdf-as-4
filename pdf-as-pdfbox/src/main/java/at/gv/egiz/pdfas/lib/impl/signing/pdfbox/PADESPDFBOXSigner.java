@@ -316,7 +316,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
 							pdfObject.getStatus().getSettings(), pdfObject,
 							(PdfBoxVisualObject) visualObject,
-							positioningInstruction);
+							positioningInstruction, signatureProfileSettings);
 
 					properties.buildSignature();
 
@@ -665,7 +665,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
 					pdfObject.getStatus().getSettings(), pdfObject,
-					(PdfBoxVisualObject) visualObject, positioningInstruction);
+					(PdfBoxVisualObject) visualObject, positioningInstruction, 
+					signatureProfileSettings);
 
 			properties.buildSignature();
 			PDDocument visualDoc = PDDocument.load(properties

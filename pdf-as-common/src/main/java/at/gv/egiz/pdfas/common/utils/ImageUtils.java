@@ -57,7 +57,7 @@ public class ImageUtils {
 			.getLogger(ImageUtils.class);
 
 	public static BufferedImage removeAlphaChannel(BufferedImage src) {
-		if (src.getColorModel().hasAlpha()) {
+		//if (src.getColorModel().hasAlpha()) {
 			BufferedImage image = new BufferedImage(src.getWidth(),
 					src.getHeight(), BufferedImage.TYPE_INT_RGB);
 			Graphics2D g = image.createGraphics();
@@ -65,8 +65,8 @@ public class ImageUtils {
 			g.drawImage(src, 0, 0, null);
 			g.dispose();
 			return image;
-		}
-		return src;
+		//}
+		//return src;
 		/*
 		 * BufferedImage rgbImage = new BufferedImage(src.getWidth(),
 		 * src.getHeight(), BufferedImage.TYPE_3BYTE_BGR); for (int x = 0; x <
