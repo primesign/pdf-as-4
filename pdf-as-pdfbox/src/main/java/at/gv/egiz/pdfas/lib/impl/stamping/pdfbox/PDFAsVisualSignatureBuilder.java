@@ -224,7 +224,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 
 						if (this.designer.properties
 								.getSignatureProfileSettings().isPDFA()) {
-							//img = ImageUtils.removeAlphaChannel(img);
+							img = ImageUtils.removeAlphaChannel(img);
 						} else {
 							if (img.getAlphaRaster() == null
 									&& img.getColorModel().hasAlpha()) {
