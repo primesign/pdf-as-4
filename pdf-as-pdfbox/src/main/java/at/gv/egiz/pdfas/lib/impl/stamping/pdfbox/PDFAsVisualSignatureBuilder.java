@@ -23,12 +23,9 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
-import java.awt.Transparency;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,11 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
-
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -322,7 +315,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 
 		String holderFormComment = "q " + m00 + " " + m10 + " " + m01 + " "
 				+ m11 + " " + m02 + " " + m12 + " cm /" + innerFormName
-				+ " Do Q \n";
+				+ " Do Q";
 
 		logger.debug("Holder Form Stream: " + holderFormComment);
 
@@ -337,9 +330,9 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		// getStructure().getInnterFormStream().getInputStreamAsString());
 
 		appendRawCommands(getStructure().getHolderFormStream()
-				.createOutputStream(), holderFormComment);
+				.createOutputStream(), holderFormComment.trim().replace("\n", "").replace("\r", ""));
 		appendRawCommands(getStructure().getInnterFormStream()
-				.createOutputStream(), innerFormComment);
+				.createOutputStream(), innerFormComment.trim().replace("\n", "").replace("\r", ""));
 		// appendRawCommands(getStructure().getImageFormStream().createOutputStream(),
 		// imgFormComment);
 		logger.debug("Injected apereance stream to pdf");
