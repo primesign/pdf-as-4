@@ -54,6 +54,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	
 	private SignatureProfileSettings signatureProfileSettings;
 
+	private String alternativeTableCaption="";
+
 	public PDFAsVisualSignatureProperties(ISettings settings, PDFBOXObject object, 
 			PdfBoxVisualObject visObj, PositioningInstruction pos, SignatureProfileSettings signatureProfileSettings) {
 		this.settings = settings;
@@ -134,5 +136,12 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		return signatureProfileSettings;
 	}
 	
+	public String getAlternativeTableCaption() {
+		return alternativeTableCaption;
+	}
+
+	public void setAlternativeTableCaption(String alternativeTableCaption) {
+		this.alternativeTableCaption = alternativeTableCaption;
+	}
 	
 }

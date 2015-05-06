@@ -212,4 +212,13 @@ public class SignatureProfileSettings implements IProfileConstants {
 		}
 		return false;
 	}
+
+	public boolean isPDFUA() {
+		SignatureProfileEntry entry = profileInformations.get(SIG_PDFUA_FORCE);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+		return false;
+	}
 }
