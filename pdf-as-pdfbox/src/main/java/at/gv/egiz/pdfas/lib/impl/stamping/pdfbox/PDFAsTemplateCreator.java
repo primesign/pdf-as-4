@@ -55,7 +55,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
 	}
 
 	
-	public InputStream buildPDF(PDFAsVisualSignatureDesigner properties)
+	public InputStream buildPDF(PDFAsVisualSignatureDesigner properties, PDDocument originalDocument)
 			throws IOException, PdfAsException {
 		logger.debug("pdf building has been started");
         PDFTemplateStructure pdfStructure = pdfBuilder.getStructure();
@@ -108,7 +108,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         		properties.getRotation() + properties.getPageRotation());
         
         // inner formstream, form and resource (hlder form containts inner form)
-        this.pdfBuilder.createInnerFormStreamPdfAs(template);
+        this.pdfBuilder.createInnerFormStreamPdfAs(template, originalDocument);
         this.pdfBuilder.createInnerFormResource();
         PDResources innerFormResource = pdfStructure.getInnerFormResources();
         this.pdfBuilder.createInnerForm(innerFormResource, pdfStructure.getInnterFormStream(), formater);

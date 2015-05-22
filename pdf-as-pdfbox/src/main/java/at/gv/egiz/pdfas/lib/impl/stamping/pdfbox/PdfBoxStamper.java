@@ -48,7 +48,7 @@ public class PdfBoxStamper implements IPDFStamper {
 	public IPDFVisualObject createVisualPDFObject(PDFObject pdf, Table table) throws IOException {
 		try {
 			PDFBOXObject pdfboxObject = (PDFBOXObject)pdf;
-			return new PdfBoxVisualObject(table, pdf.getStatus().getSettings(), pdfboxObject.getDocument());
+			return new PdfBoxVisualObject(table, pdf.getStatus().getSettings(), pdfboxObject);
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);
 		}

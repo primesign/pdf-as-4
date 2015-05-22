@@ -24,7 +24,6 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
-import java.beans.DesignMode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.impl.signing.pdfbox.PADESPDFBOXSigner;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 
@@ -278,7 +276,7 @@ public class TableDrawUtils {
 			float fontSize = PDFBoxFont.defaultFontSize;
 			PDFont textFont = PDFBoxFont.defaultFont;
 
-			textFont = abstractTable.getFont().getFont(doc);
+			textFont = abstractTable.getFont().getFont();//doc);
 			fontSize = abstractTable.getFont().getFontSize();
 
 			// get the cell Text
@@ -312,7 +310,7 @@ public class TableDrawUtils {
 			float fontSize = PDFBoxFont.defaultFontSize;
 			PDFont textFont = PDFBoxFont.defaultFont;
 
-			textFont = abstractTable.getValueFont().getFont(doc);
+			textFont = abstractTable.getValueFont().getFont();//doc);
 			fontSize = abstractTable.getValueFont().getFontSize();
 
 			// get the cell Text

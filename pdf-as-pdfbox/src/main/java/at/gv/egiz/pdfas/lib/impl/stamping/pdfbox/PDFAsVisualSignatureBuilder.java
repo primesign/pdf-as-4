@@ -241,7 +241,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		}
 	}
 
-	public void createInnerFormStreamPdfAs(PDDocument template)
+	public void createInnerFormStreamPdfAs(PDDocument template, PDDocument origDoc)
 			throws PdfAsException {
 		try {
 
@@ -332,7 +332,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		appendRawCommands(getStructure().getHolderFormStream()
 				.createOutputStream(), holderFormComment.trim().replace("\n", "").replace("\r", ""));
 		appendRawCommands(getStructure().getInnterFormStream()
-				.createOutputStream(), innerFormComment.trim().replace("\n", "").replace("\r", ""));
+				.createOutputStream(), innerFormComment/*.trim().replace("\n", "").replace("\r", "")*/);
 		// appendRawCommands(getStructure().getImageFormStream().createOutputStream(),
 		// imgFormComment);
 		logger.debug("Injected apereance stream to pdf");

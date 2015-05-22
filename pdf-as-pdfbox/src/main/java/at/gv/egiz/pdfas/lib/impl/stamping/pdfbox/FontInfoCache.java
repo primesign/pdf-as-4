@@ -4,4 +4,5 @@ public class FontInfoCache {
 	String filename;
 	String fontName;
 	String fontFamily;
+	String fontPath;
 }

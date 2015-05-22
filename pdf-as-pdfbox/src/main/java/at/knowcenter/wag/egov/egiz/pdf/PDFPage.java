@@ -93,7 +93,8 @@ import at.knowcenter.wag.egov.egiz.pdf.operator.path.painting.StrokePath;
 /**
  * PDFPage is an inner class that is used to calculate the page length of a PDF
  * Document page. It extends the PDFTextStripper class and implement one
- * interested method: {@link at.knowcenter.wag.egov.egiz.pdf.PDFPage#showCharacter(TextPosition)}<br>
+ * interested method:
+ * {@link at.knowcenter.wag.egov.egiz.pdf.PDFPage#showCharacter(TextPosition)}<br>
  * This method is called when processing the FileStream. By calling the method
  * {@link org.apache.pdfbox.util.PDFStreamEngine#processStream(org.apache.pdfbox.pdmodel.PDPage, org.apache.pdfbox.pdmodel.PDResources, org.pdfbox.cos.COSStream)}
  * the implemented method showCharacter is called.
@@ -105,7 +106,7 @@ public class PDFPage extends PDFTextStripper {
 	/**
 	 * The logger definition.
 	 */
-    private static final Logger logger = LoggerFactory.getLogger(PDFPage.class);
+	private static final Logger logger = LoggerFactory.getLogger(PDFPage.class);
 
 	/**
 	 * The maximum (lowest) y position of a character.
@@ -141,15 +142,16 @@ public class PDFPage extends PDFTextStripper {
 	 * 
 	 * @throws java.io.IOException
 	 */
-	public PDFPage(float effectivePageHeight, boolean legacy32) throws IOException {
+	public PDFPage(float effectivePageHeight, boolean legacy32)
+			throws IOException {
 		super();
 
 		this.effectivePageHeight = effectivePageHeight;
 
 		OperatorProcessor newInvoke = new MyInvoke(this);
 		newInvoke.setContext(this);
-        this.registerOperatorProcessor("Do", newInvoke);
-        
+		this.registerOperatorProcessor("Do", newInvoke);
+
 		if (!legacy32) {
 			registerCustomPathOperators();
 		}
@@ -165,26 +167,32 @@ public class PDFPage extends PDFTextStripper {
 
 		// *** path construction
 
-        this.registerOperatorProcessor("m", new MoveTo(this));
-        this.registerOperatorProcessor("l", new LineTo(this));
-        this.registerOperatorProcessor("c", new CurveTo(this));
-        this.registerOperatorProcessor("y", new CurveToReplicateFinalPoint(this));
-        this.registerOperatorProcessor("v", new CurveToReplicateInitialPoint(this));
-        this.registerOperatorProcessor("h", new ClosePath(this));
+		this.registerOperatorProcessor("m", new MoveTo(this));
+		this.registerOperatorProcessor("l", new LineTo(this));
+		this.registerOperatorProcessor("c", new CurveTo(this));
+		this.registerOperatorProcessor("y",
+				new CurveToReplicateFinalPoint(this));
+		this.registerOperatorProcessor("v", new CurveToReplicateInitialPoint(
+				this));
+		this.registerOperatorProcessor("h", new ClosePath(this));
 
 		// *** path painting
 
 		// "S": stroke path
-        this.registerOperatorProcessor("S", new StrokePath(this));
-        this.registerOperatorProcessor("s", new CloseAndStrokePath(this));
-        this.registerOperatorProcessor("f", new FillPathNonZeroWindingNumberRule(this));
-        this.registerOperatorProcessor("F", new FillPathNonZeroWindingNumberRule(this));
-        this.registerOperatorProcessor("f*", new FillPathEvenOddRule(this));
-        this.registerOperatorProcessor("b", new CloseFillNonZeroAndStrokePath(this));
-        this.registerOperatorProcessor("B", new FillNonZeroAndStrokePath(this));
-        this.registerOperatorProcessor("b*", new CloseFillEvenOddAndStrokePath(this));
-        this.registerOperatorProcessor("B*", new FillEvenOddAndStrokePath(this));
-        this.registerOperatorProcessor("n", new EndPath(this));
+		this.registerOperatorProcessor("S", new StrokePath(this));
+		this.registerOperatorProcessor("s", new CloseAndStrokePath(this));
+		this.registerOperatorProcessor("f",
+				new FillPathNonZeroWindingNumberRule(this));
+		this.registerOperatorProcessor("F",
+				new FillPathNonZeroWindingNumberRule(this));
+		this.registerOperatorProcessor("f*", new FillPathEvenOddRule(this));
+		this.registerOperatorProcessor("b", new CloseFillNonZeroAndStrokePath(
+				this));
+		this.registerOperatorProcessor("B", new FillNonZeroAndStrokePath(this));
+		this.registerOperatorProcessor("b*", new CloseFillEvenOddAndStrokePath(
+				this));
+		this.registerOperatorProcessor("B*", new FillEvenOddAndStrokePath(this));
+		this.registerOperatorProcessor("n", new EndPath(this));
 
 		// Note: The graphic context
 		// (org.pdfbox.pdmodel.graphics.PDGraphicsState) of the underlying
@@ -235,11 +243,11 @@ public class PDFPage extends PDFTextStripper {
 			float lowerBoundYPositionFromTop;
 
 			PDRectangle boundaryBox = this.getCurrentPage().findCropBox();
-				
-			if(boundaryBox == null) {
+
+			if (boundaryBox == null) {
 				boundaryBox = this.getCurrentPage().findMediaBox();
 			}
-					
+
 			float pageHeight;
 
 			switch (this.getCurrentPage().findRotation()) {
@@ -298,7 +306,7 @@ public class PDFPage extends PDFTextStripper {
 	protected void processTextPosition(TextPosition text) {
 		showCharacter(text);
 	}
-	
+
 	// exthex
 	/**
 	 * A method provided as an event interface to allow a subclass to perform
@@ -314,6 +322,11 @@ public class PDFPage extends PDFTextStripper {
 		float current_y = text.getY();
 		final String character = text.getCharacter();
 
+		if (at.gv.egiz.pdfas.common.utils.StringUtils.whiteSpaceTrim(character)
+				.isEmpty()) {
+			return;
+		}
+
 		int pageRotation = this.getCurrentPage().findRotation();
 		// logger_.debug("PageRotation = " + pageRotation);
 		if (pageRotation == 0) {
@@ -328,15 +341,14 @@ public class PDFPage extends PDFTextStripper {
 		if (pageRotation == 270) {
 			current_y = text.getY();
 		}
-
-		if (current_y > this.effectivePageHeight) {			
-			this.max_character_ypos=this.effectivePageHeight;
+		
+		if (current_y > this.effectivePageHeight) {
+			this.max_character_ypos = this.effectivePageHeight;
 			return;
 		}
-
+		
 		// store ypos of the char if it is not empty
-		if (!at.gv.egiz.pdfas.common.utils.StringUtils.whiteSpaceTrim(character).isEmpty() && 
-				current_y > this.max_character_ypos) {
+		if (current_y > this.max_character_ypos) {
 			this.max_character_ypos = current_y;
 		}
 
@@ -359,35 +371,39 @@ public class PDFPage extends PDFTextStripper {
 					+ ", path=" + maxPathRelatedYPositionFromTop);
 		}
 		return NumberUtils.max(max_character_ypos, max_image_ypos,
-                maxPathRelatedYPositionFromTop);
+				maxPathRelatedYPositionFromTop);
 	}
 
 	@Override
 	public Map<String, PDFont> getFonts() {
-		
+
 		COSBase fontObj = null;
-		
-		if(getCurrentPage().getResources() != null && 
-				getCurrentPage().getResources().getCOSDictionary() != null &&
-				getCurrentPage().getResources().getCOSDictionary().getDictionaryObject(COSName.FONT) != null) {
-			fontObj = getCurrentPage().getResources().getCOSDictionary().getDictionaryObject(COSName.FONT);
+
+		if (getCurrentPage().getResources() != null
+				&& getCurrentPage().getResources().getCOSDictionary() != null
+				&& getCurrentPage().getResources().getCOSDictionary()
+						.getDictionaryObject(COSName.FONT) != null) {
+			fontObj = getCurrentPage().getResources().getCOSDictionary()
+					.getDictionaryObject(COSName.FONT);
 		}
-		Map<String, PDFont> fontMap = getCurrentPage().findResources().getFonts();
-		
-		if(fontObj != null) {
-			getCurrentPage().getResources().getCOSDictionary().setItem(COSName.FONT, fontObj);
+		Map<String, PDFont> fontMap = getCurrentPage().findResources()
+				.getFonts();
+
+		if (fontObj != null) {
+			getCurrentPage().getResources().getCOSDictionary()
+					.setItem(COSName.FONT, fontObj);
 		}
-		
+
 		return fontMap;
 	}
-	
+
 	public class MyInvoke extends OperatorProcessor {
 
-        private PDFPage mypage;
+		private PDFPage mypage;
 
-        public MyInvoke(PDFPage page) {
-            this.mypage = page;
-        }
+		public MyInvoke(PDFPage page) {
+			this.mypage = page;
+		}
 
 		public void process(PDFOperator operator, List<COSBase> arguments)
 				throws IOException {
@@ -408,7 +424,7 @@ public class PDFPage extends PDFTextStripper {
 
 				Matrix ctm = context.getGraphicsState()
 						.getCurrentTransformationMatrix();
-                logger.debug("ctm = " + ctm);
+				logger.debug("ctm = " + ctm);
 
 				Pos[] coordinates = new Pos[] { new Pos(0, 0, 1),
 						new Pos(1, 0, 1), new Pos(0, 1, 1), new Pos(1, 1, 1) };
@@ -430,9 +446,10 @@ public class PDFPage extends PDFTextStripper {
 				logger.debug("PageRotation = " + pageRotation);
 				if (pageRotation == 0) {
 					float min_y = findMinY(transformed_coordinates);
-                    logger.debug("min_y = " + min_y);
-					float page_height = this.mypage.getCurrentPage().findMediaBox().getHeight();
-                    logger.debug("page_height = " + page_height);
+					logger.debug("min_y = " + min_y);
+					float page_height = this.mypage.getCurrentPage()
+							.findMediaBox().getHeight();
+					logger.debug("page_height = " + page_height);
 
 					actual_lowest_point = page_height - min_y;
 					actual_starting_point = page_height
@@ -440,36 +457,38 @@ public class PDFPage extends PDFTextStripper {
 				}
 				if (pageRotation == 90) {
 					float max_x = findMaxX(transformed_coordinates);
-                    logger.debug("max_x = " + max_x);
-					float page_width = this.mypage.getCurrentPage().findMediaBox().getWidth();
-                    logger.debug("page_width = " + page_width);
+					logger.debug("max_x = " + max_x);
+					float page_width = this.mypage.getCurrentPage()
+							.findMediaBox().getWidth();
+					logger.debug("page_width = " + page_width);
 
 					actual_lowest_point = max_x;
 					actual_starting_point = findMinX(transformed_coordinates);
 				}
 				if (pageRotation == 180) {
 					float min_y = findMinY(transformed_coordinates);
-                    logger.debug("min_y = " + min_y);
+					logger.debug("min_y = " + min_y);
 					actual_lowest_point = findMaxY(transformed_coordinates);
 					actual_starting_point = actual_lowest_point + min_y;
 				}
 				if (pageRotation == 270) {
 					float min_x = findMinX(transformed_coordinates);
-                    logger.debug("min_x = " + min_x);
+					logger.debug("min_x = " + min_x);
 
-					float page_width = this.mypage.getCurrentPage().findMediaBox().getWidth();
-                    logger.debug("page_width = " + page_width);
+					float page_width = this.mypage.getCurrentPage()
+							.findMediaBox().getWidth();
+					logger.debug("page_width = " + page_width);
 
 					actual_lowest_point = page_width - min_x;
 					actual_starting_point = page_width
 							- findMaxX(transformed_coordinates);
 				}
 
-                logger.debug("actual_lowest_point = " + actual_lowest_point);
+				logger.debug("actual_lowest_point = " + actual_lowest_point);
 
 				if (actual_lowest_point > PDFPage.this.effectivePageHeight
 						&& actual_starting_point > PDFPage.this.effectivePageHeight) {
-                    logger.debug("image is below footer_line");
+					logger.debug("image is below footer_line");
 					return;
 				}
 
@@ -511,7 +530,7 @@ public class PDFPage extends PDFTextStripper {
 		transformed.z = pos.x * m.getValue(0, 2) + pos.y * m.getValue(1, 2)
 				+ pos.z * m.getValue(2, 2);
 
-        logger.debug(" transformed " + pos + " --> " + transformed);
+		logger.debug(" transformed " + pos + " --> " + transformed);
 		return transformed;
 	}
 
@@ -558,16 +577,16 @@ public class PDFPage extends PDFTextStripper {
 	public void processAnnotation(PDAnnotation anno) {
 		float current_y = anno.getRectangle().getLowerLeftY();
 		PDPage page = anno.getPage();
-		
-		if(page == null) {
+
+		if (page == null) {
 			page = getCurrentPage();
 		}
-		
-		if(page == null) {
+
+		if (page == null) {
 			logger.warn("Annotation without page! The position might not be correct!");
 			return;
 		}
-		
+
 		int pageRotation = page.findRotation();
 		// logger_.debug("PageRotation = " + pageRotation);
 		if (pageRotation == 0) {
@@ -582,7 +601,7 @@ public class PDFPage extends PDFTextStripper {
 		}
 		if (pageRotation == 270) {
 			float page_width = page.findMediaBox().getWidth();
-			current_y = page_width - anno.getRectangle().getLowerLeftX() ;
+			current_y = page_width - anno.getRectangle().getLowerLeftX();
 		}
 
 		if (current_y > this.effectivePageHeight) {
@@ -594,5 +613,5 @@ public class PDFPage extends PDFTextStripper {
 			this.max_character_ypos = current_y;
 		}
 	}
-	
+
 }

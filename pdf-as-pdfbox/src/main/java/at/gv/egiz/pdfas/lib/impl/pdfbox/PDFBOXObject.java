@@ -1,10 +1,13 @@
 package at.gv.egiz.pdfas.lib.impl.pdfbox;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.activation.DataSource;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
@@ -12,6 +15,8 @@ import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 public class PDFBOXObject extends PDFObject {
 
 	private PDDocument doc;
+	
+	private Map<String, PDFont> fontCache = new HashMap<String, PDFont>();
 	
 	public PDFBOXObject(OperationStatus operationStatus) {
 		super(operationStatus);
@@ -55,5 +60,9 @@ public class PDFBOXObject extends PDFObject {
 	@Override
 	public String getPDFVersion() {
 		return String.valueOf(getDocument().getDocument().getVersion());
+	}
+
+	public Map<String, PDFont> getFontCache() {
+		return fontCache;
 	}
 }

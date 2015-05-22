@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +51,8 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	
 	private float rotationAngle = 0;
 	
+	private PDDocument origDoc;
+	
 	private SignatureProfileSettings signatureProfileSettings;
 
 	private String alternativeTableCaption="";
@@ -67,7 +68,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		}
 		this.rotationAngle = pos.getRotation();
 		try {
-			PDDocument origDoc = object.getDocument();
+			origDoc = object.getDocument();
 
 			designer = new PDFAsVisualSignatureDesigner(origDoc, pos.getPage(), this, pos.isMakeNewPage());
 			List<?> pages = origDoc.getDocumentCatalog().getAllPages();
@@ -113,7 +114,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		PDFAsVisualSignatureBuilder builder = new PDFAsVisualSignatureBuilder(this, this.settings, designer);
 		PDFAsTemplateCreator creator = new PDFAsTemplateCreator(builder);
 		try {
-			setVisibleSignature(creator.buildPDF(designer));
+			setVisibleSignature(creator.buildPDF(designer, this.origDoc));
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);
 		}

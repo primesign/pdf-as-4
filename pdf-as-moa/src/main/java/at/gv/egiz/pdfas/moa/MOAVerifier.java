@@ -2,7 +2,6 @@ package at.gv.egiz.pdfas.moa;
 
 import iaik.x509.X509Certificate;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;

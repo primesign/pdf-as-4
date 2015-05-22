@@ -25,8 +25,6 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -42,6 +40,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.ImageUtils;
 import at.gv.egiz.pdfas.common.utils.StringUtils;
+import at.gv.egiz.pdfas.lib.impl.pdfbox.PDFBOXObject;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -70,6 +69,8 @@ public class PDFBoxTable {
 
 	PDDocument originalDoc;
 
+	PDFBOXObject pdfBoxObject;
+	
 	private void normalizeContent(Table abstractTable) throws PdfAsException {
 		try {
 			int rows = abstractTable.getRows().size();
@@ -94,7 +95,7 @@ public class PDFBoxTable {
 	}
 
 	private void initializeStyle(Table abstractTable, PDFBoxTable parent,
-			PDDocument originalDoc) throws IOException {
+			PDFBOXObject pdfBoxObject) throws IOException {
 		this.table = abstractTable;
 		try {
 			normalizeContent(abstractTable);
@@ -130,7 +131,7 @@ public class PDFBoxTable {
 								+ abstractTable.getName());
 			}
 
-			font = new PDFBoxFont(fontString, settings, originalDoc);
+			font = new PDFBoxFont(fontString, settings, pdfBoxObject);
 
 			if (vfontString == null && parent != null && parent.style != null) {
 				vfontString = parent.style.getValueFont();
@@ -140,7 +141,7 @@ public class PDFBoxTable {
 								+ abstractTable.getName());
 			}
 
-			valueFont = new PDFBoxFont(vfontString, settings, originalDoc);
+			valueFont = new PDFBoxFont(vfontString, settings, pdfBoxObject);
 		}
 		padding = style.getPadding();
 
@@ -148,11 +149,12 @@ public class PDFBoxTable {
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize,
-			ISettings settings, PDDocument originalDoc) throws IOException,
+			ISettings settings, PDFBOXObject pdfBoxObject) throws IOException,
 			PdfAsException {
 		this.settings = settings;
-		this.originalDoc = originalDoc;
-		initializeStyle(abstractTable, parent, originalDoc);
+		this.pdfBoxObject = pdfBoxObject;
+		this.originalDoc = pdfBoxObject.getDocument();
+		initializeStyle(abstractTable, parent, pdfBoxObject);
 		float[] relativSizes = abstractTable.getColsRelativeWith();
 		if (relativSizes != null) {
 			colWidths = new float[relativSizes.length];
@@ -184,11 +186,12 @@ public class PDFBoxTable {
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent,
-			ISettings settings, PDDocument originalDoc) throws IOException,
+			ISettings settings, PDFBOXObject pdfBoxObject) throws IOException,
 			PdfAsException {
 		this.settings = settings;
-		this.originalDoc = originalDoc;
-		initializeStyle(abstractTable, parent, originalDoc);
+		this.pdfBoxObject = pdfBoxObject;
+		this.originalDoc = pdfBoxObject.getDocument();
+		initializeStyle(abstractTable, parent, pdfBoxObject);
 		this.calculateWidthHeight();
 	}
 
@@ -318,10 +321,10 @@ public class PDFBoxTable {
 			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont.getFont(null);
+				c = valueFont.getFont();//null
 				fontSize = valueFont.getFontSize();
 			} else {
-				c = font.getFont(null);
+				c = font.getFont();//null
 				fontSize = font.getFontSize();
 			}
 			if (string == null) {
@@ -350,7 +353,7 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						this.settings, originalDoc);
+						this.settings, pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
@@ -526,10 +529,10 @@ public class PDFBoxTable {
 			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont.getFont(null);
+				c = valueFont.getFont();//null
 				fontSize = valueFont.getFontSize();
 			} else {
-				c = font.getFont(null);
+				c = font.getFont();//null
 				fontSize = font.getFontSize();
 			}
 
@@ -554,13 +557,13 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						width, this.settings, this.originalDoc);
+						width, this.settings, this.pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				// recreate here beacuse of fixed width!
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
 				pdfBoxTable = new PDFBoxTable(pdfBoxTable.table, this, width,
-						this.settings, this.originalDoc);
+						this.settings, this.pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else {
 				throw new IOException("Failed to build PDFBox Table");
@@ -582,10 +585,10 @@ public class PDFBoxTable {
 			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont.getFont(null);
+				c = valueFont.getFont();//null
 				fontSize = valueFont.getFontSize();
 			} else {
-				c = font.getFont(null);
+				c = font.getFont();//null
 				fontSize = font.getFontSize();
 			}
 
@@ -611,7 +614,7 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						this.settings, originalDoc);
+						this.settings, pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();

@@ -40,7 +40,6 @@ import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSObject;
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
@@ -48,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.impl.pdfbox.PDFBOXObject;
 
 public class PDFBoxFont {
 
@@ -94,7 +94,6 @@ public class PDFBoxFont {
 	float fontSize;
 	String fontDesc;
 	String ttfFontDesc;
-	PDDocument doc;
 	ISettings settings;
 
 	private FontInfoCache getFontInfo(String pathName) {
@@ -128,6 +127,7 @@ public class PDFBoxFont {
 					fontInfo.filename = pathName;
 					fontInfo.fontFamily = fontFamilyToLoad;
 					fontInfo.fontName = fontNameToLoad;
+					fontInfo.fontPath = pathName;
 					fontInfoCache.put(pathName, fontInfo);
 					return fontInfo;
 				} catch (Throwable e) {
@@ -138,9 +138,13 @@ public class PDFBoxFont {
 		}
 	}
 
-	private PDFont findCachedFont(PDDocument doc, FontInfoCache fontInfo) {
+	private PDFont findCachedFont(PDFBOXObject pdfObject, FontInfoCache fontInfo) {
 		try {
-			List<COSObject> cosObjects = doc.getDocument().getObjectsByType(
+			if(pdfObject.getFontCache().containsKey(fontInfo.fontPath)) {
+				return pdfObject.getFontCache().get(fontInfo.fontPath);
+			}
+			
+			List<COSObject> cosObjects = pdfObject.getDocument().getDocument().getObjectsByType(
 					COSName.FONT);
 
 			//COSName cosFontName = COSName.getPDFName(fontInfo.fontName);
@@ -182,17 +186,17 @@ public class PDFBoxFont {
 		return null;
 	}
 
-	private PDFont generateTTF(String fonttype, PDDocument doc)
+	private PDFont generateTTF(String fonttype, PDFBOXObject pdfObject)
 			throws IOException {
-		boolean cacheNow = false;
-		if (doc == null) {
+		/*boolean cacheNow = true;
+		if (pdfObject == null) {
 			if (this.doc == null) {
 				this.doc = new PDDocument();
 			}
 			doc = this.doc;
 		} else {
 			cacheNow = true;
-		}
+		}*/
 		ttfFontDesc = fonttype;
 		String fontName = fonttype.replaceFirst("TTF:", "");
 		String fontPath = this.settings.getWorkingDirectory() + File.separator
@@ -208,7 +212,7 @@ public class PDFBoxFont {
 		
 		if(fontInfo != null) {
 		
-			PDFont font = findCachedFont(doc, fontInfo);
+			PDFont font = findCachedFont(pdfObject, fontInfo);
 
 			if (font != null) {
 				return font;
@@ -218,7 +222,7 @@ public class PDFBoxFont {
 		logger.debug("Instantiating font.");
 		
 		//if (cacheNow) {
-			cachedfont = PDTrueTypeFont.loadTTF(doc, fontPath);
+			cachedfont = PDTrueTypeFont.loadTTF(pdfObject.getDocument(), fontPath);
 			fontStyleMap.put(fontPath, cachedfont);
 			return cachedfont;
 		//} else {
@@ -228,10 +232,10 @@ public class PDFBoxFont {
 	}
 
 	private PDFont generateFont(String fonttype, String fontder,
-			PDDocument originalDoc) throws IOException {
+			PDFBOXObject pdfObject) throws IOException {
 		if (fonttype.startsWith("TTF:")) {
 			// Load TTF Font
-			return generateTTF(fonttype, originalDoc);
+			return generateTTF(fonttype, pdfObject);
 		} else {
 			if (fontder == null) {
 				fontder = NORMAL;
@@ -247,15 +251,15 @@ public class PDFBoxFont {
 		}
 	}
 
-	private void setFont(String desc, PDDocument originalDoc)
+	private void setFont(String desc, PDFBOXObject pdfObject)
 			throws IOException {
 		String[] fontArr = desc.split(",");
 
 		if (fontArr.length == 3) {
-			font = generateFont(fontArr[0], fontArr[2], originalDoc);
+			font = generateFont(fontArr[0], fontArr[2], pdfObject);
 			fontSize = Float.parseFloat(fontArr[1]);
 		} else if (fontArr.length == 2 && fontArr[0].startsWith("TTF:")) {
-			font = generateFont(fontArr[0], null, originalDoc);
+			font = generateFont(fontArr[0], null, pdfObject);
 			fontSize = Float.parseFloat(fontArr[1]);
 		} else {
 			logger.warn(
@@ -268,22 +272,24 @@ public class PDFBoxFont {
 	}
 
 	public PDFBoxFont(String fontDesc, ISettings settings,
-			PDDocument originalDoc) throws IOException {
+			PDFBOXObject pdfObject) throws IOException {
 		this.settings = settings;
 		this.fontDesc = fontDesc;
 		logger.debug("Creating Font: " + fontDesc);
-		this.setFont(fontDesc, originalDoc);
+		this.setFont(fontDesc, pdfObject);
 	}
 
-	public PDFont getFont(PDDocument doc) throws IOException {
+	public PDFont getFont(/*PDFBOXObject pdfObject*/) throws IOException {
 		if (cachedfont != null) {
 			return cachedfont;
 		}
-		if (font instanceof PDTrueTypeFont && doc != null) {
-			return generateTTF(ttfFontDesc, doc);
+		return font;
+		/*
+		if (font instanceof PDTrueTypeFont && pdfObject != null) {
+			return generateTTF(ttfFontDesc, pdfObject);
 		} else {
 			return font;
-		}
+		}*/
 	}
 
 	public float getFontSize() {
