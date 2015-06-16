@@ -47,12 +47,12 @@ public class SimpleTest {
 			FileInputStream fis = new FileInputStream(
 					"/home/afitzek/simple.pdf");
 			byte[] inputData = IOUtils.toByteArray(fis);
-
+ 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
 			signParameters.setConnector(Connector.JKS);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_SMALL_DE");
-			signParameters.setQRCodeContent("https://docs.google.com/document/d/1DSE9aO8-q9PAlRPyYpH1sgont4rSB_Q5BCeS-X3p6WA/edit?usp=sharing");
+			signParameters.setQRCodeContent("TEST CONTENT");
 			//signParameters.setKeyIdentifier("test");
 
 			PDFASSignRequest request = new PDFASSignRequest();
