@@ -65,9 +65,6 @@ public class ExternSignServlet extends HttpServlet {
 	
 	private static final String UPLOAD_PDF_DATA = "pdf-file";
 	private static final String UPLOAD_DIRECTORY = "upload";
-	private static final int THRESHOLD_SIZE = 1024 * 1024 * 3; // 3MB
-	private static final int MAX_FILE_SIZE = 1024 * 1024 * 40; // 40MB
-	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 50; // 50MB
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ExternSignServlet.class);
@@ -173,13 +170,13 @@ public class ExternSignServlet extends HttpServlet {
 			} else {
 				// configures upload settings
 				DiskFileItemFactory factory = new DiskFileItemFactory();
-				factory.setSizeThreshold(THRESHOLD_SIZE);
+				factory.setSizeThreshold(WebConfiguration.getFilesizeThreshold());
 				factory.setRepository(new File(System
 						.getProperty("java.io.tmpdir")));
 
 				ServletFileUpload upload = new ServletFileUpload(factory);
-				upload.setFileSizeMax(MAX_FILE_SIZE);
-				upload.setSizeMax(MAX_REQUEST_SIZE);
+				upload.setFileSizeMax(WebConfiguration.getMaxFilesize());
+				upload.setSizeMax(WebConfiguration.getMaxRequestsize());
 
 				// constructs the directory path to store upload file
 				String uploadPath = getServletContext().getRealPath("")

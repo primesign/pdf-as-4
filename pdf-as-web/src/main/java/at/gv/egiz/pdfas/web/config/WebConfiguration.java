@@ -89,6 +89,14 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String DB_REQUEST_TIMEOUT = "request.db.timeout";
 	public static final String HIBERNATE_PREFIX = "hibernate.props.";
 
+	public static final String UPLOAD_FILESIZE_THRESHOLD = "web.upload.filesizeThreshold";
+	public static final String UPLOAD_MAX_FILESIZE = "web.upload.filesizeMax";
+	public static final String UPLOAD_MAX_REQUESTSIZE = "web.upload.RequestsizeMax";
+	
+	private static final int THRESHOLD_SIZE = 1024 * 1024 * 3; // 3MB
+	private static final int MAX_FILE_SIZE = 1024 * 1024 * 40; // 40MB
+	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 50; // 50MB
+	
 	private static Properties properties = new Properties();
 	private static Properties hibernateProps = new Properties();
 
@@ -504,5 +512,44 @@ public class WebConfiguration implements IConfigurationConstants {
 			}
 		}
 		return false;
+	}
+	
+	public static int getFilesizeThreshold() {
+		String value = properties.getProperty(UPLOAD_FILESIZE_THRESHOLD);
+		int ivalue = THRESHOLD_SIZE;
+		if (value != null) {
+			try {
+				ivalue = Integer.parseInt(value);
+			} catch(NumberFormatException e) {
+				logger.warn(UPLOAD_FILESIZE_THRESHOLD + " not a number", e);
+			}
+		}
+		return ivalue;
+	}
+	
+	public static int getMaxFilesize() {
+		String value = properties.getProperty(UPLOAD_MAX_FILESIZE);
+		int ivalue = MAX_FILE_SIZE;
+		if (value != null) {
+			try {
+				ivalue = Integer.parseInt(value);
+			} catch(NumberFormatException e) {
+				logger.warn(UPLOAD_MAX_FILESIZE + " not a number", e);
+			}
+		}
+		return ivalue;
+	}
+	
+	public static int getMaxRequestsize() {
+		String value = properties.getProperty(UPLOAD_MAX_REQUESTSIZE);
+		int ivalue = MAX_REQUEST_SIZE;
+		if (value != null) {
+			try {
+				ivalue = Integer.parseInt(value);
+			} catch(NumberFormatException e) {
+				logger.warn(UPLOAD_MAX_REQUESTSIZE + " not a number", e);
+			}
+		}
+		return ivalue;
 	}
 }
