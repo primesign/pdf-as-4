@@ -131,7 +131,8 @@ public class ObjectFactory {
     private final static QName _VerifyCMSSignatureResponseTypeCertificateCheck_QNAME = new QName("http://www.buergerkarte.at/namespaces/securitylayer/1.2#", "CertificateCheck");
     private final static QName _VerifyCMSSignatureResponseTypeSignerInfo_QNAME = new QName("http://www.buergerkarte.at/namespaces/securitylayer/1.2#", "SignerInfo");
     private final static QName _ManifestRefsCheckResultInfoTypeReferringSigReference_QNAME = new QName("http://www.buergerkarte.at/namespaces/securitylayer/1.2#", "ReferringSigReference");
-
+    private final static QName _BulkResponse_QNAME = new QName("http://www.buergerkarte.at/namespaces/securitylayer/1.2#", "BulkResponse");
+    private final static QName _BulkRequest_QNAME = new QName("http://www.buergerkarte.at/namespaces/securitylayer/1.2#", "BulkRequest");
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: at.gv.egiz.sl.schema
      * 
@@ -282,7 +283,47 @@ public class ObjectFactory {
     public InfoboxDeleteRequestType createInfoboxDeleteRequestType() {
         return new InfoboxDeleteRequestType();
     }
+    
+    /**
+     * Create an instance of {@link BulkRequestType.VerifySignatureRequest }
+     * 
+     */
+    public BulkRequestType.VerifySignatureRequest createBulkRequestTypeVerifySignatureRequest() {
+        return new BulkRequestType.VerifySignatureRequest();
+    }
+    
+    /**
+     * Create an instance of {@link BulkRequestType.CreateSignatureRequest }
+     * 
+     */
+    public BulkRequestType.CreateSignatureRequest createBulkRequestTypeCreateSignatureRequest() {
+        return new BulkRequestType.CreateSignatureRequest();
+    }
 
+    /**
+     * Create an instance of {@link CreateBulkResponse}
+     * 
+     */
+    public BulkResponseType createBulkResponseType() {
+        return new BulkResponseType();
+    }
+    
+    /**
+     * Create an instance of {@link BulkResponseType.CreateSignatureResponse }
+     * 
+     */
+    public BulkResponseType.CreateSignatureResponse createBulkResponseTypeCreateSignatureResponse() {
+        return new BulkResponseType.CreateSignatureResponse();
+    }
+    
+    /**
+     * Create an instance of {@link BulkResponseType.VerifySignatureResponse }
+     * 
+     */
+    public BulkResponseType.VerifySignatureResponse createBulkResponseTypeVerifySignatureResponse() {
+        return new BulkResponseType.VerifySignatureResponse();
+    }
+    
     /**
      * Create an instance of {@link CardManagementRequest }
      * 
@@ -1363,6 +1404,24 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://www.w3.org/2000/09/xmldsig#", name = "Manifest")
     public JAXBElement<ManifestType> createManifest(ManifestType value) {
         return new JAXBElement<ManifestType>(_Manifest_QNAME, ManifestType.class, null, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link BulkRequestType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://www.buergerkarte.at/namespaces/securitylayer/1.2#", name = "BulkRequest")
+    public JAXBElement<BulkRequestType> createBulkRequest(BulkRequestType value) {
+        return new JAXBElement<BulkRequestType>(_BulkRequest_QNAME, BulkRequestType.class, null, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link CreateCMSSignatureResponseType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://www.buergerkarte.at/namespaces/securitylayer/1.2#", name = "BulkResponse")
+	public JAXBElement<BulkResponseType> createBulkResponse(BulkResponseType value) {
+        return new JAXBElement<BulkResponseType>(_BulkResponse_QNAME, BulkResponseType.class, null, value);
     }
 
     /**

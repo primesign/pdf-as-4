@@ -53,6 +53,9 @@ import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.BKUHeaderHolder;
+import at.gv.egiz.sl.schema.BulkRequestType;
+import at.gv.egiz.sl.schema.BulkRequestType.CreateSignatureRequest;
+import at.gv.egiz.sl.schema.BulkResponseType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.ErrorResponseType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -310,4 +313,135 @@ public class BKUSLConnector extends BaseSLConnector {
 		throw new PdfAsException("error.pdf.io.03");
 
 	}
+
+	@Override
+	public BulkResponseType sendBulkRequest(BulkRequestPackage pack, SignParameter parameter) throws PdfAsException {
+		JAXBElement<?> element = null;
+		String slRequest;
+		String slResponse = null;
+		
+		try{
+		
+			BulkRequestType bulkRequest = new BulkRequestType();
+			
+			for(SignRequestPackage  signRequestPackage :  pack.getSignRequestPackages()){
+				
+			CreateSignatureRequest signRequest = new CreateSignatureRequest();
+			signRequest.setDisplayName(signRequestPackage.getDisplayName());
+			signRequest.setCreateCMSSignatureRequest(signRequestPackage.getCmsRequest().getRequestType());
+			bulkRequest.getCreateSignatureRequest().add(signRequest);
+			}
+			
+			slRequest = SLMarschaller.marshalToString(of
+					.createBulkRequest(bulkRequest));
+			logger.debug(slRequest);
+			
+			slResponse = performHttpBulkRequestToBKU(slRequest, pack,
+					parameter);
+
+			
+			
+			
+		} catch (JAXBException e) {
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if (slError != null) {
+				throw slError;
+			}
+			throw new PDFIOException("error.pdf.io.03", e);
+		} catch (ClientProtocolException e) {
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if (slError != null) {
+				throw slError;
+			}
+			throw new PDFIOException("error.pdf.io.03", e);
+		} catch (IOException e) {
+			SLPdfAsException slError = generateLegacySLException(slResponse);
+			if (slError != null) {
+				throw slError;
+			}
+			throw new PDFIOException("error.pdf.io.03", e);
+		}
+		
+		
+		return null;
+	}
+
+	
+	private String performHttpBulkRequestToBKU(String xmlRequest,
+			BulkRequestPackage pack, SignParameter parameter)
+			throws ClientProtocolException, IOException, IllegalStateException {CloseableHttpClient client = null;
+			try {
+				client = buildHttpClient();
+				HttpPost post = new HttpPost(this.bkuUrl);
+
+				MultipartEntityBuilder entityBuilder = MultipartEntityBuilder
+						.create();
+				entityBuilder.setCharset(Charset.forName("UTF-8"));
+				entityBuilder.addTextBody(XMLREQUEST, xmlRequest,
+						ContentType.TEXT_XML.withCharset(Charset.forName("UTF-8")));
+
+				if (parameter != null) {
+					String transactionId = parameter.getTransactionId();
+					if (transactionId != null) {
+						entityBuilder.addTextBody("TransactionId_", transactionId);
+					}
+				}
+
+
+				for(SignRequestPackage signRequestPackage: pack.getSignRequestPackages()) {
+					
+				if (pack != null && signRequestPackage != null && signRequestPackage.getCmsRequest().getSignatureData() != null) {
+					entityBuilder.addBinaryBody("fileupload", PDFUtils.blackOutSignature(signRequestPackage.getCmsRequest().getSignatureData(),
+							signRequestPackage.getCmsRequest().getByteRange()));
+				}
+					
+				}
+				
+				post.setEntity(entityBuilder.build());
+
+				HttpResponse response = client.execute(post);
+				logger.debug("Response Code : "
+						+ response.getStatusLine().getStatusCode());
+
+				if (parameter instanceof BKUHeaderHolder) {
+					BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
+					Header[] headers = response.getAllHeaders();
+
+					if (headers != null) {
+						for (int i = 0; i < headers.length; i++) {
+							BKUHeader hdr = new BKUHeader(headers[i].getName(),
+									headers[i].getValue());
+							logger.debug("Response Header : {}", hdr.toString());
+							holder.getProcessInfo().add(hdr);
+						}
+					}
+
+					BKUHeader hdr = new BKUHeader(
+							ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
+					logger.debug("Response Header : {}", hdr.toString());
+					holder.getProcessInfo().add(hdr);
+				}
+
+				BufferedReader rd = new BufferedReader(new InputStreamReader(
+						response.getEntity().getContent()));
+
+				StringBuffer result = new StringBuffer();
+				String line = "";
+				while ((line = rd.readLine()) != null) {
+					result.append(line);
+				}
+				rd.close();
+				response = null;
+				rd = null;
+
+				logger.trace(result.toString());
+				return result.toString();
+			} catch (PDFIOException e) {
+				throw new PdfAsWrappedIOException(e);
+			} finally {
+				if (client != null) {
+					client.close();
+				}
+			}
+			}
 }

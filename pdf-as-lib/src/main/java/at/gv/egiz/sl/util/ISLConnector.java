@@ -23,9 +23,12 @@
  ******************************************************************************/
 package at.gv.egiz.sl.util;
 
+import java.util.List;
+
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.sl.schema.BulkResponseType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
 import at.gv.egiz.sl.schema.InfoboxReadResponseType;
@@ -36,4 +39,6 @@ public interface ISLConnector {
 	public InfoboxReadResponseType sendInfoboxReadRequest(InfoboxReadRequestType request, SignParameter parameter)  throws PdfAsException;
 	public RequestPackage createCMSRequest(byte[] signatureData, int[] byteRange, SignParameter parameter) throws PDFIOException;
 	public CreateCMSSignatureResponseType sendCMSRequest(RequestPackage pack, SignParameter parameter) throws PdfAsException;
+	public BulkResponseType sendBulkRequest(BulkRequestPackage pack, SignParameter parameter) throws PdfAsException;
+	public BulkRequestPackage createBulkRequestPackage(List<byte[]> signatureData, List<int[]> byteRange, List<SignParameter> parameter) throws PDFIOException;
 }

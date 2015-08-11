@@ -24,6 +24,7 @@
 package at.gv.egiz.sl.util;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,6 @@ import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.sl.schema.Base64OptRefContentType;
-import at.gv.egiz.sl.schema.Base64XMLLocRefOptRefContentType;
 import at.gv.egiz.sl.schema.CMSDataObjectRequiredMetaType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureRequestType;
 import at.gv.egiz.sl.schema.ExcludedByteRangeType;
@@ -72,6 +72,27 @@ public abstract class BaseSLConnector implements ISLConnector,
 		readData.setReadValue(readValue);
 		request.setAssocArrayParameters(readData);
 		return request;
+	}
+
+	
+	public BulkRequestPackage createBulkRequestPackage(List<byte[]> signatureData, List<int[]> byteRange, List<SignParameter> parameter) throws PDFIOException {
+		
+		BulkRequestPackage bulkRequestPackage = new BulkRequestPackage();
+		
+		for(int i = 0; i< parameter.size(); i++) {
+			bulkRequestPackage.getSignRequestPackages().add(createSignatureRequestPackage(signatureData.get(i), byteRange.get(i), parameter.get(i)));
+		}
+		
+		return bulkRequestPackage;
+	}
+	
+	
+	public SignRequestPackage createSignatureRequestPackage(byte[] signatureData, int[] byteRange, SignParameter parameter)
+			throws PDFIOException {
+		SignRequestPackage signRequestPackage = new SignRequestPackage();
+		signRequestPackage.setCmsRequest(createCMSRequest(signatureData, byteRange, parameter));
+		signRequestPackage.setDisplayName(parameter.getDataSource().getName());
+		return signRequestPackage;
 	}
 
 	public RequestPackage createCMSRequest(byte[] signatureData,
