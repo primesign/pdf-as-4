@@ -338,9 +338,9 @@ public class BKUSLConnector extends BaseSLConnector {
 			
 			slResponse = performHttpBulkRequestToBKU(slRequest, pack,
 					parameter);
-
 			
-			
+			element = (JAXBElement<?>) SLMarschaller
+					.unmarshalFromString(slResponse);
 			
 		} catch (JAXBException e) {
 			SLPdfAsException slError = generateLegacySLException(slResponse);
@@ -362,8 +362,19 @@ public class BKUSLConnector extends BaseSLConnector {
 			throw new PDFIOException("error.pdf.io.03", e);
 		}
 		
+		if (element.getValue() instanceof BulkResponseType) {
+			BulkResponseType bulkResponseType = (BulkResponseType) element
+					.getValue();
+			logger.debug(bulkResponseType.toString());
+			return bulkResponseType;
+		} else if (element.getValue() instanceof ErrorResponseType) {
+			ErrorResponseType errorResponseType = (ErrorResponseType) element
+					.getValue();
+			throw new SLPdfAsException(errorResponseType.getErrorCode(),
+					errorResponseType.getInfo());
+		}
+		throw new PdfAsException("error.pdf.io.03");
 		
-		return null;
 	}
 
 	
