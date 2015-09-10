@@ -39,11 +39,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSDocument;
-import org.apache.pdfbox.cos.COSInteger;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.exceptions.COSVisitorException;
@@ -103,15 +100,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	private static final Logger logger = LoggerFactory
 			.getLogger(PADESPDFBOXSigner.class);
 
-	private static final float PDF_VERSION_1_6 = 1.6f;
-
 	public void signPDF(PDFObject genericPdfObject,
 			RequestedSignature requestedSignature,
 			PDFASSignatureInterface genericSigner) throws PdfAsException {
 		String fisTmpFile = null;
-
-		int signatureCertificationLevel = requestedSignature
-				.getSignatureCertificationLevel();
 
 		if (!(genericPdfObject instanceof PDFBOXObject)) {
 			// tODO:
@@ -427,21 +419,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					options.setVisualSignature(properties.getVisibleSignature());
 				}
 
-				if (signatureCertificationLevel > 0) {
-
-					COSDocument document = doc.getDocument();
-
-					addDocMDP(signature.getDictionary(), document.getTrailer(),
-							document.getVersion(), signatureCertificationLevel);
-
-					// add DocMDP entry to root
-					COSDictionary docmdp = new COSDictionary();
-					docmdp.setItem(COSName.getPDFName("DocMDP"),
-							signature.getDictionary());
-					doc.getDocumentCatalog().getCOSDictionary()
-							.setItem(COSName.getPDFName("Perms"), docmdp);
-				}
-
 				doc.addSignature(signature, signer, options);
 
 				String sigFieldName = signatureProfileSettings
@@ -563,7 +540,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			} finally {
 				IOUtils.closeQuietly(readReadyFile);
 			}
-			System.gc();
 		} catch (IOException e) {
 			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
 			throw new PdfAsException("error.pdf.sig.01", e);
@@ -729,48 +705,4 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
-
-	/**
-	 * Adds keys to the signature dictionary that define the certification level
-	 * and the permissions.
-	 *
-	 * @param crypto
-	 *            the signature dictionary
-	 * @param trailer
-	 *            the document trailer.
-	 * @param pdfVersion
-	 *            the pdf version of the document
-	 * @param certificationLevel
-	 *            the certification level to set
-	 */
-	private void addDocMDP(COSDictionary crypto, COSDictionary trailer,
-			float pdfVersion, int certificationLevel) {
-
-		logger.debug("Certification level: {}", certificationLevel);
-
-		COSDictionary reference = new COSDictionary();
-		COSDictionary transformParams = new COSDictionary();
-
-		transformParams.setItem(COSName.P, COSInteger.get(certificationLevel));
-		transformParams.setItem(COSName.V, COSName.getPDFName("1.2"));
-		transformParams.setItem(COSName.TYPE,
-				COSName.getPDFName("TransformParams"));
-		reference.setItem(COSName.getPDFName("TransformMethod"),
-				COSName.getPDFName("DocMDP"));
-		reference.setItem(COSName.TYPE, COSName.getPDFName("SigRef"));
-
-		reference.setName("TransformParams", "TransformParams");
-		reference.setItem(COSName.getPDFName("TransformParams"),
-				transformParams);
-
-		if (pdfVersion < PDF_VERSION_1_6) {
-			reference.setItem(COSName.getPDFName("DigestMethod"),
-					COSName.getPDFName("SHA1"));
-		}
-
-		COSArray types = new COSArray();
-		types.add(reference);
-		crypto.setItem(COSName.getPDFName("Reference"), types);
-	}
-
 }
