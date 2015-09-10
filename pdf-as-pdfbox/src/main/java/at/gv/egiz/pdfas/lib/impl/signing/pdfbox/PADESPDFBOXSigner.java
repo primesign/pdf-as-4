@@ -41,6 +41,7 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.exceptions.COSVisitorException;
@@ -125,6 +126,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			fisTmpFile = helper.getStaticFilename();
 
 			FileOutputStream tmpOutputStream = null;
+			SignatureOptions options = new SignatureOptions();
 			try {
 				// write to temporary file
 				tmpOutputStream = new FileOutputStream(new File(fisTmpFile));
@@ -198,7 +200,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				// signature.setSignDate(signer.getSigningDate());
 
 				signer.setPDSignature(signature);
-				SignatureOptions options = new SignatureOptions();
 				options.setPreferedSignatureSize(0x1000);
 
 				// Is visible Signature
@@ -523,6 +524,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				tmpOutputStream.close();
 			} finally {
 				IOUtils.closeQuietly(tmpOutputStream);
+				COSDocument visualSignature = options.getVisualSignature();
+				if (visualSignature != null) {
+					visualSignature.close();
+				}
 			}
 
 			FileInputStream readReadyFile = null;
