@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.activation.DataSource;
+import javax.activation.FileDataSource;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -40,8 +41,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
@@ -341,10 +342,8 @@ public class Main {
 
 		File outputPdfFile = new File(outputFile);
 
-		DataSource dataSource = new ByteArrayDataSource(
-				StreamUtils.inputStreamToByteArray(new FileInputStream(
-						inputFile)));
-
+		DataSource dataSource = new FileDataSource(inputFile);
+		
 		PdfAs pdfAs = null;
 
 		pdfAs = PdfAsFactory.createPdfAs(new File(configurationFile));
