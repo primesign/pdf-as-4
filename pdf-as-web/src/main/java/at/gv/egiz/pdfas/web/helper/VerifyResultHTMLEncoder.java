@@ -65,11 +65,14 @@ public class VerifyResultHTMLEncoder implements VerifyResultEncoder {
 					sb.append("<td>-</td>");
 				}
 				if(result.isQualifiedCertificate()) {
-					sb.append("<td><a href=\"signCert?SIGID=" + i + "\">here</a> (QC)</td>");
+					sb.append("<td><a href=\"signCert;jsessionid=" + request.getSession().getId() + 
+						"?SIGID=" + i + "\">here</a> (QC)</td>");
 				} else {
-					sb.append("<td><a href=\"signCert?SIGID=" + i + "\">here</a></td>");
+					sb.append("<td><a href=\"signCert;jsessionid=" + request.getSession().getId() + 
+						"?SIGID=" + i + "\">here</a></td>");
 				}
-				sb.append("<td><a href=\"signData?SIGID=" + i + "\">here</a></td>");
+				sb.append("<td><a href=\"signData;jsessionid=" + request.getSession().getId() + 
+						"?SIGID=" + i + "\">here</a></td>");
 				
 			} else {
 				sb.append("<td>NO</td>");

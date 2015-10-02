@@ -273,7 +273,7 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 		setMimeTypeAttrib(attributes, mimeType);
 		setContentTypeAttrib(attributes);
 		setSigningCertificateAttrib(attributes, signingCertificate);
-		setSigningTimeAttrib(attributes, signingTime);
+		//setSigningTimeAttrib(attributes, signingTime);
 		Attribute[] attributeArray = attributes
 				.toArray(new Attribute[attributes.size()]);
 		signerInfo.setSignedAttributes(attributeArray);

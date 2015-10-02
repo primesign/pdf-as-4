@@ -49,6 +49,7 @@ import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,7 @@ import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
@@ -75,6 +77,7 @@ import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.servlets.UIEntryPointServlet;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxAssocArrayPairType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
@@ -90,6 +93,7 @@ public class PdfAsHelper {
 	private static final String PDF_STATUS = "PDF_STATUS";
 	private static final String PDF_OUTPUT = "PDF_OUTPUT";
 	private static final String PDF_SL_CONNECTOR = "PDF_SL_CONNECTOR";
+	private static final String PDF_STATISTICS = "PDF_STATISTICS";
 	private static final String PDF_SIGNER = "PDF_SIGNER";
 	private static final String PDF_SL_INTERACTIVE = "PDF_SL_INTERACTIVE";
 	private static final String PDF_SIGNED_DATA = "PDF_SIGNED_DATA";
@@ -112,6 +116,7 @@ public class PdfAsHelper {
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
 	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
 	private static final String VERIFICATION_RESULT = "VERIFICATION_RESULT";
+	private static final String QRCODE_CONTENT = "QR_CONT";
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
@@ -222,9 +227,9 @@ public class PdfAsHelper {
 				Float.parseFloat(posW);
 			} catch (NumberFormatException e) {
 				if (!posW.equalsIgnoreCase("auto")) {
-				throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_W
-								+ " has invalid value!", e);
+					throw new PdfAsWebException(
+							PdfAsParameterExtractor.PARAM_SIG_POS_W
+									+ " has invalid value!", e);
 				} else {
 					sb.append("w:auto;");
 				}
@@ -255,8 +260,8 @@ public class PdfAsHelper {
 			} catch (NumberFormatException e) {
 				if (!posR.equalsIgnoreCase("auto")) {
 					throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_R
-								+ " has invalid value!", e);
+							PdfAsParameterExtractor.PARAM_SIG_POS_R
+									+ " has invalid value!", e);
 				}
 			}
 			sb.append("r:" + posR.trim() + ";");
@@ -270,8 +275,8 @@ public class PdfAsHelper {
 			} catch (NumberFormatException e) {
 				if (!posF.equalsIgnoreCase("auto")) {
 					throw new PdfAsWebException(
-						PdfAsParameterExtractor.PARAM_SIG_POS_F
-								+ " has invalid value!", e);
+							PdfAsParameterExtractor.PARAM_SIG_POS_F
+									+ " has invalid value!", e);
 				} else {
 					sb.append("f:0;");
 				}
@@ -293,8 +298,7 @@ public class PdfAsHelper {
 			try {
 				signIdx = Integer.parseInt(signidxString);
 			} catch (Throwable e) {
-				logger.warn("Failed to parse Signature Index: "
-						+ signidxString);
+				logger.warn("Failed to parse Signature Index: " + signidxString);
 			}
 		}
 
@@ -357,6 +361,10 @@ public class PdfAsHelper {
 
 		Configuration config = pdfAs.getConfiguration();
 
+
+		Map<String,String> configOverwrite = PdfAsParameterExtractor.getOverwriteMap(request);
+		ConfigurationOverwrite.overwriteConfiguration(configOverwrite, config);
+		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		// Generate Sign Parameter
@@ -372,27 +380,121 @@ public class PdfAsHelper {
 
 		IPlainSigner signer;
 		if (connector.equals("moa")) {
+
+			String keyIdentifier = PdfAsParameterExtractor
+					.getKeyIdentifier(request);
+
+			if (keyIdentifier != null) {
+				if (!WebConfiguration.isMoaEnabled(keyIdentifier)) {
+					throw new PdfAsWebException("MOA connector ["
+							+ keyIdentifier + "] disabled or not existing.");
+				}
+
+				String url = WebConfiguration.getMoaURL(keyIdentifier);
+				String keyId = WebConfiguration.getMoaKeyID(keyIdentifier);
+				String certificate = WebConfiguration
+						.getMoaCertificate(keyIdentifier);
+
+				config.setValue(IConfigurationConstants.MOA_SIGN_URL, url);
+				config.setValue(IConfigurationConstants.MOA_SIGN_KEY_ID, keyId);
+				config.setValue(IConfigurationConstants.MOA_SIGN_CERTIFICATE,
+						certificate);
+			} else {
+				if (!WebConfiguration.getMOASSEnabled()) {
+					throw new PdfAsWebException("MOA connector disabled.");
+				}
+			}
+
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if (connector.equals("jks")) {
-			signer = new PAdESSignerKeystore(
-					WebConfiguration.getKeystoreFile(),
-					WebConfiguration.getKeystoreAlias(),
-					WebConfiguration.getKeystorePass(),
-					WebConfiguration.getKeystoreKeyPass(),
-					WebConfiguration.getKeystoreType());
+
+			String keyIdentifier = PdfAsParameterExtractor
+					.getKeyIdentifier(request);
+
+			boolean ksEnabled = false;
+			String ksFile = null;
+			String ksAlias = null;
+			String ksPass = null;
+			String ksKeyPass = null;
+			String ksType = null;
+
+			if (keyIdentifier != null) {
+				ksEnabled = WebConfiguration.getKeystoreEnabled(keyIdentifier);
+				ksFile = WebConfiguration.getKeystoreFile(keyIdentifier);
+				ksAlias = WebConfiguration.getKeystoreAlias(keyIdentifier);
+				ksPass = WebConfiguration.getKeystorePass(keyIdentifier);
+				ksKeyPass = WebConfiguration.getKeystoreKeyPass(keyIdentifier);
+				ksType = WebConfiguration.getKeystoreType(keyIdentifier);
+			} else {
+				ksEnabled = WebConfiguration.getKeystoreDefaultEnabled();
+				ksFile = WebConfiguration.getKeystoreDefaultFile();
+				ksAlias = WebConfiguration.getKeystoreDefaultAlias();
+				ksPass = WebConfiguration.getKeystoreDefaultPass();
+				ksKeyPass = WebConfiguration.getKeystoreDefaultKeyPass();
+				ksType = WebConfiguration.getKeystoreDefaultType();
+			}
+
+			if (!ksEnabled) {
+				if (keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector ["
+							+ keyIdentifier + "] disabled or not existing.");
+				} else {
+					throw new PdfAsWebException(
+							"DEFAULT JKS connector disabled.");
+				}
+			}
+
+			if (ksFile == null || ksAlias == null || ksPass == null
+					|| ksKeyPass == null || ksType == null) {
+				if (keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector ["
+							+ keyIdentifier + "] not correctly configured.");
+				} else {
+					throw new PdfAsWebException(
+							"DEFAULT JKS connector not correctly configured.");
+				}
+			}
+
+			signer = new PAdESSignerKeystore(ksFile, ksAlias, ksPass,
+					ksKeyPass, ksType);
 		} else {
 			throw new PdfAsWebException("Invalid connector (moa | jks)");
 		}
 
 		signParameter.setPlainSigner(signer);
 
+		String profileId = PdfAsParameterExtractor.getSigType(request);
+		String qrCodeContent = PdfAsHelper.getQRCodeContent(request);
+
+		if (qrCodeContent != null) {
+			if (profileId == null) {
+				// get default Profile
+				profileId = config.getValue("sig_obj.type.default");
+			}
+
+			if (profileId == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profileId = "SIGNATURBLOCK_SMALL_DE";
+			}
+
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profileId + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
+
 		// set Signature Profile (null use default ...)
-		signParameter.setSignatureProfileId(PdfAsParameterExtractor
-				.getSigType(request));
+		signParameter.setSignatureProfileId(profileId);
 
 		// set Signature Position
 		signParameter.setSignaturePosition(buildPosString(request, response));
 
+		@SuppressWarnings("unused")
 		SignResult result = pdfAs.sign(signParameter);
 
 		return baos.toByteArray();
@@ -414,6 +516,10 @@ public class PdfAsHelper {
 			PDFASSignParameters params) throws Exception {
 		Configuration config = pdfAs.getConfiguration();
 
+		if (WebConfiguration.isAllowExtOverwrite() && params.getOverrides() != null) {
+			ConfigurationOverwrite.overwriteConfiguration(params.getOverrides().getMap(), config);
+		}
+
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 		// Generate Sign Parameter
@@ -424,28 +530,115 @@ public class PdfAsHelper {
 
 		IPlainSigner signer;
 		if (params.getConnector().equals(Connector.MOA)) {
-			if (!WebConfiguration.getMOASSEnabled()) {
-				throw new PdfAsWebException("MOA connector disabled.");
+			String keyIdentifier = params.getKeyIdentifier();
+
+			if (keyIdentifier != null) {
+				if (!WebConfiguration.isMoaEnabled(keyIdentifier)) {
+					throw new PdfAsWebException("MOA connector ["
+							+ keyIdentifier + "] disabled or not existing.");
+				}
+
+				String url = WebConfiguration.getMoaURL(keyIdentifier);
+				String keyId = WebConfiguration.getMoaKeyID(keyIdentifier);
+				String certificate = WebConfiguration
+						.getMoaCertificate(keyIdentifier);
+
+				config.setValue(IConfigurationConstants.MOA_SIGN_URL, url);
+				config.setValue(IConfigurationConstants.MOA_SIGN_KEY_ID, keyId);
+				config.setValue(IConfigurationConstants.MOA_SIGN_CERTIFICATE,
+						certificate);
+			} else {
+				if (!WebConfiguration.getMOASSEnabled()) {
+					throw new PdfAsWebException("MOA connector disabled.");
+				}
 			}
+
 			signer = new PAdESSigner(new MOAConnector(config));
 		} else if (params.getConnector().equals(Connector.JKS)) {
-			if (!WebConfiguration.getKeystoreEnabled()) {
-				throw new PdfAsWebException("JKS connector disabled.");
+			String keyIdentifier = params.getKeyIdentifier();
+
+			boolean ksEnabled = false;
+			String ksFile = null;
+			String ksAlias = null;
+			String ksPass = null;
+			String ksKeyPass = null;
+			String ksType = null;
+
+			if (keyIdentifier != null) {
+				ksEnabled = WebConfiguration.getKeystoreEnabled(keyIdentifier);
+				ksFile = WebConfiguration.getKeystoreFile(keyIdentifier);
+				ksAlias = WebConfiguration.getKeystoreAlias(keyIdentifier);
+				ksPass = WebConfiguration.getKeystorePass(keyIdentifier);
+				ksKeyPass = WebConfiguration.getKeystoreKeyPass(keyIdentifier);
+				ksType = WebConfiguration.getKeystoreType(keyIdentifier);
+			} else {
+				ksEnabled = WebConfiguration.getKeystoreDefaultEnabled();
+				ksFile = WebConfiguration.getKeystoreDefaultFile();
+				ksAlias = WebConfiguration.getKeystoreDefaultAlias();
+				ksPass = WebConfiguration.getKeystoreDefaultPass();
+				ksKeyPass = WebConfiguration.getKeystoreDefaultKeyPass();
+				ksType = WebConfiguration.getKeystoreDefaultType();
 			}
-			signer = new PAdESSignerKeystore(
-					WebConfiguration.getKeystoreFile(),
-					WebConfiguration.getKeystoreAlias(),
-					WebConfiguration.getKeystorePass(),
-					WebConfiguration.getKeystoreKeyPass(),
-					WebConfiguration.getKeystoreType());
+
+			if (!ksEnabled) {
+				if (keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector ["
+							+ keyIdentifier + "] disabled or not existing.");
+				} else {
+					throw new PdfAsWebException(
+							"DEFAULT JKS connector disabled.");
+				}
+			}
+
+			if (ksFile == null || ksAlias == null || ksPass == null
+					|| ksKeyPass == null || ksType == null) {
+				if (keyIdentifier != null) {
+					throw new PdfAsWebException("JKS connector ["
+							+ keyIdentifier + "] not correctly configured.");
+				} else {
+					throw new PdfAsWebException(
+							"DEFAULT JKS connector not correctly configured.");
+				}
+			}
+
+			signer = new PAdESSignerKeystore(ksFile, ksAlias, ksPass,
+					ksKeyPass, ksType);
 		} else {
 			throw new PdfAsWebException("Invalid connector (moa | jks)");
 		}
 
 		signParameter.setPlainSigner(signer);
 
+		String profile = params.getProfile();
+
+		// PdfAsHelper.getQRCodeContent(request);
+		// Get QR Code Content form param
+		String qrCodeContent = params.getQRCodeContent();
+
+		if (qrCodeContent != null) {
+			if (profile == null) {
+				// get default Profile
+				profile = config.getValue("sig_obj.type.default");
+			}
+
+			if (profile == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profile = "SIGNATURBLOCK_SMALL_DE";
+			}
+
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profile + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
+
 		// set Signature Profile (null use default ...)
-		signParameter.setSignatureProfileId(params.getProfile());
+		signParameter.setSignatureProfileId(profile);
 
 		// set Signature Position
 		signParameter.setSignaturePosition(params.getPosition());
@@ -475,7 +668,7 @@ public class PdfAsHelper {
 			HttpServletResponse response, ServletContext context,
 			byte[] pdfData, String connector, String position,
 			String transactionId, String profile,
-			Map<String, String> preProcessor) throws Exception {
+			Map<String, String> preProcessor, Map<String, String> overwrite) throws Exception {
 
 		// TODO: Protect session so that only one PDF can be signed during one
 		// session
@@ -495,6 +688,8 @@ public class PdfAsHelper {
 		Configuration config = pdfAs.getConfiguration();
 		session.setAttribute(PDF_CONFIG, config);
 
+		ConfigurationOverwrite.overwriteConfiguration(overwrite, config);
+		
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		session.setAttribute(PDF_OUTPUT, baos);
 
@@ -521,6 +716,30 @@ public class PdfAsHelper {
 		signParameter.setPlainSigner(signer);
 		session.setAttribute(PDF_SIGNER, signer);
 		session.setAttribute(PDF_SL_INTERACTIVE, connector);
+
+		String qrCodeContent = PdfAsHelper.getQRCodeContent(request);
+
+		if (qrCodeContent != null) {
+			if (profile == null) {
+				// get default Profile
+				profile = config.getValue("sig_obj.type.default");
+			}
+
+			if (profile == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profile = "SIGNATURBLOCK_SMALL_DE";
+			}
+
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profile + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
 
 		// set Signature Profile (null use default ...)
 		signParameter.setSignatureProfileId(profile);
@@ -803,6 +1022,18 @@ public class PdfAsHelper {
 		session.setAttribute(PDF_SIGNED_DATA, signedData);
 	}
 
+	public static void setStatisticEvent(HttpServletRequest request,
+			HttpServletResponse response, StatisticEvent event) {
+		HttpSession session = request.getSession();
+		session.setAttribute(PDF_STATISTICS, event);
+	}
+
+	public static StatisticEvent getStatisticEvent(HttpServletRequest request,
+			HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		return (StatisticEvent) session.getAttribute(PDF_STATISTICS);
+	}
+
 	public static void setLocale(HttpServletRequest request,
 			HttpServletResponse response, String locale) {
 		HttpSession session = request.getSession();
@@ -1020,6 +1251,20 @@ public class PdfAsHelper {
 			return obj.toString();
 		}
 		return "";
+	}
+
+	public static void setQRCodeContent(HttpServletRequest request, String value) {
+		HttpSession session = request.getSession();
+		session.setAttribute(QRCODE_CONTENT, value);
+	}
+
+	public static String getQRCodeContent(HttpServletRequest request) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(QRCODE_CONTENT);
+		if (obj != null) {
+			return obj.toString();
+		}
+		return null;
 	}
 
 	public static void setPDFFileName(HttpServletRequest request, String value) {

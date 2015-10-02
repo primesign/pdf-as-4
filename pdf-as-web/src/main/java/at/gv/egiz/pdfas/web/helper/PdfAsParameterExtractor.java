@@ -40,6 +40,7 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_FORMAT = "format";
 	public static final String PARAM_HTML = "html";
 	public static final String PARAM_JSON = "json";
+	public static final String PARAM_KEYIDENTIFIER = "keyId";
 	
 	public static final String[] AVAILABLE_FORMATS = new String[] {
 		PARAM_HTML, PARAM_JSON
@@ -68,6 +69,9 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_FILENAME = "filename";
 	public static final String PARAM_ORIGINAL_DIGEST = "origdigest";
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
+	public static final String PARAM_OVERWRITE_PREFIX = "ov:";
+	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
+	
 	
 	public static String getConnector(HttpServletRequest request) {
 		String connector = (String)request.getAttribute(PARAM_CONNECTOR);
@@ -77,9 +81,19 @@ public class PdfAsParameterExtractor {
 		return PARAM_CONNECTOR_DEFAULT;
 	}
 	
+	public static String getQRCodeContent(HttpServletRequest request) {
+		String qrcodeContent = (String)request.getAttribute(PARAM_QRCODE_CONTENT);
+		return qrcodeContent;
+	}
+	
 	public static String getTransactionId(HttpServletRequest request) {
 		String transactionId = (String)request.getAttribute(PARAM_TRANSACTION_ID);
 		return transactionId;
+	}
+	
+	public static String getKeyIdentifier(HttpServletRequest request) {
+		String keyIdentifier = (String)request.getAttribute(PARAM_KEYIDENTIFIER);
+		return keyIdentifier;
 	}
 	
 	public static String getFilename(HttpServletRequest request) {
@@ -99,6 +113,22 @@ public class PdfAsParameterExtractor {
 			String parameterName = parameterNames.nextElement();
 			if(parameterName.startsWith(PARAM_PREPROCESSOR_PREFIX)) {
 				String key = parameterName.substring(PARAM_PREPROCESSOR_PREFIX.length());
+				String value = (String)request.getAttribute(parameterName);
+				map.put(key, value);
+			}
+		}
+		
+		return map;
+	}
+	
+	public static Map<String, String> getOverwriteMap(HttpServletRequest request) {
+		Map<String, String> map = new HashMap<String, String>();
+		
+		Enumeration<String> parameterNames = request.getAttributeNames();
+		while(parameterNames.hasMoreElements()) {
+			String parameterName = parameterNames.nextElement();
+			if(parameterName.startsWith(PARAM_OVERWRITE_PREFIX)) {
+				String key = parameterName.substring(PARAM_OVERWRITE_PREFIX.length());
 				String value = (String)request.getAttribute(parameterName);
 				map.put(key, value);
 			}

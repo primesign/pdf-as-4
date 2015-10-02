@@ -18,10 +18,17 @@ import at.gv.egiz.pdfas.api.ws.PDFASVerifyRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASVerifyResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASVerifyResult;
 import at.gv.egiz.pdfas.api.ws.VerificationLevel;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
+import at.gv.egiz.pdfas.web.filter.UserAgentFilter;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 
 @MTOM
 @WebService(endpointInterface = "at.gv.egiz.pdfas.api.ws.PDFASVerification")
@@ -37,6 +44,12 @@ public class PDFASVerificationImpl implements PDFASVerification {
 			return null;
 		}
 
+		StatisticEvent statisticEvent = new StatisticEvent();
+		statisticEvent.setSource(Source.SOAP);
+		statisticEvent.setOperation(Operation.VERIFY);
+		statisticEvent.setUserAgent(UserAgentFilter.getUserAgent());
+		statisticEvent.setStartNow();
+		
 		PDFASVerifyResponse response = new PDFASVerifyResponse();
 		response.setVerifyResults(new ArrayList<PDFASVerifyResult>());
 		try {
@@ -60,6 +73,10 @@ public class PDFASVerificationImpl implements PDFASVerification {
 				lvl = SignatureVerificationLevel.FULL_VERIFICATION;
 			}
 
+			statisticEvent.setFilesize(request.getInputData().length);
+			statisticEvent.setProfileId(null);
+			statisticEvent.setDevice(request.getVerificationLevel().toString());
+			
 			List<VerifyResult> results = PdfAsHelper.synchornousVerify(
 					request.getInputData(), sigIdx, lvl, preProcessor);
 			
@@ -111,7 +128,24 @@ public class PDFASVerificationImpl implements PDFASVerification {
 			
 				response.getVerifyResults().add(webResult);
 			}
-		} catch (Exception e) {
+			
+			statisticEvent.setStatus(Status.OK);
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+		} catch (Throwable e) {
+			
+			statisticEvent.setStatus(Status.ERROR);
+			statisticEvent.setException(e);
+			if(e instanceof PDFASError) {
+				statisticEvent.setErrorCode(((PDFASError)e).getCode());
+			}
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			logger.warn("Failed to verify PDF", e);
 			if (WebConfiguration.isShowErrorDetails()) {
 				throw new WebServiceException("Generic Error", e);

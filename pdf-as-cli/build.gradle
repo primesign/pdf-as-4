@@ -15,6 +15,8 @@ task releases(type: Copy) {
 	into rootDir.toString() + "/releases/" + version
 }
 
+releases.dependsOn jar
+releases.dependsOn sourcesJar
 releases.dependsOn distZip
 releases.dependsOn distTar
 
@@ -26,6 +28,7 @@ dependencies {
 	compile project (':pdf-as-pdfbox')
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 	compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
+	compile 'ch.qos.logback:logback-classic:1.1.2'
 	
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }

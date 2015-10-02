@@ -16,19 +16,42 @@
 		<filter-class>at.gv.egiz.pdfas.web.filter.ExceptionCatchFilter</filter-class>
 	</filter>
 	<filter>
+		<filter-name>UserAgentFilter</filter-name>
+		<display-name>UserAgentFilter</display-name>
+		<description></description>
+		<filter-class>at.gv.egiz.pdfas.web.filter.UserAgentFilter</filter-class>
+	</filter>
+	<filter>
 		<filter-name>sitemesh</filter-name>
 		<filter-class>com.opensymphony.sitemesh.webapp.SiteMeshFilter</filter-class>
 	</filter>
+	<filter>
+		<filter-name>CORS</filter-name>
+		<filter-class>com.thetransactioncompany.cors.CORSFilter</filter-class>
+		<init-param>
+                <param-name>cors.allowOrigin</param-name>
+                <param-value>*</param-value>
+        </init-param>
+	</filter>
+	
 
 	<!-- filter-mapping>
 		<filter-name>sitemesh</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping-->
+	
 	<filter-mapping>
 		<filter-name>ExceptionCatchFilter</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-
+	<filter-mapping>
+		<filter-name>UserAgentFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+        <filter-name>CORS</filter-name>
+        <url-pattern>/*</url-pattern>
+	</filter-mapping>
 	<!-- listener>
 	    <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
 	</listener-->
@@ -104,7 +127,7 @@
 		<servlet-name>ReloadServlet</servlet-name>
 		<display-name>ReloadServlet</display-name>
 		<description></description>
-		<servlet-class>at.gv.egiz.pdfas.web.servlets.PDFSignatureCertificateData</servlet-class>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.ReloadServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>UIEntryPointServlet</servlet-name>

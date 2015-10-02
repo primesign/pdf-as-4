@@ -38,15 +38,22 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
+import at.gv.egiz.pdfas.web.filter.UserAgentFilter;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.helper.RemotePDFFetcher;
 import at.gv.egiz.pdfas.web.helper.VerifyEncoder;
 import at.gv.egiz.pdfas.web.helper.VerifyResultEncoder;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 
 /**
  * Servlet implementation class VerifyServlet
@@ -81,6 +88,13 @@ public class VerifyServlet extends HttpServlet {
 
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
+		
+		StatisticEvent statisticEvent = new StatisticEvent();
+		statisticEvent.setStartNow();
+		statisticEvent.setSource(Source.WEB);
+		statisticEvent.setOperation(Operation.VERIFY);
+		statisticEvent.setUserAgent(UserAgentFilter.getUserAgent());
+		
 		try {
 			// Mandatory Parameters on Get Request:
 			String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
@@ -97,8 +111,19 @@ public class VerifyServlet extends HttpServlet {
 			}
 
 			byte[] pdfData = RemotePDFFetcher.fetchPdfFile(pdfUrl);
-			doVerify(request, response, pdfData);
+			doVerify(request, response, pdfData, statisticEvent);
 		} catch (Throwable e) {
+			
+			statisticEvent.setStatus(Status.ERROR);
+			statisticEvent.setException(e);
+			if(e instanceof PDFASError) {
+				statisticEvent.setErrorCode(((PDFASError)e).getCode());
+			}
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			logger.warn("Generic Error: ", e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
@@ -118,6 +143,12 @@ public class VerifyServlet extends HttpServlet {
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
 
+		StatisticEvent statisticEvent = new StatisticEvent();
+		statisticEvent.setStartNow();
+		statisticEvent.setSource(Source.WEB);
+		statisticEvent.setOperation(Operation.VERIFY);
+		statisticEvent.setUserAgent(UserAgentFilter.getUserAgent());
+		
 		try {
 			byte[] filecontent = null;
 
@@ -225,14 +256,33 @@ public class VerifyServlet extends HttpServlet {
 						request.setAttribute("FILEERR", true);
 						request.getRequestDispatcher("index.jsp").forward(
 								request, response);
+						
+						statisticEvent.setStatus(Status.ERROR);
+						statisticEvent.setException(new Exception("No file uploaded"));
+						statisticEvent.setEndNow();
+						statisticEvent.setTimestampNow();
+						StatisticFrontend.getInstance().storeEvent(statisticEvent);
+						statisticEvent.setLogged(true);
+						
 						return;
 					}
 				}
 				throw new PdfAsException("No Signature data available");
 			}
 
-			doVerify(request, response, filecontent);
+			doVerify(request, response, filecontent, statisticEvent);
 		} catch (Throwable e) {
+			
+			statisticEvent.setStatus(Status.ERROR);
+			statisticEvent.setException(e);
+			if(e instanceof PDFASError) {
+				statisticEvent.setErrorCode(((PDFASError)e).getCode());
+			}
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			logger.warn("Generic Error: ", e);
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
@@ -241,7 +291,7 @@ public class VerifyServlet extends HttpServlet {
 	}
 
 	protected void doVerify(HttpServletRequest request,
-			HttpServletResponse response, byte[] pdfData) throws Exception {
+			HttpServletResponse response, byte[] pdfData, StatisticEvent statisticEvent) throws Exception {
 		
 		SignatureVerificationLevel lvl = PdfAsParameterExtractor
 				.getVerificationLevel(request);
@@ -269,6 +319,12 @@ public class VerifyServlet extends HttpServlet {
 		if(encoder == null) {
 			encoder = VerifyEncoder.getEncoder(PdfAsParameterExtractor.PARAM_HTML);
 		}
+		
+		statisticEvent.setStatus(Status.OK);
+		statisticEvent.setEndNow();
+		statisticEvent.setTimestampNow();
+		StatisticFrontend.getInstance().storeEvent(statisticEvent);
+		statisticEvent.setLogged(true);
 		
 		encoder.produce(request, response, results);
 	}

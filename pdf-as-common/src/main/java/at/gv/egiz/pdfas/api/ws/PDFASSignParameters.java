@@ -24,8 +24,6 @@
 package at.gv.egiz.pdfas.api.ws;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -77,8 +75,11 @@ public class PDFASSignParameters implements Serializable {
 	String invokeTarget;
 	String invokeErrorUrl;
 	String transactionId;
+	String keyIdentifier;
+	String qrCodeContent;
 	String profile;
 	PDFASPropertyMap preprocessor;
+	PDFASPropertyMap overrides;
 	
 	@XmlElement(required = true, nillable = false, name="connector")
 	public Connector getConnector() {
@@ -136,6 +137,22 @@ public class PDFASSignParameters implements Serializable {
 	public void setTransactionId(String transactionId) {
 		this.transactionId = transactionId;
 	}
+	
+	@XmlElement(required = false, nillable = true, name="keyIdentifier")
+	public String getKeyIdentifier() {
+		return keyIdentifier;
+	}
+	public void setKeyIdentifier(String keyIdentifier) {
+		this.keyIdentifier = keyIdentifier;
+	}
+	
+	@XmlElement(required = false, nillable = true, name="qrCodeContent")
+	public String getQRCodeContent() {
+		return qrCodeContent;
+	}
+	public void setQRCodeContent(String qrCodeContent) {
+		this.qrCodeContent = qrCodeContent;
+	}
 
 	@XmlElement(required = false, nillable = true, name="preprocessorArguments")
 	public PDFASPropertyMap getPreprocessor() {
@@ -146,5 +163,12 @@ public class PDFASSignParameters implements Serializable {
 		this.preprocessor = preprocessor;
 	}
 	
-	
+	@XmlElement(required = false, nillable = true, name="configurationOverrides")
+	public PDFASPropertyMap getOverrides() {
+		return overrides;
+	}
+
+	public void setOverrides(PDFASPropertyMap overrides) {
+		this.overrides = overrides;
+	}
 }

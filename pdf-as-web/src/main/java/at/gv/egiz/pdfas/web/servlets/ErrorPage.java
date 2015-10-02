@@ -35,23 +35,27 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.HTMLFormater;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.UrlParameterExtractor;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 
 /**
  * Servlet implementation class ErrorPage
  */
 public class ErrorPage extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final Logger logger = LoggerFactory
 			.getLogger(ErrorPage.class);
-	
+
 	private static final String ERROR_STACK = "##ERROR_STACK##";
 	private static final String ERROR_MESSAGE = "##ERROR_MESSAGE##";
-	
+
 	/**
 	 * @see HttpServlet#HttpServlet()
 	 */
@@ -86,60 +90,80 @@ public class ErrorPage extends HttpServlet {
 			return;
 		} else {
 			String errorURL = PdfAsHelper.getErrorURL(request, response);
-			Throwable e = PdfAsHelper
-					.getSessionException(request, response);
-			String message = PdfAsHelper.getSessionErrMessage(request,
-					response);
-			if (errorURL != null && WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {
+			Throwable e = PdfAsHelper.getSessionException(request, response);
+
+			StatisticEvent statisticEvent = PdfAsHelper.getStatisticEvent(
+					request, response);
+			if (statisticEvent != null) {
+				if (!statisticEvent.isLogged()) {
+					statisticEvent.setStatus(Status.ERROR);
+					statisticEvent.setException(e);
+					if (e instanceof PDFASError) {
+						statisticEvent.setErrorCode(((PDFASError) e).getCode());
+					}
+					statisticEvent.setEndNow();
+					statisticEvent.setTimestampNow();
+					StatisticFrontend.getInstance().storeEvent(statisticEvent);
+					statisticEvent.setLogged(true);
+				}
+			}
+
+			String message = PdfAsHelper
+					.getSessionErrMessage(request, response);
+			if (errorURL != null
+					&& WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {
 				String template = PdfAsHelper.getErrorRedirectTemplateSL();
-				template = template.replace("##ERROR_URL##",
-						errorURL);
-				
+				template = template.replace("##ERROR_URL##", errorURL);
+
 				URL url = new URL(errorURL);
-				String extraParams = UrlParameterExtractor.buildParameterFormString(url);
+				String extraParams = UrlParameterExtractor
+						.buildParameterFormString(url);
 				template = template.replace("##ADD_PARAMS##", extraParams);
-				
+
 				String target = PdfAsHelper.getInvokeTarget(request, response);
-				
-				if(target == null) {
+
+				if (target == null) {
 					target = "_self";
 				}
-				
+
 				template = template.replace("##TARGET##", target);
-				
+
 				if (e != null && WebConfiguration.isShowErrorDetails()) {
 					template = template.replace("##CAUSE##",
 							URLEncoder.encode(e.getMessage(), "UTF-8"));
 				} else {
-					template = template.replace("##CAUSE##",
-							"");
+					template = template.replace("##CAUSE##", "");
 				}
 				if (message != null) {
-					template = template.replace("##ERROR##", URLEncoder.encode(message, "UTF-8"));
+					template = template.replace("##ERROR##",
+							URLEncoder.encode(message, "UTF-8"));
 				} else {
-					template = template.replace("##ERROR##", "Unbekannter Fehler");
+					template = template.replace("##ERROR##",
+							"Unbekannter Fehler");
 				}
 				response.setContentType("text/html");
 				response.getWriter().write(template);
 				response.getWriter().close();
 			} else {
-				if(errorURL != null) {
+				if (errorURL != null) {
 					logger.warn(errorURL + " is not allowed by whitelist");
 				}
-				
+
 				String template = PdfAsHelper.getErrorTemplate();
 				if (message != null) {
 					template = template.replace(ERROR_MESSAGE, message);
 				} else {
-					template = template.replace(ERROR_MESSAGE, "Unbekannter Fehler");
+					template = template.replace(ERROR_MESSAGE,
+							"Unbekannter Fehler");
 				}
-				
+
 				if (e != null && WebConfiguration.isShowErrorDetails()) {
-					template = template.replace(ERROR_STACK,  HTMLFormater.formatStackTrace(e.getStackTrace()));
+					template = template.replace(ERROR_STACK,
+							HTMLFormater.formatStackTrace(e.getStackTrace()));
 				} else {
-					template = template.replace(ERROR_STACK,  "");
+					template = template.replace(ERROR_STACK, "");
 				}
-				
+
 				response.setContentType("text/html");
 				response.getWriter().write(template);
 				response.getWriter().close();

@@ -49,14 +49,18 @@ public class TableDrawUtils {
 			.getLogger(TableDrawUtils.class);
 
 	public static final String TABLE_DEBUG = "debug.table";
-
+	
+	private static StringBuilder alternateTableCaption;
+	
 	public static void drawTable(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
-			Map<String, ImageObject> images, ISettings settings)
+			Map<String, ImageObject> images, ISettings settings, IDGenerator generator, PDFAsVisualSignatureProperties properties)
 			throws PdfAsException {
 
+		alternateTableCaption = new StringBuilder();
+		
 		logger.debug("Drawing Table: X {} Y {} WIDTH {} HEIGHT {} \n{}", x, y,
 				width, height, abstractTable.getOrigTable().toString());
 
@@ -67,16 +71,16 @@ public class TableDrawUtils {
 
 		drawBorder(page, contentStream, x, y, width, height, abstractTable,
 				doc, subtable, settings);
-
+//append strings
 		drawContent(page, contentStream, x, y, width, height, abstractTable,
-				doc, subtable, formResources, images, settings);
+				doc, subtable, formResources, images, settings, generator, properties);
 	}
 
 	public static void drawContent(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
-			Map<String, ImageObject> images, ISettings settings)
+			Map<String, ImageObject> images, ISettings settings, IDGenerator generator, PDFAsVisualSignatureProperties properties)
 			throws PdfAsException {
 
 		float contentx = x;
@@ -114,17 +118,19 @@ public class TableDrawUtils {
 					drawCaption(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
+					addToAlternateTableCaption(cell);
 					break;
 				case Entry.TYPE_VALUE:
 					drawValue(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
+					addToAlternateTableCaption(cell);
 					break;
 				case Entry.TYPE_IMAGE:
 					drawImage(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources,
-							images, settings);
+							images, settings, generator);
 					break;
 				case Entry.TYPE_TABLE:
 
@@ -137,7 +143,7 @@ public class TableDrawUtils {
 					drawTable(page, contentStream, contentx, contenty
 							- abstractTable.getRowHeights()[i], colWidth,
 							abstractTable.getRowHeights()[i], tbl_value, doc,
-							true, formResources, images, settings);
+							true, formResources, images, settings, generator,properties);
 					break;
 				default:
 					logger.warn("Unknown Cell entry type: " + cell.getType());
@@ -155,6 +161,7 @@ public class TableDrawUtils {
 			contenty -= abstractTable.getRowHeights()[i];
 			contentx = x;
 		}
+		properties.setAlternativeTableCaption(alternateTableCaption.toString());
 	}
 
 	private static void drawString(PDPage page,
@@ -269,7 +276,7 @@ public class TableDrawUtils {
 			float fontSize = PDFBoxFont.defaultFontSize;
 			PDFont textFont = PDFBoxFont.defaultFont;
 
-			textFont = abstractTable.getFont().getFont(doc);
+			textFont = abstractTable.getFont().getFont();//doc);
 			fontSize = abstractTable.getFont().getFontSize();
 
 			// get the cell Text
@@ -280,7 +287,7 @@ public class TableDrawUtils {
 			Style cellStyle = cell.getStyle();
 			String valign = cellStyle.getVAlign();
 			String halign = cellStyle.getHAlign();
-
+			
 			drawString(page, contentStream, contentx, contenty, width, height,
 					padding, abstractTable, doc, cell, fontSize, textHeight,
 					valign, halign, tlines, textFont, formResources, settings);
@@ -303,7 +310,7 @@ public class TableDrawUtils {
 			float fontSize = PDFBoxFont.defaultFontSize;
 			PDFont textFont = PDFBoxFont.defaultFont;
 
-			textFont = abstractTable.getValueFont().getFont(doc);
+			textFont = abstractTable.getValueFont().getFont();//doc);
 			fontSize = abstractTable.getValueFont().getFontSize();
 
 			// get the cell Text
@@ -329,12 +336,12 @@ public class TableDrawUtils {
 			float width, float height, float padding,
 			PDFBoxTable abstractTable, PDDocument doc, Entry cell,
 			PDResources formResources, Map<String, ImageObject> images,
-			ISettings settings) throws PdfAsException {
+			ISettings settings, IDGenerator generator) throws PdfAsException {
 		try {
 			float innerHeight = height;
 			float innerWidth = width;
 						
-			String img_ref = (String) cell.getValue();
+			String img_ref = generator.createHashedId((String) cell.getValue());
 			if (!images.containsKey(img_ref)) {
 				logger.warn("Image not prepared! : " + img_ref);
 				throw new PdfAsException("Image not prepared! : " + img_ref);
@@ -592,5 +599,11 @@ public class TableDrawUtils {
 		}
 		return "";
 	}
+	
+	private static void addToAlternateTableCaption(Entry cell){
+		alternateTableCaption.append(cell.getValue());
+		alternateTableCaption.append("\n");//better for screen reader
+	}
+
 
 }

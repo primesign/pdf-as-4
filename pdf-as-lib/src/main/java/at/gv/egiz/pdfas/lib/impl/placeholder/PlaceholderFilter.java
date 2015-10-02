@@ -25,12 +25,15 @@ package at.gv.egiz.pdfas.lib.impl.placeholder;
 
 import java.io.IOException;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
-public class PlaceholderFilter implements IConfigurationConstants {
+public class PlaceholderFilter implements IConfigurationConstants,
+		PlaceholderExtractorConstants {
 
 	public static SignaturePlaceholderData checkPlaceholderSignature(
 			OperationStatus status, ISettings settings) throws PdfAsException,
@@ -39,8 +42,25 @@ public class PlaceholderFilter implements IConfigurationConstants {
 		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
 			PlaceholderExtractor extractor = status.getBackend()
 					.getPlaceholderExtractor();
+			String placeholderID = settings.getValue(PLACEHOLDER_ID);
+			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
+			int placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
+			if (placeholderModeString != null) {
+				try {
+					placeholderMode = Integer.parseInt(placeholderModeString);
+
+					if (placeholderMode < PLACEHOLDER_MODE_MIN
+							|| placeholderMode > PLACEHOLDER_MODE_MAX) {
+						throw new PdfAsErrorCarrier(new PDFASError(
+								PDFASError.ERROR_INVALID_PLACEHOLDER_MODE));
+					}
+				} catch (NumberFormatException e) {
+					throw new PdfAsErrorCarrier(new PDFASError(
+							PDFASError.ERROR_INVALID_PLACEHOLDER_MODE, e));
+				}
+			}
 			SignaturePlaceholderData signaturePlaceholderData = extractor
-					.extract(status.getPdfObject(), null, 1);
+					.extract(status.getPdfObject(), placeholderID, placeholderMode);
 
 			return signaturePlaceholderData;
 		}

@@ -25,13 +25,12 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +40,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.ImageUtils;
 import at.gv.egiz.pdfas.common.utils.StringUtils;
+import at.gv.egiz.pdfas.lib.impl.pdfbox.PDFBOXObject;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -67,6 +67,10 @@ public class PDFBoxTable {
 	float[] rowHeights;
 	float[] colWidths;
 
+	PDDocument originalDoc;
+
+	PDFBOXObject pdfBoxObject;
+	
 	private void normalizeContent(Table abstractTable) throws PdfAsException {
 		try {
 			int rows = abstractTable.getRows().size();
@@ -90,8 +94,8 @@ public class PDFBoxTable {
 		}
 	}
 
-	private void initializeStyle(Table abstractTable, PDFBoxTable parent)
-			throws IOException {
+	private void initializeStyle(Table abstractTable, PDFBoxTable parent,
+			PDFBOXObject pdfBoxObject) throws IOException {
 		this.table = abstractTable;
 		try {
 			normalizeContent(abstractTable);
@@ -127,7 +131,7 @@ public class PDFBoxTable {
 								+ abstractTable.getName());
 			}
 
-			font = new PDFBoxFont(fontString, settings);
+			font = new PDFBoxFont(fontString, settings, pdfBoxObject);
 
 			if (vfontString == null && parent != null && parent.style != null) {
 				vfontString = parent.style.getValueFont();
@@ -137,7 +141,7 @@ public class PDFBoxTable {
 								+ abstractTable.getName());
 			}
 
-			valueFont = new PDFBoxFont(vfontString, settings);
+			valueFont = new PDFBoxFont(vfontString, settings, pdfBoxObject);
 		}
 		padding = style.getPadding();
 
@@ -145,9 +149,12 @@ public class PDFBoxTable {
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize,
-			ISettings settings) throws IOException, PdfAsException {
+			ISettings settings, PDFBOXObject pdfBoxObject) throws IOException,
+			PdfAsException {
 		this.settings = settings;
-		initializeStyle(abstractTable, parent);
+		this.pdfBoxObject = pdfBoxObject;
+		this.originalDoc = pdfBoxObject.getDocument();
+		initializeStyle(abstractTable, parent, pdfBoxObject);
 		float[] relativSizes = abstractTable.getColsRelativeWith();
 		if (relativSizes != null) {
 			colWidths = new float[relativSizes.length];
@@ -173,18 +180,23 @@ public class PDFBoxTable {
 			}
 		}
 		calculateHeightsBasedOnWidths();
-		
-		logger.debug("Generating Table with fixed With {} got width {}", fixSize, getWidth());
+
+		logger.debug("Generating Table with fixed With {} got width {}",
+				fixSize, getWidth());
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent,
-			ISettings settings) throws IOException, PdfAsException {
+			ISettings settings, PDFBOXObject pdfBoxObject) throws IOException,
+			PdfAsException {
 		this.settings = settings;
-		initializeStyle(abstractTable, parent);
+		this.pdfBoxObject = pdfBoxObject;
+		this.originalDoc = pdfBoxObject.getDocument();
+		initializeStyle(abstractTable, parent, pdfBoxObject);
 		this.calculateWidthHeight();
 	}
 
-	private void calculateHeightsBasedOnWidths() throws IOException, PdfAsException {
+	private void calculateHeightsBasedOnWidths() throws IOException,
+			PdfAsException {
 		int rows = this.table.getRows().size();
 		rowHeights = new float[rows];
 		addPadding = new boolean[rows];
@@ -198,7 +210,7 @@ public class PDFBoxTable {
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 
-				float colWidth = 0;//colWidths[j];
+				float colWidth = 0;// colWidths[j];
 
 				int colsleft = cell.getColSpan();
 
@@ -283,16 +295,15 @@ public class PDFBoxTable {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
-				if(cell.getType() == Entry.TYPE_TABLE) {
-					PDFBoxTable tbl = (PDFBoxTable)cell.getValue();
-					if(rowHeights[i] != tbl.getHeight())
-					{
+				if (cell.getType() == Entry.TYPE_TABLE) {
+					PDFBoxTable tbl = (PDFBoxTable) cell.getValue();
+					if (rowHeights[i] != tbl.getHeight()) {
 						tbl.setHeight(rowHeights[i]);
 					}
 				}
 			}
 		}
-		
+
 		this.tableWidth = 0;
 
 		for (int i = 0; i < colWidths.length; i++) {
@@ -310,10 +321,10 @@ public class PDFBoxTable {
 			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont.getFont(null);
+				c = valueFont.getFont();//null
 				fontSize = valueFont.getFontSize();
 			} else {
-				c = font.getFont(null);
+				c = font.getFont();//null
 				fontSize = font.getFontSize();
 			}
 			if (string == null) {
@@ -342,7 +353,7 @@ public class PDFBoxTable {
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						this.settings);
+						this.settings, pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
@@ -484,27 +495,31 @@ public class PDFBoxTable {
 			float maxLineHeight = 0;
 			try {
 				byte[] linebytes = StringUtils.applyWinAnsiEncoding(lines[i]);
-				for(int j = 0; j < linebytes.length; j++) {
-					float he = c.getFontHeight(linebytes, j, 1) / 1000 * fontSize;
-					if(he > maxLineHeight) {
+				for (int j = 0; j < linebytes.length; j++) {
+					float he = c.getFontHeight(linebytes, j, 1) / 1000
+							* fontSize;
+					if (he > maxLineHeight) {
 						maxLineHeight = he;
 					}
 				}
 			} catch (UnsupportedEncodingException e) {
 				logger.warn("failed to determine String height", e);
-				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000
+						* fontSize;
 			} catch (IOException e) {
 				logger.warn("failed to determine String height", e);
-				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000 * fontSize;
+				maxLineHeight = c.getFontDescriptor().getCapHeight() / 1000
+						* fontSize;
 			}
-			
+
 			heights[i] = maxLineHeight;
 		}
-		
+
 		return heights;
 	}
 
-	private float getCellHeight(Entry cell, float width) throws IOException, PdfAsException {
+	private float getCellHeight(Entry cell, float width) throws IOException,
+			PdfAsException {
 		boolean isValue = true;
 		switch (cell.getType()) {
 		case Entry.TYPE_CAPTION:
@@ -514,10 +529,10 @@ public class PDFBoxTable {
 			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont.getFont(null);
+				c = valueFont.getFont();//null
 				fontSize = valueFont.getFontSize();
 			} else {
-				c = font.getFont(null);
+				c = font.getFont();//null
 				fontSize = font.getFontSize();
 			}
 
@@ -525,38 +540,30 @@ public class PDFBoxTable {
 					fontSize);
 			cell.setValue(concatLines(lines));
 			float[] heights = getStringHeights(lines, c, fontSize);
-			return fontSize * heights.length  + padding * 2;
+			return fontSize * heights.length + padding * 2;
 		case Entry.TYPE_IMAGE:
-			String imageFile = (String)cell.getValue();
-			File img_file = ImageUtils.getImageFile(imageFile, settings);
+			String imageFile = (String) cell.getValue();
 			if (style != null && style.getImageScaleToFit() != null) {
-				//if (style.getImageScaleToFit().getHeight() < width) {
-					return style.getImageScaleToFit().getHeight() + padding * 2;
-				//}
+				// if (style.getImageScaleToFit().getHeight() < width) {
+				return style.getImageScaleToFit().getHeight() + padding * 2;
+				// }
 			}
-			FileInputStream fis = new FileInputStream(img_file);
-			try {
-				Dimension dim = ImageUtils.getImageDimensions(fis);
-				if(dim.getHeight() > 80.0f) {
-					return width + padding * 2;
-				}
-				return (float)dim.getHeight() + padding * 2;
-			} finally {
-				if(fis != null) {
-					fis.close();
-				}
+			Dimension dim = ImageUtils.getImageDimensions(imageFile, settings);
+			if (dim.getHeight() > 80.0f) {
+				return width + padding * 2;
 			}
+			return (float) dim.getHeight() + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						width, this.settings);
+						width, this.settings, this.pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				// recreate here beacuse of fixed width!
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
 				pdfBoxTable = new PDFBoxTable(pdfBoxTable.table, this, width,
-						this.settings);
+						this.settings, this.pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else {
 				throw new IOException("Failed to build PDFBox Table");
@@ -578,10 +585,10 @@ public class PDFBoxTable {
 			float fontSize;
 			String string = (String) cell.getValue();
 			if (isValue) {
-				c = valueFont.getFont(null);
+				c = valueFont.getFont();//null
 				fontSize = valueFont.getFontSize();
 			} else {
-				c = font.getFont(null);
+				c = font.getFont();//null
 				fontSize = font.getFontSize();
 			}
 
@@ -593,28 +600,21 @@ public class PDFBoxTable {
 				return fontSize + padding * 2;
 			}
 		case Entry.TYPE_IMAGE:
-			String imageFile = (String)cell.getValue();
-			File img_file = ImageUtils.getImageFile(imageFile, settings);
+			String imageFile = (String) cell.getValue();
 			if (style != null && style.getImageScaleToFit() != null) {
 				return style.getImageScaleToFit().getHeight() + padding * 2;
 			}
-			FileInputStream fis = new FileInputStream(img_file);
-			try {
-				Dimension dim = ImageUtils.getImageDimensions(fis);
-				if(dim.getHeight() > 80.0f) {
-					return 80.0f + padding * 2;
-				}
-				return (float)dim.getHeight() + padding * 2;
-			} finally {
-				if(fis != null) {
-					fis.close();
-				}
+			Dimension dim = ImageUtils.getImageDimensions(imageFile, settings);
+			if (dim.getHeight() > 80.0f) {
+				return 80.0f + padding * 2;
 			}
+			return (float) dim.getHeight() + padding * 2;
+
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
 				pdfBoxTable = new PDFBoxTable((Table) cell.getValue(), this,
-						this.settings);
+						this.settings, pdfBoxObject);
 				cell.setValue(pdfBoxTable);
 			} else if (cell.getValue() instanceof PDFBoxTable) {
 				pdfBoxTable = (PDFBoxTable) cell.getValue();
@@ -643,10 +643,10 @@ public class PDFBoxTable {
 	public float getHeight() {
 		return tableHeight;
 	}
-	
+
 	public void setHeight(float height) {
 		float diff = height - this.getHeight();
-		if(diff > 0) {
+		if (diff > 0) {
 			this.rowHeights[rowHeights.length - 1] += diff;
 			calcTotals();
 		} else {

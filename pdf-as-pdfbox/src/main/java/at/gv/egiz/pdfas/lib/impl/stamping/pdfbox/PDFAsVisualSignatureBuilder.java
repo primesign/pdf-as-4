@@ -26,17 +26,16 @@ package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
-
+import org.apache.commons.codec.binary.Hex;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -65,7 +64,8 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.ImageUtils;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 
-public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
+public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
+		IDGenerator {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFAsVisualSignatureBuilder.class);
@@ -116,6 +116,17 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		getStructure().setTemplate(template);
 	}
 
+	public String createHashedId(String value) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			md.reset();
+			return Hex.encodeHexString(md.digest(value.getBytes("UTF-8")));
+		} catch (Throwable e) {
+			logger.warn("Failed to generate ID for Image using value", e);
+			return value;
+		}
+	}
+
 	private void readTableResources(PDFBoxTable table, PDDocument template)
 			throws PdfAsException, IOException {
 
@@ -162,16 +173,11 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			for (int j = 0; j < row.size(); j++) {
 				Entry cell = (Entry) row.get(j);
 				if (cell.getType() == Entry.TYPE_IMAGE) {
-					String img_ref = (String) cell.getValue();
+					String img_value = (String) cell.getValue();
+					String img_ref = createHashedId(img_value);
 					if (!images.containsKey(img_ref)) {
-						File img_file = ImageUtils.getImageFile(img_ref, settings);
-
-						BufferedImage img = null;
-						try {
-							img = ImageIO.read(img_file);
-						} catch (IOException e) {
-							throw new PdfAsException("error.pdf.stamp.04", e);
-						}
+						BufferedImage img = ImageUtils.getImage(img_value,
+								settings);
 
 						float width = colsSizes[j];
 						float height = table.getRowHeights()[i] + padding * 2;
@@ -205,15 +211,20 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 								.floor((double) (scaleFactor * origWidth));
 						iheight = (float) Math
 								.floor((double) (scaleFactor * origHeight));
-						
+
 						logger.debug("Scaling image to: " + iwidth + " x "
 								+ iheight);
 
-						if (img.getAlphaRaster() == null &&
-								img.getColorModel().hasAlpha()) {
+						if (this.designer.properties
+								.getSignatureProfileSettings().isPDFA()) {
 							img = ImageUtils.removeAlphaChannel(img);
+						} else {
+							if (img.getAlphaRaster() == null
+									&& img.getColorModel().hasAlpha()) {
+								img = ImageUtils.removeAlphaChannel(img);
+							}
 						}
-						//img = ImageUtils.convertRGBAToIndexed(img); 
+						// img = ImageUtils.convertRGBAToIndexed(img);
 
 						PDXObjectImage pdImage = new PDPixelMap(template, img);
 
@@ -230,18 +241,19 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		}
 	}
 
-	public void createInnerFormStreamPdfAs(PDDocument template) throws PdfAsException {
+	public void createInnerFormStreamPdfAs(PDDocument template, PDDocument origDoc)
+			throws PdfAsException {
 		try {
 
 			// Hint we have to create all PDXObjectImages before creating the
 			// PDPageContentStream
 			// only PDFbox developers know why ...
-			//if (getStructure().getPage().getResources() != null) {
-			//	innerFormResources = getStructure().getPage().getResources();
-			//} else {
-				innerFormResources = new PDResources();
-				getStructure().getPage().setResources(innerFormResources);
-			//}
+			// if (getStructure().getPage().getResources() != null) {
+			// innerFormResources = getStructure().getPage().getResources();
+			// } else {
+			innerFormResources = new PDResources();
+			getStructure().getPage().setResources(innerFormResources);
+			// }
 			readTableResources(properties.getMainTable(), template);
 
 			PDPageContentStream stream = new PDPageContentStream(template,
@@ -250,7 +262,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 			TableDrawUtils.drawTable(getStructure().getPage(), stream, 1, 1,
 					designer.getWidth(), designer.getHeight(),
 					properties.getMainTable(), template, false,
-					innerFormResources, images, settings);
+					innerFormResources, images, settings, this, properties);
 			stream.close();
 			PDStream innterFormStream = getStructure().getPage().getContents();
 			getStructure().setInnterFormStream(innterFormStream);
@@ -258,7 +270,8 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 		} catch (Throwable e) {
 			logger.warn("Failed to create visual signature block", e);
-			throw new PdfAsException("Failed to create visual signature block", e);
+			throw new PdfAsException("Failed to create visual signature block",
+					e);
 		}
 	}
 
@@ -302,24 +315,24 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 
 		String holderFormComment = "q " + m00 + " " + m10 + " " + m01 + " "
 				+ m11 + " " + m02 + " " + m12 + " cm /" + innerFormName
-				+ " Do Q \n";
-		
+				+ " Do Q";
+
 		logger.debug("Holder Form Stream: " + holderFormComment);
-		
+
 		// String innerFormComment = "q 1 0 0 1 0 0 cm /" + imageObjectName +
 		// " Do Q\n";
 		String innerFormComment = getStructure().getInnterFormStream()
 				.getInputStreamAsString();
 
-		//logger.debug("Inner Form Stream: " + innerFormComment);
+		// logger.debug("Inner Form Stream: " + innerFormComment);
 
 		// appendRawCommands(getStructure().getInnterFormStream().createOutputStream(),
 		// getStructure().getInnterFormStream().getInputStreamAsString());
 
 		appendRawCommands(getStructure().getHolderFormStream()
-				.createOutputStream(), holderFormComment);
+				.createOutputStream(), holderFormComment.trim().replace("\n", "").replace("\r", ""));
 		appendRawCommands(getStructure().getInnterFormStream()
-				.createOutputStream(), innerFormComment);
+				.createOutputStream(), innerFormComment/*.trim().replace("\n", "").replace("\r", "")*/);
 		// appendRawCommands(getStructure().getImageFormStream().createOutputStream(),
 		// imgFormComment);
 		logger.debug("Injected apereance stream to pdf");
@@ -388,55 +401,67 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder {
 		Point2D llSrc = new Point2D.Float();
 		llSrc.setLocation(properties.getxAxis(), properties.getPageHeight()
 				- properties.getyAxis() - properties.getHeight());
-		
+
 		rect.setUpperRightX((float) upSrc.getX());
 		rect.setUpperRightY((float) upSrc.getY());
 		rect.setLowerLeftY((float) llSrc.getY());
 		rect.setLowerLeftX((float) llSrc.getX());
 		logger.debug("orig rectangle of signature has been created: {}",
 				rect.toString());
-		
+
 		AffineTransform transform = new AffineTransform();
 		transform.setToIdentity();
 		if (degrees % 360 != 0) {
 			transform.setToRotation(Math.toRadians(degrees), llSrc.getX(),
 					llSrc.getY());
 		}
-		
-		
+
 		Point2D upDst = new Point2D.Float();
 		transform.transform(upSrc, upDst);
 
 		Point2D llDst = new Point2D.Float();
 		transform.transform(llSrc, llDst);
-		
+
 		float xPos = properties.getxAxis();
 		float yPos = properties.getPageHeight() - properties.getyAxis();
 		logger.debug("POS {} x {}", xPos, yPos);
-		logger.debug("SIZE {} x {}", properties.getWidth(), properties.getHeight());
+		logger.debug("SIZE {} x {}", properties.getWidth(),
+				properties.getHeight());
 		// translate according to page! rotation
 		int pageRotation = properties.getPageRotation();
 		AffineTransform translate = new AffineTransform();
-		switch(pageRotation) {
-			case 90:
-				translate.setToTranslation(properties.getPageHeight()
-				- (properties.getPageHeight()
-				- properties.getyAxis()) - properties.getxAxis() + properties.getHeight(), properties.getxAxis() + properties.getHeight() - (properties.getPageHeight()
-				- properties.getyAxis()));
+		switch (pageRotation) {
+		case 90:
+			translate.setToTranslation(
+					properties.getPageHeight()
+							- (properties.getPageHeight() - properties
+									.getyAxis()) - properties.getxAxis()
+							+ properties.getHeight(),
+					properties.getxAxis()
+							+ properties.getHeight()
+							- (properties.getPageHeight() - properties
+									.getyAxis()));
 			break;
-			case 180:
-				//translate.setToTranslation(properties.getPageWidth() - properties.getxAxis() - properties.getxAxis(), 
-				//		properties.getPageHeight() - properties.getyAxis() + properties.getHeight());
-				translate.setToTranslation(properties.getPageWidth() - 2 * xPos,properties.getPageHeight() - 2 * (yPos - properties.getHeight())); 
-				break;
-			case 270:
-				translate.setToTranslation(-properties.getHeight() + yPos - xPos, properties.getPageWidth() - (yPos - properties.getHeight()) - xPos);
-				break;
+		case 180:
+			// translate.setToTranslation(properties.getPageWidth() -
+			// properties.getxAxis() - properties.getxAxis(),
+			// properties.getPageHeight() - properties.getyAxis() +
+			// properties.getHeight());
+			translate.setToTranslation(
+					properties.getPageWidth() - 2 * xPos,
+					properties.getPageHeight() - 2
+							* (yPos - properties.getHeight()));
+			break;
+		case 270:
+			translate.setToTranslation(-properties.getHeight() + yPos - xPos,
+					properties.getPageWidth() - (yPos - properties.getHeight())
+							- xPos);
+			break;
 		}
 
 		translate.transform(upDst, upDst);
 		translate.transform(llDst, llDst);
-		
+
 		rect.setUpperRightX((float) upDst.getX());
 		rect.setUpperRightY((float) upDst.getY());
 		rect.setLowerLeftY((float) llDst.getY());

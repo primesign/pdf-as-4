@@ -11,6 +11,7 @@ import javax.persistence.Table;
 import org.hibernate.annotations.GenericGenerator;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 
 @Entity
 @Table(name = "requests")
@@ -49,4 +50,6 @@ public class Request {
 	public void setSignRequest(PDFASSignRequest signRequest) {
 		this.signRequest = signRequest;
 	}
+	
+	
 }

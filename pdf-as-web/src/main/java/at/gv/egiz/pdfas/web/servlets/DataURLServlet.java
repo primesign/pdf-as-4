@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.web.servlets;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +45,7 @@ import at.gv.egiz.sl.util.SLMarschaller;
 /**
  * Servlet implementation class DataURL
  */
+@MultipartConfig
 public class DataURLServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 

@@ -79,7 +79,7 @@ subprojects {
 		pdfasversion = version
 		revision = getCheckedOutGitCommitHash()
 		//tomcatVersion = '7.0.54';
-		tomcatVersion = '8.0.9';
+		tomcatVersion = '8.0.23';
 		slf4jVersion = '1.7.7'
 		cxfVersion = '3.0.1'
 	  }
@@ -123,6 +123,26 @@ subprojects {
 			snapshotRepository(url: project.snapshotRepoUrl)
 		}
 	}
+	
+	task(internalRelease) << {
+	}
+	
+	internalRelease.dependsOn jar
+	internalRelease.dependsOn sourcesJar
+	
+	gradle.taskGraph.whenReady {taskGraph ->
+    	//if (taskGraph.hasTask(release)) {
+        //	version = '1.0'
+    	//} else {
+	    //    version = '1.0-SNAPSHOT'
+	    //}
+	}
+	
+	//doFullRelease jar war distZip distTar releases sourcesJar uploadArchives
+}
+
+task(doFullRelease) << {
+	println "done building all distribution stuff for " + project.version
 }
 
 task releases(type: Copy) {

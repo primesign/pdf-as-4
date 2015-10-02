@@ -1,2 +1,2 @@
 
-include "pdf-as-common", "signature-standards:sigs-pkcs7detached", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-pdfbox", "pdf-as-moa", "pdf-as-tests", "pdf-as-cli", "pdf-as-legacy", "pdf-as-web-status", "pdf-as-web", "pdf-as-web-db", "pdf-as-web-client"
+include "pdf-as-common", "signature-standards:sigs-pkcs7detached", "signature-standards:sigs-pades", "pdf-as-lib", "pdf-as-pdfbox", "pdf-as-moa", "pdf-as-tests", "pdf-as-cli", "pdf-as-legacy", "pdf-as-web-status", "pdf-as-web-statistic-api", "pdf-as-web", "pdf-as-web-db", "pdf-as-web-client"

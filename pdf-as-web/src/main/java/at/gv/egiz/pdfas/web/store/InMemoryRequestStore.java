@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 
 public class InMemoryRequestStore implements IRequestStore {
 
@@ -34,14 +35,25 @@ public class InMemoryRequestStore implements IRequestStore {
 	}
 	
 	private HashMap<String, PDFASSignRequest> store = new HashMap<String, PDFASSignRequest>();
+	private HashMap<String, StatisticEvent> statEvents = new HashMap<String, StatisticEvent>();
 	
-	public String createNewStoreEntry(PDFASSignRequest request) {
+	public String createNewStoreEntry(PDFASSignRequest request, StatisticEvent event) {
 		UUID id = UUID.randomUUID();
 		String sid = id.toString();
 		this.store.put(sid, request);
+		this.statEvents.put(sid, event);
 		return sid;
 	}
 
+	public StatisticEvent fetchStatisticEntry(String id) {
+		if(statEvents.containsKey(id)) {
+			StatisticEvent event = statEvents.get(id);
+			statEvents.remove(id);
+			return event;
+		}
+		return null;
+	}
+	
 	public PDFASSignRequest fetchStoreEntry(String id) {
 		if(store.containsKey(id)) {
 			PDFASSignRequest request = store.get(id);

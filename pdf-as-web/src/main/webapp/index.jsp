@@ -45,7 +45,7 @@
 			}
 		%>
 		<%
-			if (WebConfiguration.getKeystoreEnabled()) {
+			if (WebConfiguration.getKeystoreDefaultEnabled()) {
 		%>
 			<button type="submit" value="jks" name="connector"
 				id="jks">Server Keystore</button>

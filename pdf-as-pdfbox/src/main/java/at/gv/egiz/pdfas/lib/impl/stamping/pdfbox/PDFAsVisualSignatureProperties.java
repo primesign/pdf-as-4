@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleSigProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.pdfbox.PDFBOXObject;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 
@@ -50,10 +50,17 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	private PDFAsVisualSignatureDesigner designer;
 	
 	private float rotationAngle = 0;
+	
+	private PDDocument origDoc;
+	
+	private SignatureProfileSettings signatureProfileSettings;
+
+	private String alternativeTableCaption="";
 
 	public PDFAsVisualSignatureProperties(ISettings settings, PDFBOXObject object, 
-			PdfBoxVisualObject visObj, PositioningInstruction pos) {
+			PdfBoxVisualObject visObj, PositioningInstruction pos, SignatureProfileSettings signatureProfileSettings) {
 		this.settings = settings;
+		this.signatureProfileSettings = signatureProfileSettings;
 		try {
 			main = visObj.getTable();
 		} catch (Throwable e) {
@@ -61,7 +68,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		}
 		this.rotationAngle = pos.getRotation();
 		try {
-			PDDocument origDoc = object.getDocument();
+			origDoc = object.getDocument();
 
 			designer = new PDFAsVisualSignatureDesigner(origDoc, pos.getPage(), this, pos.isMakeNewPage());
 			List<?> pages = origDoc.getDocumentCatalog().getAllPages();
@@ -107,7 +114,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 		PDFAsVisualSignatureBuilder builder = new PDFAsVisualSignatureBuilder(this, this.settings, designer);
 		PDFAsTemplateCreator creator = new PDFAsTemplateCreator(builder);
 		try {
-			setVisibleSignature(creator.buildPDF(designer));
+			setVisibleSignature(creator.buildPDF(designer, this.origDoc));
 		} catch (PdfAsException e) {
 			throw new PdfAsWrappedIOException(e);
 		}
@@ -124,6 +131,18 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 
 	public PDFAsVisualSignatureDesigner getDesigner() {
 		return designer;
+	}
+
+	public SignatureProfileSettings getSignatureProfileSettings() {
+		return signatureProfileSettings;
+	}
+	
+	public String getAlternativeTableCaption() {
+		return alternativeTableCaption;
+	}
+
+	public void setAlternativeTableCaption(String alternativeTableCaption) {
+		this.alternativeTableCaption = alternativeTableCaption;
 	}
 	
 }

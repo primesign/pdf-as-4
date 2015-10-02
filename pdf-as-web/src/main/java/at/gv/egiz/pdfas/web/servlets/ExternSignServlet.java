@@ -38,14 +38,21 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
+import at.gv.egiz.pdfas.web.filter.UserAgentFilter;
 import at.gv.egiz.pdfas.web.helper.DigestHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.helper.RemotePDFFetcher;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
+import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 
 /**
  * Servlet implementation class Sign
@@ -90,6 +97,12 @@ public class ExternSignServlet extends HttpServlet {
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
 		
+		StatisticEvent statisticEvent = new StatisticEvent();
+		statisticEvent.setStartNow();
+		statisticEvent.setSource(Source.WEB);
+		statisticEvent.setOperation(Operation.SIGN);
+		statisticEvent.setUserAgent(UserAgentFilter.getUserAgent());
+		
 		try {
 			// Mandatory Parameters on Get Request:
 			String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
@@ -106,8 +119,19 @@ public class ExternSignServlet extends HttpServlet {
 			}
 
 			byte[] pdfData = RemotePDFFetcher.fetchPdfFile(pdfUrl);
-			doSignature(request, response, pdfData);
+			doSignature(request, response, pdfData, statisticEvent);
 		} catch (Exception e) {
+			
+			statisticEvent.setStatus(Status.ERROR);
+			statisticEvent.setException(e);
+			if(e instanceof PDFASError) {
+				statisticEvent.setErrorCode(((PDFASError)e).getCode());
+			}
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
@@ -127,6 +151,12 @@ public class ExternSignServlet extends HttpServlet {
 		
 		String errorUrl = PdfAsParameterExtractor.getInvokeErrorURL(request);
 		PdfAsHelper.setErrorURL(request, response, errorUrl);
+		
+		StatisticEvent statisticEvent = new StatisticEvent();
+		statisticEvent.setStartNow();
+		statisticEvent.setSource(Source.WEB);
+		statisticEvent.setOperation(Operation.SIGN);
+		statisticEvent.setUserAgent(UserAgentFilter.getUserAgent());
 		
 		try {
 			byte[] filecontent = null;
@@ -225,14 +255,33 @@ public class ExternSignServlet extends HttpServlet {
 					if(source.equals("internal")) {
 						request.setAttribute("FILEERR", true);
 						request.getRequestDispatcher("index.jsp").forward(request, response);
+						
+						statisticEvent.setStatus(Status.ERROR);
+						statisticEvent.setException(new Exception("No file uploaded"));
+						statisticEvent.setEndNow();
+						statisticEvent.setTimestampNow();
+						StatisticFrontend.getInstance().storeEvent(statisticEvent);
+						statisticEvent.setLogged(true);
+						
 						return;
 					}
 				}
 				throw new PdfAsException("No Signature data available");
 			}
 			
-			doSignature(request, response, filecontent);
+			doSignature(request, response, filecontent, statisticEvent);
 		} catch (Exception e) {
+			
+			statisticEvent.setStatus(Status.ERROR);
+			statisticEvent.setException(e);
+			if(e instanceof PDFASError) {
+				statisticEvent.setErrorCode(((PDFASError)e).getCode());
+			}
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			PdfAsHelper.setSessionException(request, response, e.getMessage(),
 					e);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
@@ -240,17 +289,24 @@ public class ExternSignServlet extends HttpServlet {
 	}
 
 	protected void doSignature(HttpServletRequest request,
-			HttpServletResponse response, byte[] pdfData) throws Exception {
+			HttpServletResponse response, byte[] pdfData, StatisticEvent statisticEvent) throws Exception {
 		// Get Connector
 		String connector = PdfAsParameterExtractor.getConnector(request);
 		
 		String transactionId = PdfAsParameterExtractor.getTransactionId(request);
+		
+		statisticEvent.setFilesize(pdfData.length);
+		statisticEvent.setProfileId(null);
+		statisticEvent.setDevice(connector);
 
 		String invokeUrl = PdfAsParameterExtractor.getInvokeURL(request);
 		PdfAsHelper.setInvokeURL(request, response, invokeUrl);
 		
 		SignatureVerificationLevel lvl = PdfAsParameterExtractor.getVerificationLevel(request);
 		PdfAsHelper.setVerificationLevel(request, lvl);
+		
+		String qrcodeContent = PdfAsParameterExtractor.getQRCodeContent(request);
+		PdfAsHelper.setQRCodeContent(request, qrcodeContent);
 		
 		String invokeTarget = PdfAsParameterExtractor.getInvokeTarget(request);
 		PdfAsHelper.setInvokeTarget(request, response, invokeTarget);
@@ -300,16 +356,34 @@ public class ExternSignServlet extends HttpServlet {
 				}
 			}
 			
+			PdfAsHelper.setStatisticEvent(request, response, statisticEvent);
+			
 			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector, 
 					PdfAsHelper.buildPosString(request, response), transactionId, PdfAsParameterExtractor
-					.getSigType(request), PdfAsParameterExtractor.getPreProcessorMap(request));
+					.getSigType(request), PdfAsParameterExtractor.getPreProcessorMap(request), 
+					PdfAsParameterExtractor.getOverwriteMap(request));
 			return;
 		} else if (connector.equals("jks") || connector.equals("moa")) {
 			// start synchronous siganture creation
 			
 			if(connector.equals("jks")) {
-				if(!WebConfiguration.getKeystoreEnabled()) {
-					throw new PdfAsWebException("Invalid connector jks is not supported");
+				
+				String keyIdentifier = PdfAsParameterExtractor.getKeyIdentifier(request);
+
+				boolean ksEnabled = false;
+
+				if (keyIdentifier != null) {
+					ksEnabled = WebConfiguration.getKeystoreEnabled(keyIdentifier);
+				} else {
+					ksEnabled = WebConfiguration.getKeystoreDefaultEnabled();
+				}
+
+				if (!ksEnabled) {
+					if(keyIdentifier != null) {
+						throw new PdfAsWebException("JKS connector [" + keyIdentifier + "] disabled or not existing.");
+					} else {
+						throw new PdfAsWebException("DEFAULT JKS connector disabled.");
+					}
 				}
 			}
 			
@@ -319,9 +393,18 @@ public class ExternSignServlet extends HttpServlet {
 				}
 			}
 			
+			
+			
 			byte[] pdfSignedData = PdfAsHelper.synchornousSignature(request,
 					response, pdfData);
 			PdfAsHelper.setSignedPdf(request, response, pdfSignedData);
+			
+			statisticEvent.setStatus(Status.OK);
+			statisticEvent.setEndNow();
+			statisticEvent.setTimestampNow();
+			StatisticFrontend.getInstance().storeEvent(statisticEvent);
+			statisticEvent.setLogged(true);
+			
 			PdfAsHelper.gotoProvidePdf(getServletContext(), request, response);
 			return;
 		} else {

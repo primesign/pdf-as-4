@@ -47,23 +47,25 @@ public class SimpleTest {
 			FileInputStream fis = new FileInputStream(
 					"/home/afitzek/simple.pdf");
 			byte[] inputData = IOUtils.toByteArray(fis);
-
+ 
 			PDFASSignParameters signParameters = new PDFASSignParameters();
 			signParameters.setConnector(Connector.JKS);
 			signParameters.setPosition(null);
 			signParameters.setProfile("SIGNATURBLOCK_SMALL_DE");
+			signParameters.setQRCodeContent("TEST CONTENT");
+			//signParameters.setKeyIdentifier("test");
 
 			PDFASSignRequest request = new PDFASSignRequest();
 			request.setInputData(inputData);
 			request.setParameters(signParameters);
 			request.setRequestID("SOME TEST ID");
-
+			
 			//URL endpoint = new
 			//URL("http://demo.egiz.gv.at/demoportal-pdf_as/wssign?wsdl");
 			//URL endpoint = new
 			//		URL("http://www.buergerkarte.at/pdf-as-extern-4/wssign?wsdl");
-			String baseUrl  = "http://demo.egiz.gv.at/demoportal-pdf_as/";
-			//String baseUrl  = "http://localhost:8080/pdf-as-web/";
+			String baseUrl  = "http://demo.egiz.gv.at/demoportal-pdf_as/services/";
+			//String baseUrl  = "http://localhost:8080/pdf-as-web/services/";
 			//URL endpoint = new URL(
 			//		"http://192.168.56.10/pdf-as-web/wssign?wsdl");
 
@@ -84,7 +86,7 @@ public class SimpleTest {
 			
 			PDFASVerifyRequest verifyRequest = new PDFASVerifyRequest();
 			verifyRequest.setInputData(response.getSignedPDF());
-			verifyRequest.setVerificationLevel(VerificationLevel.FULL_CERT_PATH);
+			verifyRequest.setVerificationLevel(VerificationLevel.INTEGRITY_ONLY);
 			
 			PDFASVerifyResponse verifyResponse = verifier.verifyPDFDokument(verifyRequest);
 			
