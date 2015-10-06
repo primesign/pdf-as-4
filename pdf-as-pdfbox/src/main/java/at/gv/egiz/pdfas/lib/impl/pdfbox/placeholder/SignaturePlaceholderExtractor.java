@@ -50,12 +50,15 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Vector;
 
+import org.apache.commons.collections4.ListUtils;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
@@ -109,6 +112,41 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			int placeholderMatchMode) throws IOException {
 		super(ResourceLoader.loadProperties(
 				"placeholder/pdfbox-reader.properties", true));
+	}
+	
+	/**
+	 * Extracts all placeholders (with placeholder identifier
+	 * {@linkplain at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractorConstants#QR_PLACEHOLDER_IDENTIFIER
+	 * QR_PLACEHOLDER_IDENTIFIER}).
+	 * 
+	 * @param doc
+	 *            The pdfbox document object.
+	 * @return A (unmodifiable) list of signature place holders (never {@code null}).
+	 * @throws IOException
+	 *             Thrown in case of I/O error reading/parsing the pdf document.
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<SignaturePlaceholderData> extract(PDDocument doc) throws IOException {
+		Objects.requireNonNull(doc, "Pdfbox document must not be null.");
+		
+		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor(
+				QR_PLACEHOLDER_IDENTIFIER,        // is ignored anyway
+				PLACEHOLDER_MATCH_MODE_MODERATE   // is ignored anyway
+		);
+		
+		int pageNr = 0;
+		for (PDPage page : (Iterable<PDPage>) doc.getDocumentCatalog().getAllPages()) {
+			extractor.setCurrentPage(++pageNr);
+			if (page.getContents() != null && page.findResources() != null && page.getContents().getStream() != null) {
+				extractor.processStream(
+						page,
+						page.findResources(),
+						page.getContents().getStream()
+				);
+			}
+		}
+		
+		return ListUtils.unmodifiableList(new ArrayList<SignaturePlaceholderData>(extractor.placeholders));
 	}
 
 	/**
