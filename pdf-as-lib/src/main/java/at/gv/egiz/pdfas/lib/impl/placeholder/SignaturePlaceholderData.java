@@ -46,6 +46,8 @@
  */
 package at.gv.egiz.pdfas.lib.impl.placeholder;
 
+import java.io.Serializable;
+
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 
 /**
@@ -54,7 +56,9 @@ import at.knowcenter.wag.egov.egiz.pdf.TablePos;
  * @author exthex
  *
  */
-public class SignaturePlaceholderData {
+public class SignaturePlaceholderData implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
    public static final String ID_KEY = "id";
 
