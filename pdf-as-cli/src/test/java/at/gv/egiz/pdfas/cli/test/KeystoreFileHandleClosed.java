@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
@@ -23,6 +24,7 @@ public class KeystoreFileHandleClosed {
 	private static final String keyStoreType = "PKCS12";
 
 	@Test
+	@Ignore
 	public void test() throws IOException, PdfAsException, PDFASError {
 		
 		File origFileFile = new File(origFile);
