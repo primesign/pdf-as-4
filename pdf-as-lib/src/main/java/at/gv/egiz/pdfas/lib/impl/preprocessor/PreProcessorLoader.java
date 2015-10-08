@@ -23,15 +23,32 @@ public class PreProcessorLoader {
 		logger.debug("building PreProcessors");
 		
 		List<PreProcessor> processors = new ArrayList<PreProcessor>();
-		Iterator<PreProcessor> processorIterator = preProcessorLoader.iterator();
 		
-		while(processorIterator.hasNext()) {
-			PreProcessor preProcessor = processorIterator.next();
-			logger.debug("Loading " + preProcessor.getName() + " [" + preProcessor.getClass().getName() + "]");
-			preProcessor.initialize(configuration);
-			logger.debug("Initialized " + preProcessor.getName());
-			processors.add(preProcessor);
-			logger.debug("Preprocessor added " + preProcessor.getName());
+		// ServiceLoader and ServiceLoader-generated Iterators are NOT thread-safe!!!
+		synchronized (preProcessorLoader) {
+			Iterator<PreProcessor> processorIterator = preProcessorLoader.iterator();
+		
+			while(processorIterator.hasNext()) {
+				PreProcessor preProcessor = processorIterator.next();
+				logger.debug("Loading " + preProcessor.getName() + " [" + preProcessor.getClass().getName() + "]");
+				
+				// ** IMPORTANT NOTE **
+				
+				// A ServiceLoader yields singletons that must be thread-safe for obvious reasons!
+				// That is why this code is rather dangerous and cannot work safely the way it is designed.
+				
+				// If a preprocessor's state depends on the current configuration object (which has be regarded as
+				// individual object for each signature) it has to be created (and initialized) on each call of
+				// getPreProcessors(Configuration).
+				// This is not the case when directly using a ServiceLoader since ServiceLoaders create singletons only.
+				// A feasible approach might involve a Serviceloader that creates provider singletons, that finally
+				// create preprocessor instances (factory pattern).
+				
+				preProcessor.initialize(configuration);
+				logger.debug("Initialized " + preProcessor.getName());
+				processors.add(preProcessor);
+				logger.debug("Preprocessor added " + preProcessor.getName());
+			}
 		}
 		
 		logger.debug("PreProcessors constructed");
