@@ -64,6 +64,8 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.util.Matrix;
@@ -137,11 +139,13 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		int pageNr = 0;
 		for (PDPage page : (Iterable<PDPage>) doc.getDocumentCatalog().getAllPages()) {
 			extractor.setCurrentPage(++pageNr);
-			if (page.getContents() != null && page.findResources() != null && page.getContents().getStream() != null) {
+			PDStream contents = page.getContents();
+			PDResources resources = page.findResources();
+			if (contents != null && contents.getStream() != null && resources != null) {
 				extractor.processStream(
 						page,
-						page.findResources(),
-						page.getContents().getStream()
+						resources,
+						contents.getStream()
 				);
 			}
 		}
