@@ -50,16 +50,12 @@ public class TableDrawUtils {
 
 	public static final String TABLE_DEBUG = "debug.table";
 	
-	private static StringBuilder alternateTableCaption;
-	
 	public static void drawTable(PDPage page,
 			PDPageContentStream contentStream, float x, float y, float width,
 			float height, PDFBoxTable abstractTable, PDDocument doc,
 			boolean subtable, PDResources formResources,
 			Map<String, ImageObject> images, ISettings settings, IDGenerator generator, PDFAsVisualSignatureProperties properties)
 			throws PdfAsException {
-
-		alternateTableCaption = new StringBuilder();
 		
 		logger.debug("Drawing Table: X {} Y {} WIDTH {} HEIGHT {} \n{}", x, y,
 				width, height, abstractTable.getOrigTable().toString());
@@ -87,7 +83,7 @@ public class TableDrawUtils {
 		float contenty = y + height;
 		float padding = abstractTable.getPadding();
 		float[] colsSizes = getColSizes(abstractTable);
-
+		StringBuilder alternateTableCaption = new StringBuilder();
 		for (int i = 0; i < abstractTable.getRowCount(); i++) {
 			ArrayList<Entry> row = abstractTable.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
@@ -118,13 +114,13 @@ public class TableDrawUtils {
 					drawCaption(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
-					addToAlternateTableCaption(cell);
+					addToAlternateTableCaption(cell, alternateTableCaption);
 					break;
 				case Entry.TYPE_VALUE:
 					drawValue(page, contentStream, contentx, contenty,
 							colWidth, abstractTable.getRowHeights()[i],
 							padding, abstractTable, doc, cell, formResources, settings);
-					addToAlternateTableCaption(cell);
+					addToAlternateTableCaption(cell, alternateTableCaption);
 					break;
 				case Entry.TYPE_IMAGE:
 					drawImage(page, contentStream, contentx, contenty,
@@ -600,7 +596,7 @@ public class TableDrawUtils {
 		return "";
 	}
 	
-	private static void addToAlternateTableCaption(Entry cell){
+	private static void addToAlternateTableCaption(Entry cell, StringBuilder alternateTableCaption){
 		alternateTableCaption.append(cell.getValue());
 		alternateTableCaption.append("\n");//better for screen reader
 	}
