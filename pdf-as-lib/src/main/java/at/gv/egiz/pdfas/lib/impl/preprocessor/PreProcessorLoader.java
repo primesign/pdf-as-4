@@ -19,7 +19,7 @@ public class PreProcessorLoader {
 	
 	private static ServiceLoader<PreProcessor> preProcessorLoader = ServiceLoader.load(PreProcessor.class);
 	
-	public static List<PreProcessor> getPreProcessors(Configuration configuration) {
+	public synchronized static List<PreProcessor> getPreProcessors(Configuration configuration) {
 		logger.debug("building PreProcessors");
 		
 		List<PreProcessor> processors = new ArrayList<PreProcessor>();
