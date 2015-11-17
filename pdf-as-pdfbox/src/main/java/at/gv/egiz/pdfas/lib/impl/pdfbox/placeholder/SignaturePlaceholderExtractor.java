@@ -50,6 +50,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -57,10 +58,13 @@ import java.util.Map;
 import java.util.Vector;
 
 import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDFontFactory;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.util.Matrix;
@@ -73,6 +77,7 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PlaceholderExtractionException;
+import at.gv.egiz.pdfas.lib.impl.pdfbox.DebugUtils;
 import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractorConstants;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderContext;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
@@ -104,11 +109,13 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
 	private int currentPage = 0;
+	private PDDocument doc;
 
 	private SignaturePlaceholderExtractor(String placeholderId,
-			int placeholderMatchMode) throws IOException {
+			int placeholderMatchMode, PDDocument doc) throws IOException {
 		super(ResourceLoader.loadProperties(
 				"placeholder/pdfbox-reader.properties", true));
+		this.doc = doc;
 	}
 
 	/**
@@ -131,7 +138,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		SignaturePlaceholderExtractor extractor;
 		try {
 			extractor = new SignaturePlaceholderExtractor(placeholderId,
-					matchMode);
+					matchMode, doc);
 		} catch (IOException e2) {
 			throw new PDFIOException("error.pdf.io.04", e2);
 		}
@@ -145,8 +152,10 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 				extractor.setCurrentPage(pageNr);
 				if(page.getContents() != null && page.findResources() != null &&
 						page.getContents().getStream() != null) {
+					DebugUtils.showFontType("Before stream process", doc);
 					extractor.processStream(page, page.findResources(), page
 						.getContents().getStream());
+					DebugUtils.showFontType("After stream process", doc);
 				}
 				SignaturePlaceholderData ret = matchPlaceholderPage(
 						extractor.placeholders, placeholderId, matchMode);
@@ -221,6 +230,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	protected void processOperator(PDFOperator operator, List<COSBase> arguments)
 			throws IOException {
 		String operation = operator.getOperation();
+		DebugUtils.showFontType("Before operator " + operator, doc);
 		if (operation.equals("Do")) {
 			COSName objectName = (COSName) arguments.get(0);
 			Map<?, ?> xobjects = getResources().getXObjects();
@@ -287,6 +297,54 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		} else {
 			super.processOperator(operator, arguments);
 		}
+		DebugUtils.showFontType("After operator " + operator, doc);
+	}
+
+	private  Map<String, PDFont> fonts;
+	
+	@Override
+	public Map<String, PDFont> getFonts() {
+		if (fonts == null)
+        {
+            // at least an empty map will be returned
+            // TODO we should return null instead of an empty map
+            fonts = new HashMap<String, PDFont>();
+            if(this.getResources() != null && this.getResources().getCOSDictionary() != null) {
+            COSDictionary fontsDictionary = (COSDictionary) this.getResources().getCOSDictionary().getDictionaryObject(COSName.FONT);
+            if (fontsDictionary == null)
+            {
+            	// ignore we do not want to set anything, never when creating a signature!!!!!
+                //fontsDictionary = new COSDictionary();
+                //this.getResources().getCOSDictionary().setItem(COSName.FONT, fontsDictionary);
+            }
+            else
+            {
+                for (COSName fontName : fontsDictionary.keySet())
+                {
+                    COSBase font = fontsDictionary.getDictionaryObject(fontName);
+                    // data-000174.pdf contains a font that is a COSArray, looks to be an error in the
+                    // PDF, we will just ignore entries that are not dictionaries.
+                    if (font instanceof COSDictionary)
+                    {
+                        PDFont newFont = null;
+                        try
+                        {
+                            newFont = PDFontFactory.createFont((COSDictionary) font);
+                        }
+                        catch (IOException exception)
+                        {
+                            logger.error("error while creating a font", exception);
+                        }
+                        if (newFont != null)
+                        {
+                            fonts.put(fontName.getName(), newFont);
+                        }
+                    }
+                }
+            }
+            }
+        }
+        return fonts;
 	}
 
 	/**
