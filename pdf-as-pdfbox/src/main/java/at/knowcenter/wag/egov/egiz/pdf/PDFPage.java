@@ -386,14 +386,15 @@ public class PDFPage extends PDFTextStripper {
 			fontObj = getCurrentPage().getResources().getCOSDictionary()
 					.getDictionaryObject(COSName.FONT);
 		}
+		
 		Map<String, PDFont> fontMap = getCurrentPage().findResources()
 				.getFonts();
-
+		
 		if (fontObj != null) {
 			getCurrentPage().getResources().getCOSDictionary()
 					.setItem(COSName.FONT, fontObj);
 		}
-
+		
 		return fontMap;
 	}
 

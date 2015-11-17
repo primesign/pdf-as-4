@@ -28,11 +28,10 @@ import at.gv.egiz.pdfas.lib.impl.verify.VerifyBackend;
 
 public class PDFBOXVerifier implements VerifyBackend {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(PDFBOXVerifier.class);
+	private static final Logger logger = LoggerFactory.getLogger(PDFBOXVerifier.class);
+
 	@Override
-	public List<VerifyResult> verify(VerifyParameter parameter)
-			throws PDFASError {
+	public List<VerifyResult> verify(VerifyParameter parameter) throws PDFASError {
 		int signatureToVerify = parameter.getWhichSignature();
 		int currentSignature = 0;
 		PDDocument doc = null;
@@ -47,20 +46,17 @@ public class PDFBOXVerifier implements VerifyBackend {
 				// No signatures ...
 				return result;
 			}
-			COSDictionary root = (COSDictionary) trailer
-					.getDictionaryObject(COSName.ROOT);
+			COSDictionary root = (COSDictionary) trailer.getDictionaryObject(COSName.ROOT);
 			if (root == null) {
 				// No signatures ...
 				return result;
 			}
-			COSDictionary acroForm = (COSDictionary) root
-					.getDictionaryObject(COSName.ACRO_FORM);
+			COSDictionary acroForm = (COSDictionary) root.getDictionaryObject(COSName.ACRO_FORM);
 			if (acroForm == null) {
 				// No signatures ...
 				return result;
 			}
-			COSArray fields = (COSArray) acroForm
-					.getDictionaryObject(COSName.FIELDS);
+			COSArray fields = (COSArray) acroForm.getDictionaryObject(COSName.FIELDS);
 			if (fields == null) {
 				// No signatures ...
 				return result;
@@ -75,8 +71,7 @@ public class PDFBOXVerifier implements VerifyBackend {
 				}
 			}
 
-			byte[] inputData = IOUtils.toByteArray(parameter.getDataSource()
-					.getInputStream());
+			byte[] inputData = IOUtils.toByteArray(parameter.getDataSource().getInputStream());
 
 			for (int i = 0; i < fields.size(); i++) {
 				COSDictionary field = (COSDictionary) fields.getObject(i);
@@ -99,13 +94,10 @@ public class PDFBOXVerifier implements VerifyBackend {
 						COSDictionary dict = (COSDictionary) base;
 
 						logger.debug("Signer: " + dict.getNameAsString("Name"));
-						logger.debug("SubFilter: "
-								+ dict.getNameAsString("SubFilter"));
-						logger.debug("Filter: "
-								+ dict.getNameAsString("Filter"));
+						logger.debug("SubFilter: " + dict.getNameAsString("SubFilter"));
+						logger.debug("Filter: " + dict.getNameAsString("Filter"));
 						logger.debug("Modified: " + dict.getNameAsString("M"));
-						COSArray byteRange = (COSArray) dict
-								.getDictionaryObject("ByteRange");
+						COSArray byteRange = (COSArray) dict.getDictionaryObject("ByteRange");
 
 						StringBuilder sb = new StringBuilder();
 						int[] bytes = new int[byteRange.size()];
@@ -116,8 +108,7 @@ public class PDFBOXVerifier implements VerifyBackend {
 
 						logger.debug("ByteRange" + sb.toString());
 
-						COSString content = (COSString) dict
-								.getDictionaryObject("Contents");
+						COSString content = (COSString) dict.getDictionaryObject("Contents");
 
 						ByteArrayOutputStream contentData = new ByteArrayOutputStream();
 						for (int j = 0; j < bytes.length; j = j + 2) {
@@ -128,23 +119,18 @@ public class PDFBOXVerifier implements VerifyBackend {
 						}
 						contentData.close();
 
-						IVerifyFilter verifyFilter = verifier.getVerifier(
-								dict.getNameAsString("Filter"),
+						IVerifyFilter verifyFilter = verifier.getVerifier(dict.getNameAsString("Filter"),
 								dict.getNameAsString("SubFilter"));
 
-						IVerifier lvlVerifier = verifier
-								.getVerifierByLevel(parameter
-										.getSignatureVerificationLevel());
-						lvlVerifier.setConfiguration(parameter
-								.getConfiguration());
-						if (verifyFilter != null) {
-							List<VerifyResult> results = verifyFilter.verify(
-									contentData.toByteArray(),
-									content.getBytes(),
-									parameter.getVerificationTime(), bytes,
-									lvlVerifier);
-							if (results != null && !results.isEmpty()) {
-								result.addAll(results);
+						IVerifier lvlVerifier = verifier.getVerifierByLevel(parameter.getSignatureVerificationLevel());
+						synchronized (lvlVerifier) {
+							lvlVerifier.setConfiguration(parameter.getConfiguration());
+							if (verifyFilter != null) {
+								List<VerifyResult> results = verifyFilter.verify(contentData.toByteArray(),
+										content.getBytes(), parameter.getVerificationTime(), bytes, lvlVerifier);
+								if (results != null && !results.isEmpty()) {
+									result.addAll(results);
+								}
 							}
 						}
 					}
