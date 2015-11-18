@@ -47,7 +47,9 @@ public class PDFBOXObject extends PDFObject {
 		if(doc != null) {
 			doc.close();
 		}
-		this.doc = PDDocument.load(this.originalDocument.getInputStream());
+		synchronized(PDDocument.class) {
+			this.doc = PDDocument.load(this.originalDocument.getInputStream());
+		}
 		if(this.doc != null) {
 			this.doc.getDocument().setWarnMissingClose(false);
 		}
