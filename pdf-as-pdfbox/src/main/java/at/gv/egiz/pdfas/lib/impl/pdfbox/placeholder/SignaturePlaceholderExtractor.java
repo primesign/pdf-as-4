@@ -77,7 +77,6 @@ import org.slf4j.LoggerFactory;
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PlaceholderExtractionException;
-import at.gv.egiz.pdfas.lib.impl.pdfbox.DebugUtils;
 import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractorConstants;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderContext;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
@@ -152,10 +151,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 				extractor.setCurrentPage(pageNr);
 				if(page.getContents() != null && page.findResources() != null &&
 						page.getContents().getStream() != null) {
-					DebugUtils.showFontType("Before stream process", doc);
 					extractor.processStream(page, page.findResources(), page
 						.getContents().getStream());
-					DebugUtils.showFontType("After stream process", doc);
 				}
 				SignaturePlaceholderData ret = matchPlaceholderPage(
 						extractor.placeholders, placeholderId, matchMode);
@@ -230,7 +227,6 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	protected void processOperator(PDFOperator operator, List<COSBase> arguments)
 			throws IOException {
 		String operation = operator.getOperation();
-		DebugUtils.showFontType("Before operator " + operator, doc);
 		if (operation.equals("Do")) {
 			COSName objectName = (COSName) arguments.get(0);
 			Map<?, ?> xobjects = getResources().getXObjects();
@@ -297,7 +293,6 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		} else {
 			super.processOperator(operator, arguments);
 		}
-		DebugUtils.showFontType("After operator " + operator, doc);
 	}
 
 	private  Map<String, PDFont> fonts;
