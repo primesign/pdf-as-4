@@ -162,7 +162,7 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         logger.debug("stream returning started, size= " + in.available());
         
         // we must close the document
-        template.close();
+        this.pdfBuilder.closeTemplate(template);
         
         // return result of the stream 
         return in;
