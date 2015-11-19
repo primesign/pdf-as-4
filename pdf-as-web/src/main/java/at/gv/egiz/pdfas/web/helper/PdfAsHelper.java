@@ -793,6 +793,23 @@ public class PdfAsHelper {
 		return baos.toByteArray();
 	}
 
+	public static boolean checkDataUrlAccess(HttpServletRequest request) throws Exception {
+		HttpSession session = request.getSession(false);
+		
+		if(session != null) {
+			Object statusObject = session
+					.getAttribute(PDF_STATUS);
+			if(statusObject != null && statusObject instanceof StatusRequest) {
+				StatusRequest statusRequest = (StatusRequest)statusObject;
+				if(statusRequest.needCertificate() || statusRequest.needSignature()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+	
 	public static void injectCertificate(HttpServletRequest request,
 			HttpServletResponse response,
 			InfoboxReadResponseType infoboxReadResponseType,

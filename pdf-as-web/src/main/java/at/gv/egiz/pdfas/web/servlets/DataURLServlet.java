@@ -80,6 +80,10 @@ public class DataURLServlet extends HttpServlet {
 	protected void process(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		try {
+			if(!PdfAsHelper.checkDataUrlAccess(request)) {
+				throw new Exception("No valid dataURL access");
+			}
+			
 			PdfAsHelper.setFromDataUrl(request);
 			String xmlResponse = request.getParameter("XMLResponse");
 			

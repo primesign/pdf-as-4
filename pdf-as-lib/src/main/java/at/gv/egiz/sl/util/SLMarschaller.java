@@ -32,6 +32,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,11 +72,30 @@ public class SLMarschaller {
 	}
 	
 	public static Object unmarshal(InputStream is) throws JAXBException {
-		return unmarshaller.unmarshal(is);
+		XMLInputFactory xif = XMLInputFactory.newFactory();
+        xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        XMLStreamReader xmlStreamReader;
+		try {
+			xmlStreamReader = xif.createXMLStreamReader(is);
+			return unmarshaller.unmarshal(xmlStreamReader);
+		} catch (XMLStreamException e) {
+			throw new JAXBException(e);
+		}
+		
 	}
 	
 	public static Object unmarshalFromString(String message) throws JAXBException {
 		StringReader sr = new StringReader(message);
-		return unmarshaller.unmarshal(sr);
+		XMLInputFactory xif = XMLInputFactory.newFactory();
+        xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+        xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        XMLStreamReader xmlStreamReader;
+		try {
+			xmlStreamReader = xif.createXMLStreamReader(sr);
+			return unmarshaller.unmarshal(xmlStreamReader);
+		} catch (XMLStreamException e) {
+			throw new JAXBException(e);
+		}
 	}
 }
