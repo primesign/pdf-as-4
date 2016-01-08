@@ -101,10 +101,15 @@ public class ProvidePDFServlet extends HttpServlet {
 				String template = PdfAsHelper.getInvokeRedirectTemplateSL();
 				
 				URL url = new URL(invokeURL);
+				int p=url.getPort();
+				//no port, but http or https --> use default port
+				if((url.getProtocol().equalsIgnoreCase("https") || url.getProtocol().equalsIgnoreCase("http")) && p == -1){
+					p=url.getDefaultPort();
+				}
 				String invokeUrlProcessed = url.getProtocol() + "://" +   // "http" + "://
 						url.getHost() +       // "myhost"
 			             ":" +                           // ":"
-			             url.getPort() +       // "8080"
+			             p +       // "8080"
 			             url.getPath();  
 				
 				template = template.replace("##INVOKE_URL##", invokeUrlProcessed);
