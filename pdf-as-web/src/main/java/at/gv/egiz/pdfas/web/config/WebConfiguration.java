@@ -93,6 +93,8 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String UPLOAD_MAX_FILESIZE = "web.upload.filesizeMax";
 	public static final String UPLOAD_MAX_REQUESTSIZE = "web.upload.RequestsizeMax";
 	
+	public static final String PLACEHOLDER_GENERATOR_ENABLED = "qr.placeholder.generator.enabled";
+	
 	private static final int THRESHOLD_SIZE = 1024 * 1024 * 3; // 3MB
 	private static final int MAX_FILE_SIZE = 1024 * 1024 * 40; // 40MB
 	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 50; // 50MB
@@ -300,6 +302,16 @@ public class WebConfiguration implements IConfigurationConstants {
 	
 	public static boolean isMoaEnabled(String keyIdentifier) {
 		String value = properties.getProperty(MOA_LIST + "." + keyIdentifier + ".enabled");
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isQRPlaceholderGenerator() {
+		String value = properties.getProperty(PLACEHOLDER_GENERATOR_ENABLED);
 		if (value != null) {
 			if (value.equals("true")) {
 				return true;
