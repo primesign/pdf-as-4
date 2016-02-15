@@ -192,6 +192,38 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		if (placeholders.size() == 0)
 			return null;
 
+		if (matchMode == PLACEHOLDER_MATCH_MODE_SORTED) {
+			// sort all placeholders by the id string if all ids are null do nothing
+			SignaturePlaceholderData currentFirstSpd = null;
+			for (int i = 0; i < placeholders.size(); i++) {
+				SignaturePlaceholderData spd = placeholders.get(i);
+				if (spd.getId() != null) {
+					if(currentFirstSpd == null) {
+						currentFirstSpd = spd;
+						logger.debug("Setting new current ID: {}", 
+								currentFirstSpd.getId());
+					} else {
+						String currentID = currentFirstSpd.getId();
+						String testID = spd.getId();
+						logger.debug("Testing placeholder current: {} compare to {}", 
+								currentID, testID);
+						if(testID.compareToIgnoreCase(currentID) < 0) {
+							currentFirstSpd = spd;
+							logger.debug("Setting new current ID: {}", 
+									testID);
+						}
+					}
+				}
+			}
+			
+			if(currentFirstSpd != null) {
+				logger.info("Running Placeholder sorted mode: using id: {}", currentFirstSpd.getId());
+				return currentFirstSpd;
+			} else {
+				logger.info("Running Placeholder sorted mode: no placeholder with id found, fallback to first placeholder");
+			}
+		}
+		
 		for (int i = 0; i < placeholders.size(); i++) {
 			SignaturePlaceholderData spd = placeholders.get(i);
 			if (spd.getId() == null)
@@ -207,6 +239,10 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static SignaturePlaceholderData matchPlaceholderPage(
 			List<SignaturePlaceholderData> placeholders, String placeholderId,
 			int matchMode) {
+		
+		if(matchMode == PLACEHOLDER_MATCH_MODE_SORTED)
+			return null;
+		
 		if (placeholders.size() == 0)
 			return null;
 		for (int i = 0; i < placeholders.size(); i++) {
