@@ -329,7 +329,7 @@ public class PDFPage extends PDFTextStripper {
 
 		int pageRotation = this.getCurrentPage().findRotation();
 		// logger_.debug("PageRotation = " + pageRotation);
-		if (pageRotation == 0) {
+		/*if (pageRotation == 0) {
 			current_y = text.getY();
 		}
 		if (pageRotation == 90) {
@@ -350,8 +350,34 @@ public class PDFPage extends PDFTextStripper {
 		// store ypos of the char if it is not empty
 		if (current_y > this.max_character_ypos) {
 			this.max_character_ypos = current_y;
+		}*/
+		
+		if (pageRotation == 0) {
+			current_y = text.getY();
+		}
+		if (pageRotation == 90) {
+			current_y = text.getX();
+		}
+		if (pageRotation == 180) {
+			float page_height = this.getCurrentPage().findMediaBox().getHeight();
+			current_y = page_height - text.getY();
+		}
+		if (pageRotation == 270) {
+			float page_height = this.getCurrentPage().findMediaBox().getHeight();
+			current_y = page_height - text.getX();
 		}
 
+		if (current_y > this.effectivePageHeight) {
+			// logger_.debug("character is below footer_line. footer_line = " +
+			// this.footer_line + ", text.character=" + character + ", y=" +
+			// current_y);
+			return;
+		}
+
+		// store ypos of the char if it is not empty
+		if (current_y > this.max_character_ypos) {
+			this.max_character_ypos = current_y;
+		}
 	}
 
 	// use this funtion getting an unsorted text output
