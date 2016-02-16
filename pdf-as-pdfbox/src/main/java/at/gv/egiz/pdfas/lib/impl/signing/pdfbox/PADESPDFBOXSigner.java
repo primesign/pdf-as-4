@@ -211,7 +211,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				
 				int signatureSize = 0x1000;
 				try {
-					String reservedSignatureSizeString = pdfObject.getStatus().getSettings().getValue(SIG_RESERVED_SIZE);
+					String reservedSignatureSizeString = signatureProfileSettings.getValue(SIG_RESERVED_SIZE);
 					if(reservedSignatureSizeString != null) {
 						signatureSize = Integer.parseInt(reservedSignatureSizeString);
 					}
