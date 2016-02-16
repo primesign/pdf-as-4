@@ -209,7 +209,17 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				signer.setPDSignature(signature);
 				
-				options.setPreferedSignatureSize(0x1000);
+				int signatureSize = 0x1000;
+				try {
+					String reservedSignatureSizeString = pdfObject.getStatus().getSettings().getValue(SIG_RESERVED_SIZE);
+					if(reservedSignatureSizeString != null) {
+						signatureSize = Integer.parseInt(reservedSignatureSizeString);
+					}
+					logger.debug("Reserving {} bytes for signature", signatureSize);
+				} catch(NumberFormatException e) {
+					logger.warn("Invalid configuration value: {} should be a number using 0x1000", SIG_RESERVED_SIZE);
+				}
+				options.setPreferedSignatureSize(signatureSize);
 
 				// Is visible Signature
 				if (requestedSignature.isVisual()) {

@@ -96,4 +96,9 @@ public interface IConfigurationConstants {
 	public static final String SL_REQUEST_TYPE = "sl.request.type";
 	public static final String SL_REQUEST_TYPE_BASE64 = "b64";
 	public static final String SL_REQUEST_TYPE_UPLOAD = "upload";
+	
+	/**
+	 * Signature object Prefix
+	 */
+	public static final String SIG_RESERVED_SIZE = "signatureSize";
 }
