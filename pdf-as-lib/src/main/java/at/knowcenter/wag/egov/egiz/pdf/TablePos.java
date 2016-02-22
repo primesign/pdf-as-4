@@ -86,7 +86,7 @@ public class TablePos implements Serializable
   /**
    * The width of the block.
    */
-  private float width = 0.0f;
+  public float width = 0.0f;
   /**
    * The top y position of the footer line.
    */

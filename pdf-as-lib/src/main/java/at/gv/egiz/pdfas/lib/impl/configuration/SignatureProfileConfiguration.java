@@ -23,11 +23,16 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 
 public class SignatureProfileConfiguration extends SpecificBaseConfiguration 
 	implements IConfigurationConstants {
+	
+	private static final Logger logger = LoggerFactory.getLogger(SignatureProfileConfiguration.class);
 	
 	protected String profileID;
 
@@ -37,6 +42,25 @@ public class SignatureProfileConfiguration extends SpecificBaseConfiguration
 		this.profileID = profileID;
 	}
 
+	public float getMinWidth() {
+		String key = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + MIN_WIDTH;
+		
+		String minWidthValue = this.configuration.getValue(key);
+		
+		float result = Float.MAX_VALUE;
+		
+		if(minWidthValue != null) {
+			try {
+				result = Float.parseFloat(minWidthValue);
+				logger.debug("Got min width for profile {}: {}", profileID, result);
+			} catch(NumberFormatException e) {
+				logger.warn("Configuration Entry: {} should be a float number", key);
+			}
+		}
+		
+		return result;
+	}
+	
 	public boolean isVisualSignature() {
 		String key = SIG_OBJECT + SEPERATOR + profileID + SEPERATOR + TABLE + SEPERATOR + MAIN;
 		
