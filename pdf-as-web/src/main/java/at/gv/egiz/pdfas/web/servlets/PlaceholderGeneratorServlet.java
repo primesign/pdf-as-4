@@ -36,6 +36,11 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 
 	public static final String PARAM_ID = "id";
 	public static final String PARAM_PROFILE = "profile";
+	public static final String PARAM_WIDTH = "w";
+	public static final String PARAM_HEIGHT = "h";
+	public static final String PARAM_BORDER = "b";
+	
+	public static final int MAX_SIZE = 1024;
 	
 	private static final Logger logger = LoggerFactory
 			.getLogger(ExternSignServlet.class);
@@ -90,7 +95,40 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 		
 		//if(id != null || profile != null) {
 			// We need to generate the image
-			
+		// default values set for pdf-as wai on buergerkarte.at
+		int height = 85;
+		int width = 250;
+		int border = 2;
+		
+		if(req.getParameter(PARAM_HEIGHT) != null) {
+			try {
+				height = Integer.parseInt(req.getParameter(PARAM_HEIGHT));
+			} catch(NumberFormatException e) {
+				logger.info("Parameter {} has to be a number.", PARAM_HEIGHT);
+				resp.sendError(HttpStatus.SC_NOT_ACCEPTABLE);
+			}
+		}
+		
+		if(req.getParameter(PARAM_WIDTH) != null) {
+			try {
+				width = Integer.parseInt(req.getParameter(PARAM_WIDTH));
+			} catch(NumberFormatException e) {
+				logger.info("Parameter {} has to be a number.", PARAM_WIDTH);
+				resp.sendError(HttpStatus.SC_NOT_ACCEPTABLE);
+			}
+		}
+		
+		if(req.getParameter(PARAM_BORDER) != null) {
+			try {
+				border = Integer.parseInt(req.getParameter(PARAM_BORDER));
+			} catch(NumberFormatException e) {
+				logger.info("Parameter {} has to be a number.", PARAM_BORDER);
+				resp.sendError(HttpStatus.SC_NOT_ACCEPTABLE);
+			}
+		}
+		
+		int qrSize = height - ( 2 * border);
+		
 			InputStream is = this.getClass().getClassLoader().getResourceAsStream(baseImage);
 			if(is == null) {
 				logger.warn("Cannot open resource {} to generator QR placeholder", baseImage);
@@ -102,7 +140,7 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 			
 			// generate QR code
 			try {
-				QRCodeGenerator.generateQRCode(buildString, baos, 90);
+				QRCodeGenerator.generateQRCode(buildString, baos, qrSize);
 			} catch (WriterException e) {
 				logger.warn("Failed to generate QR Code for placeholder generationg", e);
 				resp.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR);
@@ -110,39 +148,51 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 			}
 			
 			baos.close();
-			
-			BufferedImage base = ImageIO.read(is);
 			BufferedImage qr = ImageIO.read(new ByteArrayInputStream(baos.toByteArray()));
 			
 			BufferedImage off_Image =
-					  new BufferedImage(250, 98,
+					  new BufferedImage(width, height,
 					                    BufferedImage.TYPE_INT_ARGB);
 			
 			Graphics g = off_Image.getGraphics();
-			g.drawImage(base, 0, 0, 250, 98, 0, 0, base.getWidth(), base.getHeight(), null);
-			g.drawImage(qr, 4, 4, 94, 94, 0, 0, qr.getWidth(), qr.getHeight(), null);
+			g.setColor(Color.BLUE);
+			g.fillRect(0, 0, width, height);
 			g.setColor(Color.WHITE);
-			g.fillRect(94, 4, 152, 90);
+			g.fillRect(border, border, width - (2 * border), height - (2 * border));
+			//g.drawImage(base, 0, 0, 250, 98, 0, 0, base.getWidth(), base.getHeight(), null);
+			g.drawImage(qr, border, border, qrSize + border, qrSize + border, 0, 0, qr.getWidth(), qr.getHeight(), null);
+			
 			//g.(x, y, width, height);
 			Font writeFont = new Font(Font.SANS_SERIF, Font.BOLD, 14);
 			g.setFont(writeFont);
 			g.setColor(Color.BLACK);
 			
+			int lineSpace = 14 + 4;
+			
+			int textHeight = 3 * lineSpace;
+			
+			if(id != null && !id.isEmpty()) {
+				textHeight = 4 * lineSpace;
+			}
+			
+			int start = (height - textHeight) / 2; 
+			
 			if(profile != null && profile.endsWith("_EN")) {
-				g.drawString("placeholder for", 102, 13+18);
-				g.drawString("the electronic", 102, 13+18 + 18);
-				g.drawString("signature", 102, 13+18 + 18 + 18);
+				
+				g.drawString("placeholder for", qrSize + ( 3 * border), start + lineSpace);
+				g.drawString("the electronic", qrSize + ( 3 * border), start + (2 * lineSpace));
+				g.drawString("signature", qrSize + ( 3 * border), start + (3 * lineSpace));
 			} else {
-				g.drawString("Platzhalter für", 102, 13+18);
-				g.drawString("die elektronische", 102, 13+18 + 18);
-				g.drawString("Signatur", 102, 13+18 + 18 + 18);
+				g.drawString("Platzhalter für", qrSize + ( 3 * border), start + lineSpace);
+				g.drawString("die elektronische", qrSize + ( 3 * border), start + (2 * lineSpace));
+				g.drawString("Signatur", qrSize + ( 3 * border), start + (3 * lineSpace));
 			}
 			if(id != null && !id.isEmpty()) {
 				
 				Font nrFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 14);
 				g.setFont(nrFont);
 				
-				g.drawString("NR: " + id, 102, 13+18 + 18 + 18 + 18);
+				g.drawString("NR: " + id, qrSize + ( 3 * border), start + (4 * lineSpace));
 			}
 			
 			logger.info("serving qr placeholder for '{}'", buildString);
