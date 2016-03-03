@@ -287,6 +287,10 @@ public class ExternSignServlet extends HttpServlet {
 
 	protected void doSignature(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData, StatisticEvent statisticEvent) throws Exception {
+		if(pdfData == null) {
+			throw new PdfAsException("No Signature data available");
+		}
+		
 		if(pdfData[0] != 0x25 || pdfData[1] != 0x50 || pdfData[2] != 0x44 || pdfData[3] != 0x46) {
 			throw new PdfAsWebException(
 					"Received data is not a valid PDF-Document");
@@ -323,10 +327,6 @@ public class ExternSignServlet extends HttpServlet {
 		if(filename != null) {
 			logger.debug("Setting Filename in session: " + filename);
 			PdfAsHelper.setPDFFileName(request, filename);
-		}
-		
-		if(pdfData == null) {
-			throw new PdfAsException("No Signature data available");
 		}
 		
 		String pdfDataHash = DigestHelper.getHexEncodedHash(pdfData);
