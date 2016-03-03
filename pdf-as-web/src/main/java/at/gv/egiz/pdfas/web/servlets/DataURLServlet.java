@@ -104,6 +104,7 @@ public class DataURLServlet extends HttpServlet {
 				throw new PdfAsSecurityLayerException(errorResponseType.getInfo(), 
 						errorResponseType.getErrorCode());
 			} else {
+				logger.error("Unknown SL response {}", xmlResponse);
 				throw new PdfAsSecurityLayerException("Unknown SL response", 
 						9999);
 			}

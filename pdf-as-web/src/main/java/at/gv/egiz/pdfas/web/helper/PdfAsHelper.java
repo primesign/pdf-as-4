@@ -857,7 +857,7 @@ public class PdfAsHelper {
 
 	public static void logAccess(HttpServletRequest request) {
 		HttpSession session = request.getSession();
-		logger.debug("Access to " + request.getServletPath() + " in Session: "
+		logger.info("Access to " + request.getServletPath() + " in Session: "
 				+ session.getId());
 	}
 
