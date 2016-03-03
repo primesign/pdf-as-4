@@ -549,10 +549,14 @@ public class PDFBoxTable {
 				// }
 			}
 			Dimension dim = ImageUtils.getImageDimensions(imageFile, settings);
-			if (dim.getHeight() > 80.0f) {
-				return width + padding * 2;
-			}
-			return (float) dim.getHeight() + padding * 2;
+			float wfactor = (float) ((width - padding * 2.0f) / dim.getWidth());
+			float scaleFactor = wfactor;
+			float iheight = (float) Math
+					.floor((double) (scaleFactor * dim.getHeight()));
+			//if (dim.getHeight() > 80.0f) {
+			//	return width + padding * 2;
+			//}
+			return (float) iheight + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {
