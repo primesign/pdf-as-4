@@ -2,7 +2,20 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
-apply plugin: 'jetty'
+
+buildscript {
+  repositories {
+    jcenter()
+    // enable this to use snapshot versions of Gretty:
+    // maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
+  }
+
+  dependencies {
+    classpath 'org.akhikhl.gretty:gretty:+'
+  }
+}
+
+apply plugin: 'org.akhikhl.gretty'
 
 jar {
     manifest {
@@ -43,8 +56,17 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
+gretty {
+  // supported values:
+  // 'jetty7', 'jetty8', 'jetty9', 'tomcat7', 'tomcat8'
+  servletContainer = 'jetty9'
+  
+  jvmArgs = [ '-Dpdf-as-web.conf=' + System.getProperty("user.home") + '/.pdfas/pdf-as-web.properties' ]
+}
+
+
 test {
-    systemProperties 'property': 'value'
+    systemProperties 'pdf-as-web.conf': System.getProperty("user.home") + '/.pdfas/pdf-as-web.properties'
 }
 
 task downloadTomcat << {
