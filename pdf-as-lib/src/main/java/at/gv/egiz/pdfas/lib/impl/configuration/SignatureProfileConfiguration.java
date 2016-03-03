@@ -47,7 +47,7 @@ public class SignatureProfileConfiguration extends SpecificBaseConfiguration
 		
 		String minWidthValue = this.configuration.getValue(key);
 		
-		float result = Float.MAX_VALUE;
+		float result = Float.MIN_VALUE;
 		
 		if(minWidthValue != null) {
 			try {
