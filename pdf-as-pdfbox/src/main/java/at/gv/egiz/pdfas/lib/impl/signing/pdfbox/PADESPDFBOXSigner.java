@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
@@ -168,11 +169,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 						float minWidth = signatureProfileConfiguration.getMinWidth();
 
-						if (tablePos.getWidth() < minWidth) {
-							tablePos.width = minWidth;
-							logger.debug("Correcting placeholder with to minimum width {}", minWidth);
+						if(minWidth > 0) {
+							if (tablePos.getWidth() < minWidth) {
+								tablePos.width = minWidth;
+								logger.debug("Correcting placeholder with to minimum width {}", minWidth);
+							}
 						}
-
 						logger.debug("Placeholder Position set to: " + tablePos.toString());
 					}
 				}
@@ -389,6 +391,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 
 					options.setPage(positioningInstruction.getPage());
+					
 					options.setVisualSignature(properties.getVisibleSignature());
 				}
 
