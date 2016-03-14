@@ -193,7 +193,10 @@ public class TablePos implements Serializable
 		     		            }	     		          
 		     		        	this.pos_x = xval;
 		     		        	this.autoX = false; 
-		     		         }	     		         
+		     		         } else {
+		     		        	this.pos_x = 0.0f;
+		     		        	this.autoX = true;
+		     		         }
 		     		         break;
 		     			  }	
 		     	case 'y': {
@@ -206,7 +209,10 @@ public class TablePos implements Serializable
 		     		            }			         			
 			         			this.pos_y = yval;
 			         			this.autoY = false; 
-			         		}	     		         
+			         		} else {
+		     		        	this.pos_y = 0.0f;
+		     		        	this.autoY = true;
+		     		         }   		         
 			         		break;
 		     			  }		
 		     	case 'w': { 
@@ -219,7 +225,10 @@ public class TablePos implements Serializable
 		     		            }        					
 	         					this.width = wval;
 	         					this.autoW = false; 
-	         				}	     		         
+	         				} else {
+		     		        	this.width = 0.0f;
+		     		        	this.autoW = true;
+		     		        }     		         
 	         				break;
 	      				  }
 		     	case 'p': {
@@ -239,7 +248,11 @@ public class TablePos implements Serializable
 	 								this.page = pval;
 	 								this.autoP = false;
 	 							}
-	 						}						     		       
+	 						} else {
+	 							this.page = 0;
+	 							this.autoP = true;
+	 							this.newpage = false;
+	 						}
 	 						break;
 	      				  }
 		     	case 'f': {
