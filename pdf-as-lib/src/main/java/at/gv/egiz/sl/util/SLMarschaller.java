@@ -72,7 +72,13 @@ public class SLMarschaller {
 	}
 	
 	public static Object unmarshal(InputStream is) throws JAXBException {
-		XMLInputFactory xif = XMLInputFactory.newFactory();
+		XMLInputFactory xif = null;
+		try {
+			xif = XMLInputFactory.newFactory();
+		} catch(java.lang.NoSuchMethodError e) {
+			// Fallback for old STAX implementations
+			xif = XMLInputFactory.newInstance();
+		}
         xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         XMLStreamReader xmlStreamReader;
@@ -87,7 +93,14 @@ public class SLMarschaller {
 	
 	public static Object unmarshalFromString(String message) throws JAXBException {
 		StringReader sr = new StringReader(message);
-		XMLInputFactory xif = XMLInputFactory.newFactory();
+		XMLInputFactory xif = null;
+		try {
+			xif = XMLInputFactory.newFactory();
+		} catch(java.lang.NoSuchMethodError e) {
+			// Fallback for old STAX implementations
+			xif = XMLInputFactory.newInstance();
+		}
+		
         xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         XMLStreamReader xmlStreamReader;
