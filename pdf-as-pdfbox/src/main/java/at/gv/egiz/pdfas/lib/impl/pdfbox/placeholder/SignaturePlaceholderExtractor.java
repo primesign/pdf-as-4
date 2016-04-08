@@ -139,14 +139,11 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		int pageNr = 0;
 		for (PDPage page : (Iterable<PDPage>) doc.getDocumentCatalog().getAllPages()) {
 			extractor.setCurrentPage(++pageNr);
-			PDStream contents = page.getContents();
-			PDResources resources = page.findResources();
-			if (contents != null && contents.getStream() != null && resources != null) {
-				extractor.processStream(
-						page,
-						resources,
-						contents.getStream()
-				);
+			PDStream contents;
+			PDResources resources;
+			if ((contents = page.getContents()) != null && contents.getStream() != null
+					&& (resources = page.findResources()) != null) {
+				extractor.processStream(page, resources, contents.getStream());
 			}
 		}
 		
