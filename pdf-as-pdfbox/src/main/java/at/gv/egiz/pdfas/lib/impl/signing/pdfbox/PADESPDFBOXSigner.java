@@ -35,7 +35,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
@@ -261,6 +260,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 
 					boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
+					boolean legacy40Position = signatureProfileConfiguration.getLegacy40Positioning();
 
 					// create Table describtion
 					Table main = TableFactory.createSigTable(signatureProfileSettings, MAIN, pdfObject.getStatus(),
@@ -277,7 +277,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					 */
 
 					PositioningInstruction positioningInstruction = Positioning.determineTablePositioning(tablePos, "",
-							doc, visualObject, legacy32Position);
+							doc, visualObject, legacy32Position, legacy40Position);
 
 					logger.debug("Positioning: {}", positioningInstruction.toString());
 
@@ -722,10 +722,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			PositioningInstruction positioningInstruction = null;
 			if (signaturePosString != null) {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
-						origDoc, visualObject, false);
+						origDoc, visualObject, false, false);
 			} else {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
-						visualObject, false);
+						visualObject, false, false);
 			}
 
 			origDoc.close();

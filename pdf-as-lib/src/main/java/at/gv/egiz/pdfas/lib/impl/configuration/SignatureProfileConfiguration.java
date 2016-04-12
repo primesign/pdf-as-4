@@ -94,4 +94,15 @@ public class SignatureProfileConfiguration extends SpecificBaseConfiguration
 		}
 		return false;
 	}
+	
+	public boolean getLegacy40Positioning() {
+		String key = SIG_OBJECT + SEPERATOR + profileID + LEGACY_40_POSITIONING;
+		String value = this.configuration.getValue(key);
+		if(value != null) {
+			if(value.equalsIgnoreCase(TRUE)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

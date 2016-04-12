@@ -42,6 +42,7 @@ public interface IConfigurationConstants {
 
 	
 	public static final String LEGACY_POSITIONING = ".legacy.pos";
+	public static final String LEGACY_40_POSITIONING = ".legacy40.pos";
 	public static final String MIN_WIDTH = "minWidth";
 	
 	public static final String PLACEHOLDER_ID = "placeholder_id";

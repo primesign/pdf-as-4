@@ -128,6 +128,8 @@ public class PDFPage extends PDFTextStripper {
 	 */
 	private GeneralPath currentPath = new GeneralPath();
 
+	private boolean legacy40;
+	
 	/**
 	 * The lowest position of a drawn path (originating from top).
 	 */
@@ -142,10 +144,12 @@ public class PDFPage extends PDFTextStripper {
 	 * 
 	 * @throws java.io.IOException
 	 */
-	public PDFPage(float effectivePageHeight, boolean legacy32)
+	public PDFPage(float effectivePageHeight, boolean legacy32, boolean legacy40)
 			throws IOException {
 		super();
 
+		this.legacy40 = legacy40;
+		
 		this.effectivePageHeight = effectivePageHeight;
 
 		OperatorProcessor newInvoke = new MyInvoke(this);
@@ -603,6 +607,7 @@ public class PDFPage extends PDFTextStripper {
 
 	public void processAnnotation(PDAnnotation anno) {
 		float current_y = anno.getRectangle().getLowerLeftY();
+		float upper_y = 0;
 		PDPage page = anno.getPage();
 
 		if (page == null) {
@@ -619,19 +624,31 @@ public class PDFPage extends PDFTextStripper {
 		if (pageRotation == 0) {
 			float page_height = page.findMediaBox().getHeight();
 			current_y = page_height - anno.getRectangle().getLowerLeftY();
+			upper_y = page_height - anno.getRectangle().getUpperRightY();
 		}
 		if (pageRotation == 90) {
 			current_y = anno.getRectangle().getUpperRightX();
+			upper_y = anno.getRectangle().getLowerLeftX();
 		}
 		if (pageRotation == 180) {
 			current_y = anno.getRectangle().getUpperRightY();
+			upper_y = anno.getRectangle().getLowerLeftY();
 		}
 		if (pageRotation == 270) {
 			float page_width = page.findMediaBox().getWidth();
 			current_y = page_width - anno.getRectangle().getLowerLeftX();
+			upper_y = page_width - anno.getRectangle().getUpperRightX();
 		}
 
+		
+		
 		if (current_y > this.effectivePageHeight) {
+			if(!this.legacy40 && upper_y < this.effectivePageHeight) {
+				// Bottom of annotation is below footer line, 
+				// but top of annotation is above footer line!
+				// so no place left on this page!
+				this.max_character_ypos = this.effectivePageHeight;
+			}
 			return;
 		}
 
