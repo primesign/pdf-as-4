@@ -22,7 +22,7 @@ public class KeystoreFileHandleClosed {
 	private static final String keyPassword = "123456";
 	private static final String keyStoreType = "PKCS12";
 
-	@Test
+
 	public void test() throws IOException, PdfAsException, PDFASError {
 		
 		File origFileFile = new File(origFile);
