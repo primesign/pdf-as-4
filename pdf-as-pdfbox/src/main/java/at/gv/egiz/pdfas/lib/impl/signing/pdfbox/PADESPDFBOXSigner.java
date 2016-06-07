@@ -399,6 +399,18 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				doc.addSignature(signature, signer, options);
 
+				// set need to update indirect fields array in acro form
+				COSDictionary trailer = doc.getDocument().getTrailer();
+				COSDictionary troot = (COSDictionary) trailer
+						.getDictionaryObject(COSName.ROOT);
+				COSDictionary acroForm = (COSDictionary) troot
+						.getDictionaryObject(COSName.ACRO_FORM);
+				COSArray tfields = (COSArray) acroForm
+						.getDictionaryObject(COSName.FIELDS);
+				if(!tfields.isDirect()) {
+					tfields.setNeedToBeUpdate(true);
+				}
+				
 				String sigFieldName = signatureProfileSettings.getSignFieldValue();
 
 				if (sigFieldName == null) {
