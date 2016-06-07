@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
@@ -43,7 +44,10 @@ import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSInteger;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSNumber;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.cos.COSString;
+import org.apache.pdfbox.cos.ICOSVisitor;
 import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.apache.pdfbox.exceptions.SignatureException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -51,6 +55,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageNode;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.COSObjectable;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
@@ -472,10 +477,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				logger.info("Adding pdf/ua content.");
 				try {
 					PDDocumentCatalog root = doc.getDocumentCatalog();
-					PDStructureTreeRoot treeRoot = root.getStructureTreeRoot();
-					if (treeRoot != null) {
-						logger.info("Tree Root: {}", treeRoot.toString());
-						List<Object> kids = treeRoot.getKids();
+					PDStructureTreeRoot structureTreeRoot = root.getStructureTreeRoot();
+					if (structureTreeRoot != null) {
+						logger.info("Tree Root: {}", structureTreeRoot.toString());
+						List<Object> kids = structureTreeRoot.getKids();
 
 						if (kids == null) {
 							logger.info("No kid-elements in structure tree Root, maybe not PDF/UA document");
@@ -486,24 +491,23 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							if (k instanceof PDStructureElement) {
 								docElement = (PDStructureElement) k;
 								break;
-								// if(((PDStructureElement)
-								// k).getStructureType().equals("Document")){
-								// docElement=(PDStructureElement) k;
-								// }
+
 							}
 						}
 
 						PDStructureElement sigBlock = new PDStructureElement("Form", docElement);
 
 						// create object dictionary and add as child element
-						COSDictionary objectdic = new COSDictionary();
-						objectdic.setName("Type", "OBJR");
-						objectdic.setItem("Pg", signatureField.getWidget().getPage());
-						objectdic.setItem("Obj", signatureField.getWidget());
+						COSDictionary objectDic = new COSDictionary();
+						objectDic.setName("Type", "OBJR");
+						objectDic.setItem("Pg", signatureField.getWidget().getPage());
+						objectDic.setItem("Obj", signatureField.getWidget());
 
 						List<Object> l = new ArrayList<Object>();
-						l.add(objectdic);
+						l.add(objectDic);
 						sigBlock.setKids(l);
+						sigBlock.setPage(signatureField.getWidget().getPage());
+						
 
 						sigBlock.setTitle("Signature Table");
 						sigBlock.setParent(docElement);
@@ -520,36 +524,98 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						sigBlockDic.setNeedToBeUpdate(true);
 
 						// Modify number tree
-						PDNumberTreeNode ntn = treeRoot.getParentTree();
+						PDNumberTreeNode ntn = structureTreeRoot.getParentTree();
+						int parentTreeNextKey = structureTreeRoot.getParentTreeNextKey();
 						if (ntn == null) {
-							ntn = new PDNumberTreeNode(objectdic, null);
+							ntn = new PDNumberTreeNode(objectDic, null);
 							logger.info("No number-tree-node found!");
 						}
 
-						COSDictionary ntndic = ntn.getCOSDictionary();
-						COSArray ntndicnumbersarray = (COSArray) ntndic.getDictionaryObject(COSName.NUMS);
-						int arrindex = ntndicnumbersarray.size();
-						int treeindex = arrindex / 2;
+						COSArray ntnKids = (COSArray) ntn.getCOSDictionary().getDictionaryObject(COSName.KIDS);
+						COSArray ntnNumbers = (COSArray) ntn.getCOSDictionary().getDictionaryObject(COSName.NUMS);
 
-						ntndicnumbersarray.add(arrindex, COSInteger.get(treeindex));
-						ntndicnumbersarray.add(arrindex + 1, sigBlock.getCOSObject());
+						if(ntnNumbers == null && ntnKids != null){//no number array, so continue with the kids array
 
-						treeRoot.setParentTree(ntn);
-						treeRoot.setParentTreeNextKey(treeindex + 1);
+							//create dictionary with limits and nums array
+							COSDictionary pTreeEntry = new COSDictionary();
+							COSArray limitsArray = new COSArray();
+							//limits for exact one entry
+							limitsArray.add(COSInteger.get(parentTreeNextKey));
+							limitsArray.add(COSInteger.get(parentTreeNextKey));
+							
+							COSArray numsArray = new COSArray();
+							numsArray.add(COSInteger.get(parentTreeNextKey));
+							numsArray.add(sigBlock);
 
-						// setStructureParent
-						PDAnnotationWidget widg = signatureField.getWidget();
-						widg.setStructParent(treeindex);
+							pTreeEntry.setItem(COSName.NUMS, numsArray);
+							pTreeEntry.setItem(COSName.LIMITS, limitsArray);
+						
+							PDNumberTreeNode newKidsElement = new PDNumberTreeNode(pTreeEntry, PDNumberTreeNode.class);
+					
+							ntnKids.add(newKidsElement);
+							ntnKids.setNeedToBeUpdate(true);
+							
+							
+							//working
+//							List<PDNumberTreeNode> treeRootKids = structureTreeRoot.getParentTree().getKids();
+//							PDNumberTreeNode last = (PDNumberTreeNode)treeRootKids.get(treeRootKids.size()-1);
+//							COSArray lim1 = (COSArray) last.getCOSDictionary().getDictionaryObject(COSName.LIMITS);
+//							lim1.remove(1);
+//							lim1.add(1, COSInteger.get(parentTreeNextKey));
+//							PDNumberTreeNode verylast = (PDNumberTreeNode)last.getKids().get(last.getKids().size()-1);
+//							COSArray numa = (COSArray) verylast.getCOSDictionary().getDictionaryObject(COSName.NUMS);
+//							COSArray lim = (COSArray) verylast.getCOSDictionary().getDictionaryObject(COSName.LIMITS);
+//							lim.remove(1);
+//							lim.add(1, COSInteger.get(parentTreeNextKey));
+//
+//							int size = numa.size();
+//							numa.add(size, COSInteger.get(parentTreeNextKey));
+//							numa.add(sigBlock);
+							//working end
+
+							
+
+						}else if(ntnNumbers != null && ntnKids == null){
+							
+							int arrindex = ntnNumbers.size();
+
+							ntnNumbers.add(arrindex, COSInteger.get(parentTreeNextKey));
+							ntnNumbers.add(arrindex + 1, sigBlock.getCOSObject());
+							
+							ntnNumbers.getCOSObject().setNeedToBeUpdate(true);
+							
+							structureTreeRoot.setParentTree(ntn);
+
+						}else if(ntnNumbers == null && ntnKids == null){
+							//document is not pdfua conform before signature creation
+							throw new PdfAsException("error.pdf.sig.pdfua.1");
+						}else{
+							//this is not allowed
+							throw new PdfAsException("error.pdf.sig.pdfua.1");
+						}
+						
+						// set StructureParent for signature field annotation
+						signatureField.getWidget().setStructParent(parentTreeNextKey);
+						
+						//Increase the next Key value in the structure tree root
+						structureTreeRoot.setParentTreeNextKey(parentTreeNextKey+1);
 
 						// add the Tabs /S Element for Tabbing through annots
 						PDPage p = signatureField.getWidget().getPage();
 						p.getCOSDictionary().setName("Tabs", "S");
 						p.getCOSObject().setNeedToBeUpdate(true);
+						
+						//check alternative signature field name
+						if (signatureField != null) {
+							if(signatureField.getAlternateFieldName().equals(""))
+								signatureField.setAlternateFieldName(sigFieldName);
+						}
+						
 
-						ntndic.setNeedToBeUpdate(true);
+						ntn.getCOSDictionary().setNeedToBeUpdate(true);
 						sigBlock.getCOSObject().setNeedToBeUpdate(true);
-						treeRoot.getCOSObject().setNeedToBeUpdate(true);
-						objectdic.getCOSObject().setNeedToBeUpdate(true);
+						structureTreeRoot.getCOSObject().setNeedToBeUpdate(true);
+						objectDic.getCOSObject().setNeedToBeUpdate(true);
 						docElement.getCOSObject().setNeedToBeUpdate(true);
 
 					}
