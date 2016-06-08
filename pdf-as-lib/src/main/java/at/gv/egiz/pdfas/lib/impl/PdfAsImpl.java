@@ -133,7 +133,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			signPreProcessing(parameter);
 
 			// allocated Backend
-			PDFASBackend backend = BackendLoader.getPDFASBackend();
+			PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 			if (backend == null) {
 				throw new PDFASError(ERROR_NO_BACKEND);
@@ -258,7 +258,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		verifyPreProcessing(parameter);
 
 		// allocated Backend
-		PDFASBackend backend = BackendLoader.getPDFASBackend();
+		PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 		if (backend == null) {
 			throw new PDFASError(ERROR_NO_BACKEND);
@@ -291,7 +291,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			signPreProcessing(parameter);
 
 			// allocated Backend
-			PDFASBackend backend = BackendLoader.getPDFASBackend();
+			PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 			if (backend == null) {
 				throw new PDFASError(ERROR_NO_BACKEND);
@@ -527,7 +527,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				iaikCert = (X509Certificate) cert;
 			}
 			// allocated Backend
-			PDFASBackend backend = BackendLoader.getPDFASBackend();
+			PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			status = new OperationStatus(settings, parameter, backend);
