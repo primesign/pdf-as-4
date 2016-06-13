@@ -25,6 +25,7 @@ package at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -32,6 +33,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.utils.PdfBoxUtils;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
@@ -263,11 +265,19 @@ public class Positioning {
 		// Now we have to getfreespace in page and reguard footerline
 		float footer_line = pos.getFooterLine();
 
-		float pre_page_length = PDFUtilities.calculatePageLength(pdfDataSource,
-				page - 1, page_height - footer_line, /* page_rotation, */
-				legacy32, legacy40);
+//		float pre_page_length = PDFUtilities.calculatePageLength(pdfDataSource,
+//				page - 1, page_height - footer_line, /* page_rotation, */
+//				legacy32, legacy40);
 
-		if (pre_page_length == Float.NEGATIVE_INFINITY) {
+		 float pre_page_length = Float.NEGATIVE_INFINITY;
+		try {
+			pre_page_length = PDFUtilities.getMaxYPosition(pdfDataSource, page-1, pdf_table, SIGNATURE_MARGIN_VERTICAL, footer_line);
+			//pre_page_length = PDFUtilities.getFreeTablePosition(pdfDataSource, page-1, pdf_table,SIGNATURE_MARGIN_VERTICAL);
+		} catch (IOException e) {
+			logger.warn("Could not determine page length, using -INFINITY");
+		} 
+		
+		if (pre_page_length == Float.NEGATIVE_INFINITY){
 			// we do have an empty page or nothing in area above footerline
 			pre_page_length = page_height;
 			// no text --> SIGNATURE_BORDER

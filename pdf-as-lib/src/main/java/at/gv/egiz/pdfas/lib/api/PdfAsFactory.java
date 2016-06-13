@@ -26,6 +26,8 @@ package at.gv.egiz.pdfas.lib.api;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -175,6 +177,7 @@ public class PdfAsFactory implements IConfigurationConstants {
 			synchronized (init_mutex) {
 				if (!initialized) {
 					initialized = true;
+					registerGraphicsEnvironment();
 					registerSecurityProvider(configuration);
 					teeInformation("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 					teeInformation("+ PDF-AS: " + getVersion());
@@ -187,6 +190,11 @@ public class PdfAsFactory implements IConfigurationConstants {
 				}
 			}
 		}
+	}
+	
+	private static void registerGraphicsEnvironment(){
+		BufferedImage bim = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D graphics = bim.createGraphics();
 	}
 
 	/**

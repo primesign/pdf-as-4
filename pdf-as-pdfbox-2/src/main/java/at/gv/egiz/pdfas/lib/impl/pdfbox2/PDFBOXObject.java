@@ -9,6 +9,7 @@ import javax.activation.DataSource;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox2.PDFAsFontCache;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 
@@ -18,6 +19,16 @@ public class PDFBOXObject extends PDFObject {
 	
 	private Map<String, PDFont> fontCache = new HashMap<String, PDFont>();
 	
+	private PDFAsFontCache sigBlockFontCache = new PDFAsFontCache();
+	
+	public PDFAsFontCache getSigBlockFontCache() {
+		return sigBlockFontCache;
+	}
+
+	public void setSigBlockFontCache(PDFAsFontCache sigBlockFontCache) {
+		this.sigBlockFontCache = sigBlockFontCache;
+	}
+
 	public PDFBOXObject(OperationStatus operationStatus) {
 		super(operationStatus);
 	}
@@ -64,7 +75,4 @@ public class PDFBOXObject extends PDFObject {
 		return String.valueOf(getDocument().getDocument().getVersion());
 	}
 
-	public Map<String, PDFont> getFontCache() {
-		return fontCache;
-	}
 }

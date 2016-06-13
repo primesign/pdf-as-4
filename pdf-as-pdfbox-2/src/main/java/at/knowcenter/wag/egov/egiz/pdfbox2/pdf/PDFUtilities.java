@@ -48,65 +48,150 @@
  */
 package at.knowcenter.wag.egov.egiz.pdfbox2.pdf;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
+import java.util.HashMap;
 
-import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageTree;
-import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
-import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
+import at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning.PositioningRenderer;
+import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 
-/**
- * Contains useful helpers for accessing PDF documents.
- *
- * @author wprinz
- * @author mruhmer
- */
 public abstract class PDFUtilities {
-	public static float calculatePageLength(PDDocument document, int page,
-			float effectivePageHeight, /* int pagerotation, */boolean legacy32, boolean legacy40)
-			throws PDFIOException {
-		// int last_page_id = document.getNumberOfPages();
-		PDPageTree allPages = document.getDocumentCatalog().getPages();
-		PDPage pdpage = allPages.get(page);
-		// pdpage.setRotation(pagerotation);
-		return calculatePageLength(pdpage, effectivePageHeight, legacy32, legacy40);
-	}
 
-	public static float calculatePageLength(PDPage page,
-			float effectivePageHeight, boolean legacy32, boolean legacy40) throws PDFIOException {
-		try {
-			PDFPage my_page = new PDFPage(effectivePageHeight, legacy32, legacy40);
-			//PDResources resources = page.getResources();
-			if (page.getContents() != null) {
-				//COSStream stream = page.getContents();
-				// List<PDThreadBead> articles = page.getThreadBeads();
-				// my_page.processMyPage(page);
-				//my_page.processStream(page, resources, stream); //TODO: pdfbox2 -> right?
-				my_page.processPage(page);
-			}
-			if (!legacy32) {
-				if (page.getAnnotations() != null) {
-					Iterator<PDAnnotation> annotationsIt = page
-							.getAnnotations().iterator();
+	public static Color MAGIC_COLOR = new Color(152,254,52);// green-ish background
+	
+	public static float getMaxYPosition(
+			PDDocument pdfDataSource, int page, IPDFVisualObject pdfTable, float signatureMarginVertical, float footer_line) throws IOException {
+		long t0 = System.currentTimeMillis();
+		PositioningRenderer renderer = new PositioningRenderer(pdfDataSource);
+		//BufferedImage bim = renderer.renderImage(page);
+		long t1 = System.currentTimeMillis();
+		int width = (int) pdfDataSource.getPage(page).getCropBox().getWidth();
+		int height = (int) pdfDataSource.getPage(page).getCropBox().getHeight();
+		BufferedImage bim = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		long t2 = System.currentTimeMillis();
+		Graphics2D graphics = bim.createGraphics();
+		long t3 = System.currentTimeMillis();
+//		graphics.setPaint(MAGIC_COLOR);
+//		graphics.fillRect(0, 0, width, height);
+		graphics.setBackground(MAGIC_COLOR);
+        
+		renderer.renderPageToGraphics(page, graphics);
+		long t4 = System.currentTimeMillis();
+		Color bgColor = MAGIC_COLOR;
+		
+		if(true){ //only used if background color should be determined automatically
+			bgColor = determineBackgroundColor(bim);
+		}
+		long t5 = System.currentTimeMillis();
+		int yCoord = bim.getHeight() - 1 - (int)footer_line;
 
-					while (annotationsIt.hasNext()) {
-						PDAnnotation annotation = annotationsIt.next();
-						if (!annotation.isInvisible()) {
-							my_page.processAnnotation(annotation);
-						}
-					}
+		for(int row = yCoord; row >= 0; row--){
+			for(int col = 0; col < bim.getWidth(); col++){
+				int val = bim.getRGB(col, row);
+				if(val != bgColor.getRGB()){
+					yCoord = row;
+					row=-1;
+					break;
 				}
 			}
-			return my_page.getMaxPageLength();
-		} catch (IOException e) {
-			throw new PDFIOException("error.pdf.stamp.11", e);
 		}
-	}
+		long t6 = System.currentTimeMillis();
+		
+		System.out.println("new Renderer: "+ (t1-t0));
+		System.out.println("new BI: "+ (t2-t1));
+		System.out.println("Create Graphics: "+ (t3-t2));
+		System.out.println("Render to Graphics: "+ (t4-t3));
+		System.out.println("Determined bg color: "+ (t5-t4));
+		System.out.println("Calc y: "+ (t6-t5));
 
+//		for(int i=0; i < bim.getWidth(); i++){
+//			bim.setRGB(i, yCoord, 255);
+//		}
+//
+		ImageIOUtil.writeImage(bim, "/home/cmaierhofer/temp/bufferer.png", 72);
+
+		return yCoord;
+	}
+	
+//	public static float getFreeTablePosition(
+//			PDDocument pdfDataSource, int page, IPDFVisualObject pdfTable, float signatureMarginVertical) throws IOException {
+//		
+//		float table_height = pdfTable.getHeight();
+//		
+//		PDFRenderer renderer = new PDFRenderer(pdfDataSource);
+//
+//		BufferedImage bim = renderer.renderImage(page);
+//
+//		Color bgColor = determineBackgroundColor(bim);
+//		float posY = bim.getHeight();
+//		
+//		for(int row=0; row<bim.getHeight();row++){
+//			boolean backgroundOnly = true;
+//			int countFreeRows = 0;
+//			for(int c = row; c<bim.getHeight();c++){
+//				countFreeRows++;
+//				for(int col = 0; col < bim.getWidth(); col++){
+//					int val = bim.getRGB(col, c);
+//					if(val != bgColor){//end of bg
+//						backgroundOnly = false;
+//						row = c;
+//						break;
+//					}
+//				}
+//				if(!backgroundOnly){
+//					break;
+//				}else{
+//					if(countFreeRows >= table_height+signatureMarginVertical){
+//						posY = row;
+//						row=bim.getHeight();
+//						break;
+//					}
+//				}
+//			}
+//		}
+//
+//		if(posY == -1)
+//			return Float.NEGATIVE_INFINITY;
+//		return posY;
+//	}
+
+	public static Color determineBackgroundColor(BufferedImage bim){
+		
+		int inset = 5;//px
+		
+		int pixelUpLeft = bim.getRGB(inset,inset);
+		int pixelUpRight = bim.getRGB(bim.getWidth()-inset,inset);
+		int pixelDownLeft = bim.getRGB(inset, bim.getHeight()-inset);
+		int pixelDownRight = bim.getRGB(bim.getWidth()-inset, bim.getHeight()-inset);
+		
+		HashMap<Integer, Integer> stats = new HashMap<Integer, Integer>();
+		stats.put(pixelUpLeft, 0);
+		stats.put(pixelUpRight, 0);
+		stats.put(pixelDownLeft, 0);
+		stats.put(pixelDownRight, 0);
+		
+		stats.put(pixelUpLeft, stats.get(pixelUpLeft)+1);
+		stats.put(pixelUpRight, stats.get(pixelUpRight)+1);
+		stats.put(pixelDownLeft, stats.get(pixelDownLeft)+1);
+		stats.put(pixelDownRight, stats.get(pixelDownRight)+1);
+
+		int bgValue = -1;
+		int cnt =0;
+		for(int key:stats.keySet()){
+			if(stats.get(key) > cnt){
+				cnt = stats.get(key);
+				bgValue = key;
+			}		
+		}
+		
+		return new Color(bgValue);
+	}
+	
 }
