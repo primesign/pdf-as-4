@@ -109,12 +109,12 @@ public class IntegrityVerifier implements IVerifier {
 						}
 					}
 
-					logger.info("Signature Algo: {}, Digest {}", signedData
+					logger.debug("Signature Algo: {}, Digest {}", signedData
 							.getSignerInfos()[i].getSignatureAlgorithm(),
 							signedData.getSignerInfos()[i].getDigestAlgorithm());
 					// if the signature is OK the certificate of the
 					// signer is returned
-					logger.info("Signature OK from signer: "
+					logger.debug("Signature OK from signer: "
 							+ signer_cert.getSubjectDN());
 					verifyResult.setSignerCertificate(signer_cert);
 					verifyResult.setValueCheckCode(new SignatureCheckImpl(0,
@@ -127,7 +127,7 @@ public class IntegrityVerifier implements IVerifier {
 				} catch (SignatureException ex) {
 					// if the signature is not OK a SignatureException
 					// is thrown
-					logger.info(
+					logger.warn(
 							"Signature ERROR from signer: "
 									+ signedData.getCertificate(
 											signerInfos[i]
