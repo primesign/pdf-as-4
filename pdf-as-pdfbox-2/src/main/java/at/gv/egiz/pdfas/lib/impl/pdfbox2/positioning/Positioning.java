@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.utils.PdfBoxUtils;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
@@ -73,15 +75,16 @@ public class Positioning {
 	 *            The pdf.
 	 * @param pdf_table
 	 *            The pdf table to be written.
+	 * @param settings 
 	 * @return Returns the PositioningInformation.
 	 * @throws PdfAsException
 	 *             F.e.
 	 */
 	public static PositioningInstruction determineTablePositioning(
 			TablePos pos, String signature_type, PDDocument pdfDataSource,
-			IPDFVisualObject pdf_table, boolean legacy32, boolean legacy40) throws PdfAsException {
+			IPDFVisualObject pdf_table, boolean legacy32, boolean legacy40, ISettings settings) throws PdfAsException {
 		return adjustSignatureTableandCalculatePosition(pdfDataSource,
-				pdf_table, pos, legacy32, legacy40);
+				pdf_table, pos, legacy32, legacy40, settings);
 	}
 
 	private static PDRectangle rotateBox(PDRectangle cropBox, int rotation) {
@@ -149,13 +152,14 @@ public class Positioning {
 	 *            The PDF document.
 	 * @param pdf_table
 	 *            The PDFPTable to be placed.
+	 * @param settings 
 	 * @return Returns the position where the PDFPTable should be placed.
 	 * @throws PdfAsException
 	 *             F.e.
 	 */
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
-			TablePos pos, boolean legacy32, boolean legacy40) throws PdfAsException {
+			TablePos pos, boolean legacy32, boolean legacy40, ISettings settings) throws PdfAsException {
 
 		PdfBoxUtils.checkPDFPermissions(pdfDataSource);
 		// get pages of currentdocument
@@ -271,7 +275,7 @@ public class Positioning {
 
 		 float pre_page_length = Float.NEGATIVE_INFINITY;
 		try {
-			pre_page_length = PDFUtilities.getMaxYPosition(pdfDataSource, page-1, pdf_table, SIGNATURE_MARGIN_VERTICAL, footer_line);
+			pre_page_length = PDFUtilities.getMaxYPosition(pdfDataSource, page-1, pdf_table, SIGNATURE_MARGIN_VERTICAL, footer_line, settings);
 			//pre_page_length = PDFUtilities.getFreeTablePosition(pdfDataSource, page-1, pdf_table,SIGNATURE_MARGIN_VERTICAL);
 		} catch (IOException e) {
 			logger.warn("Could not determine page length, using -INFINITY");

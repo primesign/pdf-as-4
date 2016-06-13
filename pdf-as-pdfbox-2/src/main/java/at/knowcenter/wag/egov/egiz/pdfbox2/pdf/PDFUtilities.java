@@ -55,41 +55,38 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning.PositioningRenderer;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 
-public abstract class PDFUtilities {
+public abstract class PDFUtilities implements IConfigurationConstants{
 
 	public static Color MAGIC_COLOR = new Color(152,254,52);// green-ish background
 	
 	public static float getMaxYPosition(
-			PDDocument pdfDataSource, int page, IPDFVisualObject pdfTable, float signatureMarginVertical, float footer_line) throws IOException {
-		long t0 = System.currentTimeMillis();
+			PDDocument pdfDataSource, int page, IPDFVisualObject pdfTable, float signatureMarginVertical, float footer_line, ISettings settings) throws IOException {
+		
 		PositioningRenderer renderer = new PositioningRenderer(pdfDataSource);
 		//BufferedImage bim = renderer.renderImage(page);
-		long t1 = System.currentTimeMillis();
+
 		int width = (int) pdfDataSource.getPage(page).getCropBox().getWidth();
 		int height = (int) pdfDataSource.getPage(page).getCropBox().getHeight();
 		BufferedImage bim = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		long t2 = System.currentTimeMillis();
+
 		Graphics2D graphics = bim.createGraphics();
-		long t3 = System.currentTimeMillis();
-//		graphics.setPaint(MAGIC_COLOR);
-//		graphics.fillRect(0, 0, width, height);
 		graphics.setBackground(MAGIC_COLOR);
         
 		renderer.renderPageToGraphics(page, graphics);
-		long t4 = System.currentTimeMillis();
+
 		Color bgColor = MAGIC_COLOR;
 		
-		if(true){ //only used if background color should be determined automatically
+		if("true".equals(settings.getValue(BG_COLOR_DETECTION))){ //only used if background color should be determined automatically
 			bgColor = determineBackgroundColor(bim);
 		}
-		long t5 = System.currentTimeMillis();
+
 		int yCoord = bim.getHeight() - 1 - (int)footer_line;
 
 		for(int row = yCoord; row >= 0; row--){
@@ -102,65 +99,13 @@ public abstract class PDFUtilities {
 				}
 			}
 		}
-		long t6 = System.currentTimeMillis();
-		
-		System.out.println("new Renderer: "+ (t1-t0));
-		System.out.println("new BI: "+ (t2-t1));
-		System.out.println("Create Graphics: "+ (t3-t2));
-		System.out.println("Render to Graphics: "+ (t4-t3));
-		System.out.println("Determined bg color: "+ (t5-t4));
-		System.out.println("Calc y: "+ (t6-t5));
 
-//		for(int i=0; i < bim.getWidth(); i++){
-//			bim.setRGB(i, yCoord, 255);
-//		}
-//
-		ImageIOUtil.writeImage(bim, "/home/cmaierhofer/temp/bufferer.png", 72);
-
+		String outFile = settings.getValue(SIG_PLACEMENT_DEBUG_OUTPUT);
+		if(outFile!=null){
+			ImageIOUtil.writeImage(bim, outFile, 72);
+		}
 		return yCoord;
 	}
-	
-//	public static float getFreeTablePosition(
-//			PDDocument pdfDataSource, int page, IPDFVisualObject pdfTable, float signatureMarginVertical) throws IOException {
-//		
-//		float table_height = pdfTable.getHeight();
-//		
-//		PDFRenderer renderer = new PDFRenderer(pdfDataSource);
-//
-//		BufferedImage bim = renderer.renderImage(page);
-//
-//		Color bgColor = determineBackgroundColor(bim);
-//		float posY = bim.getHeight();
-//		
-//		for(int row=0; row<bim.getHeight();row++){
-//			boolean backgroundOnly = true;
-//			int countFreeRows = 0;
-//			for(int c = row; c<bim.getHeight();c++){
-//				countFreeRows++;
-//				for(int col = 0; col < bim.getWidth(); col++){
-//					int val = bim.getRGB(col, c);
-//					if(val != bgColor){//end of bg
-//						backgroundOnly = false;
-//						row = c;
-//						break;
-//					}
-//				}
-//				if(!backgroundOnly){
-//					break;
-//				}else{
-//					if(countFreeRows >= table_height+signatureMarginVertical){
-//						posY = row;
-//						row=bim.getHeight();
-//						break;
-//					}
-//				}
-//			}
-//		}
-//
-//		if(posY == -1)
-//			return Float.NEGATIVE_INFINITY;
-//		return posY;
-//	}
 
 	public static Color determineBackgroundColor(BufferedImage bim){
 		

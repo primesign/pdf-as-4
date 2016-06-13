@@ -266,7 +266,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				 */
 
 				PositioningInstruction positioningInstruction = Positioning.determineTablePositioning(tablePos, "",
-						doc, visualObject, legacy32Position, legacy40Position);
+						doc, visualObject, legacy32Position, legacy40Position, pdfObject.getStatus().getSettings());
 
 				logger.debug("Positioning: {}", positioningInstruction.toString());
 
@@ -733,10 +733,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			PositioningInstruction positioningInstruction = null;
 			if (signaturePosString != null) {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
-						origDoc, visualObject, false, false);
+						origDoc, visualObject, false, false, pdfObject.getStatus().getSettings());
 			} else {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
-						visualObject, false, false);
+						visualObject, false, false, pdfObject.getStatus().getSettings());
 			}
 
 			origDoc.close();

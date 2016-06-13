@@ -103,4 +103,10 @@ public interface IConfigurationConstants {
 	 * Signature object Prefix
 	 */
 	public static final String SIG_RESERVED_SIZE = "signatureSize";
+	
+	/**
+	 * Visual Signature placement
+	 */
+	public static final String BG_COLOR_DETECTION = "sigblock.placement.bgcolor.detection.enabled";
+	public static final String SIG_PLACEMENT_DEBUG_OUTPUT = "sigblock.placement.debug.file";
 }
