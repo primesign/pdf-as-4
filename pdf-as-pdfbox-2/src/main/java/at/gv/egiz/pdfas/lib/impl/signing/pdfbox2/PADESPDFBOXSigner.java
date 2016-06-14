@@ -434,8 +434,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			// PDF-UA
 			logger.info("Adding pdf/ua content.");
 			try {
-				if(true)
-					throw new Exception("skip");
 				PDDocumentCatalog root = doc.getDocumentCatalog();
 				PDStructureTreeRoot structureTreeRoot = root.getStructureTreeRoot();
 				if (structureTreeRoot != null) {
