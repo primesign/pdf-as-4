@@ -52,20 +52,23 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
-import org.apache.pdfbox.contentstream.PDContentStream;
+import javassist.bytecode.stackmap.TypeData.ClassName;
+
 import org.apache.pdfbox.contentstream.PDFStreamEngine;
 import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.contentstream.operator.OperatorProcessor;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDFontFactory;
 import org.apache.pdfbox.pdmodel.graphics.PDXObject;
@@ -109,12 +112,26 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
 	private int currentPage = 0;
 	private PDDocument doc;
+	
+	
 
 	private SignaturePlaceholderExtractor(String placeholderId,
-			int placeholderMatchMode, PDDocument doc) throws IOException {
+			int placeholderMatchMode, PDDocument doc) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 		super();
-		//super(ResourceLoader.loadProperties( //TODO: pdfbox2 - properties need to be set
-		//		"placeholder/pdfbox-reader.properties", true));
+		
+		final Properties properties = new Properties();
+		properties.load(ClassName.class.getClassLoader().getResourceAsStream("placeholder/pdfbox-reader-2.properties"));
+		
+		Set<Entry<Object, Object>> entries = properties.entrySet();
+		for(Entry<Object, Object> entry:entries){
+			String processorClassName = (String)entry.getValue();
+			Class<?> klass = Class.forName( processorClassName );
+            org.apache.pdfbox.contentstream.operator.OperatorProcessor processor =
+                (OperatorProcessor) klass.newInstance();
+            
+            addOperator( processor );
+		}
+		
 		this.doc = doc;
 	}
 
@@ -139,7 +156,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		try {
 			extractor = new SignaturePlaceholderExtractor(placeholderId,
 					matchMode, doc);
-		} catch (IOException e2) {
+		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
 			throw new PDFIOException("error.pdf.io.04", e2);
 		}
 

@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -316,7 +317,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					// Placeholder found!
 					// replace placeholder
 
-					PDImageXObject img = PDImageXObject.createFromFile("/placeholder/empty.jpg", doc);
+					URL fileUrl = PADESPDFBOXSigner.class.getResource("/placeholder/empty.jpg");
+					
+					PDImageXObject img = PDImageXObject.createFromFile(fileUrl.getPath(), doc);
 
 					img.getCOSObject().setNeedToBeUpdated(true);
 					//							PDDocumentCatalog root = doc.getDocumentCatalog();
