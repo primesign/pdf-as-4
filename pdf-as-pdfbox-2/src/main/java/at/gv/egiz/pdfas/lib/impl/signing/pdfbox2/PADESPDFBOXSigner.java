@@ -249,8 +249,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 				}
 
-				boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
-				boolean legacy40Position = signatureProfileConfiguration.getLegacy40Positioning();
+				//Legacy Modes not supported with pdfbox2 anymore
+//				boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
+//				boolean legacy40Position = signatureProfileConfiguration.getLegacy40Positioning();
 
 				// create Table describtion
 				Table main = TableFactory.createSigTable(signatureProfileSettings, MAIN, pdfObject.getStatus(),
@@ -267,7 +268,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				 */
 
 				PositioningInstruction positioningInstruction = Positioning.determineTablePositioning(tablePos, "",
-						doc, visualObject, legacy32Position, legacy40Position, pdfObject.getStatus().getSettings());
+						doc, visualObject, pdfObject.getStatus().getSettings());
 
 				logger.debug("Positioning: {}", positioningInstruction.toString());
 
@@ -734,10 +735,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			PositioningInstruction positioningInstruction = null;
 			if (signaturePosString != null) {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
-						origDoc, visualObject, false, false, pdfObject.getStatus().getSettings());
+						origDoc, visualObject, pdfObject.getStatus().getSettings());
 			} else {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
-						visualObject, false, false, pdfObject.getStatus().getSettings());
+						visualObject, pdfObject.getStatus().getSettings());
 			}
 
 			origDoc.close();

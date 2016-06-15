@@ -82,9 +82,9 @@ public class Positioning {
 	 */
 	public static PositioningInstruction determineTablePositioning(
 			TablePos pos, String signature_type, PDDocument pdfDataSource,
-			IPDFVisualObject pdf_table, boolean legacy32, boolean legacy40, ISettings settings) throws PdfAsException {
+			IPDFVisualObject pdf_table, ISettings settings) throws PdfAsException {
 		return adjustSignatureTableandCalculatePosition(pdfDataSource,
-				pdf_table, pos, legacy32, legacy40, settings);
+				pdf_table, pos, settings);
 	}
 
 	private static PDRectangle rotateBox(PDRectangle cropBox, int rotation) {
@@ -159,7 +159,7 @@ public class Positioning {
 	 */
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
-			TablePos pos, boolean legacy32, boolean legacy40, ISettings settings) throws PdfAsException {
+			TablePos pos, ISettings settings) throws PdfAsException {
 
 		PdfBoxUtils.checkPDFPermissions(pdfDataSource);
 		// get pages of currentdocument
