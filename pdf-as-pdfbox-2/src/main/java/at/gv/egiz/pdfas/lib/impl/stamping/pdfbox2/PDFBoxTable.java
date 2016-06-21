@@ -49,6 +49,8 @@ public class PDFBoxTable {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFBoxTable.class);
+	
+	private static final String NBSPACE = '\u00A0'+"";
 
 	Table table;
 	Style style;
@@ -331,17 +333,19 @@ public class PDFBoxTable {
 				string = "";
 				cell.setValue(string);
 			}
-			if (string.contains("\n")) {
+			if (string.contains(NBSPACE) || string.contains("\n")) {
 				float maxWidth = 0;
+				string = string.replace(NBSPACE, " ");
 				String[] lines = string.split("\n");
+				
 				for (int i = 0; i < lines.length; i++) {
 					float w = c.getStringWidth(lines[i]) / 1000 * fontSize;
 					if (maxWidth < w) {
 						maxWidth = w;
 					}
 				}
-				return maxWidth;
-			} else {
+			}
+			else{
 				return c.getStringWidth(string) / 1000 * fontSize;
 			}
 		case Entry.TYPE_IMAGE:
@@ -399,6 +403,8 @@ public class PDFBoxTable {
 					}
 					// }
 					String tmpLine = cLineValue + subword;
+					tmpLine = tmpLine.replace(NBSPACE, " ");
+					
 					float size = font.getStringWidth(tmpLine) / 1000.0f
 							* fontSize;
 					if (size > maxwidth && cLineValue.length() != 0) {
@@ -409,6 +415,8 @@ public class PDFBoxTable {
 				}
 			} else {
 				String tmpLine = cLineValue + word;
+				tmpLine = tmpLine.replace(NBSPACE, " ");
+				
 				float size = font.getStringWidth(tmpLine) / 1000.0f * fontSize;
 				if (size > maxwidth && cLineValue.length() != 0) {
 					lines.add(cLineValue.trim());
@@ -418,6 +426,9 @@ public class PDFBoxTable {
 			}
 		}
 		lines.add(cLineValue.trim());
+		for(int i=0;i<lines.size();i++){
+			lines.set(i, lines.get(i).replace(NBSPACE, " "));
+		}
 		return lines.toArray(new String[0]);
 	}
 
