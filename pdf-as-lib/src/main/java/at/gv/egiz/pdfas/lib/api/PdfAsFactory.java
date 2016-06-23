@@ -37,9 +37,10 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
-import java.lang.reflect.Field;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -49,12 +50,16 @@ import javax.crypto.Cipher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
+import at.gv.egiz.pdfas.lib.configuration.ConfigurationValidator;
 import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
 import at.gv.egiz.pdfas.lib.impl.SignParameterImpl;
 import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
+import at.gv.egiz.pdfas.lib.impl.configuration.ConfigValidatorLoader;
 
 public class PdfAsFactory implements IConfigurationConstants {
 
@@ -358,5 +363,23 @@ public class PdfAsFactory implements IConfigurationConstants {
 	public static String getVersion() {
 		Package pack = PdfAsFactory.class.getPackage();
 		return pack.getImplementationVersion();
+	}
+	
+	/**
+	 * Execute all loaded Configuration Validators
+	 * 
+	 * @throws PdfAsSettingsValidationException 
+	 */
+	public static void validateConfiguration(ISettings configuration) throws PdfAsSettingsValidationException{
+		Map<String, ConfigurationValidator> availableValidators = ConfigValidatorLoader.getAvailableValidators();
+		if(availableValidators.isEmpty()){
+			logger.info("No configuration validators available");
+		}
+		for(Entry<String, ConfigurationValidator> validatorEntry : availableValidators.entrySet()){
+			logger.info("Running configuration validator: "+validatorEntry.getKey());
+			validatorEntry.getValue().validate(configuration);
+		}
+		logger.info("All configuration validators succeded.");
+
 	}
 }

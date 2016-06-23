@@ -40,6 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
@@ -49,10 +53,10 @@ import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.helper.RemotePDFFetcher;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent;
-import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 
 /**
  * Servlet implementation class Sign
@@ -71,8 +75,9 @@ public class ExternSignServlet extends HttpServlet {
 	
 	/**
 	 * Default constructor.
+
 	 */
-	public ExternSignServlet() {
+	public ExternSignServlet(){
 		String webconfig = System.getProperty(PDF_AS_WEB_CONF);
 		
 		if(webconfig == null) {
@@ -82,6 +87,14 @@ public class ExternSignServlet extends HttpServlet {
 		
 		WebConfiguration.configure(webconfig);
 		PdfAsHelper.init();
+		
+		try {
+			PdfAsFactory.validateConfiguration((ISettings)PdfAsHelper.getPdfAsConfig());
+		} catch (PdfAsSettingsValidationException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getLocalizedMessage(),e.getCause());
+			//e.printStackTrace();
+		}
 	}
 
 	protected void doGet(HttpServletRequest request,

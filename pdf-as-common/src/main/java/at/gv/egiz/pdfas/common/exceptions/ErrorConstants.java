@@ -22,8 +22,12 @@ public interface ErrorConstants {
 	
 	// Verification Errors
 	
+	
 	// Configuration Errors:
 	public static final long ERROR_SET_INVALID_SETTINGS_OBJ = 13001;
 	public static final long ERROR_INVALID_CERTIFICATE = 13002;
 	public static final long ERROR_INVALID_PLACEHOLDER_MODE = 13003;
+	
+	//Validation Errors
+	public static final long ERROR_NO_CONF_VALIDATION_BACKEND = 14001;
 }
