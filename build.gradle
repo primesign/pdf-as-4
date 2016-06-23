@@ -140,19 +140,36 @@ subprojects {
 	}
 	
 	//doFullRelease jar war distZip distTar releases sourcesJar uploadArchives
+
 }
 
 task(doFullRelease) << {
 	println "done building all distribution stuff for " + project.version
 }
 
+task copyLicenses<<{
+   	mkdir("releases/"+ version +"/licenses");
+   	def target = project.projectDir.toString() + "/releases/" + version + "/licenses"
+	subprojects{
+	    def src=project.projectDir.toString() + "/licenses"
+	    copy{
+			from src
+			into target
+		}
+	}
+	
+	
+}
+
 task releases(type: Copy) {
+    dependsOn copyLicenses
 	from ('doc') {
         include '*.pdf'
     }
 	
 	into "releases/" + version + "/docs"
 }
+
 
 def getCheckedOutGitCommitHash() {
 	def gitFolder = "$projectDir/.git/"
