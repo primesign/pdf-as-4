@@ -30,8 +30,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.settings.Settings;
 
 public class ConfigurationImpl implements ISettings, Configuration {
 

@@ -33,10 +33,8 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.utils.PdfBoxUtils;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;

@@ -21,7 +21,7 @@
  * The "NOTICE" text file is part of the distribution. Any derivative works
  * that you distribute must include a readable copy of the "NOTICE" text file.
  ******************************************************************************/
-package at.gv.egiz.pdfas.common.settings;
+package at.gv.egiz.pdfas.lib.settings;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +43,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.common.settings.IProfileConstants;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.Profiles;
 
 public class Settings implements ISettings, IProfileConstants {
 
