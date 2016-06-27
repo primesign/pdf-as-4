@@ -56,6 +56,11 @@ public class JSONAPIServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
+        if(!WebConfiguration.isJSONAPIEnabled()) {
+            logger.info("Access to JSON API, but JSON API is disabled. Returning 404 error.");
+            resp.sendError(404);
+        }
+
         String jsonString = IOUtils.toString(req.getInputStream(), "UTF-8");
 
         logger.debug("Reading json String {}", jsonString);

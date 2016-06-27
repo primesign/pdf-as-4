@@ -58,6 +58,7 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String RELOAD_PASSWORD = "reload.pwd";
 	public static final String RELOAD_ENABLED = "reload.enabled";
 	public static final String KEEP_SIGNED_DOCUMENT = "keep.signed";
+	public static final String JSON_API_ENABLED = "json.enabled";
 
 	public static final String MOA_LIST = "moal";
 	public static final String MOA_URL = "url";
@@ -297,6 +298,16 @@ public class WebConfiguration implements IConfigurationConstants {
 			}
 
 			return false;
+		}
+		return false;
+	}
+
+	public static boolean isJSONAPIEnabled() {
+		String value = properties.getProperty(JSON_API_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
 		}
 		return false;
 	}
