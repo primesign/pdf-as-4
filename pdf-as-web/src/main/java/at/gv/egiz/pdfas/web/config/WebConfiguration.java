@@ -57,6 +57,7 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String SOAP_VERIFY_ENABLED = "soap.verify.enabled";
 	public static final String RELOAD_PASSWORD = "reload.pwd";
 	public static final String RELOAD_ENABLED = "reload.enabled";
+	public static final String KEEP_SIGNED_DOCUMENT = "keep.signed";
 
 	public static final String MOA_LIST = "moal";
 	public static final String MOA_URL = "url";
@@ -299,7 +300,17 @@ public class WebConfiguration implements IConfigurationConstants {
 		}
 		return false;
 	}
-	
+
+	public static boolean isKeepSignedDocument() {
+		String value = properties.getProperty(KEEP_SIGNED_DOCUMENT);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean isMoaEnabled(String keyIdentifier) {
 		String value = properties.getProperty(MOA_LIST + "." + keyIdentifier + ".enabled");
 		if (value != null) {

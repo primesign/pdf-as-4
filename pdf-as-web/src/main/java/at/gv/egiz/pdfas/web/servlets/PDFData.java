@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +86,18 @@ public class PDFData extends HttpServlet {
 		String plainPDFDigest = PdfAsParameterExtractor.getOrigDigest(request);
 
 		if (signedData != null) {
+
+			if(WebConfiguration.isKeepSignedDocument()) {
+				if(PdfAsHelper.isSignedDataExpired(request, response)) {
+					logger.debug("Destroying expired signed data in session : {}", request.getSession().getId());
+					request.getSession().invalidate();
+					PdfAsHelper.setSessionException(request, response,
+							"No signed pdf document available.", null);
+					PdfAsHelper.gotoError(getServletContext(), request, response);
+					return;
+				}
+			}
+
 			if (plainPDFDigest != null) {
 				String signatureDataHash = PdfAsHelper
 						.getSignatureDataHash(request);
@@ -132,7 +145,12 @@ public class PDFData extends HttpServlet {
 			os.close();
 
 			// When data is collected destroy session!
-			request.getSession().invalidate();
+			if(!WebConfiguration.isKeepSignedDocument()) {
+				logger.debug("Destroying signed data in session : {}", request.getSession().getId());
+				request.getSession().invalidate();
+			} else {
+				logger.debug("Keeping signed data in session : {}", request.getSession().getId());
+			}
 		} else {
 			PdfAsHelper.setSessionException(request, response,
 					"No signed pdf document available.", null);
