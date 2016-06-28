@@ -89,7 +89,7 @@ public class PDFData extends HttpServlet {
 
 			if(WebConfiguration.isKeepSignedDocument()) {
 				if(PdfAsHelper.isSignedDataExpired(request, response)) {
-					logger.debug("Destroying expired signed data in session : {}", request.getSession().getId());
+					logger.info("Destroying expired signed data in session");
 					request.getSession().invalidate();
 					PdfAsHelper.setSessionException(request, response,
 							"No signed pdf document available.", null);

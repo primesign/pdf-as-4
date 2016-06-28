@@ -1158,7 +1158,7 @@ public class PdfAsHelper {
 
 			long validUntil = created + 300000;
 
-			logger.warn("Signed data is expired valid until {} now {}",
+			logger.debug("Checking signed data valid until {} now is {}",
 					validUntil, now);
 
 			return validUntil < now;
