@@ -59,6 +59,7 @@ public class JSONAPIServlet extends HttpServlet {
         if(!WebConfiguration.isJSONAPIEnabled()) {
             logger.info("Access to JSON API, but JSON API is disabled. Returning 404 error.");
             resp.sendError(404);
+            return;
         }
 
         String jsonString = IOUtils.toString(req.getInputStream(), "UTF-8");

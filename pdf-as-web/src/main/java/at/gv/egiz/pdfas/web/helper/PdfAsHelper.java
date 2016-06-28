@@ -1148,6 +1148,7 @@ public class PdfAsHelper {
 		HttpSession session = request.getSession();
 		Object signedData = session.getAttribute(PDF_SIGNED_DATA_CREATED);
 		if (signedData == null) {
+			logger.warn("Cannot find signed data created timestamp in session.");
 			return true;
 		}
 
@@ -1157,7 +1158,10 @@ public class PdfAsHelper {
 
 			long validUntil = created + 300000;
 
-			return validUntil > now;
+			logger.warn("Signed data is expired valid until {} now {}",
+					validUntil, now);
+
+			return validUntil < now;
 		}
 		logger.warn("PDF_SIGNED_DATA_CREATED in session is not a long type!");
 		return true;
