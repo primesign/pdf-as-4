@@ -80,7 +80,7 @@ subprojects {
 		pdfasversion = version
 		revision = getCheckedOutGitCommitHash()
 		//tomcatVersion = '7.0.54';
-		tomcatVersion = '8.0.23';
+		tomcatVersion = '8.0.36';
 		slf4jVersion = '1.7.7'
 		cxfVersion = '3.0.1'
 	  }
