@@ -5,7 +5,15 @@ jar {
     manifest {
         attributes 'Implementation-Title': 'PDF-AS-4 PDFBOX 2 Backend'
     }
-}
+    
+//    from {
+//			configurations.compile.collect{it}
+    		
+//    	}{
+//    		include "pdfbox*"
+//   	}
+  	}
+
 
 repositories {
     mavenCentral()
@@ -14,6 +22,7 @@ repositories {
 task releases(type: Copy) {
 	from jar.outputs
 	into rootDir.toString() + "/releases/" + version
+  	
 }
 
 releases.dependsOn jar
