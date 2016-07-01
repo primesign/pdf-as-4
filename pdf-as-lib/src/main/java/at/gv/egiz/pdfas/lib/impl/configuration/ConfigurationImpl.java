@@ -162,5 +162,8 @@ public class ConfigurationImpl implements ISettings, Configuration {
         }
 	}
 
+	public void debugDumpProfileSettings(String profileName) {
+		((Settings)settings).debugDumpProfileSettings(profileName);
+	}
 	
 }
