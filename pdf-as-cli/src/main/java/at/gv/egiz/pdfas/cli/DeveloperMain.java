@@ -24,8 +24,11 @@
 package at.gv.egiz.pdfas.cli;
 
 import java.io.File;
+import java.util.Iterator;
 
+import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
+import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
 
 public class DeveloperMain {
 
@@ -35,14 +38,15 @@ public class DeveloperMain {
     //public static final String keyAlias = "pdf";
     public static final String keyAlias = "ecc_test";
     public static final String keyPass = "123456";
-	
+
 	public static void main(String[] args) {		
 		
 		
 		
 		String user_home = System.getProperty("user.home");
 		String pdfas_dir = user_home + File.separator + ".pdfas";
-		/*PdfAs pdfas = */PdfAsFactory.createPdfAs(new File(pdfas_dir));
+		PdfAs pdfas = PdfAsFactory.createPdfAs(new File(pdfas_dir));
+		((ConfigurationImpl)pdfas.getConfiguration()).debugDumpProfileSettings("SIGNATURBLOCK_EN_SEAL");
 		System.out.println(PdfAsFactory.getVersion());
 		return;
 		
