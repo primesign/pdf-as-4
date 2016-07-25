@@ -386,7 +386,7 @@ public class PDFBoxTable {
 		for (int i = 0; i < words.length; i++) {
 			String word = words[i];
 			String[] lineBreaks = word.split("\n");
-			if (lineBreaks.length > 1) {
+			if (lineBreaks.length > 1 || word.contains("\n")) {
 				for (int j = 0; j < lineBreaks.length; j++) {
 					String subword = lineBreaks[j];
 					// if (cLine + subword.length() > maxline) {
@@ -406,6 +406,10 @@ public class PDFBoxTable {
 						cLineValue = "";
 					}
 					cLineValue += subword + " ";
+				}
+				if(lineBreaks.length == 1) {
+					lines.add(cLineValue.trim());
+					cLineValue = "";
 				}
 			} else {
 				String tmpLine = cLineValue + word;
