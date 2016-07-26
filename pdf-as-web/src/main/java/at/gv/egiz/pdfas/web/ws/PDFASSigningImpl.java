@@ -131,11 +131,11 @@ public class PDFASSigningImpl implements PDFASSigning {
 									SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION, 
 									preProcessor);
 
-					if (verResults.size() != 1) {
+					if (verResults.size() < 1) {
 						throw new WebServiceException(
 								"Document verification failed!");
 					}
-					verifyResult = verResults.get(0);
+					verifyResult = verResults.get(verResults.size() - 1);
 				}
 
 				if(verifyResult.getValueCheckCode().getCode() == 0) {
