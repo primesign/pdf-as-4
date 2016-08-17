@@ -70,8 +70,7 @@ suiteDir.eachDir {	File subDir ->
     	if(dirname =="public_pdfbox1"){
 			classpath += sourceSets.pdfBox1.compileClasspath
 			compileTestJava.classpath += sourceSets.pdfBox1.compileClasspath
-		}
-		if(dirname =="public_pdfbox2"){
+		} else /* if(dirname =="public_pdfbox2")*/{
 			classpath += sourceSets.pdfBox2.compileClasspath
 			compileTestJava.classpath += sourceSets.pdfBox2.compileClasspath
 		}
