@@ -175,7 +175,7 @@ task putConfigIntoTomcat(dependsOn: putTemplateIntoTomcat)<<{
 
 task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat)<<{
 	deployVersions.each{
-		String targetDir = "build/tomcat-##VERSION##/apache-tomcat-##VERSION##/conf/pdf-as";
+		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
 		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
 		
 		copy{
@@ -205,7 +205,7 @@ task createPdfbox2War(type:War){
 		sourceSets.test.compileClasspath -= configurations.pdfbox1
 		sourceSets.main.compileClasspath += configurations.pdfbox2
 		sourceSets.test.compileClasspath += configurations.pdfbox2
-		classpath=sourceSets.main.compileClasspath
+		classpath+=sourceSets.main.compileClasspath
 	}
 }
 
@@ -285,14 +285,13 @@ task releaseConfig(type: Copy) {
 
 
 
-
 war{
 	doFirst{
 		sourceSets.main.compileClasspath -= configurations.pdfbox2
 		sourceSets.test.compileClasspath -= configurations.pdfbox2
 		sourceSets.main.compileClasspath += configurations.pdfbox1
 		sourceSets.test.compileClasspath += configurations.pdfbox1
-		classpath=sourceSets.main.compileClasspath
+		classpath+=sourceSets.main.compileClasspath
 	}
 }
 
