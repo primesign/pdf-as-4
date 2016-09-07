@@ -85,8 +85,22 @@ public class PDFBoxTable {
 					case Entry.TYPE_CAPTION:
 					case Entry.TYPE_VALUE:
 						String value = (String) cell.getValue();
-						cell.setValue(StringUtils
-								.convertStringToPDFFormat(value));
+						
+						//Check if the used value font supports all characters in string
+						PDFont f = null;
+						try{
+							if(valueFont != null){
+								f = valueFont.getFont();
+								f.getStringWidth(value);
+							}
+						}catch(IllegalArgumentException | IOException e){
+							if(f!=null){
+								logger.warn("Font "+f.getName()+" doesnt support a character in the value "+value);
+							}
+							value = StringUtils.convertStringToPDFFormat(value);
+							cell.setValue(value);
+						}
+						
 						break;
 					}
 				}
@@ -99,11 +113,6 @@ public class PDFBoxTable {
 	private void initializeStyle(Table abstractTable, PDFBoxTable parent,
 			PDFBOXObject pdfBoxObject) throws IOException {
 		this.table = abstractTable;
-		try {
-			normalizeContent(abstractTable);
-		} catch (PdfAsException e) {
-			throw new PdfAsWrappedIOException(e);
-		}
 
 		if (parent != null) {
 			style = Style.doInherit(abstractTable.getStyle(), parent.style);
@@ -148,6 +157,12 @@ public class PDFBoxTable {
 		padding = style.getPadding();
 
 		bgColor = style.getBgColor();
+		
+		try {
+			normalizeContent(abstractTable);
+		} catch (PdfAsException e) {
+			throw new PdfAsWrappedIOException(e);
+		}
 	}
 
 	public PDFBoxTable(Table abstractTable, PDFBoxTable parent, float fixSize,
