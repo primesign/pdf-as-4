@@ -246,8 +246,9 @@ public class TableDrawUtils {
 			contentStream.moveTextPositionByAmount(tx, (ty - fontSize + (descent * (-1))));
 
 			contentStream.appendRawCommands(fontSize + " TL\n");
+			
 			for (int k = 0; k < tlines.length; k++) {
-				contentStream.drawString(tlines[k]);
+				contentStream.showText(tlines[k]);
 				if (k < tlines.length - 1) {
 					contentStream.appendRawCommands("T*\n");
 				}
