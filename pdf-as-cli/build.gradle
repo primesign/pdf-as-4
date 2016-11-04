@@ -23,11 +23,11 @@ configurations {
 sourceSets{
 	pdfBox2{
 		compileClasspath = configurations.pdfBox2Compile
-		runtimeClasspath= configurations.pdfBox2Compile
+		runtimeClasspath = configurations.pdfBox2Compile + main.runtimeClasspath
 	}
 	pdfBox1{
 		compileClasspath = configurations.pdfBox1Compile
-		runtimeClasspath= configurations.pdfBox1Compile
+		runtimeClasspath = configurations.pdfBox1Compile + main.runtimeClasspath
 	}
 }
 			   
