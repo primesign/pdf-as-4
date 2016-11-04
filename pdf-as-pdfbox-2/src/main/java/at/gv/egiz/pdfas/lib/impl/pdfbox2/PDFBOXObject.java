@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.activation.DataSource;
 
+import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 
@@ -52,7 +53,12 @@ public class PDFBOXObject extends PDFObject {
 			doc = null;
 		}
 	}
-	
+
+	private MemoryUsageSetting getMemoryUsageSettings() {
+		// TODO: allow fine tuning of memory usage (divided main memory vs file memory)
+		return MemoryUsageSetting.setupMainMemoryOnly();
+	}
+
 	public void setOriginalDocument(DataSource originalDocument) throws IOException {
 		this.originalDocument = originalDocument;
 		if(doc != null) {
