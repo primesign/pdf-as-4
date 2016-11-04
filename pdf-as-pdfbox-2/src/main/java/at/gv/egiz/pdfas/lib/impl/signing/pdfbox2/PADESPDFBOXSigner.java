@@ -28,19 +28,14 @@ import iaik.x509.X509Certificate;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -65,6 +60,12 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
+import org.apache.pdfbox.preflight.Format;
+import org.apache.pdfbox.preflight.PreflightDocument;
+import org.apache.pdfbox.preflight.ValidationResult;
+import org.apache.pdfbox.preflight.exception.SyntaxValidationException;
+import org.apache.pdfbox.preflight.exception.ValidationException;
+import org.apache.pdfbox.preflight.parser.PreflightParser;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
@@ -104,6 +105,8 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
+
+import javax.activation.DataSource;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
@@ -175,6 +178,15 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
+
+			/*
+			 * Check if input document is PDF-A conform
+			 *
+			if (signatureProfileSettings.isPDFA()) {
+				// TODO: run preflight parser
+				runPDFAPreflight(pdfObject.getOriginalDocument());
+			}
+			*/
 
 			ValueResolver resolver = new ValueResolver(requestedSignature, pdfObject.getStatus());
 			String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"),
@@ -576,7 +588,17 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				
 				synchronized (doc) {
 					doc.saveIncremental(bos);
-					pdfObject.setSignedDocument(bos.toByteArray());
+					byte[] outputDocument = bos.toByteArray();
+
+					/*
+					Check if resulting pdf is PDF-A conform
+					 */
+					//if (signatureProfileSettings.isPDFA()) {
+					//	// TODO: run preflight parser
+					//	runPDFAPreflight(outputDocument);
+					//}
+
+					pdfObject.setSignedDocument(outputDocument);
 				}
 				
 			} finally {
@@ -604,6 +626,57 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			logger.debug("Signature done!");
 
+		}
+	}
+
+	private void runPDFAPreflight(final byte[] signedDocument) throws PdfAsException {
+		runPDFAPreflight(new ByteArrayDataSource(signedDocument));
+	}
+
+	private void runPDFAPreflight(final DataSource signedDocument) throws PdfAsException {
+		PreflightDocument document = null;
+		ValidationResult result = null;
+		try {
+			PreflightParser parser = new PreflightParser(signedDocument);
+			parser.parse(Format.PDF_A1B);
+			parser.parse();
+			document = parser.getPreflightDocument();
+			document.validate();
+
+			document.close();
+			result = document.getResult();
+
+			if(result.getErrorsList().size() > 0) {
+				logger.error("The following validation errors occured for PDF-A validation");
+			}
+
+			for (ValidationResult.ValidationError ve : result.getErrorsList())
+			{
+				logger.error("\t" + ve.getErrorCode() + ": " + ve.getDetails());
+			}
+
+			if(!result.isValid()) {
+				throw new PdfAsException("The file is not a valid PDF-A document");
+			}
+
+		} catch (SyntaxValidationException e) {
+			logger.error("The file is syntactically invalid.", e);
+			throw new PdfAsException("Resulting PDF Document is syntactically invalid.");
+		} catch (ValidationException e) {
+			logger.error("The file is not a valid PDF-A document.", e);
+			throw new PdfAsException("The file is not a valid PDF-A document");
+		}  catch (IOException e) {
+			logger.error("An IOException (" + e.getMessage()
+					+ ") occurred, while validating the PDF-A conformance", e);
+			throw new PdfAsException("Failed validating PDF Document IOException.");
+		} catch (RuntimeException e) {
+			logger.debug("An RuntimeException (" + e.getMessage()
+					+ ") occurred, while validating the PDF-A conformance", e);
+			throw new PdfAsException("Failed validating PDF Document RuntimeException.");
+		} finally {
+			if (document != null) {
+				IOUtils.closeQuietly((Closeable)document);
+			}
 		}
 	}
 
