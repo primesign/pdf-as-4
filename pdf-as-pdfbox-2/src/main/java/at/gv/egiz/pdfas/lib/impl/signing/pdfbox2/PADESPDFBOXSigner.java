@@ -571,55 +571,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				}
 			}
 
-			if (requestedSignature.isVisual()) {
-
-				// if(requestedSignature.getSignaturePosition().)
-				/*
-				 * PDAcroForm acroForm =
-				 * doc.getDocumentCatalog().getAcroForm(); if (acroForm !=
-				 * null) {
-				 * 
-				 * @SuppressWarnings("unchecked") List<PDField> fields =
-				 * acroForm.getFields(); PDSignatureField signatureField =
-				 * null;
-				 * 
-				 * if (fields != null) { for (PDField pdField : fields) { if
-				 * (pdField instanceof PDSignatureField) { if
-				 * (((PDSignatureField) pdField).getSignature()
-				 * .getDictionary() .equals(signature.getDictionary())) {
-				 * signatureField = (PDSignatureField) pdField; } } } } else
-				 * { logger.warn(
-				 * "Failed to apply rotation! [Cannot find Field list in acroForm!]"
-				 * ); }
-				 * 
-				 * if (signatureField != null) { if
-				 * (signatureField.getWidget() != null) { if
-				 * (signatureField.getWidget()
-				 * .getAppearanceCharacteristics() == null) {
-				 * PDAppearanceCharacteristicsDictionary dict = new
-				 * PDAppearanceCharacteristicsDictionary( new
-				 * COSDictionary()); signatureField.getWidget()
-				 * .setAppearanceCharacteristics(dict); }
-				 * 
-				 * if (signatureField.getWidget()
-				 * .getAppearanceCharacteristics() != null) {
-				 * signatureField.getWidget()
-				 * .getAppearanceCharacteristics() .setRotation(90); } } }
-				 * else { logger.warn(
-				 * "Failed to apply rotation! [Cannot find signature Field!]"
-				 * ); } } else { logger.warn(
-				 * "Failed to apply rotation! [Cannot find acroForm!]" ); }
-				 */
-			}
-
-
-
-
 			try {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				
 				synchronized (doc) {
-					this.saveIncremental(bos, doc, pdfObject.getOriginalDocument().getInputStream(), signer);
+					doc.saveIncremental(bos);
 					pdfObject.setSignedDocument(bos.toByteArray());
 				}
 				
@@ -648,23 +604,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			logger.debug("Signature done!");
 
-		}
-	}
-
-	public void saveIncremental(OutputStream outStream, PDDocument doc, InputStream inStream, SignatureInterface signer) throws IOException{
-		COSWriter writer = null;
-		try
-		{
-			writer = new COSWriter(outStream, inStream);
-			writer.write(doc, signer);
-			writer.close();
-		}
-		finally
-		{
-			if (writer != null)
-			{
-				writer.close();
-			}
 		}
 	}
 
