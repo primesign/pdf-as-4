@@ -196,8 +196,8 @@ task injectPdfAsWebApp(dependsOn: putWebConfigIntoTomcat, type: Copy) {
 injectPdfAsWebApp.dependsOn war
 
 task createPdfbox2War(type:War){
-	destinationDir = file("$buildDir/libs/pdfbox2")
-
+	//destinationDir = file("$buildDir/libs/pdfbox2")
+	appendix = "pdfbox2"
 	doFirst{
 		sourceSets.main.compileClasspath -= configurations.pdfbox1
 		sourceSets.test.compileClasspath -= configurations.pdfbox1
@@ -324,7 +324,7 @@ task releaseCopyPdfbox2(type: Copy){
 	from archive
 	from tararchive
 	from createPdfbox2War
-	into rootDir.toString() + "/releases/" + version+"/pdf-as-web-pdfbox2"
+	into rootDir.toString() + "/releases/" + version
 }
 
 
