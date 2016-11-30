@@ -181,7 +181,13 @@ public class PdfAsParameterExtractor {
 	}
 	
 	public static String getLocale(HttpServletRequest request) {
-		return (String)request.getAttribute(PARAM_LOCALE);
+		String locale = (String)request.getAttribute(PARAM_LOCALE);
+		if(locale != null) {
+			if ("DE".equalsIgnoreCase(locale) || "EN".equalsIgnoreCase(locale)) {
+				return locale;
+			}
+		}
+		return null;
 	}
 	
 	public static String getNumBytes(HttpServletRequest request) {
