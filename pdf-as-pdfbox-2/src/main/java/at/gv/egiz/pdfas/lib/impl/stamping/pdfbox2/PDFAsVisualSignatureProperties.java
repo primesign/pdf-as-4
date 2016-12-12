@@ -112,7 +112,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 
 	@Override
 	public void buildSignature() throws IOException {
-		PDFAsVisualSignatureBuilder builder = new PDFAsVisualSignatureBuilder(this, this.settings, designer);
+		PDFAsVisualSignatureBuilder builder = new PDFAsVisualSignatureBuilder(this, this.settings, designer, this.signatureProfileSettings);
 		PDFAsTemplateCreator creator = new PDFAsTemplateCreator(builder);
 		try {
 			setVisibleSignature(creator.buildPDF(designer, this.origDoc));

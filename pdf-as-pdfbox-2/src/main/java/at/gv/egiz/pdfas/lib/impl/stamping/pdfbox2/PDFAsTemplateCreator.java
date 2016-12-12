@@ -23,11 +23,10 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox2;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -143,7 +142,9 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         		null, innerFormName, properties);
         this.pdfBuilder.createVisualSignature(template);
         this.pdfBuilder.createWidgetDictionary(pdSignatureField, holderFormResources);
-        
+
+
+
         ByteArrayInputStream in = null;
     
         	//COSDocument doc = pdfStructure.getVisualSignature();
@@ -152,7 +153,31 @@ public class PDFAsTemplateCreator extends PDFTemplateCreator {
         	ByteArrayOutputStream baos = new ByteArrayOutputStream();
         	template.save(baos);
         	baos.close();
-        	in = new ByteArrayInputStream(baos.toByteArray());
+
+        SignatureProfileSettings signatureProfileSettings =
+                this.pdfBuilder.signatureProfileSettings;
+
+        boolean requirePDFA3 = signatureProfileSettings.isPDFA3();
+
+        if(requirePDFA3) {
+
+            //FileOutputStream fos = new FileOutputStream("/tmp/signature.pdf");
+            //fos.write(baos.toByteArray());
+            //fos.close();
+
+            PDDocument cidSetRemoved = PDDocument.load(baos.toByteArray());
+            try {
+                this.pdfBuilder.removeCidSet(cidSetRemoved);
+                baos.reset();
+                baos = new ByteArrayOutputStream();
+                cidSetRemoved.save(baos);
+                baos.close();
+            } finally {
+                cidSetRemoved.close();
+            }
+        }
+
+        in = new ByteArrayInputStream(baos.toByteArray());
         
 
         logger.debug("stream returning started, size= " + in.available());

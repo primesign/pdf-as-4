@@ -48,6 +48,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
@@ -68,6 +69,9 @@ import org.apache.pdfbox.preflight.exception.ValidationException;
 import org.apache.pdfbox.preflight.parser.PreflightParser;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.xml.DomXmpParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,6 +135,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		}
 
 		PDFASPDFBOXSignatureInterface signer = (PDFASPDFBOXSignatureInterface) genericSigner;
+
+        String pdfaVersion = null;
 
 		PDDocument doc = null;
 		SignatureOptions options = new SignatureOptions();
@@ -220,6 +226,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				logger.warn("Invalid configuration value: {} should be a number using 0x1000", SIG_RESERVED_SIZE);
 			}
 			options.setPreferredSignatureSize(signatureSize);
+
+            if(signatureProfileSettings.isPDFA() || signatureProfileSettings.isPDFA3()) {
+                pdfaVersion = getPDFAVersion(doc);
+                signatureProfileSettings.setPDFAVersion(pdfaVersion);
+            }
 
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
@@ -352,7 +363,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				}
 
-				if (signatureProfileSettings.isPDFA()) {
+				if (signatureProfileSettings.isPDFA() || signatureProfileSettings.isPDFA3()) {
 					PDDocumentCatalog root = doc.getDocumentCatalog();
 					COSBase base = root.getCOSObject().getItem(COSName.OUTPUT_INTENTS);
 					if (base == null) {
@@ -807,4 +818,31 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
+
+	private String getPDFAVersion(PDDocument doc) {
+        try {
+            PDDocumentCatalog cat = doc.getDocumentCatalog();
+            PDMetadata metadata = cat.getMetadata();
+
+            if(metadata != null) {
+                DomXmpParser xmpParser = new DomXmpParser();
+                XMPMetadata xmpMetadata = xmpParser.parse(metadata.exportXMPMetadata());
+                if(xmpMetadata != null) {
+                    PDFAIdentificationSchema pdfaIdentificationSchema = xmpMetadata.getPDFIdentificationSchema();
+                    if (pdfaIdentificationSchema != null) {
+                        Integer pdfaversion = pdfaIdentificationSchema.getPart();
+                        String conformance = pdfaIdentificationSchema.getConformance();
+                        logger.info("Detected PDF/A Version: {} - {}", pdfaversion, conformance);
+
+                        if(pdfaversion != null) {
+                            return String.valueOf(pdfaversion);
+                        }
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            logger.warn("Failed to determine PDF/A Version!", e);
+        }
+        return null;
+    }
 }

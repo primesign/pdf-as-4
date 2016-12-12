@@ -30,22 +30,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.pdfparser.PDFParser;
-import org.apache.pdfbox.pdfparser.PDFStreamParser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
@@ -59,6 +52,7 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleS
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
+import org.apache.pdfbox.pdmodel.font.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,15 +70,18 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 	private PDFAsVisualSignatureProperties properties;
 	private PDFAsVisualSignatureDesigner designer;
 	private ISettings settings;
+	public SignatureProfileSettings signatureProfileSettings;
 	private PDResources innerFormResources;
 	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
 
 	public PDFAsVisualSignatureBuilder(
 			PDFAsVisualSignatureProperties properties, ISettings settings,
-			PDFAsVisualSignatureDesigner designer) {
+			PDFAsVisualSignatureDesigner designer,
+			SignatureProfileSettings signatureProfileSettings) {
 		this.properties = properties;
 		this.settings = settings;
 		this.designer = designer;
+		this.signatureProfileSettings = signatureProfileSettings;
 	}
 
 	@Override
@@ -655,6 +652,35 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 	public void closeTemplate(PDDocument template) throws IOException {
 		template.close();
 		this.getStructure().getTemplate().close();
+	}
+
+	public void removeCidSet(PDDocument document) throws IOException {
+
+		PDDocumentCatalog catalog = document.getDocumentCatalog();
+
+		COSName cidSet = COSName.getPDFName("CIDSet");
+
+		Iterator<PDPage> pdPageIterator = catalog.getPages().iterator();
+			while(pdPageIterator.hasNext()) {
+
+                PDPage page = pdPageIterator.next();
+
+                Iterator<COSName> cosNameIterator = page.getResources().getFontNames().iterator();
+                while (cosNameIterator.hasNext()) {
+                    COSName fontName = cosNameIterator.next();
+                    PDFont pdFont = page.getResources().getFont(fontName);
+
+                    if (pdFont instanceof PDType0Font) {
+                        PDType0Font typedFont = (PDType0Font) pdFont;
+
+                        if (typedFont.getDescendantFont() != null) {
+                            if (typedFont.getDescendantFont().getFontDescriptor() != null) {
+                                typedFont.getDescendantFont().getFontDescriptor().getCOSObject().removeItem(cidSet);
+                            }
+                        }
+                    }
+                }
+            }
 	}
 
 }

@@ -230,8 +230,10 @@ public class TableDrawUtils {
 			drawDebugLineString(contentStream, tx, ty, maxWidth, textHeight, descent, settings);
 
 			contentStream.beginText();
-			
-		
+
+			contentStream.setFont(textFont, fontSize);
+			contentStream.newLineAtOffset(tx, (ty - fontSize + (descent * (-1))));
+			/*
 			if (formResources.getFont(COSName.getPDFName(textFont.getName())) != null) {
 				String fontID = getFontID(textFont, formResources);
 				logger.debug("Using Font: " + fontID);
@@ -246,11 +248,17 @@ public class TableDrawUtils {
 			contentStream.moveTextPositionByAmount(tx, (ty - fontSize + (descent * (-1))));
 
 			contentStream.appendRawCommands(fontSize + " TL\n");
-			
+			*/
+
+			if(textFont.willBeSubset()) {
+				logger.debug("Font will be subset!");
+			}
+
 			for (int k = 0; k < tlines.length; k++) {
 				contentStream.showText(tlines[k]);
 				if (k < tlines.length - 1) {
-					contentStream.appendRawCommands("T*\n");
+					contentStream.newLineAtOffset(0, -1 * fontSize );
+					//contentStream.appendRawCommands("T*\n");
 				}
 			}
 

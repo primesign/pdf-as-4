@@ -24,8 +24,11 @@
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox2;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
@@ -158,12 +161,14 @@ public class PDFBoxFont {
 	private PDFont generateTTF(String fonttype, PDFBOXObject pdfObject)
 			throws IOException {
 
+
 		ttfFontDesc = fonttype;
 		String fontName = fonttype.replaceFirst("TTF:", "");
 		String fontPath = this.settings.getWorkingDirectory() + File.separator
 				+ "fonts" + File.separator + fontName;
 		
 		logger.debug("Font from: \"" + fontPath + "\".");
+
 
 		PDFAsFontCache fontCache = pdfObject.getSigBlockFontCache();
 		
@@ -185,8 +190,14 @@ public class PDFBoxFont {
 //		} 
 		
 		logger.debug("Instantiating new font.");
-		
-		PDType0Font font = PDType0Font.load(pdfObject.getDocument(), new File(fontPath));
+
+/*
+		SignatureProfileSettings signatureProfileSettings = TableFactory
+				.createProfile(pdfObject.getStatus().getRequestedSignature().getSignatureProfileID(), pdfObject.getStatus().getSettings());
+
+		boolean requirePDFA3 = signatureProfileSettings.isPDFA3();
+*/
+		PDType0Font font = PDType0Font.load(pdfObject.getDocument(), new FileInputStream(fontPath));
 		fontCache.addFont(fontPath,font);
 		
 		return font;
