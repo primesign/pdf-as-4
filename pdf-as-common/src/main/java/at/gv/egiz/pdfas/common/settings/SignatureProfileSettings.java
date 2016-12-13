@@ -216,7 +216,13 @@ public class SignatureProfileSettings implements IProfileConstants {
 			return "1".equals(this.pdfAVersion);
 		}
 
-		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA1B_VALID);
+		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA_VALID);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+
+		entry = profileInformations.get(SIG_PDFA1B_VALID);
 		if (entry != null) {
 			String value = entry.getCaption();
 			return "true".equals(value);
@@ -238,7 +244,7 @@ public class SignatureProfileSettings implements IProfileConstants {
 			return "3".equals(this.pdfAVersion);
 		}
 
-		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA3B_VALID);
+		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA_VALID);
 		if (entry != null) {
 			String value = entry.getCaption();
 			return "true".equals(value);
