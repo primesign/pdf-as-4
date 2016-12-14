@@ -115,7 +115,7 @@ task extractTomcat(dependsOn: downloadTomcat, type: Copy) {
 	into outputDir
 }
 
-def deployVersions=['','-pdfbox2']
+def deployVersions=['','-pdfbox1']
 
 task copyTomcat(dependsOn: extractTomcat)<<{
 	deployVersions.each{
@@ -195,31 +195,31 @@ task injectPdfAsWebApp(dependsOn: putWebConfigIntoTomcat, type: Copy) {
 }
 injectPdfAsWebApp.dependsOn war
 
-task createPdfbox2War(type:War){
+task createPdfbox1War(type:War){
 	//destinationDir = file("$buildDir/libs/pdfbox2")
-	appendix = "pdfbox2"
+	appendix = "pdfbox1"
 	doFirst{
-		sourceSets.main.compileClasspath -= configurations.pdfbox1
-		sourceSets.test.compileClasspath -= configurations.pdfbox1
-		sourceSets.main.compileClasspath += configurations.pdfbox2
-		sourceSets.test.compileClasspath += configurations.pdfbox2
+		sourceSets.main.compileClasspath -= configurations.pdfbox2
+		sourceSets.test.compileClasspath -= configurations.pdfbox2
+		sourceSets.main.compileClasspath += configurations.pdfbox1
+		sourceSets.test.compileClasspath += configurations.pdfbox1
 		classpath+=sourceSets.main.compileClasspath
 	}
 }
 
 
 
-task injectPdfAsWebAppPdfbox2(dependsOn: putWebConfigIntoTomcat, type: Copy) {
+task injectPdfAsWebAppPdfbox1(dependsOn: putWebConfigIntoTomcat, type: Copy) {
 	//war.execute();
 	
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+deployVersions[1]+"/apache-tomcat-##VERSION##/webapps/";
 	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
 	
-	from createPdfbox2War.outputs
+	from createPdfbox1War.outputs
 	into targetDir
 	rename '.*.war', 'pdf-as-web.war'
 }
-injectPdfAsWebAppPdfbox2.dependsOn createPdfbox2War
+injectPdfAsWebAppPdfbox1.dependsOn createPdfbox1War
 
 task buildTomcat(dependsOn: injectPdfAsWebApp, type: Zip) {
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##";
@@ -233,7 +233,7 @@ task buildTomcat(dependsOn: injectPdfAsWebApp, type: Zip) {
 	archiveName archive
 	destinationDir project.buildDir
 }
-task buildTomcatPdfbox2(dependsOn: injectPdfAsWebAppPdfbox2, type: Zip) {
+task buildTomcatPdfbox1(dependsOn: injectPdfAsWebAppPdfbox1, type: Zip) {
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+deployVersions[1]+"/apache-tomcat-##VERSION##";
 	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
 	
@@ -260,7 +260,7 @@ task buildTomcatTar(dependsOn: injectPdfAsWebApp, type: Tar) {
 	destinationDir project.buildDir
 }
 
-task buildTomcatTarPdfbox2(dependsOn: injectPdfAsWebAppPdfbox2, type: Tar) {
+task buildTomcatTarPdfbox1(dependsOn: injectPdfAsWebAppPdfbox1, type: Tar) {
 
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+deployVersions[1]+"/apache-tomcat-##VERSION##";
 	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
@@ -285,10 +285,10 @@ task releaseConfig(type: Copy) {
 
 war{
 	doFirst{
-		sourceSets.main.compileClasspath -= configurations.pdfbox2
-		sourceSets.test.compileClasspath -= configurations.pdfbox2
-		sourceSets.main.compileClasspath += configurations.pdfbox1
-		sourceSets.test.compileClasspath += configurations.pdfbox1
+		sourceSets.main.compileClasspath += configurations.pdfbox2
+		sourceSets.test.compileClasspath += configurations.pdfbox2
+		sourceSets.main.compileClasspath -= configurations.pdfbox1
+		sourceSets.test.compileClasspath -= configurations.pdfbox1
 		classpath+=sourceSets.main.compileClasspath
 	}
 }
@@ -312,7 +312,7 @@ task releases(dependsOn: buildTomcat, type: Copy) {
 
 }
 
-task releaseCopyPdfbox2(type: Copy){
+task releaseCopyPdfbox1(type: Copy){
 	String archive = project.buildDir.toString() + "/apache-tomcat-##VERSION##"+deployVersions[1]+"-pdf-as-web-##PVERSION##.zip";
 	archive = archive.replaceAll("##VERSION##", project.tomcatVersion);
 	archive = archive.replaceAll("##PVERSION##", project.version);
@@ -323,8 +323,8 @@ task releaseCopyPdfbox2(type: Copy){
 	
 	from archive
 	from tararchive
-	from createPdfbox2War
-	into rootDir.toString() + "/releases/" + version
+	from createPdfbox1War
+	into rootDir.toString() + "/releases/" + version + "/pdfbox1"
 }
 
 
@@ -333,10 +333,10 @@ releases.dependsOn sourcesJar
 releases.dependsOn war
 releases.dependsOn releaseConfig
 releases.dependsOn buildTomcatTar
-releases.dependsOn createPdfbox2War
-releases.dependsOn releaseCopyPdfbox2
-releases.dependsOn buildTomcatPdfbox2
-releases.dependsOn buildTomcatTarPdfbox2
+releases.dependsOn createPdfbox1War
+releases.dependsOn releaseCopyPdfbox1
+releases.dependsOn buildTomcatPdfbox1
+releases.dependsOn buildTomcatTarPdfbox1
 
-war.dependsOn createPdfbox2War
+war.dependsOn createPdfbox1War
 

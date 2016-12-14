@@ -47,7 +47,7 @@ dependencies {
 
 
 startScripts{
-	classpath+=sourceSets.pdfBox1.compileClasspath
+	classpath+=sourceSets.pdfBox2.compileClasspath
 }
 
 compileJava{
@@ -57,13 +57,13 @@ compileJava{
 }
 
 
-task pdfbox2Startscript(type: CreateStartScripts) {
+task pdfbox1Startscript(type: CreateStartScripts) {
     description "Creates OS specific scripts to call the 'other' entry point"
 
-    classpath = startScripts.classpath.minus(configurations.pdfBox1Compile) + sourceSets.pdfBox2.compileClasspath
+    classpath = startScripts.classpath.minus(configurations.pdfBox2Compile) + sourceSets.pdfBox1.compileClasspath
     outputDir = startScripts.outputDir
     mainClassName = startScripts.mainClassName
-    applicationName = startScripts.applicationName+"-pdfbox2"
+    applicationName = startScripts.applicationName+"-pdfbox1"
 }
 
 distZip {
@@ -76,10 +76,10 @@ distZip {
 	        from startScripts.classpath
 	    }
 	    into("${baseName}-${version}/lib") {
-	        from pdfbox2Startscript.classpath
+	        from pdfbox1Startscript.classpath
 	    }
 	    into("${baseName}-${version}/bin") {
-	        from pdfbox2Startscript
+	        from pdfbox1Startscript
 	    }
   	}
 }
@@ -93,10 +93,10 @@ distTar {
 	        from startScripts.classpath
 	    }
 	    into("${baseName}-${version}/lib") {
-	        from pdfbox2Startscript.classpath
+	        from pdfbox1Startscript.classpath
 	    }
 	    into("${baseName}-${version}/bin") {
-	        from pdfbox2Startscript
+	        from pdfbox1Startscript
 	    }
     }
 }
@@ -108,7 +108,7 @@ releases.dependsOn distZip
 releases.dependsOn distTar
 
 distZip.dependsOn startScripts
-startScripts.dependsOn pdfbox2Startscript
+startScripts.dependsOn pdfbox1Startscript
 
 
 
