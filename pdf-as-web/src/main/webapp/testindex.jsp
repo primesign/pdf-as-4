@@ -28,15 +28,6 @@
 			}
 		%>
 		<%
-			if (WebConfiguration.getOnlineBKUURL() != null) {
-		%>
-		<img src="assets/img/onlineBKU.png" />
-		<button type="submit" value="onlinebku" name="connector"
-			id="onlinebku">Online BKU</button>
-		<%
-			}
-		%>
-		<%
 			if (WebConfiguration.getHandyBKUURL() != null) {
 		%>
 		<img src="assets/img/mobileBKU.png" />
