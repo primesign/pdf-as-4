@@ -182,10 +182,94 @@ public class TableDrawUtils {
 				ty -= bottom_offset;
 			}
 
+			float descent=0;
+			float ascent;
+			float lineWidth=0;
+			float txNew=0;
+
+
+			if (tlines.length>1&&Style.LINECENTER.equals(halign)) {
+
+				//Calculate TXs
+				ArrayList<Float> calculatedTXs  = new ArrayList<>();
+				for (int k = 0; k < tlines.length; k++) {
+
+
+
+					// if (textFont instanceof PDType1Font) {
+					lineWidth = textFont.getStringWidth(tlines[k]) / 1000.0f
+							* fontSize;
+				 txNew = (innerWidth-lineWidth)/2.0f;
+				 logger.debug("calculatedTXNew in k-Loop: {} {}", k, txNew);
+					calculatedTXs.add(tx+txNew);
+
+					logger.debug("INNERWIDTH in drawString: "+innerWidth);
+					logger.debug("TX in drawString: "+tx);
+
+					ascent = textFont.getFontDescriptor().getAscent();
+					descent = textFont.getFontDescriptor().getDescent();
+					ascent = ascent / 1000.0f * fontSize;
+					descent = descent / 1000.0f * fontSize;
+
+					//ty = ty + (descent * (-1));
+
+					logger.debug("Text txNew {} ty {} lineWidth {} textHeight {}", txNew, ty,
+							lineWidth, textHeight);
+					logger.debug("Text ASCENT {} DESCENT {}", ascent, descent);
+
+					logger.debug("Text TRANSFORMED ASCENT {} DESCENT {}", ascent, descent);
+					drawDebugLineString(contentStream, txNew, ty, lineWidth, textHeight, descent, settings);
+				}
+
+
+				contentStream.beginText();
+				contentStream.setFont(textFont, fontSize);
+				txNew=tx+calculatedTXs.get(0);
+				logger.debug("Calculated TX0: "+txNew);
+				//contentStream.newLineAtOffset(txNew, (ty - fontSize + (descent * (-1))));
+
+			/*
+			if (formResources.getFont(COSName.getPDFName(textFont.getName())) != null) {
+				String fontID = getFontID(textFont, formResources);
+				logger.debug("Using Font: " + fontID);
+				contentStream.appendRawCommands("/" + fontID + " " + fontSize
+						+ " Tf\n");
+			} else {
+				contentStream.setFont(textFont, fontSize);
+			}
+
+			logger.debug("Writing: " + tx + " : " + (ty - fontSize + (descent * (-1))) + " as "
+					+ cell.getType());
+			contentStream.moveTextPositionByAmount(tx, (ty - fontSize + (descent * (-1))));
+
+			contentStream.appendRawCommands(fontSize + " TL\n");
+			*/
+
+
+				for (int k = 0; k < tlines.length; k++) {
+					float offset = calculatedTXs.get(k);
+					if (k==0)
+					{
+						contentStream.newLineAtOffset(offset, (ty - fontSize + (descent * (-1))));
+
+					}else {
+						logger.debug("Calculated TX: {} {} ", k, offset);
+						contentStream.newLineAtOffset(offset, -1 * fontSize);
+					}	//contentStream.appendRawCommands("T*\n");
+
+					contentStream.showText(tlines[k]);
+
+
+					contentStream.newLineAtOffset(-1 * offset, 0);
+				}
+				contentStream.endText();
+
+			}else
+			{
 			// calculate the max with of the text content
 			float maxWidth = 0;
 			for (int k = 0; k < tlines.length; k++) {
-				float lineWidth;
+
 				// if (textFont instanceof PDType1Font) {
 				lineWidth = textFont.getStringWidth(tlines[k]) / 1000.0f
 						* fontSize;
@@ -201,7 +285,7 @@ public class TableDrawUtils {
 				}
 			}
 
-			if (Style.CENTER.equals(halign)) {
+			if (Style.CENTER.equals(halign)||Style.LINECENTER.equals(halign)) {
 				float offset = innerWidth - maxWidth;
 				if (offset > 0) {
 					offset = offset / 2.0f;
@@ -213,20 +297,20 @@ public class TableDrawUtils {
 					tx += offset;
 				}
 			}
-			float ascent = textFont.getFontDescriptor().getAscent();
-			float descent = textFont.getFontDescriptor().getDescent();
-			
+			 ascent = textFont.getFontDescriptor().getAscent();
+			 descent = textFont.getFontDescriptor().getDescent();
+
 			ascent = ascent / 1000.0f * fontSize;
 			descent = descent / 1000.0f * fontSize;
-			
+
 			//ty = ty + (descent * (-1));
-			
+
 			logger.debug("Text tx {} ty {} maxWidth {} textHeight {}", tx, ty,
 					maxWidth, textHeight);
 			logger.debug("Text ASCENT {} DESCENT {}", ascent, descent);
 
 			logger.debug("Text TRANSFORMED ASCENT {} DESCENT {}", ascent, descent);
-			
+
 			drawDebugLineString(contentStream, tx, ty, maxWidth, textHeight, descent, settings);
 
 			contentStream.beginText();
@@ -262,7 +346,7 @@ public class TableDrawUtils {
 				}
 			}
 
-			contentStream.endText();
+			contentStream.endText();}
 
 		} catch (IOException e) {
 			logger.warn("IO Exception", e);

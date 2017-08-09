@@ -36,9 +36,9 @@ import org.w3c.dom.Element;
     "content"
 })
 @XmlSeeAlso({
-    ReferencesCheckResultInfoType.class,
+    ManifestRefsCheckResultInfoType.class,
     XMLContentType.class,
-    ManifestRefsCheckResultInfoType.class
+    ReferencesCheckResultInfoType.class
 })
 public class AnyChildrenType {
 
@@ -64,9 +64,9 @@ public class AnyChildrenType {
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
+     * {@link Element }
      * {@link Object }
      * {@link String }
-     * {@link Element }
      * 
      * 
      */

@@ -27,19 +27,19 @@ import org.w3._2000._09.xmldsig.KeyInfoType;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _CreateXMLSignatureResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "CreateXMLSignatureResponse");
     private final static QName _IssuingCountry_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "IssuingCountry");
+    private final static QName _PublicAuthority_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "PublicAuthority");
+    private final static QName _VerifyXMLSignatureRequest_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "VerifyXMLSignatureRequest");
     private final static QName _VerifyCMSSignatureResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "VerifyCMSSignatureResponse");
     private final static QName _CreateCMSSignatureResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "CreateCMSSignatureResponse");
-    private final static QName _SupplementProfile_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "SupplementProfile");
-    private final static QName _VerifyXMLSignatureRequest_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "VerifyXMLSignatureRequest");
-    private final static QName _PublicAuthority_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "PublicAuthority");
-    private final static QName _ErrorResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "ErrorResponse");
-    private final static QName _VerifyXMLSignatureResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "VerifyXMLSignatureResponse");
     private final static QName _Supplement_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "Supplement");
+    private final static QName _VerifyXMLSignatureResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "VerifyXMLSignatureResponse");
+    private final static QName _ErrorResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "ErrorResponse");
+    private final static QName _CreateXMLSignatureResponse_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "CreateXMLSignatureResponse");
+    private final static QName _SupplementProfile_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "SupplementProfile");
+    private final static QName _VerifyCMSSignatureResponseTypeSignatureCheck_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "SignatureCheck");
     private final static QName _VerifyCMSSignatureResponseTypeCertificateCheck_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "CertificateCheck");
     private final static QName _VerifyCMSSignatureResponseTypeSignerInfo_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "SignerInfo");
-    private final static QName _VerifyCMSSignatureResponseTypeSignatureCheck_QNAME = new QName("http://reference.e-government.gv.at/namespace/moa/20020822#", "SignatureCheck");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: at.gv.e_government.reference.namespace.moa._20020822
@@ -97,11 +97,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CreateXMLSignatureResponseType }
+     * Create an instance of {@link CreateXMLSignatureRequestType.SingleSignatureInfo }
      * 
      */
-    public CreateXMLSignatureResponseType createCreateXMLSignatureResponseType() {
-        return new CreateXMLSignatureResponseType();
+    public CreateXMLSignatureRequestType.SingleSignatureInfo createCreateXMLSignatureRequestTypeSingleSignatureInfo() {
+        return new CreateXMLSignatureRequestType.SingleSignatureInfo();
     }
 
     /**
@@ -113,27 +113,51 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CreateXMLSignatureRequestType.SingleSignatureInfo }
+     * Create an instance of {@link CreateXMLSignatureResponseType }
      * 
      */
-    public CreateXMLSignatureRequestType.SingleSignatureInfo createCreateXMLSignatureRequestTypeSingleSignatureInfo() {
-        return new CreateXMLSignatureRequestType.SingleSignatureInfo();
+    public CreateXMLSignatureResponseType createCreateXMLSignatureResponseType() {
+        return new CreateXMLSignatureResponseType();
     }
 
     /**
-     * Create an instance of {@link VerifyXMLSignatureResponseType }
+     * Create an instance of {@link QualifiedCertificate }
      * 
      */
-    public VerifyXMLSignatureResponseType createVerifyXMLSignatureResponseType() {
-        return new VerifyXMLSignatureResponseType();
+    public QualifiedCertificate createQualifiedCertificate() {
+        return new QualifiedCertificate();
     }
 
     /**
-     * Create an instance of {@link PublicAuthorityType }
+     * Create an instance of {@link XMLDataObjectAssociationType }
      * 
      */
-    public PublicAuthorityType createPublicAuthorityType() {
-        return new PublicAuthorityType();
+    public XMLDataObjectAssociationType createXMLDataObjectAssociationType() {
+        return new XMLDataObjectAssociationType();
+    }
+
+    /**
+     * Create an instance of {@link CreateCMSSignatureResponseType }
+     * 
+     */
+    public CreateCMSSignatureResponseType createCreateCMSSignatureResponseType() {
+        return new CreateCMSSignatureResponseType();
+    }
+
+    /**
+     * Create an instance of {@link CreateTransformsInfoProfile }
+     * 
+     */
+    public CreateTransformsInfoProfile createCreateTransformsInfoProfile() {
+        return new CreateTransformsInfoProfile();
+    }
+
+    /**
+     * Create an instance of {@link TransformsInfoType }
+     * 
+     */
+    public TransformsInfoType createTransformsInfoType() {
+        return new TransformsInfoType();
     }
 
     /**
@@ -161,27 +185,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link XMLDataObjectAssociationType }
+     * Create an instance of {@link VerifyCMSSignatureResponseType }
      * 
      */
-    public XMLDataObjectAssociationType createXMLDataObjectAssociationType() {
-        return new XMLDataObjectAssociationType();
+    public VerifyCMSSignatureResponseType createVerifyCMSSignatureResponseType() {
+        return new VerifyCMSSignatureResponseType();
     }
 
     /**
-     * Create an instance of {@link QualifiedCertificate }
+     * Create an instance of {@link SecureSignatureCreationDevice }
      * 
      */
-    public QualifiedCertificate createQualifiedCertificate() {
-        return new QualifiedCertificate();
-    }
-
-    /**
-     * Create an instance of {@link CreateXMLSignatureRequest }
-     * 
-     */
-    public CreateXMLSignatureRequest createCreateXMLSignatureRequest() {
-        return new CreateXMLSignatureRequest();
+    public SecureSignatureCreationDevice createSecureSignatureCreationDevice() {
+        return new SecureSignatureCreationDevice();
     }
 
     /**
@@ -193,19 +209,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CreateCMSSignatureRequest }
-     * 
-     */
-    public CreateCMSSignatureRequest createCreateCMSSignatureRequest() {
-        return new CreateCMSSignatureRequest();
-    }
-
-    /**
      * Create an instance of {@link ErrorResponseType }
      * 
      */
     public ErrorResponseType createErrorResponseType() {
         return new ErrorResponseType();
+    }
+
+    /**
+     * Create an instance of {@link VerifyXMLSignatureResponseType }
+     * 
+     */
+    public VerifyXMLSignatureResponseType createVerifyXMLSignatureResponseType() {
+        return new VerifyXMLSignatureResponseType();
     }
 
     /**
@@ -225,67 +241,27 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CreateCMSSignatureResponseType }
+     * Create an instance of {@link CreateXMLSignatureRequest }
      * 
      */
-    public CreateCMSSignatureResponseType createCreateCMSSignatureResponseType() {
-        return new CreateCMSSignatureResponseType();
+    public CreateXMLSignatureRequest createCreateXMLSignatureRequest() {
+        return new CreateXMLSignatureRequest();
     }
 
     /**
-     * Create an instance of {@link SecureSignatureCreationDevice }
+     * Create an instance of {@link CreateCMSSignatureRequest }
      * 
      */
-    public SecureSignatureCreationDevice createSecureSignatureCreationDevice() {
-        return new SecureSignatureCreationDevice();
+    public CreateCMSSignatureRequest createCreateCMSSignatureRequest() {
+        return new CreateCMSSignatureRequest();
     }
 
     /**
-     * Create an instance of {@link VerifyCMSSignatureResponseType }
+     * Create an instance of {@link PublicAuthorityType }
      * 
      */
-    public VerifyCMSSignatureResponseType createVerifyCMSSignatureResponseType() {
-        return new VerifyCMSSignatureResponseType();
-    }
-
-    /**
-     * Create an instance of {@link CreateTransformsInfoProfile }
-     * 
-     */
-    public CreateTransformsInfoProfile createCreateTransformsInfoProfile() {
-        return new CreateTransformsInfoProfile();
-    }
-
-    /**
-     * Create an instance of {@link TransformsInfoType }
-     * 
-     */
-    public TransformsInfoType createTransformsInfoType() {
-        return new TransformsInfoType();
-    }
-
-    /**
-     * Create an instance of {@link CMSContentBaseType }
-     * 
-     */
-    public CMSContentBaseType createCMSContentBaseType() {
-        return new CMSContentBaseType();
-    }
-
-    /**
-     * Create an instance of {@link ManifestRefsCheckResultType }
-     * 
-     */
-    public ManifestRefsCheckResultType createManifestRefsCheckResultType() {
-        return new ManifestRefsCheckResultType();
-    }
-
-    /**
-     * Create an instance of {@link InputDataType }
-     * 
-     */
-    public InputDataType createInputDataType() {
-        return new InputDataType();
+    public PublicAuthorityType createPublicAuthorityType() {
+        return new PublicAuthorityType();
     }
 
     /**
@@ -297,35 +273,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ContentBaseType }
+     * Create an instance of {@link ManifestRefsCheckResultInfoType }
      * 
      */
-    public ContentBaseType createContentBaseType() {
-        return new ContentBaseType();
-    }
-
-    /**
-     * Create an instance of {@link FinalDataMetaInfoType }
-     * 
-     */
-    public FinalDataMetaInfoType createFinalDataMetaInfoType() {
-        return new FinalDataMetaInfoType();
-    }
-
-    /**
-     * Create an instance of {@link ReferencesCheckResultInfoType }
-     * 
-     */
-    public ReferencesCheckResultInfoType createReferencesCheckResultInfoType() {
-        return new ReferencesCheckResultInfoType();
-    }
-
-    /**
-     * Create an instance of {@link CMSDataObjectRequiredMetaType }
-     * 
-     */
-    public CMSDataObjectRequiredMetaType createCMSDataObjectRequiredMetaType() {
-        return new CMSDataObjectRequiredMetaType();
+    public ManifestRefsCheckResultInfoType createManifestRefsCheckResultInfoType() {
+        return new ManifestRefsCheckResultInfoType();
     }
 
     /**
@@ -337,11 +289,51 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ContentBaseType }
+     * 
+     */
+    public ContentBaseType createContentBaseType() {
+        return new ContentBaseType();
+    }
+
+    /**
+     * Create an instance of {@link VerifyTransformsDataType }
+     * 
+     */
+    public VerifyTransformsDataType createVerifyTransformsDataType() {
+        return new VerifyTransformsDataType();
+    }
+
+    /**
+     * Create an instance of {@link CMSDataObjectRequiredMetaType }
+     * 
+     */
+    public CMSDataObjectRequiredMetaType createCMSDataObjectRequiredMetaType() {
+        return new CMSDataObjectRequiredMetaType();
+    }
+
+    /**
+     * Create an instance of {@link FinalDataMetaInfoType }
+     * 
+     */
+    public FinalDataMetaInfoType createFinalDataMetaInfoType() {
+        return new FinalDataMetaInfoType();
+    }
+
+    /**
      * Create an instance of {@link MetaInfoType }
      * 
      */
     public MetaInfoType createMetaInfoType() {
         return new MetaInfoType();
+    }
+
+    /**
+     * Create an instance of {@link InputDataType }
+     * 
+     */
+    public InputDataType createInputDataType() {
+        return new InputDataType();
     }
 
     /**
@@ -361,27 +353,35 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ContentOptionalRefType }
+     * 
+     */
+    public ContentOptionalRefType createContentOptionalRefType() {
+        return new ContentOptionalRefType();
+    }
+
+    /**
+     * Create an instance of {@link CMSContentBaseType }
+     * 
+     */
+    public CMSContentBaseType createCMSContentBaseType() {
+        return new CMSContentBaseType();
+    }
+
+    /**
+     * Create an instance of {@link ReferencesCheckResultInfoType }
+     * 
+     */
+    public ReferencesCheckResultInfoType createReferencesCheckResultInfoType() {
+        return new ReferencesCheckResultInfoType();
+    }
+
+    /**
      * Create an instance of {@link ReferencesCheckResultType }
      * 
      */
     public ReferencesCheckResultType createReferencesCheckResultType() {
         return new ReferencesCheckResultType();
-    }
-
-    /**
-     * Create an instance of {@link ManifestRefsCheckResultInfoType }
-     * 
-     */
-    public ManifestRefsCheckResultInfoType createManifestRefsCheckResultInfoType() {
-        return new ManifestRefsCheckResultInfoType();
-    }
-
-    /**
-     * Create an instance of {@link VerifyTransformsDataType }
-     * 
-     */
-    public VerifyTransformsDataType createVerifyTransformsDataType() {
-        return new VerifyTransformsDataType();
     }
 
     /**
@@ -393,11 +393,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link ContentOptionalRefType }
+     * Create an instance of {@link ManifestRefsCheckResultType }
      * 
      */
-    public ContentOptionalRefType createContentOptionalRefType() {
-        return new ContentOptionalRefType();
+    public ManifestRefsCheckResultType createManifestRefsCheckResultType() {
+        return new ManifestRefsCheckResultType();
     }
 
     /**
@@ -441,22 +441,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CreateXMLSignatureResponseType.SignatureEnvironment }
-     * 
-     */
-    public CreateXMLSignatureResponseType.SignatureEnvironment createCreateXMLSignatureResponseTypeSignatureEnvironment() {
-        return new CreateXMLSignatureResponseType.SignatureEnvironment();
-    }
-
-    /**
-     * Create an instance of {@link TransformParameterType.Hash }
-     * 
-     */
-    public TransformParameterType.Hash createTransformParameterTypeHash() {
-        return new TransformParameterType.Hash();
-    }
-
-    /**
      * Create an instance of {@link CreateXMLSignatureRequestType.SingleSignatureInfo.DataObjectInfo }
      * 
      */
@@ -473,12 +457,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link CreateXMLSignatureResponseType }{@code >}}
+     * Create an instance of {@link TransformParameterType.Hash }
      * 
      */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "CreateXMLSignatureResponse")
-    public JAXBElement<CreateXMLSignatureResponseType> createCreateXMLSignatureResponse(CreateXMLSignatureResponseType value) {
-        return new JAXBElement<CreateXMLSignatureResponseType>(_CreateXMLSignatureResponse_QNAME, CreateXMLSignatureResponseType.class, null, value);
+    public TransformParameterType.Hash createTransformParameterTypeHash() {
+        return new TransformParameterType.Hash();
+    }
+
+    /**
+     * Create an instance of {@link CreateXMLSignatureResponseType.SignatureEnvironment }
+     * 
+     */
+    public CreateXMLSignatureResponseType.SignatureEnvironment createCreateXMLSignatureResponseTypeSignatureEnvironment() {
+        return new CreateXMLSignatureResponseType.SignatureEnvironment();
     }
 
     /**
@@ -489,6 +480,24 @@ public class ObjectFactory {
     @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     public JAXBElement<String> createIssuingCountry(String value) {
         return new JAXBElement<String>(_IssuingCountry_QNAME, String.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link PublicAuthorityType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "PublicAuthority")
+    public JAXBElement<PublicAuthorityType> createPublicAuthority(PublicAuthorityType value) {
+        return new JAXBElement<PublicAuthorityType>(_PublicAuthority_QNAME, PublicAuthorityType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link VerifyXMLSignatureRequestType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "VerifyXMLSignatureRequest")
+    public JAXBElement<VerifyXMLSignatureRequestType> createVerifyXMLSignatureRequest(VerifyXMLSignatureRequestType value) {
+        return new JAXBElement<VerifyXMLSignatureRequestType>(_VerifyXMLSignatureRequest_QNAME, VerifyXMLSignatureRequestType.class, null, value);
     }
 
     /**
@@ -513,36 +522,9 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link XMLDataObjectAssociationType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "SupplementProfile")
-    public JAXBElement<XMLDataObjectAssociationType> createSupplementProfile(XMLDataObjectAssociationType value) {
-        return new JAXBElement<XMLDataObjectAssociationType>(_SupplementProfile_QNAME, XMLDataObjectAssociationType.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link VerifyXMLSignatureRequestType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "VerifyXMLSignatureRequest")
-    public JAXBElement<VerifyXMLSignatureRequestType> createVerifyXMLSignatureRequest(VerifyXMLSignatureRequestType value) {
-        return new JAXBElement<VerifyXMLSignatureRequestType>(_VerifyXMLSignatureRequest_QNAME, VerifyXMLSignatureRequestType.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link PublicAuthorityType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "PublicAuthority")
-    public JAXBElement<PublicAuthorityType> createPublicAuthority(PublicAuthorityType value) {
-        return new JAXBElement<PublicAuthorityType>(_PublicAuthority_QNAME, PublicAuthorityType.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ErrorResponseType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "ErrorResponse")
-    public JAXBElement<ErrorResponseType> createErrorResponse(ErrorResponseType value) {
-        return new JAXBElement<ErrorResponseType>(_ErrorResponse_QNAME, ErrorResponseType.class, null, value);
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "Supplement")
+    public JAXBElement<XMLDataObjectAssociationType> createSupplement(XMLDataObjectAssociationType value) {
+        return new JAXBElement<XMLDataObjectAssociationType>(_Supplement_QNAME, XMLDataObjectAssociationType.class, null, value);
     }
 
     /**
@@ -555,12 +537,39 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ErrorResponseType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "ErrorResponse")
+    public JAXBElement<ErrorResponseType> createErrorResponse(ErrorResponseType value) {
+        return new JAXBElement<ErrorResponseType>(_ErrorResponse_QNAME, ErrorResponseType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link CreateXMLSignatureResponseType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "CreateXMLSignatureResponse")
+    public JAXBElement<CreateXMLSignatureResponseType> createCreateXMLSignatureResponse(CreateXMLSignatureResponseType value) {
+        return new JAXBElement<CreateXMLSignatureResponseType>(_CreateXMLSignatureResponse_QNAME, CreateXMLSignatureResponseType.class, null, value);
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link XMLDataObjectAssociationType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "Supplement")
-    public JAXBElement<XMLDataObjectAssociationType> createSupplement(XMLDataObjectAssociationType value) {
-        return new JAXBElement<XMLDataObjectAssociationType>(_Supplement_QNAME, XMLDataObjectAssociationType.class, null, value);
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "SupplementProfile")
+    public JAXBElement<XMLDataObjectAssociationType> createSupplementProfile(XMLDataObjectAssociationType value) {
+        return new JAXBElement<XMLDataObjectAssociationType>(_SupplementProfile_QNAME, XMLDataObjectAssociationType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link CheckResultType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "SignatureCheck", scope = VerifyCMSSignatureResponseType.class)
+    public JAXBElement<CheckResultType> createVerifyCMSSignatureResponseTypeSignatureCheck(CheckResultType value) {
+        return new JAXBElement<CheckResultType>(_VerifyCMSSignatureResponseTypeSignatureCheck_QNAME, CheckResultType.class, VerifyCMSSignatureResponseType.class, value);
     }
 
     /**
@@ -579,15 +588,6 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "SignerInfo", scope = VerifyCMSSignatureResponseType.class)
     public JAXBElement<KeyInfoType> createVerifyCMSSignatureResponseTypeSignerInfo(KeyInfoType value) {
         return new JAXBElement<KeyInfoType>(_VerifyCMSSignatureResponseTypeSignerInfo_QNAME, KeyInfoType.class, VerifyCMSSignatureResponseType.class, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link CheckResultType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://reference.e-government.gv.at/namespace/moa/20020822#", name = "SignatureCheck", scope = VerifyCMSSignatureResponseType.class)
-    public JAXBElement<CheckResultType> createVerifyCMSSignatureResponseTypeSignatureCheck(CheckResultType value) {
-        return new JAXBElement<CheckResultType>(_VerifyCMSSignatureResponseTypeSignatureCheck_QNAME, CheckResultType.class, VerifyCMSSignatureResponseType.class, value);
     }
 
 }

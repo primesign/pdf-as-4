@@ -36,8 +36,8 @@ import javax.xml.bind.annotation.XmlType;
     "info"
 })
 @XmlSeeAlso({
-    ManifestRefsCheckResultType.class,
-    ReferencesCheckResultType.class
+    ReferencesCheckResultType.class,
+    ManifestRefsCheckResultType.class
 })
 public class CheckResultType {
 

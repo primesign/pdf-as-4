@@ -399,6 +399,7 @@ public class Settings implements ISettings, IProfileConstants {
         while (keyIterator.hasNext()) {
             String key = keyIterator.next().toString();
 
+
             if (key.startsWith(prefix)) {
                 valueMap.put(key, props.getProperty(key));
             }

@@ -50,13 +50,8 @@ public interface IConfigurationConstants {
 	
 	public static final String PLACEHOLDER_SEARCH_ENABLED = "enable_placeholder_search";
 	public static final String DEFAULT_SIGNATURE_PROFILE = SIG_OBJECT + SEPERATOR + TYPE + SEPERATOR + DEFAULT;
-	
+
 	public static final String CONFIG_BKU_URL = "bku.sign.url";
-	
-	/**
-	 * Signature object Prefix
-	 */
-	public static final String SIG_OBJECT_PREFIX = "sig_obj.";
 	
 	/**
 	 * MOA SS Signing Key Identifier
@@ -103,10 +98,17 @@ public interface IConfigurationConstants {
 	 * Signature object Prefix
 	 */
 	public static final String SIG_RESERVED_SIZE = "signatureSize";
-	
+
 	/**
 	 * Visual Signature placement
 	 */
 	public static final String BG_COLOR_DETECTION = "sigblock.placement.bgcolor.detection.enabled";
 	public static final String SIG_PLACEMENT_DEBUG_OUTPUT = "sigblock.placement.debug.file";
+
+
+	/**
+	 * PADES Constants
+	 */
+	public static final String SIG_PADES_FORCE_FLAG= SIG_OBJECT + SEPERATOR+"PAdESCompatibility";
+	public static final String SIG_PADES_INTELL_FLAG = SIG_OBJECT + SEPERATOR+"CheckPAdESCompatibility";
 }

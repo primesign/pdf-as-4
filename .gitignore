@@ -47,3 +47,4 @@ local.properties
 
 # PDT-specific
 .buildpath
+/PDF-AS/.nb-gradle/

@@ -23,6 +23,10 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.api.ws;
 
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlElement;

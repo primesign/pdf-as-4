@@ -37,6 +37,7 @@ import javax.xml.bind.annotation.XmlType;
  *                   &lt;/element>
  *                 &lt;/sequence>
  *                 &lt;attribute name="SecurityLayerConformity" type="{http://www.w3.org/2001/XMLSchema}boolean" default="true" />
+ *                 &lt;attribute name="PAdESConformity" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
  *               &lt;/restriction>
  *             &lt;/complexContent>
  *           &lt;/complexType>
@@ -138,6 +139,7 @@ public class CreateCMSSignatureRequestType {
      *         &lt;/element>
      *       &lt;/sequence>
      *       &lt;attribute name="SecurityLayerConformity" type="{http://www.w3.org/2001/XMLSchema}boolean" default="true" />
+     *       &lt;attribute name="PAdESConformity" type="{http://www.w3.org/2001/XMLSchema}boolean" default="false" />
      *     &lt;/restriction>
      *   &lt;/complexContent>
      * &lt;/complexType>
@@ -155,6 +157,8 @@ public class CreateCMSSignatureRequestType {
         protected CreateCMSSignatureRequestType.SingleSignatureInfo.DataObjectInfo dataObjectInfo;
         @XmlAttribute(name = "SecurityLayerConformity")
         protected Boolean securityLayerConformity;
+        @XmlAttribute(name = "PAdESConformity")
+        protected Boolean pAdESConformity;
 
         /**
          * Gets the value of the dataObjectInfo property.
@@ -206,6 +210,34 @@ public class CreateCMSSignatureRequestType {
          */
         public void setSecurityLayerConformity(Boolean value) {
             this.securityLayerConformity = value;
+        }
+
+        /**
+         * Gets the value of the pAdESConformity property.
+         * 
+         * @return
+         *     possible object is
+         *     {@link Boolean }
+         *     
+         */
+        public boolean isPAdESConformity() {
+            if (pAdESConformity == null) {
+                return false;
+            } else {
+                return pAdESConformity;
+            }
+        }
+
+        /**
+         * Sets the value of the pAdESConformity property.
+         * 
+         * @param value
+         *     allowed object is
+         *     {@link Boolean }
+         *     
+         */
+        public void setPAdESConformity(Boolean value) {
+            this.pAdESConformity = value;
         }
 
 

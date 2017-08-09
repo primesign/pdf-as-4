@@ -437,6 +437,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			String id = null;
 			if (text != null) {
 				if (text.startsWith(QR_PLACEHOLDER_IDENTIFIER)) {
+
 					String[] data = text.split(";");
 					if (data.length > 1) {
 						for (int i = 1; i < data.length; i++) {

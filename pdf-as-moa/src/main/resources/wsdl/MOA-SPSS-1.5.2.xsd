@@ -32,6 +32,7 @@
 						</xsd:element>
 					</xsd:sequence>
 					<xsd:attribute name="SecurityLayerConformity" type="xsd:boolean" use="optional" default="true"/>
+					<xsd:attribute name="PAdESConformity" type="xsd:boolean" use="optional" default="false"/>
 				</xsd:complexType>
 			</xsd:element>
 		</xsd:sequence>

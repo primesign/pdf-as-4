@@ -23,6 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
+import at.gv.egiz.pdfas.lib.api.Configuration;
 import iaik.x509.X509Certificate;
 
 import java.awt.Graphics2D;

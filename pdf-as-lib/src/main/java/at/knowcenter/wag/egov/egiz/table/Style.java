@@ -74,7 +74,12 @@ public class Style implements Serializable {
    * SVUID.
    */
   private static final long serialVersionUID = 5855722896712428387L;
-  
+
+  /**
+   * New Style to set each line centered
+   */
+  public final static String LINECENTER = "lineCenter";
+
   /**
    * valign statement key top
    */
@@ -275,6 +280,7 @@ public class Style implements Serializable {
         }
       }
     }
+
     if (HALIGN.equals(id)) {
       if (LEFT.equals(value) || CENTER.equals(value) || RIGHT.equals(value)) {
         hAlign_ = value;
@@ -285,8 +291,9 @@ public class Style implements Serializable {
         vAlign_ = value;
       }
     }
+    //Set new align for horziontal valign of lineCenter
     if (VALUEHALIGN.equals(id)) {
-      if (LEFT.equals(value) || CENTER.equals(value) || RIGHT.equals(value)) {
+      if (LEFT.equals(value) || CENTER.equals(value) || RIGHT.equals(value)||LINECENTER.equals(value)) {
         valueHAlign_ = value;
       }
     }
@@ -509,7 +516,7 @@ public class Style implements Serializable {
    * The toString method, used for tests or debugging.
    */
   public String toString() {
-    return "bgcolor:" + getBgColor() + " halign:" + getHAlign() + " valign:" + getVAlign() + " padding:" + getPadding() + " border:" + getBorder() + " font:" + getFont() + " valuefont:" + getValueFont() + " imageScaleToFit:" + getImageScaleToFit();
+    return "bgcolor:" + getBgColor() + " halign:" + getHAlign() + " valueAlign:" + getValueHAlign()+ " valign:" + getVAlign() + " padding:" + getPadding() + " border:" + getBorder() + " font:" + getFont() + " valuefont:" + getValueFont() + " imageScaleToFit:" + getImageScaleToFit();
   }
 
   /**

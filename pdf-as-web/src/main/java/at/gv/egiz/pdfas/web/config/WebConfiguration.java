@@ -220,6 +220,20 @@ public class WebConfiguration implements IConfigurationConstants {
 		return null;
 	}
 
+	public static String getOnlineBKUURL() {
+		if(getOnlineBKUEnabled()) {
+			String overwrite = properties.getProperty(MOC_SIGN_URL);
+			if(overwrite == null) {
+				overwrite = properties.getProperty(ONLINE_BKU_URL);
+				if(overwrite == null) {
+					overwrite = PdfAsHelper.getPdfAsConfig().getValue(MOC_SIGN_URL);
+				}
+			}
+			return overwrite;
+		}
+		return null;
+	}
+
 	public static String getHandyBKUURL() {
 		if(getMobileBKUEnabled()) {
 			String overwrite = properties.getProperty(MOBILE_SIGN_URL);
@@ -422,7 +436,17 @@ public class WebConfiguration implements IConfigurationConstants {
 		}
 		return false;
 	}
-	
+
+	public static boolean getOnlineBKUEnabled() {
+		String value = properties.getProperty(ONLINE_BKU_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean getSoapSignEnabled() {
 		String value = properties.getProperty(SOAP_SIGN_ENABLED);
 		if (value != null) {

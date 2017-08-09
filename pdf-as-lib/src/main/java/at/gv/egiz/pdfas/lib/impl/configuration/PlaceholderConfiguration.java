@@ -24,7 +24,23 @@
 package at.gv.egiz.pdfas.lib.impl.configuration;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.Profiles;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
+import at.gv.egiz.pdfas.lib.api.PdfAs;
+import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
+import at.gv.egiz.pdfas.lib.impl.PdfAsParameterImpl;
+import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+import at.gv.egiz.pdfas.lib.settings.Settings;
+import at.gv.egiz.pdfas.lib.util.SignatureUtils;
+import at.gv.egiz.pdfas.lib.api.PdfAs;
+import com.sun.corba.se.spi.orb.Operation;
+
+import java.security.Signature;
+import java.util.Properties;
+
 
 public class PlaceholderConfiguration extends SpecificBaseConfiguration 
 		implements IConfigurationConstants {
@@ -34,13 +50,33 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 	}
 
 	public boolean isGlobalPlaceholderEnabled() {
-		if(configuration.hasValue(PLACEHOLDER_SEARCH_ENABLED)) {
+		if (configuration.hasValue(PLACEHOLDER_SEARCH_ENABLED)) {
 			String value = configuration.getValue(PLACEHOLDER_SEARCH_ENABLED);
-			if(value.equalsIgnoreCase(TRUE)) {
+			if (value.equalsIgnoreCase(TRUE)) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+
+
+	/**
+	 * Match selected Profile for Placeholder
+	 * Enables to activate placeholder search/match for different profiles
+	 * @return
+	 */
+	public boolean isProfileConfigurationEnabled(String selectedProfileID)
+	{
+		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_SEARCH_ENABLED;
+		if (configuration.hasValue(profileMatch)) {
+			String value = configuration.getValue(profileMatch);
+			if (value.equalsIgnoreCase(TRUE)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
+
+	
+
