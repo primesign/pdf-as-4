@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,9 +114,16 @@ public class ErrorPage extends HttpServlet {
 			if (errorURL != null
 					&& WebConfiguration.isProvidePdfURLinWhitelist(errorURL)) {
 				String template = PdfAsHelper.getErrorRedirectTemplateSL();
-				template = template.replace("##ERROR_URL##", errorURL);
-
+				
 				URL url = new URL(errorURL);
+				String errorURLProcessed = url.getProtocol() + "://" +   // "http" + "://
+						url.getHost() +       // "myhost"
+			             ":" +                           // ":"
+			             url.getPort() +       // "8080"
+			             url.getPath();  
+				
+				template = template.replace("##ERROR_URL##", errorURLProcessed);
+				
 				String extraParams = UrlParameterExtractor
 						.buildParameterFormString(url);
 				template = template.replace("##ADD_PARAMS##", extraParams);
@@ -126,7 +134,7 @@ public class ErrorPage extends HttpServlet {
 					target = "_self";
 				}
 
-				template = template.replace("##TARGET##", target);
+				template = template.replace("##TARGET##", StringEscapeUtils.escapeHtml4(target));
 
 				if (e != null && WebConfiguration.isShowErrorDetails()) {
 					template = template.replace("##CAUSE##",

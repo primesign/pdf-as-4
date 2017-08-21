@@ -40,7 +40,6 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -60,6 +59,7 @@ import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.settings.Settings;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.util.BKUHeader;
 
@@ -133,7 +133,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			signPreProcessing(parameter);
 
 			// allocated Backend
-			PDFASBackend backend = BackendLoader.getPDFASBackend();
+			PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 			if (backend == null) {
 				throw new PDFASError(ERROR_NO_BACKEND);
@@ -258,7 +258,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		verifyPreProcessing(parameter);
 
 		// allocated Backend
-		PDFASBackend backend = BackendLoader.getPDFASBackend();
+		PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 		if (backend == null) {
 			throw new PDFASError(ERROR_NO_BACKEND);
@@ -291,7 +291,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			signPreProcessing(parameter);
 
 			// allocated Backend
-			PDFASBackend backend = BackendLoader.getPDFASBackend();
+			PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 			if (backend == null) {
 				throw new PDFASError(ERROR_NO_BACKEND);
@@ -527,7 +527,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				iaikCert = (X509Certificate) cert;
 			}
 			// allocated Backend
-			PDFASBackend backend = BackendLoader.getPDFASBackend();
+			PDFASBackend backend = BackendLoader.getPDFASBackend(parameter.getConfiguration());
 
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			status = new OperationStatus(settings, parameter, backend);

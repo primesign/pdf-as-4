@@ -77,9 +77,9 @@ public class Positioning {
 	 */
 	public static PositioningInstruction determineTablePositioning(
 			TablePos pos, String signature_type, PDDocument pdfDataSource,
-			IPDFVisualObject pdf_table, boolean legacy32) throws PdfAsException {
+			IPDFVisualObject pdf_table, boolean legacy32, boolean legacy40) throws PdfAsException {
 		return adjustSignatureTableandCalculatePosition(pdfDataSource,
-				pdf_table, pos, legacy32);
+				pdf_table, pos, legacy32, legacy40);
 	}
 
 	private static PDRectangle rotateBox(PDRectangle cropBox, int rotation) {
@@ -153,7 +153,7 @@ public class Positioning {
 	 */
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
-			TablePos pos, boolean legacy32) throws PdfAsException {
+			TablePos pos, boolean legacy32, boolean legacy40) throws PdfAsException {
 
 		PdfBoxUtils.checkPDFPermissions(pdfDataSource);
 		// get pages of currentdocument
@@ -265,7 +265,7 @@ public class Positioning {
 
 		float pre_page_length = PDFUtilities.calculatePageLength(pdfDataSource,
 				page - 1, page_height - footer_line, /* page_rotation, */
-				legacy32);
+				legacy32, legacy40);
 
 		if (pre_page_length == Float.NEGATIVE_INFINITY) {
 			// we do have an empty page or nothing in area above footerline

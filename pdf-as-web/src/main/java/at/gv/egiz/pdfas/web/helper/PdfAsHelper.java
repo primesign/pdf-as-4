@@ -97,6 +97,7 @@ public class PdfAsHelper {
 	private static final String PDF_SIGNER = "PDF_SIGNER";
 	private static final String PDF_SL_INTERACTIVE = "PDF_SL_INTERACTIVE";
 	private static final String PDF_SIGNED_DATA = "PDF_SIGNED_DATA";
+	private static final String PDF_SIGNED_DATA_CREATED = "PDF_SIGNED_DATA_CREATED";
 	private static final String PDF_LOCALE = "PDF_LOCALE";
 	private static final String PDF_ERR_MESSAGE = "PDF_ERR_MESSAGE";
 	private static final String PDF_ERR_THROWABLE = "PDF_ERR_THROWABLE";
@@ -664,6 +665,93 @@ public class PdfAsHelper {
 		return signResponse;
 	}
 
+	public static void startSignatureJson(HttpServletRequest request,
+									  HttpServletResponse response, ServletContext context,
+									  byte[] pdfData, String connector, String position,
+									  String transactionId, String profile,
+									  Map<String, String> preProcessor, Map<String, String> overwrite) throws Exception {
+
+		// TODO: Protect session so that only one PDF can be signed during one
+		// session
+		/*
+		 * if(PdfAsHelper.isSignatureActive(request)) { throw new
+		 * PdfAsException("Signature is active in this session"); }
+		 *
+		 * PdfAsHelper.setSignatureActive(request, true);
+		 */
+
+		validatePdfSize(request, response, pdfData);
+
+		HttpSession session = request.getSession();
+
+		logger.info("Starting signature in session: " + session.getId());
+
+		Configuration config = pdfAs.getConfiguration();
+		session.setAttribute(PDF_CONFIG, config);
+
+		ConfigurationOverwrite.overwriteConfiguration(overwrite, config);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		session.setAttribute(PDF_OUTPUT, baos);
+
+		// Generate Sign Parameter
+		SignParameter signParameter = PdfAsFactory.createSignParameter(config,
+				new ByteArrayDataSource(pdfData), baos);
+
+		logger.info("Setting TransactionID: " + transactionId);
+
+		signParameter.setTransactionId(transactionId);
+
+		IPlainSigner signer;
+		if (connector.equals("bku") || connector.equals("onlinebku")
+				|| connector.equals("mobilebku")) {
+			BKUSLConnector conn = new BKUSLConnector(config);
+			// conn.setBase64(true);
+			signer = new PAdESSigner(conn);
+			session.setAttribute(PDF_SL_CONNECTOR, conn);
+		} else {
+			throw new PdfAsWebException(
+					"Invalid connector (bku | onlinebku | mobilebku | moa | jks)");
+		}
+		signParameter.setPreprocessorArguments(preProcessor);
+		signParameter.setPlainSigner(signer);
+		session.setAttribute(PDF_SIGNER, signer);
+		session.setAttribute(PDF_SL_INTERACTIVE, connector);
+
+		String qrCodeContent = PdfAsHelper.getQRCodeContent(request);
+
+		if (qrCodeContent != null) {
+			if (profile == null) {
+				// get default Profile
+				profile = config.getValue("sig_obj.type.default");
+			}
+
+			if (profile == null) {
+				logger.warn("Failed to determine default profile! Using hard coded!");
+				profile = "SIGNATURBLOCK_SMALL_DE";
+			}
+
+			ByteArrayOutputStream qrbaos = new ByteArrayOutputStream();
+			try {
+				String key = "sig_obj." + profile + ".value.SIG_LABEL";
+				QRCodeGenerator.generateQRCode(qrCodeContent, qrbaos, 200);
+				String value = Base64.encodeBase64String(qrbaos.toByteArray());
+				config.setValue(key, value);
+			} finally {
+				IOUtils.closeQuietly(qrbaos);
+			}
+		}
+
+		// set Signature Profile (null use default ...)
+		signParameter.setSignatureProfileId(profile);
+
+		// set Signature Position
+		signParameter.setSignaturePosition(position);
+
+		StatusRequest statusRequest = pdfAs.startSign(signParameter);
+		session.setAttribute(PDF_STATUS, statusRequest);
+	}
+
 	public static void startSignature(HttpServletRequest request,
 			HttpServletResponse response, ServletContext context,
 			byte[] pdfData, String connector, String position,
@@ -793,6 +881,23 @@ public class PdfAsHelper {
 		return baos.toByteArray();
 	}
 
+	public static boolean checkDataUrlAccess(HttpServletRequest request) throws Exception {
+		HttpSession session = request.getSession(false);
+		
+		if(session != null) {
+			Object statusObject = session
+					.getAttribute(PDF_STATUS);
+			if(statusObject != null && statusObject instanceof StatusRequest) {
+				StatusRequest statusRequest = (StatusRequest)statusObject;
+				if(statusRequest.needCertificate() || statusRequest.needSignature()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+	
 	public static void injectCertificate(HttpServletRequest request,
 			HttpServletResponse response,
 			InfoboxReadResponseType infoboxReadResponseType,
@@ -840,8 +945,45 @@ public class PdfAsHelper {
 
 	public static void logAccess(HttpServletRequest request) {
 		HttpSession session = request.getSession();
-		logger.debug("Access to " + request.getServletPath() + " in Session: "
+		logger.info("Access to " + request.getServletPath() + " in Session: "
 				+ session.getId());
+	}
+
+	public static JSONStartResponse startJsonProcess(HttpServletRequest request,
+										HttpServletResponse response, ServletContext context)
+			throws Exception {
+		HttpSession session = request.getSession();
+		StatusRequest statusRequest = (StatusRequest) session
+				.getAttribute(PDF_STATUS);
+		// IPlainSigner plainSigner = (IPlainSigner) session
+		// .getAttribute(PDF_SIGNER);
+
+		String connector = (String) session.getAttribute(PDF_SL_INTERACTIVE);
+
+		if (connector.equals("bku") || connector.equals("onlinebku")
+				|| connector.equals("mobilebku")) {
+			BKUSLConnector bkuSLConnector = (BKUSLConnector) session
+					.getAttribute(PDF_SL_CONNECTOR);
+
+			if (statusRequest.needCertificate()) {
+				logger.debug("Needing Certificate from BKU");
+				// build SL Request to read certificate
+				InfoboxReadRequestType readCertificateRequest = bkuSLConnector
+						.createInfoboxReadRequest(statusRequest
+								.getSignParameter());
+
+				JAXBElement<InfoboxReadRequestType> readRequest = of
+						.createInfoboxReadRequest(readCertificateRequest);
+
+				String url = generateDataURL(request, response);
+				String slRequest = SLMarschaller.marshalToString(readRequest);
+				String template = getTemplateSL();
+				String locale = getLocale(request, response);
+				String bkuURL = generateBKUURL(connector);
+				return new JSONStartResponse(url, slRequest, template, locale, bkuURL);
+			}
+		}
+		return null;
 	}
 
 	public static void process(HttpServletRequest request,
@@ -1001,6 +1143,30 @@ public class PdfAsHelper {
 		return xml;
 	}
 
+	public static boolean isSignedDataExpired(HttpServletRequest request,
+											  HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		Object signedData = session.getAttribute(PDF_SIGNED_DATA_CREATED);
+		if (signedData == null) {
+			logger.warn("Cannot find signed data created timestamp in session.");
+			return true;
+		}
+
+		if (signedData instanceof Long) {
+			long created = ((Long)signedData).longValue();
+			long now = System.currentTimeMillis();
+
+			long validUntil = created + 300000;
+
+			logger.debug("Checking signed data valid until {} now is {}",
+					validUntil, now);
+
+			return validUntil < now;
+		}
+		logger.warn("PDF_SIGNED_DATA_CREATED in session is not a long type!");
+		return true;
+	}
+
 	public static byte[] getSignedPdf(HttpServletRequest request,
 			HttpServletResponse response) {
 		HttpSession session = request.getSession();
@@ -1020,6 +1186,7 @@ public class PdfAsHelper {
 			HttpServletResponse response, byte[] signedData) {
 		HttpSession session = request.getSession();
 		session.setAttribute(PDF_SIGNED_DATA, signedData);
+		session.setAttribute(PDF_SIGNED_DATA_CREATED, Long.valueOf(System.currentTimeMillis()));
 	}
 
 	public static void setStatisticEvent(HttpServletRequest request,

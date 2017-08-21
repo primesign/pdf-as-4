@@ -167,14 +167,23 @@ public class BKUSLConnector extends BaseSLConnector {
 						BKUHeader hdr = new BKUHeader(headers[i].getName(),
 								headers[i].getValue());
 						logger.debug("Response Header : {}", hdr.toString());
+						if (hdr.toString().contains("Server"))
+						{
+							BaseSLConnector.responseHeader=hdr.toString();
+						}
+
 						holder.getProcessInfo().add(hdr);
+
 					}
+
 				}
 
 				BKUHeader hdr = new BKUHeader(
 						ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
 				logger.debug("Response Header : {}", hdr.toString());
+
 				holder.getProcessInfo().add(hdr);
+
 			}
 
 			BufferedReader rd = new BufferedReader(new InputStreamReader(

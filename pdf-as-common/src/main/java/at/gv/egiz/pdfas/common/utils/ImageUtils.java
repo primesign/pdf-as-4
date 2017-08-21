@@ -179,7 +179,16 @@ public class ImageUtils {
 			}
 
 			is = new FileInputStream(img_file);
-		} catch (PdfAsException | IOException e) {
+		} catch (PdfAsException e) {
+			try {
+				is = new ByteArrayInputStream(Base64.decodeBase64(imageValue));
+			} catch (Throwable e1) {
+				// Ignore value is not base 64!
+				logger.debug("Value is not base64: ", e1);
+				// rethrow e
+				throw e;
+			}
+		} catch (IOException e) {
 			try {
 				is = new ByteArrayInputStream(Base64.decodeBase64(imageValue));
 			} catch (Throwable e1) {

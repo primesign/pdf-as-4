@@ -386,7 +386,7 @@ public class PDFBoxTable {
 		for (int i = 0; i < words.length; i++) {
 			String word = words[i];
 			String[] lineBreaks = word.split("\n");
-			if (lineBreaks.length > 1) {
+			if (lineBreaks.length > 1 || word.contains("\n")) {
 				for (int j = 0; j < lineBreaks.length; j++) {
 					String subword = lineBreaks[j];
 					// if (cLine + subword.length() > maxline) {
@@ -406,6 +406,10 @@ public class PDFBoxTable {
 						cLineValue = "";
 					}
 					cLineValue += subword + " ";
+				}
+				if(lineBreaks.length == 1) {
+					lines.add(cLineValue.trim());
+					cLineValue = "";
 				}
 			} else {
 				String tmpLine = cLineValue + word;
@@ -549,10 +553,14 @@ public class PDFBoxTable {
 				// }
 			}
 			Dimension dim = ImageUtils.getImageDimensions(imageFile, settings);
-			if (dim.getHeight() > 80.0f) {
-				return width + padding * 2;
-			}
-			return (float) dim.getHeight() + padding * 2;
+			float wfactor = (float) ((width - padding * 2.0f) / dim.getWidth());
+			float scaleFactor = wfactor;
+			float iheight = (float) Math
+					.floor((double) (scaleFactor * dim.getHeight()));
+			//if (dim.getHeight() > 80.0f) {
+			//	return width + padding * 2;
+			//}
+			return (float) iheight + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {

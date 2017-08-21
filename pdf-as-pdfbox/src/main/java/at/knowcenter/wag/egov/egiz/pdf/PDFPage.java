@@ -128,6 +128,8 @@ public class PDFPage extends PDFTextStripper {
 	 */
 	private GeneralPath currentPath = new GeneralPath();
 
+	private boolean legacy40;
+	
 	/**
 	 * The lowest position of a drawn path (originating from top).
 	 */
@@ -142,10 +144,12 @@ public class PDFPage extends PDFTextStripper {
 	 * 
 	 * @throws java.io.IOException
 	 */
-	public PDFPage(float effectivePageHeight, boolean legacy32)
+	public PDFPage(float effectivePageHeight, boolean legacy32, boolean legacy40)
 			throws IOException {
 		super();
 
+		this.legacy40 = legacy40;
+		
 		this.effectivePageHeight = effectivePageHeight;
 
 		OperatorProcessor newInvoke = new MyInvoke(this);
@@ -329,7 +333,7 @@ public class PDFPage extends PDFTextStripper {
 
 		int pageRotation = this.getCurrentPage().findRotation();
 		// logger_.debug("PageRotation = " + pageRotation);
-		if (pageRotation == 0) {
+		/*if (pageRotation == 0) {
 			current_y = text.getY();
 		}
 		if (pageRotation == 90) {
@@ -350,8 +354,34 @@ public class PDFPage extends PDFTextStripper {
 		// store ypos of the char if it is not empty
 		if (current_y > this.max_character_ypos) {
 			this.max_character_ypos = current_y;
+		}*/
+		
+		if (pageRotation == 0) {
+			current_y = text.getY();
+		}
+		if (pageRotation == 90) {
+			current_y = text.getX();
+		}
+		if (pageRotation == 180) {
+			float page_height = this.getCurrentPage().findMediaBox().getHeight();
+			current_y = page_height - text.getY();
+		}
+		if (pageRotation == 270) {
+			float page_height = this.getCurrentPage().findMediaBox().getHeight();
+			current_y = page_height - text.getX();
 		}
 
+		if (current_y > this.effectivePageHeight) {
+			// logger_.debug("character is below footer_line. footer_line = " +
+			// this.footer_line + ", text.character=" + character + ", y=" +
+			// current_y);
+			return;
+		}
+
+		// store ypos of the char if it is not empty
+		if (current_y > this.max_character_ypos) {
+			this.max_character_ypos = current_y;
+		}
 	}
 
 	// use this funtion getting an unsorted text output
@@ -386,14 +416,15 @@ public class PDFPage extends PDFTextStripper {
 			fontObj = getCurrentPage().getResources().getCOSDictionary()
 					.getDictionaryObject(COSName.FONT);
 		}
+		
 		Map<String, PDFont> fontMap = getCurrentPage().findResources()
 				.getFonts();
-
+		
 		if (fontObj != null) {
 			getCurrentPage().getResources().getCOSDictionary()
 					.setItem(COSName.FONT, fontObj);
 		}
-
+		
 		return fontMap;
 	}
 
@@ -576,6 +607,7 @@ public class PDFPage extends PDFTextStripper {
 
 	public void processAnnotation(PDAnnotation anno) {
 		float current_y = anno.getRectangle().getLowerLeftY();
+		float upper_y = 0;
 		PDPage page = anno.getPage();
 
 		if (page == null) {
@@ -592,19 +624,31 @@ public class PDFPage extends PDFTextStripper {
 		if (pageRotation == 0) {
 			float page_height = page.findMediaBox().getHeight();
 			current_y = page_height - anno.getRectangle().getLowerLeftY();
+			upper_y = page_height - anno.getRectangle().getUpperRightY();
 		}
 		if (pageRotation == 90) {
 			current_y = anno.getRectangle().getUpperRightX();
+			upper_y = anno.getRectangle().getLowerLeftX();
 		}
 		if (pageRotation == 180) {
 			current_y = anno.getRectangle().getUpperRightY();
+			upper_y = anno.getRectangle().getLowerLeftY();
 		}
 		if (pageRotation == 270) {
 			float page_width = page.findMediaBox().getWidth();
 			current_y = page_width - anno.getRectangle().getLowerLeftX();
+			upper_y = page_width - anno.getRectangle().getUpperRightX();
 		}
 
+		
+		
 		if (current_y > this.effectivePageHeight) {
+			if(!this.legacy40 && upper_y < this.effectivePageHeight) {
+				// Bottom of annotation is below footer line, 
+				// but top of annotation is above footer line!
+				// so no place left on this page!
+				this.max_character_ypos = this.effectivePageHeight;
+			}
 			return;
 		}
 

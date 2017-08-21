@@ -92,6 +92,7 @@ public interface IProfileConstants {
     public final static String SIGNFIELD_VALUE = "adobeSignFieldValue";
     public final static String TIMEZONE_BASE = "timezone";
     public final static String SIG_PDFA1B_VALID = "SIG_PDFA1B_VALID";
+    public final static String SIG_PDFA_VALID = "SIG_PDFA_VALID";
     public final static String SIG_PDFUA_FORCE = "SIG_PDFUA_FORCE";
-    
+
 }

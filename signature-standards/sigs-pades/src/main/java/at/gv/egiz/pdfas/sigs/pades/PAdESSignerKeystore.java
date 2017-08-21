@@ -23,6 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.sigs.pades;
 
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import iaik.asn1.ASN1Object;
 import iaik.asn1.CodingException;
 import iaik.asn1.ObjectID;
@@ -270,10 +271,22 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 			SignerInfo signerInfo) throws CertificateException,
 			NoSuchAlgorithmException, CodingException {
 		List<Attribute> attributes = new ArrayList<Attribute>();
+
 		setMimeTypeAttrib(attributes, mimeType);
 		setContentTypeAttrib(attributes);
 		setSigningCertificateAttrib(attributes, signingCertificate);
-		//setSigningTimeAttrib(attributes, signingTime);
+		setSigningTimeAttrib(attributes, signingTime);
+		Attribute[] attributeArray = attributes
+				.toArray(new Attribute[attributes.size()]);
+		signerInfo.setSignedAttributes(attributeArray);
+	}
+
+	private void setAttributes(X509Certificate signingCertificate, SignerInfo signerInfo) throws CertificateException,
+			NoSuchAlgorithmException, CodingException {
+		List<Attribute> attributes = new ArrayList<Attribute>();
+
+		setContentTypeAttrib(attributes);
+		setSigningCertificateAttrib(attributes, signingCertificate);
 		Attribute[] attributeArray = attributes
 				.toArray(new Attribute[attributes.size()]);
 		signerInfo.setSignedAttributes(attributeArray);
@@ -283,7 +296,7 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 			RequestedSignature requestedSignature) throws PdfAsException {
 		try {
 			logger.info("Creating PAdES signature.");
-			
+
 			requestedSignature.getStatus().getMetaInformations()
 			.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
 			requestedSignature.getStatus().getMetaInformations()
@@ -298,7 +311,25 @@ public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
 
 			SignedData si = new SignedData(input, SignedData.EXPLICIT);
 			si.addCertificates(new Certificate[] { cert });
-			setAttributes("application/pdf", cert, new Date(), signer1);
+
+
+			//Check PAdES Flag
+			if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))
+			{
+				if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG)))
+				{
+					setAttributes(cert, signer1);
+				}
+				else
+				{
+					setAttributes("application/pdf", cert, new Date(), signer1);
+				}
+			}
+			else
+			{
+				setAttributes("application/pdf", cert, new Date(), signer1);
+			}
+
 			si.addSignerInfo(signer1);
 			InputStream dataIs = si.getInputStream();
 			byte[] buf = new byte[1024];

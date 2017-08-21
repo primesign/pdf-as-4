@@ -33,7 +33,9 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,14 +46,13 @@ import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
  */
 public class ExceptionCatchFilter implements Filter {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(ExceptionCatchFilter.class);
-	
-    /**
-     * Default constructor. 
-     */
-    public ExceptionCatchFilter() {
-    }
+	private static final Logger logger = LoggerFactory.getLogger(ExceptionCatchFilter.class);
+
+	/**
+	 * Default constructor.
+	 */
+	public ExceptionCatchFilter() {
+	}
 
 	/**
 	 * @see Filter#destroy()
@@ -62,30 +63,72 @@ public class ExceptionCatchFilter implements Filter {
 	/**
 	 * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
 	 */
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		//try {
-		
-		if(request instanceof HttpServletRequest) {
-			logger.debug("Processing Parameters into Attributes");
-			HttpServletRequest httpRequest = (HttpServletRequest)request;
-			PdfAsHelper.logAccess(httpRequest);
-			@SuppressWarnings("unchecked")
-			Enumeration<String> parameterNames = httpRequest.getParameterNames();
-			while(parameterNames.hasMoreElements()) {
-				String name = parameterNames.nextElement();
-				String value = httpRequest.getParameter(name);
-				request.setAttribute(name, value);
-				logger.debug("Setting attribute: " + name + " - " + value);
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		try {
+
+			if (request instanceof HttpServletRequest) {
+				HttpServletRequest httpRequest = (HttpServletRequest) request;
+				MDC.put("SESSION_ID", httpRequest.getSession().getId());
+				logger.debug("Processing Parameters into Attributes");
+				logger.warn("Access from IP {}", getClientIpAddr(httpRequest));
+
+				PdfAsHelper.logAccess(httpRequest);
+				@SuppressWarnings("unchecked")
+				Enumeration<String> parameterNames = httpRequest.getParameterNames();
+				while (parameterNames.hasMoreElements()) {
+					String name = parameterNames.nextElement();
+					String value = httpRequest.getParameter(name);
+					request.setAttribute(name, value);
+				}
 			}
+
+			try {
+				chain.doFilter(request, response);
+			} finally {
+				if (response != null) {
+					if (response instanceof HttpServletResponse) {
+						HttpServletResponse resp = (HttpServletResponse) response;
+						logger.debug("Got response status: {}", resp.getStatus());
+					} else {
+						logger.warn("Response is not a HttpServletResponse!");
+					}
+				} else {
+					logger.warn("Response is not a HttpServletResponse!");
+				}
+			}
+		} catch (Throwable e) {
+			logger.error("Unhandled exception found", e);
+			throw new ServletException(e.getMessage());
+		} finally {
+			MDC.remove("SESSION_ID");
 		}
-		
-		
-			chain.doFilter(request, response);
-		/*} catch(Throwable e) {
-			System.err.println("Unhandled Exception found!");
-			e.printStackTrace(System.err);
-			logger.error("Unhandled Exception found!", e);
-		}*/
+		/*
+		 * } catch(Throwable e) {
+		 * System.err.println("Unhandled Exception found!");
+		 * e.printStackTrace(System.err);
+		 * logger.error("Unhandled Exception found!", e); }
+		 */
+	}
+
+	public static String getClientIpAddr(HttpServletRequest request) {
+		String ip = request.getHeader("X-Forwarded-For");
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("Proxy-Client-IP");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("HTTP_CLIENT_IP");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+		}
+		return ip;
 	}
 
 	/**

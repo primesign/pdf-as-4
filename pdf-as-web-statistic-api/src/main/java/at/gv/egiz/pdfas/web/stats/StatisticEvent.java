@@ -38,7 +38,8 @@ public class StatisticEvent {
 	
 	public enum Source {
 		WEB("web"),
-		SOAP("soap");
+		SOAP("soap"),
+		JSON("json");
 		
 		private String name;
 		

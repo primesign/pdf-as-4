@@ -25,6 +25,8 @@ package at.gv.egiz.sl.util;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,11 @@ public abstract class BaseSLConnector implements ISLConnector,
 
 	public static final String XMLREQUEST = "XMLRequest";
 
+	public static final String WHITELIST_VERSION_ENABLED = "whitelistVersion.enabled";
+	public static final String WHITELIST_VALUE_PRE = "whiteListVersions";
+	private static List<String> whiteListregEx = new ArrayList<String>();
+	public static String responseHeader;
+	
 	protected ObjectFactory of = new ObjectFactory();
 
 	public InfoboxReadRequestType createInfoboxReadRequest(
@@ -148,7 +155,71 @@ public abstract class BaseSLConnector implements ISLConnector,
 		request.setDataObject(cmsDataObjectRequiredMetaType);
 		request.setStructure(DETACHED);
 
+		
+		
+		
+		//whiteListregEx.add("1.2 MOCCA");
+		if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))
+		{
+			if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG)))
+			{
+				request.setPAdESFlag(true);
+			}
+		}
+		else
+		if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_INTELL_FLAG)){
+		if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_INTELL_FLAG)))
+		{
+			boolean intellFlag=isProvidePdfVersionInWhitelist(responseHeader, parameter);
+
+			if (intellFlag)
+			{
+				request.setPAdESFlag(true);
+			}
+		}}
+
 		pack.setRequestType(request);
 		return pack;
 	}
+	
+
+
+	public static boolean isWhiteListEnabled(SignParameter parameter) {
+
+		boolean whiteListConfig = parameter.getConfiguration().hasValue(WHITELIST_VERSION_ENABLED);
+		if (whiteListConfig)
+		{
+			String value = parameter.getConfiguration().getValue(WHITELIST_VERSION_ENABLED);
+
+			if (value != null) {
+				if (value.equals("true")) {
+					whiteListregEx.add(parameter.getConfiguration().getValue(WHITELIST_VALUE_PRE));
+					return true;
+				}
+			}}
+		return false;
+
+	}
+
+	public static synchronized boolean isProvidePdfVersionInWhitelist(String bkuVersionInformation, SignParameter parameter) {
+		if (isWhiteListEnabled(parameter)) {
+
+			Iterator<String> patterns = whiteListregEx.iterator();
+			while (patterns.hasNext()) {
+				String pattern = patterns.next();
+				try {
+					if (bkuVersionInformation.contains(pattern)) {
+						return true;
+					}
+					//TODO: extend with BlackList
+
+				} catch (Throwable e) {
+					logger.warn("Error in matching regex: " + pattern, e);
+				}
+			}
+			return false;
+		}
+		return true;
+	}
+}
 }

@@ -31,6 +31,8 @@
 
 package at.gv.egiz.sl.schema;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -82,14 +84,17 @@ public class CreateCMSSignatureRequestType {
     protected CMSDataObjectRequiredMetaType dataObject;
     @XmlAttribute(name = "Structure", required = true)
     protected String structure;
+    //PAdES Signatures
+    @XmlAttribute(name = "PAdESCompatibility", required = false)
+    private Boolean PAdESFlag;
 
     /**
      * Gets the value of the keyboxIdentifier property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getKeyboxIdentifier() {
         return keyboxIdentifier;
@@ -97,11 +102,11 @@ public class CreateCMSSignatureRequestType {
 
     /**
      * Sets the value of the keyboxIdentifier property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setKeyboxIdentifier(String value) {
         this.keyboxIdentifier = value;
@@ -109,11 +114,11 @@ public class CreateCMSSignatureRequestType {
 
     /**
      * Gets the value of the dataObject property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link CMSDataObjectRequiredMetaType }
-     *     
+     *
      */
     public CMSDataObjectRequiredMetaType getDataObject() {
         return dataObject;
@@ -121,11 +126,11 @@ public class CreateCMSSignatureRequestType {
 
     /**
      * Sets the value of the dataObject property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link CMSDataObjectRequiredMetaType }
-     *     
+     *
      */
     public void setDataObject(CMSDataObjectRequiredMetaType value) {
         this.dataObject = value;
@@ -133,11 +138,11 @@ public class CreateCMSSignatureRequestType {
 
     /**
      * Gets the value of the structure property.
-     * 
+     *
      * @return
      *     possible object is
      *     {@link String }
-     *     
+     *
      */
     public String getStructure() {
         return structure;
@@ -145,14 +150,22 @@ public class CreateCMSSignatureRequestType {
 
     /**
      * Sets the value of the structure property.
-     * 
+     *
      * @param value
      *     allowed object is
      *     {@link String }
-     *     
+     *
      */
     public void setStructure(String value) {
         this.structure = value;
     }
 
+
+    public Boolean getPAdESFlag() {
+        return PAdESFlag;
+    }
+
+    public void setPAdESFlag(Boolean PAdESFlag) {
+        this.PAdESFlag = PAdESFlag;
+    }
 }

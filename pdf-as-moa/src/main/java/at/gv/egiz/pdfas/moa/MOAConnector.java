@@ -23,6 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.moa;
 
+import at.gv.e_government.reference.namespace.moa._20020822.*;
 import iaik.x509.X509Certificate;
 
 import java.io.File;
@@ -32,6 +33,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.ws.BindingProvider;
 
@@ -39,14 +43,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.e_government.reference.namespace.moa._20020822.CMSContentBaseType;
 import at.gv.e_government.reference.namespace.moa._20020822.CMSDataObjectInfoType.DataObject;
-import at.gv.e_government.reference.namespace.moa._20020822.CreateCMSSignatureRequest;
 import at.gv.e_government.reference.namespace.moa._20020822.CreateCMSSignatureRequestType.SingleSignatureInfo;
 import at.gv.e_government.reference.namespace.moa._20020822.CreateCMSSignatureRequestType.SingleSignatureInfo.DataObjectInfo;
-import at.gv.e_government.reference.namespace.moa._20020822.CreateCMSSignatureResponseType;
-import at.gv.e_government.reference.namespace.moa._20020822.ErrorResponseType;
-import at.gv.e_government.reference.namespace.moa._20020822.MetaInfoType;
 import at.gv.e_government.reference.namespace.moa._20020822_.MOAFault;
 import at.gv.e_government.reference.namespace.moa._20020822_.SignatureCreationPortType;
 import at.gv.e_government.reference.namespace.moa._20020822_.SignatureCreationService;
@@ -79,6 +78,7 @@ public class MOAConnector implements ISignatureConnector,
 	private X509Certificate certificate;
 	private String moaEndpoint;
 	private String keyIdentifier;
+
 
 	public MOAConnector(Configuration config,
 			java.security.cert.Certificate certificate)
@@ -161,6 +161,7 @@ public class MOAConnector implements ISignatureConnector,
 		return this.certificate;
 	}
 
+
 	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter,
 			RequestedSignature requestedSignature) throws PdfAsException {
 
@@ -187,8 +188,23 @@ public class MOAConnector implements ISignatureConnector,
 		DataObject dataObject = new DataObject();
 		MetaInfoType metaInfoType = new MetaInfoType();
 
-		metaInfoType.setMimeType("application/pdf");
 
+		if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))
+		{
+			if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG)))
+			{
+				metaInfoType.setMimeType("application/pdf");
+				sigInfo.setPAdESConformity(true);
+			}
+			else
+			{
+				metaInfoType.setMimeType("application/pdf");
+			}
+		}
+		else
+		{
+			metaInfoType.setMimeType("application/pdf");
+		}
 		dataObject.setMetaInfo(metaInfoType);
 
 		CMSContentBaseType content = new CMSContentBaseType();

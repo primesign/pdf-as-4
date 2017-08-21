@@ -31,7 +31,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.swing.text.html.HTML;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.codehaus.stax2.io.EscapingWriterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,9 +99,21 @@ public class ProvidePDFServlet extends HttpServlet {
 			} else {
 				// Redirect Browser
 				String template = PdfAsHelper.getInvokeRedirectTemplateSL();
-				template = template.replace("##INVOKE_URL##", invokeURL);
 				
 				URL url = new URL(invokeURL);
+				int p=url.getPort();
+				//no port, but http or https --> use default port
+				if((url.getProtocol().equalsIgnoreCase("https") || url.getProtocol().equalsIgnoreCase("http")) && p == -1){
+					p=url.getDefaultPort();
+				}
+				String invokeUrlProcessed = url.getProtocol() + "://" +   // "http" + "://
+						url.getHost() +       // "myhost"
+			             ":" +                           // ":"
+			             p +       // "8080"
+			             url.getPath();  
+				
+				template = template.replace("##INVOKE_URL##", invokeUrlProcessed);
+				
 				String extraParams = UrlParameterExtractor.buildParameterFormString(url);
 				template = template.replace("##ADD_PARAMS##", extraParams);
 				
@@ -116,7 +131,7 @@ public class ProvidePDFServlet extends HttpServlet {
 					target = "_self";
 				}
 				
-				template = template.replace("##TARGET##", target);
+				template = template.replace("##TARGET##", StringEscapeUtils.escapeHtml4(target));
 				
 				template = template.replace("##PDFURL##",
 						URLEncoder.encode(PdfAsHelper.generatePdfURL(request, response), 

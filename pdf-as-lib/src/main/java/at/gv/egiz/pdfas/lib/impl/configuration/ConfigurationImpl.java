@@ -30,8 +30,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.Settings;
 import at.gv.egiz.pdfas.lib.api.Configuration;
+import at.gv.egiz.pdfas.lib.settings.Settings;
 
 public class ConfigurationImpl implements ISettings, Configuration {
 
@@ -162,5 +162,8 @@ public class ConfigurationImpl implements ISettings, Configuration {
         }
 	}
 
+	public void debugDumpProfileSettings(String profileName) {
+		((Settings)settings).debugDumpProfileSettings(profileName);
+	}
 	
 }

@@ -29,9 +29,9 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ContentOptionalRefType")
 @XmlSeeAlso({
+    at.gv.e_government.reference.namespace.moa._20020822.DataObjectInfoType.DataObject.class,
     CMSContentBaseType.class,
-    ContentRequiredRefType.class,
-    at.gv.e_government.reference.namespace.moa._20020822.DataObjectInfoType.DataObject.class
+    ContentRequiredRefType.class
 })
 public class ContentOptionalRefType
     extends ContentBaseType

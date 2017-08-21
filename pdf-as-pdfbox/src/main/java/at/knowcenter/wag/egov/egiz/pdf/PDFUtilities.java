@@ -68,19 +68,19 @@ import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
  */
 public abstract class PDFUtilities {
 	public static float calculatePageLength(PDDocument document, int page,
-			float effectivePageHeight, /* int pagerotation, */boolean legacy32)
+			float effectivePageHeight, /* int pagerotation, */boolean legacy32, boolean legacy40)
 			throws PDFIOException {
 		// int last_page_id = document.getNumberOfPages();
 		List<?> allPages = document.getDocumentCatalog().getAllPages();
 		PDPage pdpage = (PDPage) allPages.get(page);
 		// pdpage.setRotation(pagerotation);
-		return calculatePageLength(pdpage, effectivePageHeight, legacy32);
+		return calculatePageLength(pdpage, effectivePageHeight, legacy32, legacy40);
 	}
 
 	public static float calculatePageLength(PDPage page,
-			float effectivePageHeight, boolean legacy32) throws PDFIOException {
+			float effectivePageHeight, boolean legacy32, boolean legacy40) throws PDFIOException {
 		try {
-			PDFPage my_page = new PDFPage(effectivePageHeight, legacy32);
+			PDFPage my_page = new PDFPage(effectivePageHeight, legacy32, legacy40);
 			PDResources resources = page.findResources();
 			if (page.getContents() != null) {
 				COSStream stream = page.getContents().getStream();

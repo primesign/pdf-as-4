@@ -87,7 +87,7 @@ import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
 import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureInterface;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
-import at.gv.egiz.pdfas.lib.impl.stamping.StamperFactory;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.StamperFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
@@ -159,6 +159,18 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					tablePos = signaturePlaceholderData.getTablePos();
 					if (tablePos != null) {
+
+						SignatureProfileConfiguration signatureProfileConfiguration = pdfObject.getStatus()
+								.getSignatureProfileConfiguration(requestedSignature.getSignatureProfileID());
+
+						float minWidth = signatureProfileConfiguration.getMinWidth();
+
+						if(minWidth > 0) {
+							if (tablePos.getWidth() < minWidth) {
+								tablePos.width = minWidth;
+								logger.debug("Correcting placeholder with to minimum width {}", minWidth);
+							}
+						}
 						logger.debug("Placeholder Position set to: " + tablePos.toString());
 					}
 				}
@@ -192,7 +204,19 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				// signature.setSignDate(signer.getSigningDate());
 
 				signer.setPDSignature(signature);
-				options.setPreferedSignatureSize(0x1000);
+
+				int signatureSize = 0x1000;
+				try {
+					String reservedSignatureSizeString = signatureProfileSettings.getValue(SIG_RESERVED_SIZE);
+					if (reservedSignatureSizeString != null) {
+						signatureSize = Integer.parseInt(reservedSignatureSizeString);
+					}
+					logger.debug("Reserving {} bytes for signature", signatureSize);
+				} catch (NumberFormatException e) {
+					logger.warn("Invalid configuration value: {} should be a number using 0x1000", SIG_RESERVED_SIZE);
+				}
+				options.setPreferedSignatureSize(signatureSize);
+
 
 				// Is visible Signature
 				if (requestedSignature.isVisual()) {
@@ -234,6 +258,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						}
 					}
 					boolean legacy32Position = signatureProfileConfiguration.getLegacy32Positioning();
+					boolean legacy40Position = signatureProfileConfiguration.getLegacy40Positioning();
 
 					// create Table describtion
 					Table main = TableFactory.createSigTable(signatureProfileSettings, MAIN, pdfObject.getStatus(),
@@ -250,7 +275,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					 */
 
 					PositioningInstruction positioningInstruction = Positioning.determineTablePositioning(tablePos, "",
-							doc, visualObject, legacy32Position);
+							doc, visualObject, legacy32Position, legacy40Position);
+
 
 					logger.debug("Positioning: {}", positioningInstruction.toString());
 
@@ -638,10 +664,17 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				try {
 					tmpFileIs = new FileInputStream(new File(fisTmpFile));
-					doc.saveIncremental(tmpFileIs, tmpOutputStream);
+					synchronized (doc) {
+						doc.saveIncremental(tmpFileIs, tmpOutputStream);
+					}
 					tmpFileIs.close();
 				} finally {
 					IOUtils.closeQuietly(tmpFileIs);
+					if (options != null) {
+						if (options.getVisualSignature() != null) {
+							options.getVisualSignature().close();
+						}
+					}
 				}
 				tmpOutputStream.flush();
 				tmpOutputStream.close();
@@ -761,10 +794,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			PositioningInstruction positioningInstruction = null;
 			if (signaturePosString != null) {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
-						origDoc, visualObject, false);
+						origDoc, visualObject, false, false);
 			} else {
 				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
-						visualObject, false);
+						visualObject, false, false);
 			}
 
 			origDoc.close();
@@ -783,7 +816,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					positioningInstruction, signatureProfileSettings);
 
 			properties.buildSignature();
-			PDDocument visualDoc = PDDocument.load(properties.getVisibleSignature());
+			PDDocument visualDoc;
+			synchronized (PDDocument.class) {
+				visualDoc = PDDocument.load(properties.getVisibleSignature());
+			}
 			// PDPageable pageable = new PDPageable(visualDoc);
 			List<PDPage> pages = new ArrayList<PDPage>();
 			visualDoc.getDocumentCatalog().getPages().getAllKids(pages);

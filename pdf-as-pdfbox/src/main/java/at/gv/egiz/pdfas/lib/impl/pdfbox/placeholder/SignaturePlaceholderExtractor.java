@@ -51,6 +51,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -60,12 +61,15 @@ import java.util.Vector;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.pdfbox.cos.COSBase;
+import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDFontFactory;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.util.Matrix;
@@ -109,11 +113,13 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
 	private int currentPage = 0;
+	private PDDocument doc;
 
 	private SignaturePlaceholderExtractor(String placeholderId,
-			int placeholderMatchMode) throws IOException {
+			int placeholderMatchMode, PDDocument doc) throws IOException {
 		super(ResourceLoader.loadProperties(
 				"placeholder/pdfbox-reader.properties", true));
+				this.doc = doc;
 	}
 	
 	/**
@@ -134,6 +140,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor(
 				QR_PLACEHOLDER_IDENTIFIER,        // is ignored anyway
 				PLACEHOLDER_MATCH_MODE_MODERATE   // is ignored anyway
+				, doc
 		);
 		
 		int pageNr = 0;
@@ -170,7 +177,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		SignaturePlaceholderExtractor extractor;
 		try {
 			extractor = new SignaturePlaceholderExtractor(placeholderId,
-					matchMode);
+					matchMode, doc);
 		} catch (IOException e2) {
 			throw new PDFIOException("error.pdf.io.04", e2);
 		}
@@ -225,6 +232,30 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		if (placeholders.size() == 0)
 			return null;
 
+		if (matchMode == PLACEHOLDER_MATCH_MODE_SORTED) {
+			// sort all placeholders by the id string if all ids are null do nothing
+			SignaturePlaceholderData currentFirstSpd = null;
+			for (int i = 0; i < placeholders.size(); i++) {
+				SignaturePlaceholderData spd = placeholders.get(i);
+				if (spd.getId() != null) {
+					if(currentFirstSpd == null) {
+						currentFirstSpd = spd;
+						logger.debug("Setting new current ID: {}", 
+								currentFirstSpd.getId());
+					} else {
+						String currentID = currentFirstSpd.getId();
+						String testID = spd.getId();
+						logger.debug("Testing placeholder current: {} compare to {}", 
+								currentID, testID);
+						if(testID.compareToIgnoreCase(currentID) < 0) {
+							currentFirstSpd = spd;
+							logger.debug("Setting new current ID: {}", 
+									testID);
+						}
+					}
+				}
+			}
+			
 		for (int i = 0; i < placeholders.size(); i++) {
 			SignaturePlaceholderData spd = placeholders.get(i);
 			if (spd.getId() == null)
@@ -233,13 +264,18 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 		if (matchMode == PLACEHOLDER_MATCH_MODE_LENIENT)
 			return placeholders.get(0);
-
+		}
 		return null;
 	}
+
 
 	private static SignaturePlaceholderData matchPlaceholderPage(
 			List<SignaturePlaceholderData> placeholders, String placeholderId,
 			int matchMode) {
+					
+		if(matchMode == PLACEHOLDER_MATCH_MODE_SORTED)
+			return null;
+		
 		if (placeholders.size() == 0)
 			return null;
 		for (int i = 0; i < placeholders.size(); i++) {
@@ -327,6 +363,54 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			super.processOperator(operator, arguments);
 		}
 	}
+	
+		private  Map<String, PDFont> fonts;
+	
+	@Override
+	public Map<String, PDFont> getFonts() {
+		if (fonts == null)
+        {
+            // at least an empty map will be returned
+            // TODO we should return null instead of an empty map
+            fonts = new HashMap<String, PDFont>();
+            if(this.getResources() != null && this.getResources().getCOSDictionary() != null) {
+            COSDictionary fontsDictionary = (COSDictionary) this.getResources().getCOSDictionary().getDictionaryObject(COSName.FONT);
+            if (fontsDictionary == null)
+            {
+            	// ignore we do not want to set anything, never when creating a signature!!!!!
+                //fontsDictionary = new COSDictionary();
+                //this.getResources().getCOSDictionary().setItem(COSName.FONT, fontsDictionary);
+            }
+            else
+            {
+                for (COSName fontName : fontsDictionary.keySet())
+                {
+                    COSBase font = fontsDictionary.getDictionaryObject(fontName);
+                    // data-000174.pdf contains a font that is a COSArray, looks to be an error in the
+                    // PDF, we will just ignore entries that are not dictionaries.
+                    if (font instanceof COSDictionary)
+                    {
+                        PDFont newFont = null;
+                        try
+                        {
+                            newFont = PDFontFactory.createFont((COSDictionary) font);
+                        }
+                        catch (IOException exception)
+                        {
+                            logger.error("error while creating a font", exception);
+                        }
+                        if (newFont != null)
+                        {
+                            fonts.put(fontName.getName(), newFont);
+                        }
+                    }
+                }
+            }
+            }
+        }
+        return fonts;
+	}
+	
 
 	/**
 	 * Checks an image if it is a placeholder for a signature.

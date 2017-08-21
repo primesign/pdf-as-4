@@ -46,7 +46,7 @@ import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 
 public class SignaturProfileTest {
 
-	public static final String sourcePDFA = "/home/afitzek/tmp/pdfProblem/PDFA/TestGhostscriptPdfA.pdf";
+	public static final String sourcePDFA = "/home/afitzek/simple_pdfa.pdf";
 	public static final String sourcePDF = "/home/afitzek/simple.pdf";
 	public static final String targetFolder = "/home/afitzek/tmp/sigres/";
 

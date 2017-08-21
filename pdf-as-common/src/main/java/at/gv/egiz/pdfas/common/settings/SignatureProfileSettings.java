@@ -39,6 +39,8 @@ public class SignatureProfileSettings implements IProfileConstants {
 
 	private String profileID;
 
+	private String pdfAVersion = null;
+
 	private ISettings configuration;
 
 	public SignatureProfileSettings(String profileID, ISettings configuration) {
@@ -203,9 +205,24 @@ public class SignatureProfileSettings implements IProfileConstants {
 	public String getProfileTimeZone() {
 		return this.getValue(TIMEZONE_BASE);
 	}
-	
+
+	public void setPDFAVersion(String version) {
+		this.pdfAVersion = version;
+	}
+
 	public boolean isPDFA() {
-		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA1B_VALID);
+
+		if(this.pdfAVersion != null) {
+			return "1".equals(this.pdfAVersion);
+		}
+
+		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA_VALID);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+
+		entry = profileInformations.get(SIG_PDFA1B_VALID);
 		if (entry != null) {
 			String value = entry.getCaption();
 			return "true".equals(value);
@@ -215,6 +232,19 @@ public class SignatureProfileSettings implements IProfileConstants {
 
 	public boolean isPDFUA() {
 		SignatureProfileEntry entry = profileInformations.get(SIG_PDFUA_FORCE);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+		return false;
+	}
+
+	public boolean isPDFA3() {
+		if(this.pdfAVersion != null) {
+			return "3".equals(this.pdfAVersion);
+		}
+
+		SignatureProfileEntry entry = profileInformations.get(SIG_PDFA_VALID);
 		if (entry != null) {
 			String value = entry.getCaption();
 			return "true".equals(value);

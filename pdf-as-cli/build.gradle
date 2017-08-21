@@ -15,17 +15,29 @@ task releases(type: Copy) {
 	into rootDir.toString() + "/releases/" + version
 }
 
-releases.dependsOn jar
-releases.dependsOn sourcesJar
-releases.dependsOn distZip
-releases.dependsOn distTar
+configurations { 
+				 pdfBox2Compile 
+				 pdfBox1Compile
+			   }
 
+sourceSets{
+	pdfBox2{
+		compileClasspath = configurations.pdfBox2Compile
+		runtimeClasspath = configurations.pdfBox2Compile + main.runtimeClasspath
+	}
+	pdfBox1{
+		compileClasspath = configurations.pdfBox1Compile
+		runtimeClasspath = configurations.pdfBox1Compile + main.runtimeClasspath
+	}
+}
+			   
 dependencies {
 	compile project (':pdf-as-lib')
 	compile project (':signature-standards:sigs-pkcs7detached')
 	compile project (':signature-standards:sigs-pades')
 	compile project (':pdf-as-moa')
-	compile project (':pdf-as-pdfbox')
+	pdfBox1Compile project (':pdf-as-pdfbox')
+	pdfBox2Compile project (':pdf-as-pdfbox-2')
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
 	compile group: 'commons-cli', name: 'commons-cli', version: '1.2'
 	compile 'ch.qos.logback:logback-classic:1.1.2'
@@ -33,6 +45,74 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
+
+startScripts{
+	classpath+=sourceSets.pdfBox2.compileClasspath
+}
+
+compileJava{
+    classpath=sourceSets.main.compileClasspath
+	classpath+=sourceSets.pdfBox1.compileClasspath
+	classpath+=sourceSets.pdfBox2.compileClasspath
+}
+
+
+task pdfbox1Startscript(type: CreateStartScripts) {
+    description "Creates OS specific scripts to call the 'other' entry point"
+
+    classpath = startScripts.classpath.minus(configurations.pdfBox2Compile) + sourceSets.pdfBox1.compileClasspath
+    outputDir = startScripts.outputDir
+    mainClassName = startScripts.mainClassName
+    applicationName = startScripts.applicationName+"-pdfbox1"
+}
+
+distZip {
+
+	doFirst{
+    	baseName = archivesBaseName
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+	    into("${baseName}-${version}/lib") {
+	        from startScripts.classpath
+	    }
+	    into("${baseName}-${version}/lib") {
+	        from pdfbox1Startscript.classpath
+	    }
+	    into("${baseName}-${version}/bin") {
+	        from pdfbox1Startscript
+	    }
+  	}
+}
+
+distTar {
+	doFirst{
+	    baseName = archivesBaseName
+		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	
+	     into("${baseName}-${version}/lib") {
+	        from startScripts.classpath
+	    }
+	    into("${baseName}-${version}/lib") {
+	        from pdfbox1Startscript.classpath
+	    }
+	    into("${baseName}-${version}/bin") {
+	        from pdfbox1Startscript
+	    }
+    }
+}
+
+
+releases.dependsOn jar
+releases.dependsOn sourcesJar
+releases.dependsOn distZip
+releases.dependsOn distTar
+
+distZip.dependsOn startScripts
+startScripts.dependsOn pdfbox1Startscript
+
+
+
 test {
     systemProperties 'property': 'value'
 }
+

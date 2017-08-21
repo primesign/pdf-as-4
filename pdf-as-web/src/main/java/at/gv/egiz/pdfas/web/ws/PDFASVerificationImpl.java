@@ -1,23 +1,6 @@
 package at.gv.egiz.pdfas.web.ws;
 
-import iaik.x509.X509Certificate;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.jws.WebService;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.soap.MTOM;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import at.gv.egiz.pdfas.api.ws.PDFASVerification;
-import at.gv.egiz.pdfas.api.ws.PDFASVerifyRequest;
-import at.gv.egiz.pdfas.api.ws.PDFASVerifyResponse;
-import at.gv.egiz.pdfas.api.ws.PDFASVerifyResult;
-import at.gv.egiz.pdfas.api.ws.VerificationLevel;
+import at.gv.egiz.pdfas.api.ws.*;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
@@ -25,10 +8,20 @@ import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.filter.UserAgentFilter;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent;
-import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import iaik.x509.X509Certificate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.jws.WebService;
+import javax.xml.ws.WebServiceException;
+import javax.xml.ws.soap.MTOM;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @MTOM
 @WebService(endpointInterface = "at.gv.egiz.pdfas.api.ws.PDFASVerification")
@@ -65,14 +58,15 @@ public class PDFASVerificationImpl implements PDFASVerification {
 			
 			SignatureVerificationLevel lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
 
-			if (request.getVerificationLevel().equals(
-					VerificationLevel.INTEGRITY_ONLY)) {
-				lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
-			} else if (request.getVerificationLevel().equals(
-					VerificationLevel.FULL_CERT_PATH)) {
-				lvl = SignatureVerificationLevel.FULL_VERIFICATION;
+			if(request.getVerificationLevel() != null) {
+				if (request.getVerificationLevel().equals(
+						VerificationLevel.INTEGRITY_ONLY)) {
+					lvl = SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION;
+				} else if (request.getVerificationLevel().equals(
+						VerificationLevel.FULL_CERT_PATH)) {
+					lvl = SignatureVerificationLevel.FULL_VERIFICATION;
+				}
 			}
-
 			statisticEvent.setFilesize(request.getInputData().length);
 			statisticEvent.setProfileId(null);
 			statisticEvent.setDevice(request.getVerificationLevel().toString());

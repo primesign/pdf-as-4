@@ -40,6 +40,10 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
@@ -49,10 +53,10 @@ import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.helper.RemotePDFFetcher;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent;
-import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
+import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 
 /**
  * Servlet implementation class Sign
@@ -65,17 +69,15 @@ public class ExternSignServlet extends HttpServlet {
 	
 	private static final String UPLOAD_PDF_DATA = "pdf-file";
 	private static final String UPLOAD_DIRECTORY = "upload";
-	private static final int THRESHOLD_SIZE = 1024 * 1024 * 3; // 3MB
-	private static final int MAX_FILE_SIZE = 1024 * 1024 * 40; // 40MB
-	private static final int MAX_REQUEST_SIZE = 1024 * 1024 * 50; // 50MB
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ExternSignServlet.class);
 	
 	/**
 	 * Default constructor.
+
 	 */
-	public ExternSignServlet() {
+	public ExternSignServlet(){
 		String webconfig = System.getProperty(PDF_AS_WEB_CONF);
 		
 		if(webconfig == null) {
@@ -85,6 +87,14 @@ public class ExternSignServlet extends HttpServlet {
 		
 		WebConfiguration.configure(webconfig);
 		PdfAsHelper.init();
+		
+		try {
+			PdfAsFactory.validateConfiguration((ISettings)PdfAsHelper.getPdfAsConfig());
+		} catch (PdfAsSettingsValidationException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getLocalizedMessage(),e.getCause());
+			//e.printStackTrace();
+		}
 	}
 
 	protected void doGet(HttpServletRequest request,
@@ -121,7 +131,7 @@ public class ExternSignServlet extends HttpServlet {
 			byte[] pdfData = RemotePDFFetcher.fetchPdfFile(pdfUrl);
 			doSignature(request, response, pdfData, statisticEvent);
 		} catch (Exception e) {
-			
+			logger.error("Signature failed", e);
 			statisticEvent.setStatus(Status.ERROR);
 			statisticEvent.setException(e);
 			if(e instanceof PDFASError) {
@@ -173,13 +183,13 @@ public class ExternSignServlet extends HttpServlet {
 			} else {
 				// configures upload settings
 				DiskFileItemFactory factory = new DiskFileItemFactory();
-				factory.setSizeThreshold(THRESHOLD_SIZE);
+				factory.setSizeThreshold(WebConfiguration.getFilesizeThreshold());
 				factory.setRepository(new File(System
 						.getProperty("java.io.tmpdir")));
 
 				ServletFileUpload upload = new ServletFileUpload(factory);
-				upload.setFileSizeMax(MAX_FILE_SIZE);
-				upload.setSizeMax(MAX_REQUEST_SIZE);
+				upload.setFileSizeMax(WebConfiguration.getMaxFilesize());
+				upload.setSizeMax(WebConfiguration.getMaxRequestsize());
 
 				// constructs the directory path to store upload file
 				String uploadPath = getServletContext().getRealPath("")
@@ -271,7 +281,7 @@ public class ExternSignServlet extends HttpServlet {
 			
 			doSignature(request, response, filecontent, statisticEvent);
 		} catch (Exception e) {
-			
+			logger.error("Signature failed", e);
 			statisticEvent.setStatus(Status.ERROR);
 			statisticEvent.setException(e);
 			if(e instanceof PDFASError) {
@@ -290,6 +300,15 @@ public class ExternSignServlet extends HttpServlet {
 
 	protected void doSignature(HttpServletRequest request,
 			HttpServletResponse response, byte[] pdfData, StatisticEvent statisticEvent) throws Exception {
+		if(pdfData == null) {
+			throw new PdfAsException("No Signature data available");
+		}
+		
+		if(pdfData[0] != 0x25 || pdfData[1] != 0x50 || pdfData[2] != 0x44 || pdfData[3] != 0x46) {
+			throw new PdfAsWebException(
+					"Received data is not a valid PDF-Document");
+		}
+		
 		// Get Connector
 		String connector = PdfAsParameterExtractor.getConnector(request);
 		
@@ -323,10 +342,6 @@ public class ExternSignServlet extends HttpServlet {
 			PdfAsHelper.setPDFFileName(request, filename);
 		}
 		
-		if(pdfData == null) {
-			throw new PdfAsException("No Signature data available");
-		}
-		
 		String pdfDataHash = DigestHelper.getHexEncodedHash(pdfData);
 		
 		PdfAsHelper.setSignatureDataHash(request, pdfDataHash);
@@ -343,15 +358,8 @@ public class ExternSignServlet extends HttpServlet {
 					throw new PdfAsWebException("Invalid connector bku is not supported");
 				}
 			}
-			
-			if(connector.equals("onlinebku")) {
-				if(WebConfiguration.getLocalBKUURL() == null) {
-					throw new PdfAsWebException("Invalid connector onlinebku is not supported");
-				}
-			}
-			
 			if(connector.equals("mobilebku")) {
-				if(WebConfiguration.getLocalBKUURL() == null) {
+				if(WebConfiguration.getHandyBKUURL() == null) {
 					throw new PdfAsWebException("Invalid connector mobilebku is not supported");
 				}
 			}
