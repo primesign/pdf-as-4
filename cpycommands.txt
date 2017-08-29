@@ -8,4 +8,4 @@
 
 ./davcpy.sh releases/. https://joinup.ec.europa.eu/webdav/pdf-as/www/releases
 
-./davcpy.sh doc/. https://joinup.ec.europa.eu/webdav/pdf-as/www/4_1_1_RC1/
+./davcpy.sh doc/. https://joinup.ec.europa.eu/webdav/pdf-as/www/4_0_0_RC9/
