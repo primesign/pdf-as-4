@@ -22,6 +22,7 @@ import org.icepdf.core.pobjects.Page;
 import org.icepdf.core.util.GraphicsRenderingHints;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -194,6 +195,7 @@ public class SignaturePositionTest extends SignatureTest {
      * @throws PrinterException
      * @throws PDFASError 
      */
+    @Ignore
     @Test
     public void signaturePositionTest() throws FileNotFoundException,
             CertificateException, IOException, PdfAsException,
