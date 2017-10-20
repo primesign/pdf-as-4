@@ -23,20 +23,21 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
-import at.gv.egiz.pdfas.lib.api.Configuration;
-import iaik.x509.X509Certificate;
-
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.activation.DataSource;
+
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -44,7 +45,6 @@ import org.apache.pdfbox.cos.COSDocument;
 import org.apache.pdfbox.cos.COSInteger;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSString;
-import org.apache.pdfbox.pdfwriter.COSWriter;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -57,7 +57,6 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
@@ -80,8 +79,6 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.common.utils.TempFileHelper;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
@@ -110,8 +107,7 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
-
-import javax.activation.DataSource;
+import iaik.x509.X509Certificate;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
@@ -200,7 +196,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					signatureProfileSettings);
 
 			signature.setName(signerName);
-			signature.setSignDate(Calendar.getInstance());
+			
+			// take signing time from provided signer...
+			signature.setSignDate(signer.getSigningDate());
+			// ...and update operation status in order to use exactly this date for the complete signing process
+			requestedSignature.getStatus().setSigningDate(signer.getSigningDate());
+			
 			String signerReason = signatureProfileSettings.getSigningReason();
 
 			if (signerReason == null) {

@@ -87,11 +87,11 @@ import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
 import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureInterface;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFStamper;
 import at.gv.egiz.pdfas.lib.impl.stamping.IPDFVisualObject;
-import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.StamperFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import at.gv.egiz.pdfas.lib.impl.stamping.ValueResolver;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PDFAsVisualSignatureProperties;
 import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.PdfBoxVisualObject;
+import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox.StamperFactory;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
@@ -188,7 +188,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						signatureProfileSettings);
 
 				signature.setName(signerName);
-				signature.setSignDate(Calendar.getInstance());
+				
+				// take signing time from provided signer...
+				signature.setSignDate(signer.getSigningDate());
+				// ...and update operation status in order to use exactly this date for the complete signing process
+				requestedSignature.getStatus().setSigningDate(signer.getSigningDate());
+
 				String signerReason = signatureProfileSettings.getSigningReason();
 
 				if (signerReason == null) {

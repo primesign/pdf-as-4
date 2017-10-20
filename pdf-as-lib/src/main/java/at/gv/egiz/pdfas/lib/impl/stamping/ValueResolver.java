@@ -54,10 +54,12 @@ public class ValueResolver implements IProfileConstants, IResolver {
 	public static final String EXP_END = "}";
 
 	private CertificateResolver certificateResolver;
+	private final OperationStatus operationStatus;
 	
 	public ValueResolver(ICertificateProvider certProvider, OperationStatus operationStatus) {
 		certificateResolver = new CertificateResolver(
 				certProvider.getCertificate(), operationStatus);
+		this.operationStatus = operationStatus;
 	}
 	
 	public String resolve(String key, String value,
@@ -79,7 +81,12 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			if(timeZone != null) {
 				fdf.setTimeZone(TimeZone.getTimeZone(timeZone));
 			}
-			Calendar cal = Calendar.getInstance();
+			
+			Calendar cal = operationStatus.getSigningDate();
+			if (cal == null) {
+				throw new IllegalStateException("Internal operation status does not provide signing date.");
+			}
+			
 			return fdf.format(cal.getTime());
 		}
 		
