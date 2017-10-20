@@ -372,7 +372,7 @@ public class ExternSignServlet extends HttpServlet {
 					PdfAsParameterExtractor.getOverwriteMap(request));
 			return;
 		} else if (connector.equals("jks") || connector.equals("moa")) {
-			// start synchronous siganture creation
+			// start synchronous signature creation
 			
 			if(connector.equals("jks")) {
 				

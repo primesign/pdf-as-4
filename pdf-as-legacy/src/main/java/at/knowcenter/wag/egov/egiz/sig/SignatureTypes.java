@@ -190,7 +190,7 @@ public class SignatureTypes {
 	  public static final String SIG_ISSUER = "SIG_ISSUER";
 
 	  /**
-	   * Standard key get/set the siganture value
+	   * Standard key get/set the signature value
 	   */
 	  public static final String SIG_VALUE = "SIG_VALUE";
 

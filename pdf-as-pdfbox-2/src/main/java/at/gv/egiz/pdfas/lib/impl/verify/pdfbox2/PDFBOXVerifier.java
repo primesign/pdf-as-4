@@ -80,7 +80,7 @@ public class PDFBOXVerifier implements VerifyBackend {
 					boolean verifyThis = true;
 
 					if (signatureToVerify >= 0) {
-						// verify only specific siganture!
+						// verify only specific signature!
 						verifyThis = signatureToVerify == currentSignature;
 					}
 

@@ -235,7 +235,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
-				logger.info("Creating visual siganture block");
+				logger.debug("Creating visual signature block");
 
 				SignatureProfileConfiguration signatureProfileConfiguration = pdfObject.getStatus()
 						.getSignatureProfileConfiguration(requestedSignature.getSignatureProfileID());
