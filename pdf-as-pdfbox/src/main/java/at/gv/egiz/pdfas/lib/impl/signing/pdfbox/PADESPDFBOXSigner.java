@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -188,7 +188,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						signatureProfileSettings);
 
 				signature.setName(signerName);
-				
+
 				// take signing time from provided signer...
 				signature.setSignDate(signer.getSigningDate());
 				// ...and update operation status in order to use exactly this date for the complete signing process
@@ -204,7 +204,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				logger.debug("Signing reason: " + signerReason);
 
 				logger.debug("Signing @ " + signer.getSigningDate().getTime().toString());
-				
+
 				// the signing date, needed for valid signature
 				// signature.setSignDate(signer.getSigningDate());
 
@@ -392,7 +392,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							}
 						}
 					}
-
+					
 					options.setPage(positioningInstruction.getPage());
 
 					options.setVisualSignature(properties.getVisibleSignature());
@@ -456,7 +456,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 
 					if (signatureField != null) {
-						signatureField.setPartialName(sigFieldName);	
+						signatureField.setPartialName(sigFieldName);
 					}
 					if (properties != null) {
 						signatureField.setAlternateFieldName(properties.getAlternativeTableCaption());
@@ -475,11 +475,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					if (structureTreeRoot != null) {
 						logger.info("Tree Root: {}", structureTreeRoot.toString());
 						List<Object> kids = structureTreeRoot.getKids();
-						
+
 						if (kids == null) {
 							logger.info("No kid-elements in structure tree Root, maybe not PDF/UA document");
 						}
-						
+
 						PDStructureElement docElement = null;
 						for (Object k : kids) {
 							if (k instanceof PDStructureElement) {
@@ -488,15 +488,15 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 							}
 						}
-						
+
 						PDStructureElement sigBlock = new PDStructureElement("Form", docElement);
-						
+
 						// create object dictionary and add as child element
 						COSDictionary objectDic = new COSDictionary();
 						objectDic.setName("Type", "OBJR");
 						objectDic.setItem("Pg", signatureField.getWidget().getPage());
 						objectDic.setItem("Obj", signatureField.getWidget());
-						
+
 						List<Object> l = new ArrayList<Object>();
 						l.add(objectDic);
 						sigBlock.setKids(l);
@@ -506,18 +506,18 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						sigBlock.setTitle("Signature Table");
 						sigBlock.setParent(docElement);
 						docElement.appendKid(sigBlock);
-						
+
 						// Create and add Attribute dictionary to mitigate PAC
 						// warning
 						COSDictionary sigBlockDic = (COSDictionary) sigBlock.getCOSObject();
 						COSDictionary sub = new COSDictionary();
-						
+
 						sub.setName("O", "Layout");
 						sub.setName("Placement", "Block");
 						sigBlockDic.setItem(COSName.A, sub);
 						sigBlockDic.setNeedToBeUpdate(true);
-						
-						
+
+
 						// Modify number tree
 						PDNumberTreeNode ntn = structureTreeRoot.getParentTree();
 						int parentTreeNextKey = structureTreeRoot.getParentTreeNextKey();
@@ -537,20 +537,20 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							//limits for exact one entry
 							limitsArray.add(COSInteger.get(parentTreeNextKey));
 							limitsArray.add(COSInteger.get(parentTreeNextKey));
-							
+
 							COSArray numsArray = new COSArray();
 							numsArray.add(COSInteger.get(parentTreeNextKey));
 							numsArray.add(sigBlock);
 
 							pTreeEntry.setItem(COSName.NUMS, numsArray);
 							pTreeEntry.setItem(COSName.LIMITS, limitsArray);
-						
+
 							PDNumberTreeNode newKidsElement = new PDNumberTreeNode(pTreeEntry, PDNumberTreeNode.class);
-					
+
 							ntnKids.add(newKidsElement);
 							ntnKids.setNeedToBeUpdate(true);
-							
-							
+
+
 							//working
 //							List<PDNumberTreeNode> treeRootKids = structureTreeRoot.getParentTree().getKids();
 //							PDNumberTreeNode last = (PDNumberTreeNode)treeRootKids.get(treeRootKids.size()-1);
@@ -568,17 +568,17 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 //							numa.add(sigBlock);
 							//working end
 
-							
+
 
 						}else if(ntnNumbers != null && ntnKids == null){
-							
+
 							int arrindex = ntnNumbers.size();
 
 							ntnNumbers.add(arrindex, COSInteger.get(parentTreeNextKey));
 							ntnNumbers.add(arrindex + 1, sigBlock.getCOSObject());
-							
+
 							ntnNumbers.getCOSObject().setNeedToBeUpdate(true);
-							
+
 							structureTreeRoot.setParentTree(ntn);
 
 						}else if(ntnNumbers == null && ntnKids == null){
@@ -588,10 +588,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							//this is not allowed
 							throw new PdfAsException("error.pdf.sig.pdfua.1");
 						}
-						
+
 						// set StructureParent for signature field annotation
 						signatureField.getWidget().setStructParent(parentTreeNextKey);
-						
+
 						//Increase the next Key value in the structure tree root
 						structureTreeRoot.setParentTreeNextKey(parentTreeNextKey+1);
 
@@ -599,20 +599,20 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						PDPage p = signatureField.getWidget().getPage();
 						p.getCOSDictionary().setName("Tabs", "S");
 						p.getCOSObject().setNeedToBeUpdate(true);
-						
+
 						//check alternative signature field name
 						if (signatureField != null) {
 							if(signatureField.getAlternateFieldName().equals(""))
 								signatureField.setAlternateFieldName(sigFieldName);
 						}
-						
+
 
 						ntn.getCOSDictionary().setNeedToBeUpdate(true);
 						sigBlock.getCOSObject().setNeedToBeUpdate(true);
 						structureTreeRoot.getCOSObject().setNeedToBeUpdate(true);
 						objectDic.getCOSObject().setNeedToBeUpdate(true);
 						docElement.getCOSObject().setNeedToBeUpdate(true);
-						
+
 					}
 
 				} catch (Throwable e) {
@@ -623,47 +623,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						logger.info("Could not create PDF-UA conform signature");
 					}
 				}
-
-				if (requestedSignature.isVisual()) {
-
-					// if(requestedSignature.getSignaturePosition().)
-					/*
-					 * PDAcroForm acroForm =
-					 * doc.getDocumentCatalog().getAcroForm(); if (acroForm !=
-					 * null) {
-					 * 
-					 * @SuppressWarnings("unchecked") List<PDField> fields =
-					 * acroForm.getFields(); PDSignatureField signatureField =
-					 * null;
-					 * 
-					 * if (fields != null) { for (PDField pdField : fields) { if
-					 * (pdField instanceof PDSignatureField) { if
-					 * (((PDSignatureField) pdField).getSignature()
-					 * .getDictionary() .equals(signature.getDictionary())) {
-					 * signatureField = (PDSignatureField) pdField; } } } } else
-					 * { logger.warn(
-					 * "Failed to apply rotation! [Cannot find Field list in acroForm!]"
-					 * ); }
-					 * 
-					 * if (signatureField != null) { if
-					 * (signatureField.getWidget() != null) { if
-					 * (signatureField.getWidget()
-					 * .getAppearanceCharacteristics() == null) {
-					 * PDAppearanceCharacteristicsDictionary dict = new
-					 * PDAppearanceCharacteristicsDictionary( new
-					 * COSDictionary()); signatureField.getWidget()
-					 * .setAppearanceCharacteristics(dict); }
-					 * 
-					 * if (signatureField.getWidget()
-					 * .getAppearanceCharacteristics() != null) {
-					 * signatureField.getWidget()
-					 * .getAppearanceCharacteristics() .setRotation(90); } } }
-					 * else { logger.warn(
-					 * "Failed to apply rotation! [Cannot find signature Field!]"
-					 * ); } } else { logger.warn(
-					 * "Failed to apply rotation! [Cannot find acroForm!]" ); }
-					 */
-				}
+				
+				applyFilter(doc, requestedSignature);
 
 				FileInputStream tmpFileIs = null;
 
@@ -856,4 +817,21 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
+	
+	/**
+	 * Allows to apply modifications to the pdf document in the course of this signature related incremental update.
+	 * <p>
+	 * Can be overridden in order to add filtering.
+	 * </p>
+	 * 
+	 * @param pdDocument
+	 *            The pdf document (required; must not be {@code null} and must be opened).
+	 * @param requestedSignature
+	 *            The requested signature data (required; must not be {@code null}).
+	 * @throws IOException
+	 *             In case of error writing to the provided document.
+	 */
+	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws IOException {
+	}
+	
 }
