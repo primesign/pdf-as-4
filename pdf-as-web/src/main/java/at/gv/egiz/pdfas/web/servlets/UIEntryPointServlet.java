@@ -142,14 +142,14 @@ public class UIEntryPointServlet extends HttpServlet {
 				}
 
 				if (connector.equals(Connector.ONLINEBKU)) {
-					if (WebConfiguration.getLocalBKUURL() == null) {
+					if (WebConfiguration.getOnlineBKUURL() == null) {
 						throw new PdfAsWebException(
 								"Invalid connector onlinebku is not supported");
 					}
 				}
 
 				if (connector.equals(Connector.MOBILEBKU)) {
-					if (WebConfiguration.getLocalBKUURL() == null) {
+					if (WebConfiguration.getHandyBKUURL() == null) {
 						throw new PdfAsWebException(
 								"Invalid connector mobilebku is not supported");
 					}

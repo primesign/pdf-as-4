@@ -21,7 +21,7 @@
 		<%
 			if (WebConfiguration.getLocalBKUURL() != null) {
 		%>
-		<img src="assets/img/onlineBKU.png" /> <button type="submit"
+		<img src="assets/img/localBKU.png" /> <button type="submit"
 			value="bku" name="connector" id="bku">Lokale BKU
 		</button>
 		<%

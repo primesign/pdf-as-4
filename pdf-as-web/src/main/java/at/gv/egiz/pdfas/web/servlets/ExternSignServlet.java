@@ -363,7 +363,12 @@ public class ExternSignServlet extends HttpServlet {
 					throw new PdfAsWebException("Invalid connector mobilebku is not supported");
 				}
 			}
-			
+			if(connector.equals("onlinebku")) {
+				if(WebConfiguration.getOnlineBKUURL() == null) {
+					throw new PdfAsWebException("Invalid connector bku is not supported");
+				}
+			}
+
 			PdfAsHelper.setStatisticEvent(request, response, statisticEvent);
 			
 			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector, 

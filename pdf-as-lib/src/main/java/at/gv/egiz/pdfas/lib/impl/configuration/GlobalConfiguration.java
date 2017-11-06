@@ -39,5 +39,12 @@ public class GlobalConfiguration extends SpecificBaseConfiguration
 		}
 		return null;
 	}
+
+	public String getDefaultProtection() {
+		if(this.configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF)) {
+			return this.configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF);
+		}
+		return null;
+	}
 	
 }
