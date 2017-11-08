@@ -160,28 +160,27 @@ public class PDFBoxFont {
 					COSDictionary fontDictionary = (COSDictionary) baseObject;
 					COSBase subType = cosObject.getItem(COSName.SUBTYPE);
 					COSDictionary fontDescriptor = (COSDictionary)cosObject.getDictionaryObject(COSName.FONT_DESC);
-					String fontName = fontDescriptor.getNameAsString(COSName.FONT_NAME);
-					String fontFamily = fontDescriptor.getNameAsString(COSName.FONT_FAMILY);
-					logger.debug("Checking Font {} - {}", fontFamily, fontName);
-					if (COSName.TRUE_TYPE.equals(subType)) {
-						if (fontInfo.fontName != null && fontInfo.fontName.equals(fontName) && 
-							fontInfo.fontFamily != null && fontInfo.fontFamily.equals(fontFamily)) {
-							// Found it! :)
-							logger.info("Found Font {}", fontInfo.fontName);
-							return new PDTrueTypeFont(fontDictionary);
+					if (fontDescriptor != null) {
+						String fontName = fontDescriptor.getNameAsString(COSName.FONT_NAME);
+						String fontFamily = fontDescriptor.getNameAsString(COSName.FONT_FAMILY);
+						logger.trace("Inspecting Font {} - {}", fontFamily, fontName);
+						if (COSName.TRUE_TYPE.equals(subType)) {
+							if (fontInfo.fontName != null && fontInfo.fontName.equals(fontName) && 
+									fontInfo.fontFamily != null && fontInfo.fontFamily.equals(fontFamily)) {
+								// Found it! :)
+								logger.info("Found Font {}", fontInfo.fontName);
+								return new PDTrueTypeFont(fontDictionary);
+							}
 						} else {
-							logger.debug("Font not found: {} is {}",
-									fontInfo.fontName, fontName);
+							logger.debug("Font not a TTF");
 						}
-					} else {
-						logger.debug("Font not a TTF");
 					}
 				} else {
 					logger.debug("Font not a COSDictionary");
 				}
 			}
-		} catch (Throwable e) {
-			logger.info("Failed to find existing TTF fonts!", e);
+		} catch (Exception e) {
+			logger.info("Failed to load existing TTF fonts!", e);
 		}
 		return null;
 	}
