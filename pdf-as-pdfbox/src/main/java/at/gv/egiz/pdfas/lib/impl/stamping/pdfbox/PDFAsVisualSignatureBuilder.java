@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -162,7 +162,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		 * if(!addedFonts.contains(table.getFont().getFont(null))) { PDFont font
 		 * = table.getFont().getFont(template); addedFonts.add(font);
 		 * innerFormResources.addFont(font); }
-		 * 
+		 *
 		 * if(!addedFonts.contains(table.getValueFont().getFont(null))) { PDFont
 		 * font = table.getValueFont().getFont(template); addedFonts.add(font);
 		 * innerFormResources.addFont(font); }
@@ -266,7 +266,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 			stream.close();
 			PDStream innterFormStream = getStructure().getPage().getContents();
 			getStructure().setInnterFormStream(innterFormStream);
-			logger.debug("Strean of another form (inner form - it would be inside holder form) has been created");
+			logger.debug("Stream of another form (inner form - it would be inside holder form) has been created");
 
 		} catch (Throwable e) {
 			logger.warn("Failed to create visual signature block", e);
@@ -298,14 +298,6 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 			String imageObjectName, String imageName, String innerFormName,
 			PDFAsVisualSignatureDesigner properties) throws IOException {
 
-		// 100 means that document width is 100% via the rectangle. if rectangle
-		// is 500px, images 100% is 500px.
-		// String imgFormComment = "q "+imageWidthSize+ " 0 0 50 0 0 cm /" +
-		// imageName + " Do Q\n" + builder.toString();
-		/*
-		 * String imgFormComment = "q " + 100 + " 0 0 50 0 0 cm /" + imageName +
-		 * " Do Q\n";
-		 */
 		double m00 = getStructure().getAffineTransform().getScaleX();
 		double m10 = getStructure().getAffineTransform().getShearY();
 		double m01 = getStructure().getAffineTransform().getShearX();
@@ -319,10 +311,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 
 		logger.debug("Holder Form Stream: " + holderFormComment);
 
-		// String innerFormComment = "q 1 0 0 1 0 0 cm /" + imageObjectName +
-		// " Do Q\n";
-		String innerFormComment = getStructure().getInnterFormStream()
-				.getInputStreamAsString();
+		String innerFormComment = getStructure().getInnterFormStream().getInputStreamAsString();
 
 		// PDFBOX-3321 avoid length being written as an indirect object,
 		// to prevent call of heuristic readUntilEndStream()
@@ -330,18 +319,9 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		getStructure().getInnterFormStream().getStream().setInt(COSName.LENGTH, 0);
 //		getStructure().getImageFormStream().getStream().setInt(COSName.LENGTH, 0);
 
-		// logger.debug("Inner Form Stream: " + innerFormComment);
-
-		// appendRawCommands(getStructure().getInnterFormStream().createOutputStream(),
-		// getStructure().getInnterFormStream().getInputStreamAsString());
-
-		appendRawCommands(getStructure().getHolderFormStream()
-				.createOutputStream(), holderFormComment.trim().replace("\n", "").replace("\r", ""));
-		appendRawCommands(getStructure().getInnterFormStream()
-				.createOutputStream(), innerFormComment/*.trim().replace("\n", "").replace("\r", "")*/);
-		// appendRawCommands(getStructure().getImageFormStream().createOutputStream(),
-		// imgFormComment);
-		logger.debug("Injected apereance stream to pdf");
+		appendRawCommands(getStructure().getHolderFormStream().createOutputStream(), holderFormComment);
+		appendRawCommands(getStructure().getInnterFormStream().createOutputStream(), innerFormComment);
+		logger.debug("Injected appearance stream to pdf");
 
 	}
 
@@ -377,7 +357,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		pdSignature.setByteRange(new int[] { 0, 0, 0, 0 });
 		pdSignature.setContents(new byte[4096]);
 		getStructure().setPdSignature(pdSignature);
-		logger.debug("PDSignatur has been created");
+		logger.debug("PDSignature has been created");
 	}
 
 	public void createAcroFormDictionary(PDAcroForm acroForm,
@@ -555,7 +535,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		signatureField.getWidget().setAppearance(appearance);
 
 		getStructure().setAppearanceDictionary(appearance);
-		logger.debug("PDF appereance Dictionary has been created");
+		logger.debug("PDF appearance Dictionary has been created");
 
 	}
 
@@ -571,7 +551,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		innerForm.setBBox(formrect);
 		innerForm.setFormType(1);
 		getStructure().setInnerForm(innerForm);
-		logger.debug("Another form (inner form - it would be inside holder form) have been created");
+		logger.debug("Another form (inner form - it would be inside holder form) has been created");
 
 	}
 
@@ -579,7 +559,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 			PDResources holderFormResources) {
 		String name = holderFormResources.addXObject(innerForm, "FRM");
 		getStructure().setInnerFormName(name);
-		logger.debug("Alerady inserted inner form  inside holder form");
+		logger.debug("Already inserted inner form inside holder form");
 	}
 
 	public void createImageFormStream(PDDocument template) {
@@ -601,11 +581,11 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 
 		/*
 		 * if you need text on the visible signature
-		 * 
+		 *
 		 * PDFont font = PDTrueTypeFont.loadTTF(this.pdfStructure.getTemplate(),
 		 * new File("D:\\arial.ttf")); font.setFontEncoding(new
 		 * WinAnsiEncoding());
-		 * 
+		 *
 		 * Map<String, PDFont> fonts = new HashMap<String, PDFont>();
 		 * fonts.put("arial", font);
 		 */
@@ -648,7 +628,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		widgetDict.setItem(COSName.DR, holderFormResources.getCOSObject());
 
 		getStructure().setWidgetDictionary(widgetDict);
-		logger.debug("WidgetDictionary has been crated");
+		logger.debug("WidgetDictionary has been created");
 	}
 
 	public void closeTemplate(PDDocument template) throws IOException {
