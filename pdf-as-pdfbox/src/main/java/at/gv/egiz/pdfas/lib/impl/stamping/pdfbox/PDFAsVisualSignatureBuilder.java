@@ -324,6 +324,12 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		String innerFormComment = getStructure().getInnterFormStream()
 				.getInputStreamAsString();
 
+		// PDFBOX-3321 avoid length being written as an indirect object,
+		// to prevent call of heuristic readUntilEndStream()
+		getStructure().getHolderFormStream().getStream().setInt(COSName.LENGTH, 0);
+		getStructure().getInnterFormStream().getStream().setInt(COSName.LENGTH, 0);
+//		getStructure().getImageFormStream().getStream().setInt(COSName.LENGTH, 0);
+
 		// logger.debug("Inner Form Stream: " + innerFormComment);
 
 		// appendRawCommands(getStructure().getInnterFormStream().createOutputStream(),
