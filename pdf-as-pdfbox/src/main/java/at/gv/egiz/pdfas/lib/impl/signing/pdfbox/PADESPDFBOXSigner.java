@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -624,7 +625,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					}
 				}
 				
-				applyFilter(doc, requestedSignature);
+				try {
+					applyFilter(doc, requestedSignature);
+				} catch (PDFASError e) {
+					throw new PdfAsErrorCarrier(e);
+				}
 
 				FileInputStream tmpFileIs = null;
 
@@ -828,10 +833,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	 *            The pdf document (required; must not be {@code null} and must be opened).
 	 * @param requestedSignature
 	 *            The requested signature data (required; must not be {@code null}).
-	 * @throws IOException
-	 *             In case of error writing to the provided document.
+	 * @throws PDFASError
+	 *             In case of error.
 	 */
-	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws IOException {
+	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
 	}
 	
 }

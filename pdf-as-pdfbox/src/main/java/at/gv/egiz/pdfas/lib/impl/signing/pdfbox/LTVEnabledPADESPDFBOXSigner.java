@@ -39,7 +39,10 @@ import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.CertificateVerificationDataService;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
@@ -238,33 +241,76 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	}
 
 	@Override
-	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws IOException {
+	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
 		
-		// try-catch covering exceptions as defensive approach... do not prevent signature in case of error retrieving ltv data
-		CertificateVerificationData ltvVerificationInfo = null;
-		try {
-			ISettings settings = requestedSignature.getStatus().getSettings();
+		// LTV mode controls if and how retrieval/embedding LTV data will be done
+		LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
+		log.trace("LTV mode: {}", ltvMode);
+		
+		if (ltvMode != LTVMode.NONE) {
 			
-			// try to retrieve ltv data
-			CertificateVerificationDataService ltvVerificationInfoService = CertificateVerificationDataService.getInstance();
-			if (ltvVerificationInfoService.canHandle(requestedSignature.getCertificate(), settings)) {
-				log.debug("Retrieving LTV verification info.");
-				ltvVerificationInfo = ltvVerificationInfoService.getCertificateVerificationData(requestedSignature.getCertificate(), settings);
-			}
-		} catch (Exception e) {
-			log.warn("Unable to retrieve LTV related data.", e);
-			return;
-			// no further actions at the moment
-		}
-		
-		if (ltvVerificationInfo != null) {
+			CertificateVerificationData ltvVerificationInfo = null;
+
+			// ** retrieval
 			try {
-				addLTVInfo(pdDocument, ltvVerificationInfo);
-			} catch (CertificateEncodingException | CRLException e) {
-				log.warn("Unable to add LTV related data to the document.", e);
+				
+				// fetch PDF-AS settings to be provided to verification data service/validation providers
+				ISettings settings = requestedSignature.getStatus().getSettings();
+				
+				// fetch/create service in order to see if we can handle the signer's CA
+				CertificateVerificationDataService ltvVerificationInfoService = CertificateVerificationDataService.getInstance();
+				if (ltvVerificationInfoService.canHandle(requestedSignature.getCertificate(), settings)) {
+					// yes, we can
+					log.debug("Retrieving LTV verification info.");
+					ltvVerificationInfo = ltvVerificationInfoService.getCertificateVerificationData(requestedSignature.getCertificate(), settings);
+				}
+
+			} catch (Exception e) {
+				// error retrieving LTV data, LTV mode controls how errors are handled
+				final String message = "Unable to retrieve LTV related data.";
+				if (ltvMode == LTVMode.OPTIONAL) {
+					log.warn(message, e);
+					return;
+				}
+				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_RETRIEVING_REQUIRED_DATA, message, e);
 			}
+
+			// Did we get data to be embedded with signature ?
+			if (ltvVerificationInfo != null) {
+				
+				// yes
+				// ** adding data to pdf
+				try {
+					addLTVInfo(pdDocument, ltvVerificationInfo);
+				} catch (CertificateEncodingException | CRLException e) {
+					// error embedding LTV data, LTV mode controls how errors are handled
+					final String message = "Unable to encode LTV related data to be added to the document.";
+					if (ltvMode == LTVMode.OPTIONAL) {
+						log.warn(message, e);
+						return;
+					}
+					throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_INTERNAL_ADDING_DATA_TO_PDF, message, e);
+				} catch (IOException e) {
+					// we do not supress I/O errors (regardless of LTV mode)
+					throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
+				}
+				
+			} else {
+
+				// no data available, LTV mode controls how this case is handled
+				if (ltvMode == LTVMode.REQUIRED) {
+					throw new PDFASError(
+							ErrorConstants.ERROR_SIG_PADESLTV_NO_DATA,
+							"No LTV data available for the signers certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
+					);
+				} else {
+					log.info("No LTV data available for the signers certificate. Do not LTV-enable signature.");
+				}
+
+			}
+			
 		} else {
-			log.debug("Did not add LTV info since signing certificate('s ca) was not supported by any certificate verification data provider.");
+			log.debug("Did not add LTV related data since LTV mode was {}.", ltvMode); 
 		}
 
 	}
