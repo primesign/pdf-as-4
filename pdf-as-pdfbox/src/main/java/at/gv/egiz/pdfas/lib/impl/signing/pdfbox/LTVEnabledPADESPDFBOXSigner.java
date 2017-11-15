@@ -41,10 +41,8 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
-import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
-import at.gv.egiz.pdfas.lib.pki.CertificateVerificationDataService;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 
 /**
@@ -246,40 +244,15 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 		// LTV mode controls if and how retrieval/embedding LTV data will be done
 		LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
 		log.trace("LTV mode: {}", ltvMode);
-		
+
 		if (ltvMode != LTVMode.NONE) {
 			
-			CertificateVerificationData ltvVerificationInfo = null;
-
-			// ** retrieval
-			try {
-				
-				// fetch PDF-AS settings to be provided to verification data service/validation providers
-				ISettings settings = requestedSignature.getStatus().getSettings();
-				
-				// fetch/create service in order to see if we can handle the signer's CA
-				CertificateVerificationDataService ltvVerificationInfoService = CertificateVerificationDataService.getInstance();
-				if (ltvVerificationInfoService.canHandle(requestedSignature.getCertificate(), settings)) {
-					// yes, we can
-					log.debug("Retrieving LTV verification info.");
-					ltvVerificationInfo = ltvVerificationInfoService.getCertificateVerificationData(requestedSignature.getCertificate(), settings);
-				}
-
-			} catch (Exception e) {
-				// error retrieving LTV data, LTV mode controls how errors are handled
-				final String message = "Unable to retrieve LTV related data.";
-				if (ltvMode == LTVMode.OPTIONAL) {
-					log.warn(message, e);
-					return;
-				}
-				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_RETRIEVING_REQUIRED_DATA, message, e);
-			}
+			CertificateVerificationData ltvVerificationInfo = requestedSignature.getCertificateVerificationData();
 
 			// Did we get data to be embedded with signature ?
 			if (ltvVerificationInfo != null) {
 				
-				// yes
-				// ** adding data to pdf
+				// yes, add data to pdf
 				try {
 					addLTVInfo(pdDocument, ltvVerificationInfo);
 				} catch (CertificateEncodingException | CRLException e) {

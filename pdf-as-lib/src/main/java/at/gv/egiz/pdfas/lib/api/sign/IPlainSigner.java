@@ -24,8 +24,10 @@
 package at.gv.egiz.pdfas.lib.api.sign;
 
 import iaik.x509.X509Certificate;
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 
 /**
  * Signer interface
@@ -62,4 +64,18 @@ public interface IPlainSigner {
      * @return
      */
     public String getPDFFilter();
+    
+	/**
+	 * Retrieves certificate validation data (chains, OCSP responses, CRL...) required to support long term validation
+	 * (LTV).
+	 * 
+	 * @param requestedSignature
+	 *            The requested signature (required; must not be {@code null}).
+	 * @return The verification data or {@code null} in case data could not be retrieved or LTV is not enabled.
+	 * @throws PDFASError
+	 *             Thrown in case of error.
+	 * @throws IllegalStateException May be thrown in case {@code requestedSignature} does not provide a certificate.
+	 */
+    CertificateVerificationData getCertificateVerificationData(RequestedSignature requestedSignature) throws PDFASError;
+
 }

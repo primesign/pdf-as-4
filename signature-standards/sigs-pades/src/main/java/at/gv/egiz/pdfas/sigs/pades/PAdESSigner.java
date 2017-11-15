@@ -25,14 +25,13 @@ package at.gv.egiz.pdfas.sigs.pades;
 
 import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.sl.util.ISLConnector;
 import at.gv.egiz.sl.util.ISignatureConnector;
 import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
 
-public class PAdESSigner implements IPlainSigner, PAdESConstants {
+public class PAdESSigner extends LTVAwarePAdESSignerBase implements PAdESConstants {
 	
 	private ISignatureConnector plainSigner;
 	
