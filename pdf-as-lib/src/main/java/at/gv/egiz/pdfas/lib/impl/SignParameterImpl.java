@@ -25,9 +25,7 @@ package at.gv.egiz.pdfas.lib.impl;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.activation.DataSource;
 
@@ -46,6 +44,8 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	
 	/** The certification level */
 	protected int signatureCertificationLevel = SignParameter.NOT_CERTIFIED;
+	
+	private LTVMode ltvMode = LTVMode.NONE;
 
 	public SignParameterImpl(Configuration configuration, 
 			DataSource dataSource, OutputStream outputStream) {
@@ -97,4 +97,15 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	public void setSignatureCertificationLevel(int signatureCertificationLevel) {
 		this.signatureCertificationLevel = signatureCertificationLevel;
 	}
+
+	@Override
+	public void setLTVMode(LTVMode ltvMode) {
+		this.ltvMode = ltvMode;
+	}
+
+	@Override
+	public LTVMode getLTVMode() {
+		return ltvMode;
+	}
+
 }

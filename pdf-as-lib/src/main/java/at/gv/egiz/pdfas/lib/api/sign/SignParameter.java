@@ -102,5 +102,57 @@ public interface SignParameter extends PdfAsParameter {
 	 *            the signature certificationLevellevel to set
 	 */
 	void setSignatureCertificationLevel(int signatureCertificationLevel);
+	
+	/**
+	 * Sets the approach for integrating LTV verification data with signatures.
+	 * 
+	 * @param ltvMode
+	 *            The LTV mode (required; must not be {@code null}).
+	 */
+	void setLTVMode(LTVMode ltvMode);
+
+	/**
+	 * Returns the currently set approach for integrating LTV verification data with signatures.
+	 * 
+	 * @return The LTV mode (never {@code null}).
+	 */
+	LTVMode getLTVMode();
+
+	/**
+	 * Reflects the approach PDF-AS is using in terms of LTV. Allows to disable LTV (default mode), to enforce LTV or to
+	 * apply LTV if possible.
+	 * 
+	 * @author Thomas Knall, PrimeSign GmbH
+	 *
+	 */
+	public enum LTVMode {
+
+		/**
+		 * PDF-AS should neither resolve or retrieve nor embed any LTV related information. LTV is disabled.
+		 * <p>This is the default mode.</p>
+		 */
+		NONE,
+
+		/**
+		 * PDF-AS should try to resolve, retrieve and embed LTV related information but SHOULD NOT FAIL signature in
+		 * case of error (e.g. timeout when retrieving revocation infos). LTV is enabled.
+		 * <p>
+		 * Note that this mode may slow down signatures since retrieval of certificate chains and revocation infos may
+		 * take some time.
+		 * </p>
+		 */
+		OPTIONAL,
+
+		/**
+		 * PDF-AS should try to resolve, retrieve and embed LTV related information but SHOULD FAIL signature in case of
+		 * error (e.g. timeout when retrieving revocation infos). LTV is enabled.
+		 * <p>
+		 * Note that this mode may slow down signatures since retrieval of certificate chains and revocation infos may
+		 * take some time.
+		 * </p>
+		 */
+		REQUIRED
+
+	}
 
 }

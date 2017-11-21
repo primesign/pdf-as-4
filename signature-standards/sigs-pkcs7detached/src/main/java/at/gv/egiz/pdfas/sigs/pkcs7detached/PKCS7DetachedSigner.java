@@ -46,11 +46,13 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 
 /**
  * Creates a PKCS7 detached PDF signature
@@ -123,6 +125,11 @@ public class PKCS7DetachedSigner implements IPlainSigner, PKCS7DetachedConstants
 
 	public String getPDFFilter() {
 		return FILTER_ADOBE_PPKLITE;
+	}
+
+	@Override
+	public CertificateVerificationData getCertificateVerificationData(RequestedSignature requestedSignature) throws PDFASError {
+		return null;
 	}
 
 }

@@ -27,7 +27,7 @@ import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
-import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 
 
@@ -37,6 +37,7 @@ public class RequestedSignature implements ICertificateProvider {
     private OperationStatus status;
     private X509Certificate certificate;
     private SignaturePosition signaturePosition = null;
+    private CertificateVerificationData certificateVerificationData = null;
     //private IPlainSigner signer = null;
 
     public RequestedSignature(OperationStatus status) throws PdfAsException {
@@ -102,4 +103,24 @@ public class RequestedSignature implements ICertificateProvider {
 	public int getSignatureCertificationLevel() {
 		return this.status.getSignParamter().getSignatureCertificationLevel();
 	}
+
+	/**
+	 * Returns certificate validation data that may be used for (long term) validation purposes.
+	 * 
+	 * @return The certificate verification data (may be {@code null}).
+	 */
+	public CertificateVerificationData getCertificateVerificationData() {
+		return certificateVerificationData;
+	}
+
+	/**
+	 * sets certificate validation data that may be used for (long term) validation purposes.
+	 * 
+	 * @param certificateVerificationData
+	 *            The certificate verification data.
+	 */
+	public void setCertificateVerificationData(CertificateVerificationData certificateVerificationData) {
+		this.certificateVerificationData = certificateVerificationData;
+	}
+	
 }

@@ -64,14 +64,13 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
-import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 
-public class PAdESSignerKeystore implements IPlainSigner, PAdESConstants {
+public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdESConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESSignerKeystore.class);

@@ -164,6 +164,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			try {
 			requestedSignature.setCertificate(status.getSignParamter()
 					.getPlainSigner().getCertificate(parameter));
+				requestedSignature.setCertificateVerificationData(status.getSignParamter().getPlainSigner().getCertificateVerificationData(requestedSignature));
 			} finally {
 				if (parameter instanceof BKUHeaderHolder) {
 					BKUHeaderHolder holder = (BKUHeaderHolder) parameter;

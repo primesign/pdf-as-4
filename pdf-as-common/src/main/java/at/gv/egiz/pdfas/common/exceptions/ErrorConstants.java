@@ -20,6 +20,28 @@ public interface ErrorConstants {
 
 	public static final long ERROR_SIG_CERTIFICATE_MISSMATCH = 11019;
 	
+	/**
+	 * Error indicating that no LTV data was retrieved (e.g. when no validation data provider is available supporting
+	 * the signers certificate CA) while signature parameters require LTV.
+	 */
+	public static final long ERROR_SIG_PADESLTV_NO_DATA = 11100;
+	
+	/**
+	 * There was at least one validation provider capable of retrieving required data, but there was an error retrieving
+	 * that data (e.g. connection issues).
+	 */
+	public static final long ERROR_SIG_PADESLTV_RETRIEVING_REQUIRED_DATA = 11101;
+	
+	/**
+	 * There was an internal error adding the LTV data to the document (e.g. errors encoding certificates).
+	 */
+	public static final long ERROR_SIG_PADESLTV_INTERNAL_ADDING_DATA_TO_PDF = 11102;
+	
+	/**
+	 * There was an I/O error adding (writing) LTV related data to the document.
+	 */
+	public static final long ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF = 11103;
+	
 	// Verification Errors
 	
 	
