@@ -504,10 +504,8 @@ public class PdfAsHelper {
 	/**
 	 * Create synchronous PDF Signature
 	 * 
-	 * @param request
+	 * @param params
 	 *            The Web request
-	 * @param response
-	 *            The Web response
 	 * @param pdfData
 	 *            The pdf data
 	 * @return The signed pdf data

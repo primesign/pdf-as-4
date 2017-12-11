@@ -157,7 +157,7 @@ public class PDFBoxTable {
 		padding = style.getPadding();
 
 		bgColor = style.getBgColor();
-		
+
 		try {
 			normalizeContent(abstractTable);
 		} catch (PdfAsException e) {

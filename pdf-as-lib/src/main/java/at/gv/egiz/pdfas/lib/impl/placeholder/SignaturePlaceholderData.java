@@ -54,7 +54,8 @@ import at.knowcenter.wag.egov.egiz.pdf.TablePos;
  * @author exthex
  *
  */
-public class SignaturePlaceholderData {
+public class
+SignaturePlaceholderData {
 
    public static final String ID_KEY = "id";
 

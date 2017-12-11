@@ -372,6 +372,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				logger.info("ByteRange: " + sb.toString());
 
+
 				request.setSignatureData(signatureDataExtractor
 						.getSignatureData());
 				request.setByteRange(byteRange);

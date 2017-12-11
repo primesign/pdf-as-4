@@ -49,6 +49,10 @@
 package at.knowcenter.wag.egov.egiz.table;
 
 import java.awt.Color;
+import java.awt.color.ColorSpace;
+import java.awt.color.ICC_ColorSpace;
+import java.awt.color.ICC_Profile;
+import java.awt.color.ICC_ProfileRGB;
 import java.io.Serializable;
 
 /**
@@ -505,7 +509,7 @@ public class Style implements Serializable {
 
   /**
    * Sets the scaleToFit dimensions to be applied for image-cells.
-   * @param imageScaleToFit_ The scaleToFit dimensions to be applied for image-cells.
+   * @param imageScaleToFit The scaleToFit dimensions to be applied for image-cells.
    */
   public void setImageScaleToFit(ImageScaleToFit imageScaleToFit)
   {
@@ -531,7 +535,6 @@ public class Style implements Serializable {
    * 
    * @param baseStyle the style object that serves as a primary style source.
    * @param inheritStyle the style object that serves as a secondary style source in case a style attribute is not defined on the primary style source. 
-   * @param isValue 
    * @return Returns a new Style object being fully equipped with styles.
    */
   public static Style doInherit(Style baseStyle, Style inheritStyle) {
