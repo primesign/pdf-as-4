@@ -24,7 +24,6 @@
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
 import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.util.PDDocumentUtil;
 import iaik.x509.X509Certificate;
 
 import java.awt.Graphics2D;
@@ -114,7 +113,6 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
-
 import javax.activation.DataSource;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
@@ -603,6 +601,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
             try {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
+                  /*/ Check if document should be protected*/
 
                         synchronized (doc) {
                     doc.saveIncremental(bos);
@@ -612,38 +611,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 
                 }
-
-                  /*/ Check if document should be protected*/
-				//Check if doc has to be protected//
-				if (requestedSignature.getStatus().getSettings().hasValue(DEFAULT_CONFIG_PROTECT_PDF)) {
-					//TODO: Test and Check ProtectionSettings// --> overwritten DefaultSecHandler and PDDocumentUtil
-					if (IConfigurationConstants.TRUE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_PDF)))
-					{ //Protect document before setting output
-						//Policies for docs
-						AccessPermission ap = doc.getCurrentAccessPermission();
-						ap.setCanModify(false);
-						ap.setCanExtractForAccessibility(false);
-						ap.setCanAssembleDocument(false);
-						ap.setCanExtractContent(false);
-						//StandardProtectionPolicy spp = new StandardProtectionPolicy("", "", ap);
-						//doc = PDDocument.load(pdfObject.getSignedDocument(), spp.getOwnerPassword());
-						//PDDocumentUtil docProtected = new PDDocumentUtil();
-						//docProtected.protect(spp);
-
-						//TODO Save File Settings to signed document//
-						//Byte-Array and PDF-File//
-						//doc = docProtected;
-						//doc.close();
-
-						logger.info("Added Protection Parameters");
-
-					}
-
-				}
-
-
-
-
                         /*
 					Check if resulting pdf is PDF-A conform
 					 */
@@ -651,6 +618,69 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                         runPDFAPreflight(new ByteArrayDataSource(pdfObject.getSignedDocument()));
                     }
 
+     /*Check if doc has to be protected*/
+          /*      if (requestedSignature.getStatus().getSettings().hasValue(DEFAULT_CONFIG_PROTECT_PDF)) {
+                    if (IConfigurationConstants.TRUE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_PDF)))
+                    { //Protect document before setting output
+                        //Policies for docs
+                        AccessPermission ap = doc.getCurrentAccessPermission();
+                        ap.setReadOnly();
+                        ap.setCanModify(false);
+                        ap.setCanExtractForAccessibility(false);
+                        doc = new PDDocument(doc.getDocument(),null,ap);
+                        logger.info("Added Protection Parameters");
+                    }
+
+                }
+*/
+				/*Check if doc has to be protected*/
+
+				if (requestedSignature.getStatus().getSettings().hasValue(DEFAULT_CONFIG_PROTECT_COPY_PDF))
+					{
+						AccessPermission ap = doc.getCurrentAccessPermission();
+
+						if (IConfigurationConstants.TRUE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_COPY_PDF)))
+						{
+							try {
+								if (doc.isEncrypted()) { //remove the security before adding protections
+									//doc.decrypt("");
+									doc.setAllSecurityToBeRemoved(true);
+								}
+							String ownerPassword = "";
+							String userPassword = "";
+							ap.setCanExtractContent(false);
+							ap.setCanModify(false);
+							ap.setCanPrint(false);
+							ap.setReadOnly();
+							ap.setCanExtractForAccessibility(false);
+							StandardProtectionPolicy policy = new StandardProtectionPolicy(ownerPassword,userPassword,ap);
+							doc.protect(policy);
+
+							//doc = new PDDocument(doc.getDocument(),null,ap);
+							logger.info("Added Protection Parameters");
+
+
+							AccessPermission ap_new = doc.getCurrentAccessPermission();
+
+
+							Boolean canextract = ap_new.canExtractContent();
+							Boolean bool = ap_new.isReadOnly();
+						}
+						catch (Exception e)
+						{
+							logger.info("Error message" + e.getMessage());
+						}
+						}
+						else if (IConfigurationConstants.FALSE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_COPY_PDF)))
+						{
+							/*ap.setCanExtractContent(true);
+							doc = new PDDocument(doc.getDocument(),null,ap);
+							logger.info("Added Protection Parameters");*/
+						}
+
+					}
+
+          
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -671,6 +701,14 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
             if (doc != null) {
                 try {
                     doc.close();
+
+
+					AccessPermission ap_new = doc.getCurrentAccessPermission();
+
+
+					Boolean canextract = ap_new.canExtractContent();
+					Boolean bool = ap_new.isReadOnly();
+                    String test = "";
                 } catch (IOException e) {
                     logger.debug("Failed to close COS Doc!", e);
                     // Ignore

@@ -434,7 +434,7 @@ public class Main {
 
 		SignResult result = null;
 		try {
-			result = pdfAs.sign(signParameter);
+ 			result = pdfAs.sign(signParameter);
 		} finally {
 			if (result != null) {
 				Iterator<Entry<String, String>> infoIt = result
@@ -450,6 +450,7 @@ public class Main {
 
 		fos.close();
 		System.out.println("Signed document " + outputFile);
+
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {

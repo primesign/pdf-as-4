@@ -108,12 +108,18 @@ public interface IConfigurationConstants {
 	public static final String BG_COLOR_DETECTION = "sigblock.placement.bgcolor.detection.enabled";
 	public static final String SIG_PLACEMENT_DEBUG_OUTPUT = "sigblock.placement.debug.file";
 
-
-
-
 	/**
 	 * PADES Constants
 	 */
 	public static final String SIG_PADES_FORCE_FLAG= SIG_OBJECT + SEPERATOR+"PAdESCompatibility";
 	public static final String SIG_PADES_INTELL_FLAG = SIG_OBJECT + SEPERATOR+"CheckPAdESCompatibility";
+
+
+	/**
+	 * Protect PDF file from copying content and extracting
+	 */
+
+	public static final String DEFAULT_CONFIG_PROTECT_COPY_PDF = DEFAULT_CONFIG_PROTECT_PDF + SEPERATOR + "accessCopy";
+	public static final String DEFAULT_CONFIG_PROTECT_EXTRACT_PDF = DEFAULT_CONFIG_PROTECT_PDF + SEPERATOR + "canModify";
+
 }

@@ -58,6 +58,9 @@ dependencies {
 	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2'
 	compile group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.3.5'
 	compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.3.5'
+
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.59'
+
 	compile group: 'commons-io', name: 'commons-io', version: '2.4'
 	compile 'org.apache.commons:commons-collections4:4.0'
 	compile group: 'ognl', name: 'ognl', version: '3.0.8'
