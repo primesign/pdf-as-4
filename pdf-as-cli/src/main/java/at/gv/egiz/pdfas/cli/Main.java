@@ -33,6 +33,7 @@ import java.util.UUID;
 
 import javax.activation.DataSource;
 
+import at.gv.egiz.pdfas.lib.api.*;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -40,15 +41,14 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
+import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
-import at.gv.egiz.pdfas.lib.api.Configuration;
-import at.gv.egiz.pdfas.lib.api.PdfAs;
-import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
@@ -59,6 +59,8 @@ import at.gv.egiz.pdfas.moa.MOAConnector;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.sl.util.BKUSLConnector;
+
+import static at.gv.egiz.pdfas.lib.api.IConfigurationConstants.DEFAULT_CONFIG_PROTECT_PDF;
 
 public class Main {
 
@@ -451,6 +453,24 @@ public class Main {
 		fos.close();
 		System.out.println("Signed document " + outputFile);
 
+		 //make output file protected from copying and extraction content
+
+		if(configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF) && IConfigurationConstants.TRUE.equalsIgnoreCase(configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF)))
+		{
+		PDDocument document = PDDocument.load(outputPdfFile);
+		AccessPermission accessPermission = new AccessPermission();
+		accessPermission.setCanExtractContent(false);
+		accessPermission.setCanExtractForAccessibility(true);
+		StandardProtectionPolicy spp = new StandardProtectionPolicy("1234","",accessPermission);
+		spp.setEncryptionKeyLength(128);
+		spp.setPermissions(accessPermission);
+		document.protect(spp);
+		document.save(outputPdfFile);
+		document.close();
+		//accessPermission.setCanModify(false);
+			// accessPermission.setReadOnly();
+		logger.info("Added Protection Parameters");
+		}
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {
