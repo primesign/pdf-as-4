@@ -177,6 +177,11 @@ public class Positioning {
 				// + page+
 				// ") cannot be parsed.");
 			}
+
+			if (page < doc_pages) {
+				page = page - 1;
+			}
+
 		}
 
 		PDPage pdPage = pdfDataSource.getPage(page-1);

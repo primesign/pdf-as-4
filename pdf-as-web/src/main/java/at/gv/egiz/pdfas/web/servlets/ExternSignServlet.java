@@ -171,6 +171,9 @@ public class ExternSignServlet extends HttpServlet {
 		try {
 			byte[] filecontent = null;
 
+
+
+
 			// checks if the request actually contains upload file
 			if (!ServletFileUpload.isMultipartContent(request)) {
 				// No Uploaded data!
@@ -181,6 +184,12 @@ public class ExternSignServlet extends HttpServlet {
 					throw new PdfAsWebException("No Signature data defined!");
 				}
 			} else {
+
+
+				//takes placeholder id if exist
+				//if(request.getParameter("placeholder_id")!=null && !request.getParameter("placeholder_id").isEmpty()){
+				//	String placeholder_id = request.getParameter("placeholder_id");
+				//}
 				// configures upload settings
 				DiskFileItemFactory factory = new DiskFileItemFactory();
 				factory.setSizeThreshold(WebConfiguration.getFilesizeThreshold());
@@ -335,6 +344,8 @@ public class ExternSignServlet extends HttpServlet {
 		
 		String locale = PdfAsParameterExtractor.getLocale(request);
 		PdfAsHelper.setLocale(request, response, locale);
+
+		String placeholder_id = PdfAsParameterExtractor.getPlaceholderId(request);
 		
 		String filename = PdfAsParameterExtractor.getFilename(request);
 		if(filename != null) {

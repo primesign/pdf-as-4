@@ -44,6 +44,7 @@ public class PlaceholderFilter implements IConfigurationConstants,
 					.getPlaceholderExtractor();
 			String placeholderID = settings.getValue(PLACEHOLDER_ID);
 			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
+
 			int placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
 			if (placeholderModeString != null) {
 				try {

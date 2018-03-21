@@ -41,26 +41,4 @@ public class GlobalConfiguration extends SpecificBaseConfiguration
 		return null;
 	}
 
-	public String getDefaultProtection() {
-		if(this.configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF)) {
-			return this.configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF);
-		}
-		return null;
-	}
-
-	public String getDefaultCopyProtection() {
-		if(this.configuration.hasValue(DEFAULT_CONFIG_PROTECT_COPY_PDF)) {
-			return this.configuration.getValue(DEFAULT_CONFIG_PROTECT_COPY_PDF);
-		}
-		return null;
-	}
-
-	public String getDefaultExtractProtection() {
-		if(this.configuration.hasValue(DEFAULT_CONFIG_PROTECT_EXTRACT_PDF)) {
-			return this.configuration.getValue(DEFAULT_CONFIG_PROTECT_EXTRACT_PDF);
-		}
-		return null;
-	}
-
-
 }

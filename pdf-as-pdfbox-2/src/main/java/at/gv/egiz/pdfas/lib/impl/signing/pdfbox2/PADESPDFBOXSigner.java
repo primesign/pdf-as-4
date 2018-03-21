@@ -23,68 +23,10 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
-import at.gv.egiz.pdfas.lib.api.Configuration;
-import iaik.x509.X509Certificate;
-
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.pdfbox.cos.COSArray;
-import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.cos.COSDictionary;
-import org.apache.pdfbox.cos.COSDocument;
-import org.apache.pdfbox.cos.COSInteger;
-import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.cos.COSString;
-import org.apache.pdfbox.pdfwriter.COSWriter;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDResources;
-import org.apache.pdfbox.pdmodel.common.PDMetadata;
-import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
-import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.pdmodel.encryption.ProtectionPolicy;
-import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
-import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureInterface;
-import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
-import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
-import org.apache.pdfbox.pdmodel.interactive.form.PDField;
-import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
-import org.apache.pdfbox.preflight.Format;
-import org.apache.pdfbox.preflight.PreflightDocument;
-import org.apache.pdfbox.preflight.ValidationResult;
-import org.apache.pdfbox.preflight.exception.SyntaxValidationException;
-import org.apache.pdfbox.preflight.exception.ValidationException;
-import org.apache.pdfbox.preflight.parser.PreflightParser;
-import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import org.apache.xmpbox.XMPMetadata;
-import org.apache.xmpbox.schema.PDFAIdentificationSchema;
-import org.apache.xmpbox.xml.DomXmpParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import at.gv.egiz.pdfas.common.utils.TempFileHelper;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
@@ -113,7 +55,50 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
+import iaik.x509.X509Certificate;
+import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.cos.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
+import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
+import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
+import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDField;
+import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
+import org.apache.pdfbox.preflight.PreflightDocument;
+import org.apache.pdfbox.preflight.ValidationResult;
+import org.apache.pdfbox.preflight.exception.SyntaxValidationException;
+import org.apache.pdfbox.preflight.exception.ValidationException;
+import org.apache.pdfbox.preflight.parser.PreflightParser;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.xmpbox.XMPMetadata;
+import org.apache.xmpbox.schema.PDFAIdentificationSchema;
+import org.apache.xmpbox.xml.DomXmpParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.activation.DataSource;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
@@ -313,6 +298,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				// handle rotated page
 				int targetPageNumber = positioningInstruction.getPage();
 				logger.debug("Target Page: " + targetPageNumber);
+				//umjesto -1 da probamo -2
 				PDPage targetPage = doc.getPages().get(targetPageNumber - 1);
 				int rot = targetPage.getRotation();
 				logger.debug("Page rotation: " + rot);
@@ -618,67 +604,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                         runPDFAPreflight(new ByteArrayDataSource(pdfObject.getSignedDocument()));
                     }
 
-     /*Check if doc has to be protected*/
-          /*      if (requestedSignature.getStatus().getSettings().hasValue(DEFAULT_CONFIG_PROTECT_PDF)) {
-                    if (IConfigurationConstants.TRUE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_PDF)))
-                    { //Protect document before setting output
-                        //Policies for docs
-                        AccessPermission ap = doc.getCurrentAccessPermission();
-                        ap.setReadOnly();
-                        ap.setCanModify(false);
-                        ap.setCanExtractForAccessibility(false);
-                        doc = new PDDocument(doc.getDocument(),null,ap);
-                        logger.info("Added Protection Parameters");
-                    }
 
-                }
-*/
 				/*Check if doc has to be protected*/
-
-				if (requestedSignature.getStatus().getSettings().hasValue(DEFAULT_CONFIG_PROTECT_COPY_PDF))
-					{
-						AccessPermission ap = doc.getCurrentAccessPermission();
-
-						if (IConfigurationConstants.TRUE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_COPY_PDF)))
-						{
-							try {
-								if (doc.isEncrypted()) { //remove the security before adding protections
-									//doc.decrypt("");
-									doc.setAllSecurityToBeRemoved(true);
-								}
-							String ownerPassword = "";
-							String userPassword = "";
-							ap.setCanExtractContent(false);
-							ap.setCanModify(false);
-							ap.setCanPrint(false);
-							ap.setReadOnly();
-							ap.setCanExtractForAccessibility(false);
-							StandardProtectionPolicy policy = new StandardProtectionPolicy(ownerPassword,userPassword,ap);
-							doc.protect(policy);
-
-							//doc = new PDDocument(doc.getDocument(),null,ap);
-							logger.info("Added Protection Parameters");
-
-
-							AccessPermission ap_new = doc.getCurrentAccessPermission();
-
-
-							Boolean canextract = ap_new.canExtractContent();
-							Boolean bool = ap_new.isReadOnly();
-						}
-						catch (Exception e)
-						{
-							logger.info("Error message" + e.getMessage());
-						}
-						}
-						else if (IConfigurationConstants.FALSE.equalsIgnoreCase(requestedSignature.getStatus().getSettings().getValue(IConfigurationConstants.DEFAULT_CONFIG_PROTECT_COPY_PDF)))
-						{
-							/*ap.setCanExtractContent(true);
-							doc = new PDDocument(doc.getDocument(),null,ap);
-							logger.info("Added Protection Parameters");*/
-						}
-
-					}
 
           
             } catch (IOException e1) {
@@ -703,12 +630,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                     doc.close();
 
 
-					AccessPermission ap_new = doc.getCurrentAccessPermission();
-
-
-					Boolean canextract = ap_new.canExtractContent();
-					Boolean bool = ap_new.isReadOnly();
-                    String test = "";
                 } catch (IOException e) {
                     logger.debug("Failed to close COS Doc!", e);
                     // Ignore
@@ -718,6 +639,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			logger.debug("Signature done!");
 
 		}
+
+
+		AccessPermission ap_new = doc.getCurrentAccessPermission();
+		Boolean canextract = ap_new.canExtractContent();
+		Boolean bool = ap_new.isReadOnly();
+		String test = "";
+
 	}
 
     /**
