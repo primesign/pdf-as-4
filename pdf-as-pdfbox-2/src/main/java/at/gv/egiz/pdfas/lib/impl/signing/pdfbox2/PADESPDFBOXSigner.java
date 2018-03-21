@@ -69,6 +69,7 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructur
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
+import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
@@ -331,9 +332,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					// Placeholder found!
 					// replace placeholder
 
-					URL fileUrl = PADESPDFBOXSigner.class.getResource("/placeholder/empty.jpg");
 
-					PDImageXObject img = PDImageXObject.createFromFile(fileUrl.getPath(), doc);
+					InputStream fis = PADESPDFBOXSigner.class.getResourceAsStream("/placeholder/empty.jpg");
+					PDImageXObject img = JPEGFactory.createFromStream(doc, fis);
+
 
 					img.getCOSObject().setNeedToBeUpdated(true);
 					//							PDDocumentCatalog root = doc.getDocumentCatalog();
