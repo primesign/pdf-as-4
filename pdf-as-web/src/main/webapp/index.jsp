@@ -32,6 +32,8 @@
 		%>
 		<img src="assets/img/mobileBKU.png" />
 		<button type="submit" value="mobilebku" name="connector" id="mobilebku">Handy</button>
+		<label for="placeholder_web_id">Placeholder ID</label>
+          <input type="text" id="placeholder_web_id" name="placeholder_web_id">
 		<%
 			}
 		%>

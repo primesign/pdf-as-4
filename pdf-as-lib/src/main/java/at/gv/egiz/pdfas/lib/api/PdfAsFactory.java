@@ -23,34 +23,6 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
-import iaik.security.ec.provider.ECCelerate;
-import iaik.security.provider.IAIK;
-
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.management.RuntimeMXBean;
-import java.security.Provider;
-import java.security.Security;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.activation.DataSource;
-import javax.crypto.Cipher;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
@@ -60,11 +32,26 @@ import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
 import at.gv.egiz.pdfas.lib.impl.SignParameterImpl;
 import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.ConfigValidatorLoader;
-
-
+import iaik.security.ec.provider.ECCelerate;
+import iaik.security.provider.IAIK;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import javax.activation.DataSource;
+import javax.crypto.Cipher;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
+import java.security.Provider;
+import java.security.Security;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class PdfAsFactory implements IConfigurationConstants {
 

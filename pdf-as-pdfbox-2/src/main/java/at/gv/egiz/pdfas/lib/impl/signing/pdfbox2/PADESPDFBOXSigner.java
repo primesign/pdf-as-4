@@ -299,7 +299,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				// handle rotated page
 				int targetPageNumber = positioningInstruction.getPage();
 				logger.debug("Target Page: " + targetPageNumber);
-				//umjesto -1 da probamo -2
 				PDPage targetPage = doc.getPages().get(targetPageNumber - 1);
 				int rot = targetPage.getRotation();
 				logger.debug("Page rotation: " + rot);
@@ -589,8 +588,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
             try {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-                  /*/ Check if document should be protected*/
-
                         synchronized (doc) {
                     doc.saveIncremental(bos);
                             byte[] outputDocument = bos.toByteArray();
@@ -606,10 +603,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                         runPDFAPreflight(new ByteArrayDataSource(pdfObject.getSignedDocument()));
                     }
 
-
-				/*Check if doc has to be protected*/
-
-          
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -641,13 +634,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			logger.debug("Signature done!");
 
 		}
-
-
-		AccessPermission ap_new = doc.getCurrentAccessPermission();
-		Boolean canextract = ap_new.canExtractContent();
-		Boolean bool = ap_new.isReadOnly();
-		String test = "";
-
 	}
 
     /**

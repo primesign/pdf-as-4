@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
 
 public class PdfAsParameterExtractor {
@@ -71,7 +72,6 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
 	public static final String PARAM_OVERWRITE_PREFIX = "ov:";
 	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
-	public static final String PARAM_PLACEHOLDERID = "placeholder_id";
 
 
 
@@ -89,8 +89,7 @@ public class PdfAsParameterExtractor {
 	}
 
 	public static String getPlaceholderId(HttpServletRequest request) {
-		String placeholderId = (String)request.getAttribute(PARAM_PLACEHOLDERID);
-		return placeholderId;
+		return (String)request.getAttribute(IConfigurationConstants.PLACEHOLDER_WEB_ID);
 	}
 
 	public static String getTransactionId(HttpServletRequest request) {

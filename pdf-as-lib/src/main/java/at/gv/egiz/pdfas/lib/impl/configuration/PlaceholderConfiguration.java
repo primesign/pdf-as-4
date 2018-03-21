@@ -47,8 +47,7 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 		}
 		return false;
 	}
-
-
+	
 	/**
 	 * Match selected Profile for Placeholder
 	 * Enables to activate placeholder search/match for different profiles

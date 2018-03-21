@@ -30,6 +30,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
+import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderWebConfiguration;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 public class PlaceholderFilter implements IConfigurationConstants,
@@ -42,9 +43,14 @@ public class PlaceholderFilter implements IConfigurationConstants,
 		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
 			PlaceholderExtractor extractor = status.getBackend()
 					.getPlaceholderExtractor();
-			String placeholderID = settings.getValue(PLACEHOLDER_ID);
-			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
 
+			String placeholderID = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
+			if(placeholderID == null)
+			{
+				 placeholderID = settings.getValue(PLACEHOLDER_ID);
+			}
+
+			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
 			int placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
 			if (placeholderModeString != null) {
 				try {
