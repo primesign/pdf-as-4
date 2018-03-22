@@ -472,7 +472,6 @@ public class Main {
 		document.protect(spp);
 		document.save(outputPdfFile);
 		document.close();
-		//accessPermission.setCanModify(false);
 		logger.info("Added Protection Parameters");
 		}
 	}
