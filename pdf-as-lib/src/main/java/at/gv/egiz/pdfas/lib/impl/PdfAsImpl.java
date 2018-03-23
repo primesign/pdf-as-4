@@ -239,9 +239,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			return result;
 		} catch (Throwable e) {
-			logger.warn("Failed to create signature [" + e.getMessage() + "]",
-					e);
-			throw ErrorExtractor.searchPdfAsError(e, status);
+			PDFASError pdfAsError = ErrorExtractor.searchPdfAsError(e, status);
+			// handle cancelling signature
+			if (pdfAsError.getCode() == 6001) {
+				logger.info("Signature cancelled by the citizen via the user interface.");
+			} else {
+				logger.warn("Failed to create signature [" + e.getMessage() + "]", e);
+			}
+			throw pdfAsError;
 		} finally {
 			if (status != null) {
 				status.clear();
