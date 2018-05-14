@@ -586,4 +586,17 @@ public class WebConfiguration implements IConfigurationConstants {
 		}
 		return ivalue;
 	}
+
+
+	public static boolean isPdfProtected()
+	{
+		String value = properties.getProperty(DEFAULT_CONFIG_PROTECT_PDF);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

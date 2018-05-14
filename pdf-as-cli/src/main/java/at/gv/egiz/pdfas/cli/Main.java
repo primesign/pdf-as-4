@@ -457,7 +457,7 @@ public class Main {
 
 		 //make output file protected from copying and extraction content
 
-		if(configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF) && IConfigurationConstants.TRUE.equalsIgnoreCase(configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF)))
+		/*if(configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF) && IConfigurationConstants.TRUE.equalsIgnoreCase(configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF)))
 		{
 		SecureRandom random = new SecureRandom();
 		byte seed[] = random.generateSeed(50);
@@ -473,7 +473,7 @@ public class Main {
 		document.save(outputPdfFile);
 		document.close();
 		logger.info("Added Protection Parameters");
-		}
+		}*/
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {

@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,7 +171,7 @@ public class Positioning {
 
 			page = pos.getPage();
 			// System.out.println("XXXXPAGE="+page+" doc_pages="+doc_pages);
-			if (page > doc_pages) {
+			if (page > doc_pages && page!=1) {
 				make_new_page = true;
 				page = doc_pages;
 				// throw new PDFDocumentException(227, "Page number is to big(="
@@ -178,14 +179,15 @@ public class Positioning {
 				// ") cannot be parsed.");
 			}
 
-			if (page < doc_pages) {
+			if (page < doc_pages && page!=1) {
 				page = page - 1;
 			}
 
 		}
 
 		PDPage pdPage = pdfDataSource.getPage(page-1);
-		
+		//PDPage pdPage = pdfDataSource.getPages().get(page);
+
 		PDRectangle cropBox = pdPage.getCropBox();
 
 		// fallback to MediaBox if Cropbox not available!

@@ -23,8 +23,11 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.servlets;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.SecureRandom;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -32,6 +35,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
+import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +94,31 @@ public class PDFData extends HttpServlet {
 		String plainPDFDigest = PdfAsParameterExtractor.getOrigDigest(request);
 
 		if (signedData != null) {
+
+			/*if (WebConfiguration.isPdfProtected()) {
+				File tempFile = new File(System.getProperty("java.io.tmpdir"),"protect.pdf");
+				FileUtils.writeByteArrayToFile(tempFile, signedData);
+				Path tempPath = tempFile.toPath();
+				SecureRandom random = new SecureRandom();
+				byte seed[] = random.generateSeed(50);
+				String ownerPassword = new String(seed, StandardCharsets.UTF_8);
+				PDDocument document = PDDocument.load(tempFile);
+				AccessPermission accessPermission = new AccessPermission();
+				accessPermission.setCanExtractContent(false);
+				accessPermission.setCanExtractForAccessibility(true);
+				StandardProtectionPolicy spp = new StandardProtectionPolicy(ownerPassword, "", accessPermission);
+				spp.setEncryptionKeyLength(128);
+				spp.setPermissions(accessPermission);
+				document.protect(spp);
+				document.save(tempFile);
+				document.close();
+				//accessPermission.setCanModify(false);
+				signedData = Files.readAllBytes(tempPath);
+				logger.info("Added Protection Parameters");
+				if (tempFile.exists()) {
+					tempFile.delete();
+				}
+			}*/
 
 			if(WebConfiguration.isKeepSignedDocument()) {
 				if(PdfAsHelper.isSignedDataExpired(request, response)) {
