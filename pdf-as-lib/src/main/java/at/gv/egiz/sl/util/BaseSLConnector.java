@@ -123,6 +123,7 @@ public abstract class BaseSLConnector implements ISLConnector,
 		// == MetaInfoType
 		MetaInfoType metaInfoType = new MetaInfoType();
 		metaInfoType.setMimeType(PDF_MIME_TYPE);
+		metaInfoType.setDescription(parameter.getDataSource().getName());
 
 		// == Base64OptRefContentType
 		Base64OptRefContentType base64OptRefContentType = new Base64OptRefContentType();
