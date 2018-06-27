@@ -85,7 +85,6 @@ public class PDFBoxTable {
 					case Entry.TYPE_CAPTION:
 					case Entry.TYPE_VALUE:
 						String value = (String) cell.getValue();
-						
 						//Check if the used value font supports all characters in string
 						PDFont f = null;
 						try{

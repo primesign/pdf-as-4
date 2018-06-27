@@ -456,24 +456,6 @@ public class Main {
 		System.out.println("Signed document " + outputFile);
 
 		 //make output file protected from copying and extraction content
-
-		/*if(configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF) && IConfigurationConstants.TRUE.equalsIgnoreCase(configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF)))
-		{
-		SecureRandom random = new SecureRandom();
-		byte seed[] = random.generateSeed(50);
-		String ownerPassword = new String(seed, StandardCharsets.UTF_8);
-		PDDocument document = PDDocument.load(outputPdfFile);
-		AccessPermission accessPermission = new AccessPermission();
-		accessPermission.setCanExtractContent(false);
-		accessPermission.setCanExtractForAccessibility(true);
-		StandardProtectionPolicy spp = new StandardProtectionPolicy(ownerPassword,"",accessPermission);
-		spp.setEncryptionKeyLength(128);
-		spp.setPermissions(accessPermission);
-		document.protect(spp);
-		document.save(outputPdfFile);
-		document.close();
-		logger.info("Added Protection Parameters");
-		}*/
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {

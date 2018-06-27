@@ -132,7 +132,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		COSDocument visualSignatureDocumentGuard = null;
 		try {
 
-
 			doc = pdfObject.getDocument();
 
 			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
@@ -359,7 +358,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                     COSBase base = root.getCOSObject().getItem(COSName.OUTPUT_INTENTS);
 
                     InputStream colorProfile = null;
-                    colorProfile = this.getClass().getResourceAsStream("/icm/sRGB.icm");
+                    //colorProfile = this.getClass().getResourceAsStream("/icm/sRGB.icm");
+					colorProfile = this.getClass().getResourceAsStream("/icm/sRGB Color Space Profile.icm");
+
                      //Set output intents for PDF/A conformity//
                             try {
                                 PDOutputIntent intent = new PDOutputIntent(doc, colorProfile);

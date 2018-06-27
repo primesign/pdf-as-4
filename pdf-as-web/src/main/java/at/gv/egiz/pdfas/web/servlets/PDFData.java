@@ -95,31 +95,6 @@ public class PDFData extends HttpServlet {
 
 		if (signedData != null) {
 
-			/*if (WebConfiguration.isPdfProtected()) {
-				File tempFile = new File(System.getProperty("java.io.tmpdir"),"protect.pdf");
-				FileUtils.writeByteArrayToFile(tempFile, signedData);
-				Path tempPath = tempFile.toPath();
-				SecureRandom random = new SecureRandom();
-				byte seed[] = random.generateSeed(50);
-				String ownerPassword = new String(seed, StandardCharsets.UTF_8);
-				PDDocument document = PDDocument.load(tempFile);
-				AccessPermission accessPermission = new AccessPermission();
-				accessPermission.setCanExtractContent(false);
-				accessPermission.setCanExtractForAccessibility(true);
-				StandardProtectionPolicy spp = new StandardProtectionPolicy(ownerPassword, "", accessPermission);
-				spp.setEncryptionKeyLength(128);
-				spp.setPermissions(accessPermission);
-				document.protect(spp);
-				document.save(tempFile);
-				document.close();
-				//accessPermission.setCanModify(false);
-				signedData = Files.readAllBytes(tempPath);
-				logger.info("Added Protection Parameters");
-				if (tempFile.exists()) {
-					tempFile.delete();
-				}
-			}*/
-
 			if(WebConfiguration.isKeepSignedDocument()) {
 				if(PdfAsHelper.isSignedDataExpired(request, response)) {
 					logger.info("Destroying expired signed data in session");
