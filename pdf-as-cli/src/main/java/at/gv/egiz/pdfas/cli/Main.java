@@ -455,7 +455,6 @@ public class Main {
 		fos.close();
 		System.out.println("Signed document " + outputFile);
 
-		 //make output file protected from copying and extraction content
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {
