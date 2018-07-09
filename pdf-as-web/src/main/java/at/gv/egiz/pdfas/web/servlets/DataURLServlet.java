@@ -93,11 +93,11 @@ public class DataURLServlet extends HttpServlet {
 			if(jaxbObject.getValue() instanceof InfoboxReadResponseType) {
 				InfoboxReadResponseType infoboxReadResponseType = (InfoboxReadResponseType)jaxbObject.getValue();
 				logger.info("Got InfoboxReadResponseType");
-				PdfAsHelper.injectCertificate(request, response, infoboxReadResponseType, getServletContext());
+				PdfAsHelper.injectCertificate(request, response, PdfAsHelper.getCertificate(infoboxReadResponseType), getServletContext());
 			} else if(jaxbObject.getValue() instanceof CreateCMSSignatureResponseType) {
 				CreateCMSSignatureResponseType createCMSSignatureResponseType = (CreateCMSSignatureResponseType)jaxbObject.getValue();
 				logger.info("Got CreateCMSSignatureResponseType");
-				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType, getServletContext());
+				PdfAsHelper.injectSignature(request, response, createCMSSignatureResponseType.getCMSSignature(), getServletContext());
 			} else if(jaxbObject.getValue() instanceof ErrorResponseType) {
 				ErrorResponseType errorResponseType = (ErrorResponseType)jaxbObject.getValue();
 				logger.warn("SecurityLayer: " + errorResponseType.getErrorCode() + " " + errorResponseType.getInfo());

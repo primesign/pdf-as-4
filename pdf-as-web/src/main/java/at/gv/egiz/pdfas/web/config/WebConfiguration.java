@@ -42,9 +42,12 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String LOCAL_BKU_ENABLED = "bku.sign.enabled";
 	public static final String ONLINE_BKU_ENABLED = "moc.sign.enabled";
 	public static final String MOBILE_BKU_ENABLED = "mobile.sign.enabled";
+	public static final String SL20_BKU_ENABLED = "sl20.sign.enabled";
 	public static final String LOCAL_BKU_URL = "bku.local.url";
 	public static final String ONLINE_BKU_URL = "bku.online.url";
 	public static final String MOBILE_BKU_URL = "bku.mobile.url";
+	public static final String SL20_BKU_URL = "sl20.mobile.url";
+	
 	public static final String ERROR_DETAILS = "error.showdetails";
 	public static final String PDF_AS_WORK_DIR = "pdfas.dir";
 	public static final String STATISTIC_BACKEND_LIST = "statistic.backends";
@@ -82,6 +85,23 @@ public class WebConfiguration implements IConfigurationConstants {
 	public static final String KEYSTORE_DEFAULT_ALIAS = KEYSTORE_DEFAULT + "." + KEYSTORE_ALIAS;
 	public static final String KEYSTORE_DEFAULT_KEY_PASS = KEYSTORE_DEFAULT + "." + KEYSTORE_KEY_PASS;
 
+	//SL20 stuff
+	public static final String SL20_PREFIX = "sl20";
+	public static final String SL20_KEYSTORE_PREFIX = SL20_PREFIX + ".keystore"; 
+	public static final String SL20_KEYSTORE_FILE = SL20_KEYSTORE_PREFIX + "." + "file";
+	public static final String SL20_KEYSTORE_TYPE = SL20_KEYSTORE_PREFIX + "." + "type";
+	public static final String SL20_KEYSTORE_PASS = SL20_KEYSTORE_PREFIX + "." + "pass";
+	public static final String SL20_KEYSTORE_KEY_SIGN_ALIAS = SL20_KEYSTORE_PREFIX + "." + "sign.key.alias";
+	public static final String SL20_KEYSTORE_KEY_SIGN_PASS = SL20_KEYSTORE_PREFIX + "." + "sign.key.pass";
+	public static final String SL20_KEYSTORE_KEY_ENCRYPTION_ALIAS = SL20_KEYSTORE_PREFIX + "." + "enc.key.alias";
+	public static final String SL20_KEYSTORE_KEY_ENCRYPTION_PASS = SL20_KEYSTORE_PREFIX + "." + "enc.key.pass";
+	public static final String SL20_DEBUG_VALIDATION_DISABLED = SL20_PREFIX + ".debug.validation.disable";
+	public static final String SL20_DEBUG_SIGNING_ENABLED = SL20_PREFIX + ".debug.signed.result.enabled";
+	public static final String SL20_DEBUG_SIGNING_REQUIRED = SL20_PREFIX + ".debug.signed.result.required";
+	public static final String SL20_DEBUG_ENCRYPTION_ENABLED = SL20_PREFIX + ".debug.encryption.enabled";
+	public static final String SL20_DEBUG_ENCRYPTION_REQUIRED = SL20_PREFIX + ".debug.encryption.required";
+	
+	
 	public static final String WHITELIST_ENABLED = "whitelist.enabled";
 	public static final String WHITELIST_VALUE_PRE = "whitelist.url.";
 
@@ -248,6 +268,20 @@ public class WebConfiguration implements IConfigurationConstants {
 		return null;
 	}
 
+	public static String getSecurityLayer20URL() {
+		if(getSL20Enabled()) {
+			String overwrite = properties.getProperty(SL20_SIGN_URL);
+			if(overwrite == null) {
+				overwrite = properties.getProperty(SL20_BKU_URL);
+				if(overwrite == null) {
+					overwrite = PdfAsHelper.getPdfAsConfig().getValue(SL20_SIGN_URL);
+				}
+			}
+			return overwrite;
+		}
+		return null;
+	}
+	
 	public static String getPdfASDir() {
 		return properties.getProperty(PDF_AS_WORK_DIR);
 	}
@@ -447,6 +481,16 @@ public class WebConfiguration implements IConfigurationConstants {
 		return false;
 	}
 
+	public static boolean getSL20Enabled() {
+		String value = properties.getProperty(SL20_BKU_ENABLED);
+		if (value != null) {
+			if (value.equals("true")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	public static boolean getSoapSignEnabled() {
 		String value = properties.getProperty(SOAP_SIGN_ENABLED);
 		if (value != null) {
@@ -598,5 +642,66 @@ public class WebConfiguration implements IConfigurationConstants {
 		}
 		return false;
 	}
+	
+	public static String getSL20KeyStorePath() {
+		return properties.getProperty(SL20_KEYSTORE_FILE);
+		
+	}
+	
+	public static String getSL20KeyStoreType() {
+		return properties.getProperty(SL20_KEYSTORE_TYPE);
+		
+	}
+	
+	public static String getSL20KeyStorePassword() {
+		return properties.getProperty(SL20_KEYSTORE_PASS);
+		
+	}
+	
+	public static String getSL20KeySigningAlias() {
+		return properties.getProperty(SL20_KEYSTORE_KEY_SIGN_ALIAS);
+		
+	}
+	
+	public static String getSL20KeySigningPassword() {
+		return properties.getProperty(SL20_KEYSTORE_KEY_SIGN_PASS);
+		
+	}
+	
+	public static String getSL20KeyEncryptionAlias() {
+		return properties.getProperty(SL20_KEYSTORE_KEY_ENCRYPTION_ALIAS);
+		
+	}
+	
+	public static String getSL20KeyEncryptionPassword() {
+		return properties.getProperty(SL20_KEYSTORE_KEY_ENCRYPTION_PASS);
+		
+	}
+	
+	public static boolean isSL20ValidationDisabled( ) {
+		return Boolean.parseBoolean(properties.getProperty(SL20_DEBUG_VALIDATION_DISABLED, String.valueOf(false)));
+		
+	}
+	
+	public static boolean isSL20SigningEnabled( ) {
+		return Boolean.parseBoolean(properties.getProperty(SL20_DEBUG_SIGNING_ENABLED, String.valueOf(false)));
+		
+	}
+	
+	public static boolean isSL20SigningRequired( ) {
+		return Boolean.parseBoolean(properties.getProperty(SL20_DEBUG_SIGNING_REQUIRED, String.valueOf(false)));
+		
+	}
+	
+	public static boolean isSL20EncryptionEnabled( ) {
+		return Boolean.parseBoolean(properties.getProperty(SL20_DEBUG_ENCRYPTION_ENABLED, String.valueOf(false)));
+		
+	}
+	
+	public static boolean isSL20EncryptionRequired( ) {
+		return Boolean.parseBoolean(properties.getProperty(SL20_DEBUG_ENCRYPTION_REQUIRED, String.valueOf(false)));
+		
+	}
+	
 
 }

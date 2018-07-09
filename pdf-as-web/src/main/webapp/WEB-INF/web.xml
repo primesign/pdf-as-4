@@ -85,6 +85,12 @@
 		<description></description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.DataURLServlet</servlet-class>
 	</servlet>
+ 	<servlet>
+		<servlet-name>SLDataURLServlet</servlet-name>
+		<display-name>SLDataURLServlet</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.SLDataURLServlet</servlet-class>
+	</servlet>
 	<servlet>
 		<servlet-name>VisBlockServlet</servlet-name>
 		<display-name>VisBlockServlet</display-name>
@@ -183,6 +189,10 @@
 	<servlet-mapping>
 		<servlet-name>DataURLServlet</servlet-name>
 		<url-pattern>/DataURL</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>SLDataURLServlet</servlet-name>
+		<url-pattern>/DataURLSL20</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>VerifyServlet</servlet-name>

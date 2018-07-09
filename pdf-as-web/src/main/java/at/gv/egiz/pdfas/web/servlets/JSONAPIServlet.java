@@ -119,7 +119,9 @@ public class JSONAPIServlet extends HttpServlet {
                 connectorEnum = PDFASSignParameters.Connector.MOBILEBKU;
             } else if(PDFASSignParameters.Connector.ONLINEBKU.equalsName(connector)) {
                 connectorEnum = PDFASSignParameters.Connector.ONLINEBKU;
-            }
+            } else if(PDFASSignParameters.Connector.SECLAYER20.equalsName(connector)) {
+                connectorEnum = PDFASSignParameters.Connector.SECLAYER20;
+            } 
 
             if(connectorEnum == null) {
                 throw new ServletException(
@@ -208,6 +210,13 @@ public class JSONAPIServlet extends HttpServlet {
 
                     if (PDFASSignParameters.Connector.MOBILEBKU.equals(connectorEnum)) {
                         if (WebConfiguration.getLocalBKUURL() == null) {
+                            throw new PdfAsWebException(
+                                    "Invalid connector mobilebku is not supported");
+                        }
+                    }
+                    
+                    if (PDFASSignParameters.Connector.SECLAYER20.equals(connectorEnum)) {
+                        if (WebConfiguration.getSecurityLayer20URL() == null) {
                             throw new PdfAsWebException(
                                     "Invalid connector mobilebku is not supported");
                         }
