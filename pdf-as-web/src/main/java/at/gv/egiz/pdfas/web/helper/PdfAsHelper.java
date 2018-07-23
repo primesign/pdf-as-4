@@ -1141,8 +1141,7 @@ public class PdfAsHelper {
 							SL20Constants.SL20_PAYLOAD, SL20Constants.SL20_SIGNEDPAYLOAD, 
 							command, signedCommand);
 										
-					//store requestId
-					
+					//store requestId					
 					request.getSession(false).setAttribute(PDF_SESSION_PREFIX + SL20Constants.SL20_REQID, reqId);
 
 					//forward SL2.0 command
@@ -1224,7 +1223,7 @@ public class PdfAsHelper {
 					
 				} else {
 					JsonObject getCertCommand = SL20JSONBuilderUtils.createCommand(SL20Constants.SL20_COMMAND_IDENTIFIER_CREATE_SIG_CADES, createCAdESSigParams);
-					sl20CreateCAdES = SL20JSONBuilderUtils.createGenericRequest(UUID.randomUUID().toString(), null, getCertCommand, null);
+					sl20CreateCAdES = SL20JSONBuilderUtils.createGenericRequest(reqId, null, getCertCommand, null);
 					
 				}	
 				
