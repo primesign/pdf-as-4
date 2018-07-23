@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.bitbucket.b_c:jose4j:0.6.3">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.bitbucket.b_c/jose4j/0.6.3/5bf092aa7be6fe8894d11f8d2040a2b3b401a14/jose4j-0.6.3.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.bitbucket.b_c/jose4j/0.6.3/2ed192025755ff7d79193325ca1793ba22dc10b0/jose4j-0.6.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
