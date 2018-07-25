@@ -160,6 +160,8 @@ public class SL20Constants {
 	//createCAdES Signture
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_KEYID = "keyId";	
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT = "content";
+	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTURL = "contentUrl";
+	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE = "contentMode";	
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_MIMETYPE = "mimeType";
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_PADES_COMBATIBILTY = "padesComatibility";
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_EXCLUDEBYTERANGE = "excludedByteRange";
@@ -176,7 +178,8 @@ public class SL20Constants {
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CADESLEVEL_XL = "cAdES-X-L";
 	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CADESLEVEL_A = "cAdES-A";
 	
-	
+	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_DETACHED = "detached";
+	public static final String SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_ENVELOPING = "enveloping";
 	
 	//create binding key command
 	public static final String SL20_COMMAND_PARAM_BINDING_CREATE_KONTOID = "kontoID";

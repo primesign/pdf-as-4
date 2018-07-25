@@ -2,13 +2,10 @@ package at.gv.egiz.sl20.utils;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.codec.binary.Base64;
-import org.bouncycastle.util.encoders.Base64Encoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,14 +179,37 @@ public class SL20JSONBuilderUtils {
 	}
 		
 	public static JsonObject createCreateCAdESCommandParameters(String keyId,
-			byte[] content, String mimeType, boolean padesCompatiblem, List<String> byteRanges, String cadesLevel,			
+			byte[] content, String contentUrl, String contentMode, String mimeType, boolean padesCompatiblem, List<JsonElement> byteRanges, String cadesLevel,			
 			String dataUrl, X509Certificate x5cEnc) throws CertificateEncodingException, SLCommandoBuildException {		
 		JsonObject params = new JsonObject();
 		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_KEYID, keyId, true);		
-		addSingleByteElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT, content, true);			
+		
+		if (content != null && contentUrl != null) {
+			log.warn(SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT + " and " 
+					+ SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTURL + " can not SET TWICE");
+			throw new SLCommandoBuildException();
+			
+		}
+		
+		if (content != null)
+			addSingleByteElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT, content, true);
+		
+		else if (contentUrl != null )
+			addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTURL, contentUrl, true);
+		
+		else {
+			log.warn(SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT + " and " 
+					+ SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTURL + " is NULL");
+			throw new SLCommandoBuildException();
+			
+		}
+			
+		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE, contentMode, true);
 		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_MIMETYPE, mimeType, true);		
 		addSingleBooleanElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_PADES_COMBATIBILTY, padesCompatiblem, false);		
-		addArrayOfStrings(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_EXCLUDEBYTERANGE, byteRanges);		
+		
+		//addArrayOfStrings(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_EXCLUDEBYTERANGE, byteRanges);		
+		addArrayOfElements(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_EXCLUDEBYTERANGE, byteRanges);
 		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CADESLEVEL, cadesLevel, false);		
 		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_GETCERTIFICATE_DATAURL, dataUrl, true);
 		addSingleCertificateElement(params, SL20Constants.SL20_COMMAND_PARAM_GETCERTIFICATE_X5CENC, x5cEnc, false);		
@@ -450,6 +470,18 @@ public class SL20JSONBuilderUtils {
 			throw new SLCommandoBuildException();
 			
 		}
+	}
+	
+	private static void addArrayOfElements(JsonObject parent, String keyId, List<JsonElement> values) throws SLCommandoBuildException {		
+		validateParentAndKey(parent, keyId);
+		if (values != null) {
+			JsonArray callReqParamsArray = new JsonArray();
+			parent.add(keyId, callReqParamsArray  );
+			for(JsonElement el : values)
+				callReqParamsArray.add(el);
+			
+		}
+		
 	}
 	
 	private static void addArrayOfStrings(JsonObject parent, String keyId, List<String> values) throws SLCommandoBuildException {
