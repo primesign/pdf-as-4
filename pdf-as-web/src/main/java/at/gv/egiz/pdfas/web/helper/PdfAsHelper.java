@@ -1805,6 +1805,8 @@ public class PdfAsHelper {
 				redirectTwoCommand, 
 				null); 
 		
+		logger.trace("SL2.0 command: " + respContainer.toString());
+		
 		//workaround for A-Trust
 		if (request.getHeader(SL20Constants.HTTP_HEADER_SL20_CLIENT_TYPE) != null && 
 				request.getHeader(SL20Constants.HTTP_HEADER_SL20_CLIENT_TYPE).equals(SL20Constants.HTTP_HEADER_VALUE_NATIVE)

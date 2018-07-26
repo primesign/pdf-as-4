@@ -21,6 +21,7 @@ public class SL20HttpBindingUtils {
 	
 	public static void writeIntoResponse(HttpServletRequest request, HttpServletResponse response, JsonObject sl20Forward, String redirectURL) throws IOException, URISyntaxException {
 		//forward SL2.0 command
+		log.trace("SL20 command: " + sl20Forward.toString());
 		if (request.getHeader(SL20Constants.HTTP_HEADER_SL20_CLIENT_TYPE) != null && 
 				request.getHeader(SL20Constants.HTTP_HEADER_SL20_CLIENT_TYPE).equals(SL20Constants.HTTP_HEADER_VALUE_NATIVE)) {
 			log.debug("Client request containts 'native client' header ... ");												
