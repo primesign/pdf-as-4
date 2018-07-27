@@ -122,6 +122,7 @@ public class PdfAsHelper {
 	private static final String PDF_ERROR_PAGE = "/ErrorPage";
 	private static final String PDF_PROVIDE_PAGE = "/ProvidePDF";
 	private static final String PDF_PDFDATA_PAGE = "/PDFData";
+	private static final String PDF_PDFDATAURL_PAGE = "/PDFURLData";
 	private static final String PDF_DATAURL_PAGE = "/DataURL";
 	private static final String PDF_SL20_DATAURL_PAGE = "/DataURLSL20";
 	private static final String PDF_USERENTRY_PAGE = "/userentry";
@@ -1207,7 +1208,8 @@ public class PdfAsHelper {
 				JsonObject createCAdESSigParams = 
 						SL20JSONBuilderUtils.createCreateCAdESCommandParameters(
 								pack.getRequestType().getKeyboxIdentifier(), 
-								statusRequest.getSignatureData(), 
+								//statusRequest.getSignatureData(),
+								generateNSPdfURL(request,response),
 								pack.getRequestType().getDataObject().getMetaInfo().getMimeType(), 
 								padesCompatibel , 
 								byteRanges, 
@@ -1557,6 +1559,12 @@ public class PdfAsHelper {
 			HttpServletResponse response) {
 		return generateURL(request, response, PDF_PDFDATA_PAGE);
 	}
+
+	public static String generateNSPdfURL(HttpServletRequest request,
+										HttpServletResponse response) {
+		return generateURL(request, response, PDF_PDFDATAURL_PAGE);
+	}
+
 
 	public static String generateUserEntryURL(String storeId) {
 		String publicURL = WebConfiguration.getPublicURL();

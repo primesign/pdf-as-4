@@ -182,11 +182,11 @@ public class SL20JSONBuilderUtils {
 	}
 		
 	public static JsonObject createCreateCAdESCommandParameters(String keyId,
-			byte[] content, String mimeType, boolean padesCompatiblem, List<String> byteRanges, String cadesLevel,			
+			String pdfUrl, String mimeType, boolean padesCompatiblem, List<String> byteRanges, String cadesLevel,
 			String dataUrl, X509Certificate x5cEnc) throws CertificateEncodingException, SLCommandoBuildException {		
 		JsonObject params = new JsonObject();
 		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_KEYID, keyId, true);		
-		addSingleByteElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT, content, true);			
+		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENT, pdfUrl, true);
 		addSingleStringElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_MIMETYPE, mimeType, true);		
 		addSingleBooleanElement(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_PADES_COMBATIBILTY, padesCompatiblem, false);		
 		addArrayOfStrings(params, SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_EXCLUDEBYTERANGE, byteRanges);		

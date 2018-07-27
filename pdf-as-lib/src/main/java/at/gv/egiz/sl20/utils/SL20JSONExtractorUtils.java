@@ -206,8 +206,7 @@ public class SL20JSONExtractorUtils {
 		}
 		
 	}
-	
-	
+
 	public static JsonElement extractSL20Result(JsonObject command, IJOSETools decrypter, boolean mustBeEncrypted) throws SL20Exception {
 		JsonElement result = command.get(SL20Constants.SL20_COMMAND_CONTAINER_RESULT);
 		JsonElement encryptedResult = command.get(SL20Constants.SL20_COMMAND_CONTAINER_ENCRYPTEDRESULT);
@@ -242,20 +241,15 @@ public class SL20JSONExtractorUtils {
 					}
 					
 				} else
-					throw e;	
-				
+					throw e;
 			}
-
 		} else if (result != null) {
 				return result;
 
 		} else {
 			log.error("Internal build error");
 			throw new SLCommandoParserException();
-			
 		}
-		
-		
 	}
 		
 	/**
