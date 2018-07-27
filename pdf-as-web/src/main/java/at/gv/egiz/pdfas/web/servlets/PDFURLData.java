@@ -1,14 +1,8 @@
 package at.gv.egiz.pdfas.web.servlets;
 
-import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
-import at.gv.egiz.pdfas.web.config.WebConfiguration;
-import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
-import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
-import at.gv.egiz.pdfas.web.stats.StatisticEvent;
-import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +48,10 @@ public class PDFURLData extends HttpServlet {
      */
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response) throws ServletException, IOException {
-        this.process(request, response);
+        try {
+            this.process(request, response);
+        } catch (PDFIOException e) {
+            response.sendError(500, "internal server error");        }
     }
 
     protected void process(HttpServletRequest request,
@@ -64,23 +61,27 @@ public class PDFURLData extends HttpServlet {
         StatusRequest statusRequest = (StatusRequest) session
                 .getAttribute(PDF_STATUS);
 
+        if(statusRequest!=null)
+        {
         byte[] nonSignedData = statusRequest.getSignatureData();
 
         if (nonSignedData != null) {
 
             byte[] blackoutnonSignedData = PDFUtils.blackOutSignature(nonSignedData, statusRequest.getSignatureDataByteRange());
 
-
             response.setContentType("application/pdf");
             OutputStream os = response.getOutputStream();
             os.write(blackoutnonSignedData);
             os.close();
+            logger.debug("pdf file transfer finished");
 
         } else {
-            PdfAsHelper.setSessionException(request, response,
-                    "todo", null);
-            PdfAsHelper.gotoError(getServletContext(), request, response);
-            response.sendError(500, '');
+            logger.info("no pdf document is found");
+            response.sendError(500, "no signed data found");
+        }
+        } else {
+            logger.info("no session found");
+            response.sendError(500, "no signed data found");
         }
     }
 }

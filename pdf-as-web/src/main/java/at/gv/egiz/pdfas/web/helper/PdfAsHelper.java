@@ -1228,7 +1228,7 @@ public class PdfAsHelper {
 				JsonObject createCAdESSigParams = 
 						SL20JSONBuilderUtils.createCreateCAdESCommandParameters(
 								pack.getRequestType().getKeyboxIdentifier(), 
-								//statusRequest.getSignatureData(),
+								null,
 								generateNSPdfURL(request,response),
 								SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_DETACHED,
 								pack.getRequestType().getDataObject().getMetaInfo().getMimeType(), 
