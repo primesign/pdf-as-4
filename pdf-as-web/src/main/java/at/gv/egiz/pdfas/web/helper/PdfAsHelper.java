@@ -60,6 +60,8 @@ import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
@@ -67,6 +69,7 @@ import at.gv.egiz.pdfas.api.ws.PDFASSignParameters.Connector;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
 import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
@@ -1143,7 +1146,6 @@ public class PdfAsHelper {
 							command, signedCommand);
 										
 					//store requestId
-					
 					request.getSession(false).setAttribute(PDF_SESSION_PREFIX + SL20Constants.SL20_REQID, reqId);
 
 					//forward SL2.0 command
@@ -1192,9 +1194,24 @@ public class PdfAsHelper {
 				
 			} else if (slConnector instanceof SL20Connector) {				
 				//convert byte range
-				List<String> byteRanges = new ArrayList<String>();
-				for (int el : statusRequest.getSignatureDataByteRange())
-					byteRanges.add(String.valueOf(el));
+				
+				int[] exclude_range = PDFUtils.buildExcludeRange(statusRequest.getSignatureDataByteRange());
+				logger.info("Exclude Byte Range: " + exclude_range[0] + " " + exclude_range[1]);
+				
+				List<JsonElement> byteRanges = new ArrayList<JsonElement>();
+				if (statusRequest.getSignatureDataByteRange().length % 2 != 0) {
+					logger.warn("ByteRange is not a set of pairs. Something is maybe suspect");
+					
+				}
+				
+				for (int i=0; i<exclude_range.length/2; i++) {
+					JsonArray el = new JsonArray();
+					el.add(exclude_range[2*i]);
+					el.add(exclude_range[2*i + 1]);
+					byteRanges.add(el);
+										
+				}
+					
 				
 				java.security.cert.X509Certificate x5cEnc = null;
 				if (WebConfiguration.isSL20EncryptionEnabled() && joseTools != null)
@@ -1205,11 +1222,15 @@ public class PdfAsHelper {
 				if (pack.getRequestType().getPAdESFlag() != null)
 					padesCompatibel = pack.getRequestType().getPAdESFlag();
 				
+				byte[] data = PDFUtils.blackOutSignature(statusRequest.getSignatureData(), 
+						statusRequest.getSignatureDataByteRange());
+				
 				JsonObject createCAdESSigParams = 
 						SL20JSONBuilderUtils.createCreateCAdESCommandParameters(
 								pack.getRequestType().getKeyboxIdentifier(), 
 								//statusRequest.getSignatureData(),
 								generateNSPdfURL(request,response),
+								SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_DETACHED,
 								pack.getRequestType().getDataObject().getMetaInfo().getMimeType(), 
 								padesCompatibel , 
 								byteRanges, 
@@ -1226,7 +1247,7 @@ public class PdfAsHelper {
 					
 				} else {
 					JsonObject getCertCommand = SL20JSONBuilderUtils.createCommand(SL20Constants.SL20_COMMAND_IDENTIFIER_CREATE_SIG_CADES, createCAdESSigParams);
-					sl20CreateCAdES = SL20JSONBuilderUtils.createGenericRequest(UUID.randomUUID().toString(), null, getCertCommand, null);
+					sl20CreateCAdES = SL20JSONBuilderUtils.createGenericRequest(reqId, null, getCertCommand, null);
 					
 				}	
 				
@@ -1790,6 +1811,8 @@ public class PdfAsHelper {
 				transactionId, 
 				redirectTwoCommand, 
 				null); 
+		
+		logger.trace("SL2.0 command: " + respContainer.toString());
 		
 		//workaround for A-Trust
 		if (request.getHeader(SL20Constants.HTTP_HEADER_SL20_CLIENT_TYPE) != null && 

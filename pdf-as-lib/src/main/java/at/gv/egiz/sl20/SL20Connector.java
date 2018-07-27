@@ -62,7 +62,9 @@ public class SL20Connector extends BaseSLConnector {
 			HttpResponse httpResp = httpClient.execute(httpReq);			
 			log.debug("Response from VDA received ");
 			
-			return SL20JSONExtractorUtils.getSL20ContainerFromResponse(httpResp);
+			JsonObject sl20Resp = SL20JSONExtractorUtils.getSL20ContainerFromResponse(httpResp);
+			log.trace("SL20 command: " + sl20Resp.toString());
+			return sl20Resp;
 						
 		} catch (URISyntaxException | IOException e) {
 			log.warn("Can NOT build SL20 http requst. Reason:" + e.getMessage(), e);

@@ -93,7 +93,7 @@ public class SLDataURLServlet extends HttpServlet {
 				
 			}
 
-			logger.trace("Received SL2.0 result: " + sl20Result);		
+			logger.trace("Received SL2.0 command: " + sl20Result);		
 			
 			//parse SL2.0 command/result into JSON				
 			try {
@@ -144,6 +144,8 @@ public class SLDataURLServlet extends HttpServlet {
 			//extract payloaf
 			JsonObject payLoad = payLoadContainer.getPayload();
 			
+			logger.trace("SL2.0 payLoad on DataURL: " + payLoad.toString());
+			
 			//check response type
 			if (SL20JSONExtractorUtils.getStringValue(
 					payLoad, SL20Constants.SL20_COMMAND_CONTAINER_NAME, true)
@@ -175,7 +177,7 @@ public class SLDataURLServlet extends HttpServlet {
 												
 					List<X509Certificate> sortedCerts = X509Utils.sortCertificates(certs);
 					logger.debug("Sorting of certificate completed. Select end-user certificate ... ");
-					PdfAsHelper.injectCertificate(request, response, Base64.getDecoder().decode(sortedCerts.get(0).getEncoded()), getServletContext());
+					PdfAsHelper.injectCertificate(request, response, sortedCerts.get(0).getEncoded(), getServletContext());
 					
 				}
 				
