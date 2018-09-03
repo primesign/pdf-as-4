@@ -23,32 +23,22 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.servlets;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.SecureRandom;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import at.gv.egiz.pdfas.web.config.WebConfiguration;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import at.gv.egiz.pdfas.api.ws.PDFASVerificationResponse;
+import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Servlet implementation class PDFData
