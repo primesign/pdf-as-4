@@ -26,8 +26,6 @@ package at.gv.egiz.pdfas.cli;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -43,9 +41,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
-import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -62,7 +57,6 @@ import at.gv.egiz.pdfas.sigs.pades.PAdESSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
 import at.gv.egiz.sl.util.BKUSLConnector;
 
-import static at.gv.egiz.pdfas.lib.api.IConfigurationConstants.DEFAULT_CONFIG_PROTECT_PDF;
 
 public class Main {
 
@@ -455,25 +449,6 @@ public class Main {
 		fos.close();
 		System.out.println("Signed document " + outputFile);
 
-		 //make output file protected from copying and extraction content
-
-		/*if(configuration.hasValue(DEFAULT_CONFIG_PROTECT_PDF) && IConfigurationConstants.TRUE.equalsIgnoreCase(configuration.getValue(DEFAULT_CONFIG_PROTECT_PDF)))
-		{
-		SecureRandom random = new SecureRandom();
-		byte seed[] = random.generateSeed(50);
-		String ownerPassword = new String(seed, StandardCharsets.UTF_8);
-		PDDocument document = PDDocument.load(outputPdfFile);
-		AccessPermission accessPermission = new AccessPermission();
-		accessPermission.setCanExtractContent(false);
-		accessPermission.setCanExtractForAccessibility(true);
-		StandardProtectionPolicy spp = new StandardProtectionPolicy(ownerPassword,"",accessPermission);
-		spp.setEncryptionKeyLength(128);
-		spp.setPermissions(accessPermission);
-		document.protect(spp);
-		document.save(outputPdfFile);
-		document.close();
-		logger.info("Added Protection Parameters");
-		}*/
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {
