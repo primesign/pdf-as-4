@@ -1224,19 +1224,35 @@ public class PdfAsHelper {
 				
 				byte[] data = PDFUtils.blackOutSignature(statusRequest.getSignatureData(), 
 						statusRequest.getSignatureDataByteRange());
-				
-				JsonObject createCAdESSigParams = 
-						SL20JSONBuilderUtils.createCreateCAdESCommandParameters(
-								pack.getRequestType().getKeyboxIdentifier(), 
-								null,
-								generateNSPdfURL(request,response),
-								SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_DETACHED,
-								pack.getRequestType().getDataObject().getMetaInfo().getMimeType(), 
-								padesCompatibel , 
-								byteRanges, 
-								SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CADESLEVEL_BASIC, 
-								generateDataURLSL20(request, response), 
-								x5cEnc) ;
+				JsonObject createCAdESSigParams;
+				if(data.length>20000000) {
+					 createCAdESSigParams =
+							SL20JSONBuilderUtils.createCreateCAdESCommandParameters(
+									pack.getRequestType().getKeyboxIdentifier(),
+									null,
+									generateNSPdfURL(request, response),
+									SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_DETACHED,
+									pack.getRequestType().getDataObject().getMetaInfo().getMimeType(),
+									padesCompatibel,
+									byteRanges,
+									SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CADESLEVEL_BASIC,
+									generateDataURLSL20(request, response),
+									x5cEnc);
+				} else
+				{
+					 createCAdESSigParams =
+							SL20JSONBuilderUtils.createCreateCAdESCommandParameters(
+									pack.getRequestType().getKeyboxIdentifier(),
+									data,
+									null,
+									SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CONTENTMODE_DETACHED,
+									pack.getRequestType().getDataObject().getMetaInfo().getMimeType(),
+									padesCompatibel,
+									byteRanges,
+									SL20Constants.SL20_COMMAND_PARAM_CREATE_SIG_CADES_CADESLEVEL_BASIC,
+									generateDataURLSL20(request, response),
+									x5cEnc);
+				}
 				
 				JsonObject sl20CreateCAdES = null;
 				String reqId = UUID.randomUUID().toString();
