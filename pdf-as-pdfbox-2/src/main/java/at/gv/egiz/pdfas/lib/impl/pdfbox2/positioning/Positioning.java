@@ -174,13 +174,8 @@ public class Positioning {
 			if (page > doc_pages) {
 				make_new_page = true;
 				page = doc_pages;
-				// throw new PDFDocumentException(227, "Page number is to big(="
-				// + page+
-				// ") cannot be parsed.");
+
 			}
-			/*if (page < doc_pages && page!=1) {
-				page = page - 1;
-			}*/
 
 		}
 
