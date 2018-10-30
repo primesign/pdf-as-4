@@ -171,22 +171,22 @@ public class Positioning {
 
 			page = pos.getPage();
 			// System.out.println("XXXXPAGE="+page+" doc_pages="+doc_pages);
-			if (page > doc_pages && page!=1) {
+			if (page > doc_pages) {
 				make_new_page = true;
 				page = doc_pages;
 				// throw new PDFDocumentException(227, "Page number is to big(="
 				// + page+
 				// ") cannot be parsed.");
 			}
-
-			if (page < doc_pages && page!=1) {
+			/*if (page < doc_pages && page!=1) {
 				page = page - 1;
-			}
+			}*/
 
 		}
 
+
+
 		PDPage pdPage = pdfDataSource.getPage(page-1);
-		//PDPage pdPage = pdfDataSource.getPages().get(page);
 
 		PDRectangle cropBox = pdPage.getCropBox();
 

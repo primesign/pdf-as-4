@@ -383,7 +383,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                             IOUtils.closeQuietly(colorProfile);
                         }
                     }
-                options.setPage(positioningInstruction.getPage());
+                options.setPage(positioningInstruction.getPage()-1);
                 options.setVisualSignature(properties.getVisibleSignature());
             }
 
