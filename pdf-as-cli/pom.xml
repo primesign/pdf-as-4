@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>at.gv.egiz.pdfas</groupId>
+		<artifactId>pdf-as</artifactId>
+		<version>4.1.1-PS-5-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>pdf-as-cli</artifactId>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-lib</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-moa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>sigs-pades</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+		</dependency>
+
+	</dependencies>
+
+</project>

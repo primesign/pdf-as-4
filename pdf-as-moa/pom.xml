@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>at.gv.egiz.pdfas</groupId>
+		<artifactId>pdf-as</artifactId>
+		<version>4.1.1-PS-5-SNAPSHOT</version>
+	</parent>
+
+	<groupId>at.gv.egiz.pdfas</groupId>
+	<artifactId>pdf-as-moa</artifactId>
+	<version>4.1.1-PS-5-SNAPSHOT</version>
+
+	<build>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${basedir}/src/generated/java</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>iaik_jce_full</artifactId>
+			<classifier>moa</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-lib</artifactId>
+		</dependency>
+
+	</dependencies>
+
+</project>

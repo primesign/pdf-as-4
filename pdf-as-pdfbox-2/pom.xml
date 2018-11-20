@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>at.gv.egiz.pdfas</groupId>
+		<artifactId>pdf-as</artifactId>
+		<version>4.1.1-PS-5-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>pdf-as-pdfbox-2</artifactId>
+	
+	<properties>
+	
+		<at.gv.egiz.pdfas.pdfbox.version>2.0.3</at.gv.egiz.pdfas.pdfbox.version>
+	
+	</properties>
+	
+	<dependencies>
+	
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+		</dependency>
+
+	    <dependency>
+		    <groupId>com.google.zxing</groupId>
+		    <artifactId>javase</artifactId>
+	    </dependency>
+
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-lib</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>${at.gv.egiz.pdfas.pdfbox.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>preflight</artifactId>
+			<version>${at.gv.egiz.pdfas.pdfbox.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox-tools</artifactId>
+			<version>${at.gv.egiz.pdfas.pdfbox.version}</version>
+		</dependency>
+	
+	</dependencies>
+
+</project>
