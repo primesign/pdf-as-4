@@ -54,9 +54,6 @@ public interface IConfigurationConstants {
 
 	public static final String CONFIG_BKU_URL = "bku.sign.url";
 
-	/*Protect PDF content*/
-	public static final String DEFAULT_CONFIG_PROTECT_PDF = DEFAULT+SEPERATOR+"protectPDF";
-	
 	/**
 	 * MOA SS Signing Key Identifier
 	 */
