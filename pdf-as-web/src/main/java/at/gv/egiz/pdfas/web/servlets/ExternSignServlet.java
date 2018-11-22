@@ -354,7 +354,8 @@ public class ExternSignServlet extends HttpServlet {
 		logger.debug("Starting signature creation with: " + connector);
 		
 		//IPlainSigner signer;
-		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")) {
+		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")
+				|| connector.equals("sl20")) {
 			// start asynchronous signature creation
 			
 			if(connector.equals("bku")) {
@@ -369,6 +370,11 @@ public class ExternSignServlet extends HttpServlet {
 			}
 			if(connector.equals("onlinebku")) {
 				if(WebConfiguration.getOnlineBKUURL() == null) {
+					throw new PdfAsWebException("Invalid connector bku is not supported");
+				}
+			}
+			if (connector.equals("sl20")) {
+				if(WebConfiguration.getSecurityLayer20URL() == null) {
 					throw new PdfAsWebException("Invalid connector bku is not supported");
 				}
 			}

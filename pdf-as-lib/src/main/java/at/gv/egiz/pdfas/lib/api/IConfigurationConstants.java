@@ -88,6 +88,7 @@ public interface IConfigurationConstants {
 	
 	public static final String MOC_SIGN_URL = "moc.sign.url";
 	public static final String MOBILE_SIGN_URL = "mobile.sign.url";
+	public static final String SL20_SIGN_URL = "sl20.sign.url";
 	
 	public static final String REGISTER_PROVIDER = "registerSecurityProvider";
 	

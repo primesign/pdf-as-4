@@ -37,6 +37,17 @@
 		<%
 			}
 		%>
+		
+		<%
+			if (WebConfiguration.getSecurityLayer20URL() != null) {
+		%>
+		<button type="submit" value="sl20" name="connector" id="sl20backend">SL2.0 Interface</button>
+		<label for="placeholder_web_id">Placeholder ID</label>
+          <input type="text" id="placeholder_web_id" name="placeholder_web_id">
+		<%
+			}
+		%>
+		
 		<%
 			if (WebConfiguration.getKeystoreDefaultEnabled()) {
 		%>

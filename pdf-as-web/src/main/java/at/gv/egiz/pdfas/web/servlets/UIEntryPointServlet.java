@@ -131,7 +131,8 @@ public class UIEntryPointServlet extends HttpServlet {
 			// IPlainSigner signer;
 			if (connector.equals(Connector.BKU)
 					|| connector.equals(Connector.ONLINEBKU)
-					|| connector.equals(Connector.MOBILEBKU)) {
+					|| connector.equals(Connector.MOBILEBKU)
+					|| connector.equals(Connector.SECLAYER20)) {
 				// start asynchronous signature creation
 
 				if (connector.equals(Connector.BKU)) {
@@ -154,6 +155,14 @@ public class UIEntryPointServlet extends HttpServlet {
 								"Invalid connector mobilebku is not supported");
 					}
 				}
+				
+				if (connector.equals(Connector.SECLAYER20)) {
+					if (WebConfiguration.getSecurityLayer20URL() == null) {
+						throw new PdfAsWebException(
+								"Invalid connector mobilebku is not supported");
+					}
+				}
+				
 				Map<String, String> map = null;
 				if (pdfAsRequest.getParameters().getPreprocessor() != null) {
 					map = pdfAsRequest.getParameters().getPreprocessor()

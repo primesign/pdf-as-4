@@ -52,7 +52,10 @@ public class PDFASSignParameters implements Serializable {
 		@XmlEnumValue("mobilebku")
 		MOBILEBKU("mobilebku"),
 		@XmlEnumValue("onlinebku")
-		ONLINEBKU("onlinebku");
+		ONLINEBKU("onlinebku"),
+		@XmlEnumValue("sl20")
+		SECLAYER20("sl20");
+		
 		
 		
 		private final String name;       
