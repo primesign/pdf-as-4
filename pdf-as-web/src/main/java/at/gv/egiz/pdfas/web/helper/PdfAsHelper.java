@@ -1124,8 +1124,9 @@ public class PdfAsHelper {
 					
 				}
 				
+				//SL2.0 redirect and call commands do not require signed payload
 				VerificationResult respPayloadContainer = SL20JSONExtractorUtils.extractSL20PayLoad(
-						sl20Resp, joseTools, WebConfiguration.isSL20SigningRequired());
+						sl20Resp, joseTools, false);
 				
 				if (respPayloadContainer.isValidSigned() == null)
 					logger.debug("Receive unsigned payLoad from VDA");
