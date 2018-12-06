@@ -50,6 +50,8 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_INVOKE_URL = "invoke-app-url";
 	public static final String PARAM_INVOKE_URL_TARGET = "invoke-app-url-target";
 	public static final String PARAM_INVOKE_URL_ERROR = "invoke-app-error-url";
+	public static final String PARAM_RESPONSE_MODE = "responsemode";
+	
 	
 	public static final String PARAM_VERIFY_LEVEL = "verify-level";
 	public static final String PARAM_VERIFY_LEVEL_OPTION_FULL = "full";
@@ -238,5 +240,9 @@ public class PdfAsParameterExtractor {
 	
 	public static String getSigIdx(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_SIG_IDX);
+	}
+
+	public static String getResonseMode(HttpServletRequest request) {
+		return (String)request.getAttribute(PARAM_RESPONSE_MODE);
 	}
 }

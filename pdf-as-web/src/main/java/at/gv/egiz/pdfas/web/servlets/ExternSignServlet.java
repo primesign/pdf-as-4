@@ -336,6 +336,10 @@ public class ExternSignServlet extends HttpServlet {
 		String locale = PdfAsParameterExtractor.getLocale(request);
 		PdfAsHelper.setLocale(request, response, locale);
 
+		String responseMode = PdfAsParameterExtractor.getResonseMode(request);
+		PdfAsHelper.setResponseMode(request, response, responseMode);
+		
+		
 		//read and set placholder web id
 		String placeholder_id = PdfAsParameterExtractor.getPlaceholderId(request);
 		PlaceholderWebConfiguration.setValue(IConfigurationConstants.PLACEHOLDER_WEB_ID, placeholder_id);

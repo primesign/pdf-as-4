@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -90,12 +91,21 @@ public class ProvidePDFServlet extends HttpServlet {
 					logger.warn(invokeURL + " is not allowed by whitelist");
 				}
 				
-				String template = PdfAsHelper.getProvideTemplate();
-				template = template.replace(PDF_DATA_URL, PdfAsHelper.generatePdfURL(request, response));
-				// Deliver to Browser directly!
-				response.setContentType("text/html");
-				response.getWriter().write(template);
-				response.getWriter().close();
+				if (PdfAsHelper.getResponseMode(request, response).equals(PdfAsHelper.PDF_RESPONSE_MODES.htmlform)) {								
+					String template = PdfAsHelper.getProvideTemplate();
+					template = template.replace(PDF_DATA_URL, PdfAsHelper.generatePdfURL(request, response));
+					// Deliver to Browser directly!
+					response.setContentType("text/html");
+					response.getWriter().write(template);
+					response.getWriter().close();
+					
+				} else {
+					logger.debug("PDFResult directMode: Forward to PDFData Servlet directly");
+					RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/PDFData");
+					dispatcher.forward(request, response);
+								
+				}
+					
 			} else {
 				// Redirect Browser
 				String template = PdfAsHelper.getInvokeRedirectTemplateSL();

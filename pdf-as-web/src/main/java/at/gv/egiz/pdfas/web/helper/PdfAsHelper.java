@@ -56,6 +56,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.entity.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,6 +137,7 @@ public class PdfAsHelper {
 	private static final String PDF_VER_RESP = "PDF_VER_RESP";
 	private static final String PDF_INVOKE_URL = "PDF_INVOKE_URL";
 	private static final String PDF_INVOKE_TARGET = "PDF_INVOKE_TARGET";
+	private static final String PDF_RESPONSE_MODE = "PDF_RESPONSE_MODE";
 	private static final String REQUEST_FROM_DU = "REQ_DATA_URL";
 	private static final String SIGNATURE_DATA_HASH = "SIGNATURE_DATA_HASH";
 	private static final String SIGNATURE_ACTIVE = "SIGNATURE_ACTIVE";
@@ -143,6 +145,9 @@ public class PdfAsHelper {
 	private static final String QRCODE_CONTENT = "QR_CONT";
 	public static final String PDF_SESSION_PREFIX = "PDF_SESSION_";
 
+	
+	public enum PDF_RESPONSE_MODES {htmlform, direct};
+	
 	private static final Logger logger = LoggerFactory
 			.getLogger(PdfAsHelper.class);
 
@@ -1543,6 +1548,43 @@ public class PdfAsHelper {
 		return obj == null ? null : obj.toString();
 	}
 
+	public static void setResponseMode(HttpServletRequest request, 
+			HttpServletResponse response, String responseMode) {
+		
+		PDF_RESPONSE_MODES mode = PDF_RESPONSE_MODES.htmlform;
+		if (StringUtils.isNotEmpty(responseMode)) {
+			try {
+				mode = PDF_RESPONSE_MODES.valueOf(responseMode);
+				
+			} catch (Exception e) {
+				logger.warn("HTTP parameter 'responsemode' has an unsupported value: " + responseMode 
+						+ ". Use default value: " + mode.toString());
+				
+			}
+		}
+				
+		HttpSession session = request.getSession();				
+		session.setAttribute(PDF_RESPONSE_MODE , mode);
+		logger.debug("External ResponseMode: " + mode.toString());
+		
+	}
+	
+	public static PDF_RESPONSE_MODES getResponseMode(HttpServletRequest request,
+			HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		Object obj = session.getAttribute(PDF_RESPONSE_MODE);
+		
+		if (obj == null) {
+			logger.debug("'responseMode' parameter is 'null'. Use defaultvalue: " + PDF_RESPONSE_MODES.htmlform.toString());
+			return PDF_RESPONSE_MODES.htmlform;
+			
+		} else {
+			logger.debug("'responseMode' parameter is " + ((PDF_RESPONSE_MODES) obj).toString());
+			return (PDF_RESPONSE_MODES) obj;
+		}
+				
+	}
+	
 	private static String generateURL(HttpServletRequest request,
 			HttpServletResponse response, String Servlet) {
 		HttpSession session = request.getSession();
@@ -1852,4 +1894,6 @@ public class PdfAsHelper {
 			
 		}
 	}
+
+
 }
