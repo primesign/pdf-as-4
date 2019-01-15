@@ -1,13 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	
 	<modelVersion>4.0.0</modelVersion>
 	
 	<groupId>at.gv.egiz.pdfas</groupId>
 	<artifactId>pdf-as</artifactId>
 	<packaging>pom</packaging>
-	<version>4.1.1-PS-5-SNAPSHOT</version>
+	<version>4.1.1-PS-6-SNAPSHOT</version>
 	
 	<name>pdf-as</name>
 	
@@ -60,55 +58,55 @@
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-common</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 			
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-lib</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-moa</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-cli</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>signature-standards</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pades</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pkcs7detached</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-pdfbox</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-pdfbox-2</artifactId>
-				<version>4.1.1-PS-5-SNAPSHOT</version>
+				<version>4.1.1-PS-6-SNAPSHOT</version>
 			</dependency>
 
 
