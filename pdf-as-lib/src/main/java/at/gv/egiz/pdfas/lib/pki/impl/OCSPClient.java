@@ -245,21 +245,21 @@ public class OCSPClient implements AutoCloseable {
 	 * Retrieves an OCSP response for a certain certificate ({@code eeCertificate}) of a certain CA
 	 * ({@code issuerCertificate}).
 	 * 
-	 * @param issuerCertificate
-	 *            The issuer certificate (required; must not be {@code null}).
-	 * @param eeCertificate
-	 *            The end entity certificate (required; must not be {@code null}).
-	 * @return The OCSP response (never {@code null}, guaranteed that revocation state is GOOD).
-	 * @throws IOException
-	 *             Thrown in case of error communicating with OCSP responder.
-	 * @throws OCSPClientException
-	 *             In case the client could not process the response (e.g. unknown ocsp response, non-successful
-	 *             response state).
-	 * @throws IllegalArgumentException
-	 *             In case the provided {@code eeCertificate} does not provide an OCSP responder url (use
-	 *             {@link Util#hasOcspResponder(X509Certificate)} in order to determine if it is safe to call this method).
-	 * @implNote This implementation returns only OCSPResponses with the provided certificate's revocation status GOOD
-	 *           but does not perform further checks like OCSP signature verification or OCSP responder certificate
+	 * @param issuerCertificate The issuer certificate (required; must not be {@code null}).
+	 * @param eeCertificate     The end entity certificate (required; must not be {@code null}).
+	 * @return The OCSP response (never {@code null}) with guaranteed response status "successful" and with <strong>any
+	 *         revocation state</strong>.
+	 * @throws IOException              Thrown in case of error communicating with OCSP responder.
+	 * @throws OCSPClientException      In case the client could not process the response (e.g. non-successful response
+	 *                                  state like malformedRequest, internalError... or an unknown/unsupported response
+	 *                                  type).
+	 * @throws IllegalArgumentException In case the provided {@code eeCertificate} does not provide an OCSP responder
+	 *                                  url (use {@link Util#hasOcspResponder(X509Certificate)} in order to determine if
+	 *                                  it is safe to call this method) or the provided certificates could not be used
+	 *                                  for OCSP request creation.
+	 * @implNote This implementation just returns OCSP responses (<strong>of any revocation status</strong>) as they
+	 *           were retrieved from the OCSP responder (provided the response status indicates a successful response)
+	 *           without performing further checks like OCSP signature verification or OCSP responder certificate
 	 *           validation.
 	 */
 	public OCSPResponse getOcspResponse(X509Certificate issuerCertificate, X509Certificate eeCertificate) throws IOException, OCSPClientException {
@@ -384,9 +384,6 @@ public class OCSPClient implements AutoCloseable {
 			
 			CertStatus certStatus = singleResponse.getCertStatus();
 			log.info("Certificate revocation state: {}", certStatus);
-			if (certStatus.getCertStatus() != CertStatus.GOOD) {
-				throw new OCSPClientException("OCSP responder reports certificate revocation state: {}" + certStatus.getCertStatusName());
-			}
 			
 			sw.stop();
 			log.debug("OCSP query took: {}ms", sw.getTime());

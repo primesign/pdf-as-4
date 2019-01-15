@@ -126,7 +126,7 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 				try {
 					ocspResponse = ocspClient.getOcspResponse(issuerCertificate, subjectCertificate);
 				} catch (Exception e) {
-					log.warn("Unable to retrieve OCSP response with revocation status GOOD.", e);
+					log.warn("Unable to retrieve OCSP response.", e);
 				}
 			}
 			
