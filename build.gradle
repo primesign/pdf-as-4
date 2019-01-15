@@ -16,7 +16,7 @@ task wrapper(type: Wrapper) {
 allprojects {
 	apply plugin: 'com.github.ben-manes.versions'
 	repositories {  mavenCentral()  }
-	version = '4.1.5'
+	version = '4.1.6-SNAPSHOT'
 }
 
 configurations {
