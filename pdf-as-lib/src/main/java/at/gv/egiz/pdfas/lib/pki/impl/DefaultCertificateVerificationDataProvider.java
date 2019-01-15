@@ -148,12 +148,12 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 				try {
 					cRLDistributionPoints = (CRLDistributionPoints) subjectCertificate.getExtension(CRLDistributionPoints.oid);
 				} catch (X509ExtensionInitException e) {
-					throw new IllegalStateException("Unable to initialize CRL distributionpoints extension.", e);
+					throw new IllegalStateException("Unable to initialize extension CRLDistributionPoints.", e);
 				}				
 				X509CRL x509Crl = null;
 				if (cRLDistributionPoints != null) {
 					if (log.isDebugEnabled()) {
-						log.debug("Retrieving CRL revocation info for {}", subjectCertificate.getSubjectDN());
+						log.debug("Retrieving CRL revocation info for: {}", subjectCertificate.getSubjectDN());
 					} else if (log.isInfoEnabled()) {
 						log.info("Retrieving CRL revocation info for certificate (SHA-1 fingerprint): {}", Hex.encodeHexString(subjectCertificate.getFingerprintSHA()));
 					}

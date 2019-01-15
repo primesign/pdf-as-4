@@ -30,6 +30,7 @@ import java.util.Objects;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -228,7 +229,7 @@ public class OCSPClient implements AutoCloseable {
 			try {
 				aia = (AuthorityInfoAccess) Objects.requireNonNull(x509Certificate).getExtension(AuthorityInfoAccess.oid);
 			} catch (X509ExtensionInitException e) {
-				throw new IllegalStateException("Unable to initialize cert extension.", e);
+				throw new IllegalStateException("Unable to initialize cert extension AuthorityInfoAccess.", e);
 			}
 			if (aia != null) {
 				AccessDescription ad = aia.getAccessDescription(ObjectID.ocsp);
@@ -264,18 +265,21 @@ public class OCSPClient implements AutoCloseable {
 	 */
 	public OCSPResponse getOcspResponse(X509Certificate issuerCertificate, X509Certificate eeCertificate) throws IOException, OCSPClientException {
 		
+		Objects.requireNonNull(issuerCertificate, "Issuer certificate required... must not be null.");
+		Objects.requireNonNull(eeCertificate, "End-entity certificate required... must not be null.");
+		
 		StopWatch sw = new StopWatch();
 		sw.start();
 
 		if (log.isDebugEnabled()) {
-			log.debug("Retrieving OCSP revocation info for {}", eeCertificate.getSubjectDN());
+			log.debug("Retrieving OCSP revocation info for: {}", eeCertificate.getSubjectDN());
 		} else if (log.isInfoEnabled()) {
 			log.info("Retrieving OCSP revocation info for certificate (SHA-1 fingerprint): {}", Hex.encodeHexString(eeCertificate.getFingerprintSHA()));
 		}
 		
 		String ocspUrl = Util.getOcspUrl(eeCertificate);
 		if (ocspUrl == null) {
-			throw new IllegalArgumentException("The provided certificate does not provide an ocsp responder url.");
+			throw new IllegalArgumentException("The provided certificate does not feature an ocsp responder url.");
 		}
 		
 		// create request
@@ -296,10 +300,9 @@ public class OCSPClient implements AutoCloseable {
 
 		} catch (NoSuchAlgorithmException e) {
 			// should not occur actually
-			throw new IllegalStateException("Required algorithm not available.", e);
+			throw new IllegalStateException("Required algorithm (SHA-1) not available.", e);
 		} catch (CodingException e) {
-			// should not occur actually
-			throw new RuntimeException("Unable to encode ocsp request.", e);
+			throw new IllegalArgumentException("Unable to encode ocsp request with the provided issuer and end-entity certificates.", e);
 		}
 
 		// https://tools.ietf.org/html/rfc6960
@@ -318,7 +321,7 @@ public class OCSPClient implements AutoCloseable {
 				ocspResponderUri = uriBuilder.build();
 			} catch (URISyntaxException e) {
 				// can only occur with eeCertificate containing invalid ocsp responder url
-				throw new IllegalArgumentException("Unable to parse OCSP responder uri of provided certificate.", e);
+				throw new IllegalArgumentException("Unable process OCSP responder uri of provided certificate: " + ocspUrl, e);
 			}
 			
 			request = new HttpGet(ocspResponderUri);
@@ -346,9 +349,11 @@ public class OCSPClient implements AutoCloseable {
 			
 			OCSPResponse ocspResponse;
 			try (InputStream in = responseEntity.getContent()) {
+				
 				ocspResponse = new OCSPResponse(in);
+				
 			} catch (UnknownResponseException e) {
-				throw new OCSPClientException("Unable to process OCSP response.", e);
+				throw new OCSPClientException("Unknown (unsupported) OCSP response type: " + e.getResponseType(), e);
 			}
 			
 			if (log.isTraceEnabled()) {
@@ -361,20 +366,20 @@ public class OCSPClient implements AutoCloseable {
 			}
 			
 			// get the basic ocsp response (which is the only type currently supported, otherwise an
-			// UnknownResponseException would have been thrown during parsing the response
+			// UnknownResponseException would have been thrown during parsing the response)
 			BasicOCSPResponse basicOCSPResponse = (BasicOCSPResponse) ocspResponse.getResponse();
 			
 			// for future improvement: verify ocsp response, responder certificate...
 			
 			SingleResponse singleResponse;
 			try {
-				log.trace("Looking for OCSP response specific for {}", reqCert);
+				log.trace("Looking for OCSP response specific for: {}", reqCert);
 				singleResponse = basicOCSPResponse.getSingleResponse(reqCert);
 			} catch (OCSPException e) {
 				try {
 					singleResponse = basicOCSPResponse.getSingleResponse(issuerCertificate, eeCertificate, null);
 				} catch (OCSPException e1) {
-					throw new OCSPClientException("Unable to find single OCSP response for provided certificate.", e1);
+					throw new OCSPClientException("Unable to process received OCSP response for the provided certificate (SHA-1 fingerprint): " + Hex.encodeHexString(eeCertificate.getFingerprintSHA()), e1);
 				}
 			}
 			
@@ -383,7 +388,8 @@ public class OCSPClient implements AutoCloseable {
 			}
 			
 			CertStatus certStatus = singleResponse.getCertStatus();
-			log.info("Certificate revocation state: {}", certStatus);
+			String formattedThisUpdate = DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(singleResponse.getThisUpdate());
+			log.info("Certificate revocation state (@{}}: {}", formattedThisUpdate, certStatus);
 			
 			sw.stop();
 			log.debug("OCSP query took: {}ms", sw.getTime());
