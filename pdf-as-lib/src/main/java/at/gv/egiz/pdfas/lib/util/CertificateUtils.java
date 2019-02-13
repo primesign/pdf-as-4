@@ -25,10 +25,15 @@ package at.gv.egiz.pdfas.lib.util;
 
 import iaik.asn1.structures.AlgorithmID;
 import iaik.x509.X509Certificate;
+import iaik.x509.X509ExtensionInitException;
+import iaik.x509.extensions.AuthorityKeyIdentifier;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECParameterSpec;
+
+import org.apache.commons.codec.binary.Hex;
 
 public class CertificateUtils {
 	public static AlgorithmID[] getAlgorithmIDs(X509Certificate signingCertificate)
@@ -73,4 +78,28 @@ public class CertificateUtils {
 		
 		return algorithms;
 	}
+	
+	/**
+	 * Returns the signing certificate's authority key identifier entry (if any).
+	 * 
+	 * @param signingCertificate
+	 *            The signing certificate (required; must not be {@code null}).
+	 * @return A hex string (lowercase) representing the authority key identifier (or {@code null} in case the
+	 *         certificate does not have this extension or the extension could not be initialized).
+	 */
+	public static String getAuthorityKeyIdentifierHexString(X509Certificate signingCertificate) {
+		
+		AuthorityKeyIdentifier aki;
+		try {
+			aki = (AuthorityKeyIdentifier) signingCertificate.getExtension(AuthorityKeyIdentifier.oid);
+		} catch (X509ExtensionInitException e) {
+			// go a defensive way, do not throw exception
+			return null;
+		}
+		if (aki != null) {
+			return Hex.encodeHexString(aki.getKeyIdentifier());
+		}
+		return null;
+	}
+
 }

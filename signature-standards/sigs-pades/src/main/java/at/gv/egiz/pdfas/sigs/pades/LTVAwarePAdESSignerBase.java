@@ -31,6 +31,8 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.CertificateVerificationDataService;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
+import at.gv.egiz.pdfas.lib.util.CertificateUtils;
+import iaik.x509.X509Certificate;
 
 public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 	
@@ -49,7 +51,8 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 			return null;
 		}
 		
-		if (requestedSignature.getCertificate() == null) {
+		final X509Certificate eeCertificate = requestedSignature.getCertificate();
+		if (eeCertificate == null) {
 			throw new IllegalStateException("Retrieving certificate verification data required retrieval of the certificate beforehand.");
 		}
 		
@@ -62,10 +65,12 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 			
 			// fetch/create service in order to see if we can handle the signer's CA
 			CertificateVerificationDataService ltvVerificationInfoService = CertificateVerificationDataService.getInstance();
-			if (ltvVerificationInfoService.canHandle(requestedSignature.getCertificate(), settings)) {
+			if (ltvVerificationInfoService.canHandle(eeCertificate, settings)) {
 				// yes, we can
 				log.debug("Retrieving LTV verification info.");
-				ltvVerificationInfo = ltvVerificationInfoService.getCertificateVerificationData(requestedSignature.getCertificate(), settings);
+				ltvVerificationInfo = ltvVerificationInfoService.getCertificateVerificationData(eeCertificate, settings);
+			} else {
+				log.info("Unable to handle LTV retrieval for signer certificate with issuer (ski: {}): {}", CertificateUtils.getAuthorityKeyIdentifierHexString(eeCertificate), eeCertificate.getIssuerDN());
 			}
 
 		} catch (Exception e) {
@@ -88,7 +93,7 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 						"No LTV data available for the signers certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
 				);
 			} else {
-				log.info("No LTV data available for the signers certificate. Do not LTV-enable signature.");
+				log.debug("No LTV data available for the signer's certificate.");
 			}
 
 		}

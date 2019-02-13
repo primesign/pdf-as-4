@@ -277,7 +277,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 							"No LTV data available for the signers certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
 					);
 				} else {
-					log.info("No LTV data available for the signers certificate. Do not LTV-enable signature.");
+					log.debug("No LTV data available for the signers certificate.");
 				}
 
 			}
