@@ -672,13 +672,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				IOUtils.closeQuietly(readReadyFile);
 			}
 		} catch (IOException e) {
-			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+			logger.info(MessageResolver.resolveMessage("error.pdf.sig.01") + ": {}", e.toString());
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} catch (SignatureException e) {
-			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+			logger.info(MessageResolver.resolveMessage("error.pdf.sig.01") + ": {}", e.toString());
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} catch (COSVisitorException e) {
-			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+			logger.info(MessageResolver.resolveMessage("error.pdf.sig.01") + ": {}", e.toString());
 			throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
 			if (doc != null) {
