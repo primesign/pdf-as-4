@@ -79,7 +79,11 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 		}
 		log.debug("Adding LTV info to document.");
 		addDSS(Objects.requireNonNull(pdDocument), ltvVerificationInfo);
-		log.info("Successfully added LTV info to document.");
+		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs()) || CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
+			log.info("LTV data (certchain and revocation info) added to document.");
+		} else {
+			log.info("LTV data (certchain but no revocation info) added to document.");
+		}
 	}
 	
 	/**
