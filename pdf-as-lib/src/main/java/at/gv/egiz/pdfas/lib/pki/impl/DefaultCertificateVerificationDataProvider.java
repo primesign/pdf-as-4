@@ -126,7 +126,7 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 				try {
 					ocspResponse = ocspClient.getOcspResponse(issuerCertificate, subjectCertificate);
 				} catch (Exception e) {
-					log.warn("Unable to retrieve OCSP response.", e);
+					log.info("Unable to retrieve OCSP response: {}", String.valueOf(e));
 				}
 			}
 			
@@ -206,7 +206,7 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 					if (x509Crl != null) {
 						crls.add(x509Crl);
 					} else if (lastException != null) {
-						log.warn("Unable to load CRL.", lastException);
+						log.info("Unable to load CRL: {}", String.valueOf(lastException));
 					}
 				}
 				
