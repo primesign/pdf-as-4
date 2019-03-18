@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>at.gv.egiz.pdfas</groupId>
 		<artifactId>pdf-as</artifactId>
-		<version>4.1.1-PS-8-SNAPSHOT</version>
+		<version>4.1.1-PS-8</version>
 	</parent>
 
 	<groupId>at.gv.egiz.pdfas</groupId>
 	<artifactId>pdf-as-moa</artifactId>
-	<version>4.1.1-PS-8-SNAPSHOT</version>
+	<version>4.1.1-PS-8</version>
 
 	<build>
 
