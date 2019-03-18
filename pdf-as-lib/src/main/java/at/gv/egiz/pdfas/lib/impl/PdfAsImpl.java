@@ -244,7 +244,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			if (pdfAsError.getCode() == 6001) {
 				logger.info("Signature cancelled by the citizen via the user interface.");
 			} else {
-				logger.warn("Failed to create signature [" + e.getMessage() + "]", e);
+				logger.info("Failed to create signature: {}", String.valueOf(e));
 			}
 			throw pdfAsError;
 		} finally {
