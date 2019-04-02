@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -34,6 +34,7 @@ import iaik.asn1.structures.Attribute;
 import iaik.asn1.structures.ChoiceOfTime;
 import iaik.cms.ContentInfo;
 import iaik.cms.IssuerAndSerialNumber;
+import iaik.cms.SecurityProvider;
 import iaik.cms.SignedData;
 import iaik.cms.SignerInfo;
 import iaik.smime.ess.ESSCertID;
@@ -49,6 +50,7 @@ import java.security.KeyStore.PasswordProtection;
 import java.security.KeyStore.PrivateKeyEntry;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
@@ -76,11 +78,11 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			.getLogger(PAdESSignerKeystore.class);
 
 	private static final String fallBackProvider = "SunJSSE";
-	
+
 	public static final String SIGNATURE_DEVICE = "JKS";
 
-	PrivateKey privKey;
-	X509Certificate cert;
+	private PrivateKey privKey;
+	private X509Certificate cert;
 
 	private void readKeyStore(KeyStore ks, String alias, String keypassword)  throws Throwable {
 		if (keypassword == null) {
@@ -121,8 +123,8 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 
 		cert = new X509Certificate(c.getEncoded());
 	}
-	
-	private KeyStore buildKeyStoreFromFile(String file, String kspassword, 
+
+	private KeyStore buildKeyStoreFromFile(String file, String kspassword,
 			String type, String provider)  throws Throwable {
 		String viusalProvider = (provider == null ? "IAIK" : provider);
 		logger.info("Opening Keystore: " + file + " with [" + viusalProvider
@@ -152,7 +154,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 		}
 		return ks;
 	}
-	
+
 	private void loadKeystore(String file, String alias, String kspassword,
 			String keypassword, String type, String provider) throws Throwable {
 
@@ -169,7 +171,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			throw new PDFASError(PDFASError.ERROR_SIG_FAILED_OPEN_KS, e);
 		}
 	}
-	
+
 	public PAdESSignerKeystore(String file, String alias, String kspassword,
 			String keypassword, String type) throws PDFASError {
 		try {
@@ -189,18 +191,18 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			}
 		}
 	}
-	
+
 	public PAdESSignerKeystore(PrivateKey privKey, java.security.cert.Certificate cert) throws PDFASError {
 		if(cert == null) {
 			logger.error("PAdESSignerKeystore provided certificate is NULL");
 			throw new NullPointerException();
 		}
-		
+
 		if(privKey == null) {
 			logger.error("PAdESSignerKeystore provided private Key is NULL");
 			throw new NullPointerException();
 		}
-		
+
 		if(cert instanceof X509Certificate) {
 			this.cert = (X509Certificate)cert;
 		} else {
@@ -212,7 +214,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 				throw new PDFASError(PDFASError.ERROR_INVALID_CERTIFICATE, e);
 			}
 		}
-		
+
 		this.privKey = privKey;
 	}
 
@@ -291,6 +293,35 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 		signerInfo.setSignedAttributes(attributeArray);
 	}
 
+	/**
+	 * Allows overriding classes to provide a custom CMS Security Provider allowing to override default cryptographic
+	 * operations.
+	 * <p>
+	 * If no Security Provider is provided (returning {@code null}, which ist the default of this method)
+	 * {@link iaik.cms.IaikProvider IAIK CMS provider} is used.
+	 * </p>
+	 * <p>
+	 * The returned {@link SecurityProvider} may use (override) the following method (among others) in order to extends
+	 * support for cryptographic devices like hardware security modules:
+	 * </p>
+	 * <ul>
+	 * <li>{@link SecurityProvider#calculateSignatureFromHash(AlgorithmID, AlgorithmID, PrivateKey, byte[])
+	 * calculateSignatureFromHash(...)}: to calculate the signature value from the message hash</li>
+	 * </ul>
+	 * <p>
+	 * Further note about <strong>thread safety</strong>: In case this keystore implementation is concurrently used by
+	 * different threads and the caller makes use of this method, a new SecurityProvider should be provided for each
+	 * concurrent use (since {@link iaik.cms.SecurityProvider} is not thread-safe as it uses {@link SecureRandom} in
+	 * singleton manner) or other synchronization measures should be taken (e.g. synchronizing keystore invocations,
+	 * using {@link ThreadLocal ThreadLocal&lt;SecurityProvider&gt;}, ...).
+	 * </p>
+	 *
+	 * @return The Security Provider (may be {@code null}).
+	 */
+	public SecurityProvider getSecurityProvider() {
+		return null;
+	}
+
 	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter,
 			RequestedSignature requestedSignature) throws PdfAsException {
 		try {
@@ -300,7 +331,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
 			requestedSignature.getStatus().getMetaInformations()
 			.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION, PdfAsFactory.getVersion());
-			
+
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 
 			AlgorithmID[] algorithms = CertificateUtils.getAlgorithmIDs(cert);
@@ -309,6 +340,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 					algorithms[0], privKey);
 
 			SignedData si = new SignedData(input, SignedData.EXPLICIT);
+			si.setSecurityProvider(getSecurityProvider());
 			si.addCertificates(new Certificate[] { cert });
 
 
@@ -338,10 +370,10 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 				; // skip data
 			ContentInfo ci = new ContentInfo(si);
 			byte[] signature = ci.getEncoded();
-			
+
 			VerifyResult verifyResult = SignatureUtils.verifySignature(
 					signature, input);
-			
+
 			return signature;
 		} catch (NoSuchAlgorithmException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
