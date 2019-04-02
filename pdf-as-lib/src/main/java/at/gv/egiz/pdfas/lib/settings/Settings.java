@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.lib.settings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,13 +68,16 @@ public class Settings implements ISettings, IProfileConstants {
 
     private void loadSettingsRecursive(File workDirectory, File file)
             throws PdfAsSettingsException {
-        try {
-            String configDir = workDirectory.getAbsolutePath() + File.separator
-                    + CFG_DIR;
-            Properties tmpProps = new Properties();
-            logger.debug("Loading: " + file.getName());
-            tmpProps.load(new FileInputStream(file));
 
+    	String configDir = workDirectory.getAbsolutePath() + File.separator
+    			+ CFG_DIR;
+
+    	logger.debug("Loading: " + file.getName());
+
+    	try (InputStream in = new FileInputStream(file)) {
+
+    		Properties tmpProps = new Properties();
+            tmpProps.load(in);
             properties.putAll(tmpProps);
 
             Map<String, String> includes = this.getValuesPrefix(INCLUDE,
@@ -349,10 +353,10 @@ public class Settings implements ISettings, IProfileConstants {
         buildProfiles();
         /*
          * logger.debug("Loading cfg file: " + configFile);
-		 * 
-		 * 
+		 *
+		 *
 		 * properties.load(new FileInputStream(configFile));
-		 * 
+		 *
 		 * Map<String, String> includes = this.getValuesPrefix(INCLUDE); File
 		 * contextFolder = new File(configDir); if (includes != null) {
 		 * Iterator<String> includeIterator = includes.values().iterator();
@@ -361,7 +365,7 @@ public class Settings implements ISettings, IProfileConstants {
 		 * WildcardFileFilter fileFilter = new WildcardFileFilter(
 		 * includeFileName, IOCase.SENSITIVE); Collection<File> includeFiles =
 		 * null;
-		 * 
+		 *
 		 * if (contextFolder != null && contextFolder.exists() &&
 		 * contextFolder.isDirectory()) { includeFiles =
 		 * FileUtils.listFiles(contextFolder, fileFilter, null); } if
