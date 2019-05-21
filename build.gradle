@@ -72,7 +72,7 @@ subprojects {
 	    archives sourcesJar
 	}
 
-	sourceCompatibility = 1.7
+	sourceCompatibility = 1.8
 	project.ext{
 		releaseRepoUrl = "file://${project(':').projectDir}/../mvn-repo/releases"
 		snapshotRepoUrl = "file://${project(':').projectDir}/../mvn-repo/snapshots"
