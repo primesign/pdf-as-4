@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -36,41 +36,42 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class SLMarschaller {
-	private static Marshaller marshaller = null;
-	private static Unmarshaller unmarshaller = null;
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(SLMarschaller.class);
-	
+	private SLMarschaller() {
+	}
+
+	private static final JAXBContext context;
+
 	static {
 		try {
-			JAXBContext context = JAXBContext.newInstance("at.gv.egiz.sl.schema");
-			marshaller = context.createMarshaller();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-
-			unmarshaller = context.createUnmarshaller();
+			context = JAXBContext.newInstance("at.gv.egiz.sl.schema"); // thread-safe
 		} catch (JAXBException e) {
-			logger.error("Error in creating JAXBContext", e);
-			throw new RuntimeException(
-					"There was a problem creating a JAXBContext object for formatting the object to XML.");
+			throw new IllegalStateException("Unable to create JAXBContext.", e);
 		}
 	}
 
+	private static Marshaller createMarshaller() throws JAXBException {
+		Marshaller marshaller = context.createMarshaller(); // Marshaller is not thread-safe!
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		return marshaller;
+	}
+
+	private static Unmarshaller createUnmarshaller() throws JAXBException {
+		return context.createUnmarshaller(); // Unmarshaller is not thread-safe!
+	}
+
 	public static void marshal(Object obj, OutputStream os) throws JAXBException {
-		marshaller.marshal(obj, os);
+		createMarshaller().marshal(obj, os);
 	}
 
 	public static String marshalToString(Object obj) throws JAXBException {
 		StringWriter sw = new StringWriter();
-		marshaller.marshal(obj, sw);
+		createMarshaller().marshal(obj, sw);
 		return sw.toString();
 	}
-	
+
 	public static Object unmarshal(InputStream is) throws JAXBException {
 		XMLInputFactory xif = null;
 		try {
@@ -84,13 +85,13 @@ public class SLMarschaller {
         XMLStreamReader xmlStreamReader;
 		try {
 			xmlStreamReader = xif.createXMLStreamReader(is);
-			return unmarshaller.unmarshal(xmlStreamReader);
+			return createUnmarshaller().unmarshal(xmlStreamReader);
 		} catch (XMLStreamException e) {
 			throw new JAXBException(e);
 		}
-		
+
 	}
-	
+
 	public static Object unmarshalFromString(String message) throws JAXBException {
 		StringReader sr = new StringReader(message);
 		XMLInputFactory xif = null;
@@ -100,15 +101,16 @@ public class SLMarschaller {
 			// Fallback for old STAX implementations
 			xif = XMLInputFactory.newInstance();
 		}
-		
+
         xif.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
         xif.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         XMLStreamReader xmlStreamReader;
 		try {
 			xmlStreamReader = xif.createXMLStreamReader(sr);
-			return unmarshaller.unmarshal(xmlStreamReader);
+			return createUnmarshaller().unmarshal(xmlStreamReader);
 		} catch (XMLStreamException e) {
 			throw new JAXBException(e);
 		}
 	}
+
 }
