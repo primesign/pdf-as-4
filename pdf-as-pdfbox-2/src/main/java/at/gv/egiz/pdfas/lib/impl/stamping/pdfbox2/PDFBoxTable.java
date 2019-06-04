@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -27,6 +27,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +51,7 @@ public class PDFBoxTable {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PDFBoxTable.class);
-	
+
 	private static final String NBSPACE = '\u00A0'+"";
 
 	Table table;
@@ -72,41 +74,69 @@ public class PDFBoxTable {
 	PDDocument originalDoc;
 
 	PDFBOXObject pdfBoxObject;
-	
-	private void normalizeContent(Table abstractTable) throws PdfAsException {
-		try {
-			int rows = abstractTable.getRows().size();
-			for (int i = 0; i < rows; i++) {
-				ArrayList<Entry> row = this.table.getRows().get(i);
-				for (int j = 0; j < row.size(); j++) {
-					Entry cell = (Entry) row.get(j);
 
-					switch (cell.getType()) {
-					case Entry.TYPE_CAPTION:
-					case Entry.TYPE_VALUE:
-						String value = (String) cell.getValue();
-						
-						//Check if the used value font supports all characters in string
-						PDFont f = null;
-						try{
-							if(valueFont != null){
-								f = valueFont.getFont();
-								f.getStringWidth(value);
-							}
-						}catch(IllegalArgumentException | IOException e){
-							if(f!=null){
-								logger.warn("Font "+f.getName()+" doesnt support a character in the value "+value);
-							}
-							value = StringUtils.convertStringToPDFFormat(value);
-							cell.setValue(value);
+	/**
+	 * Normalizes a given text making sure each character is either covered by WinAnsiEncoding or canonically replaced
+	 * by a WinAnsi-compatible character.
+	 *
+	 * @param text The source text (optional; may be {@code null}).
+	 * @return The normalized text (may be {@code null}).
+	 */
+	private String normalizeText(String text) {
+		if (text == null) {
+			return null;
+		}
+
+		// canonical decomposition, followed by canonical composition
+		// for the case the text comes in already decomposed form (we want to evaluate char by char)
+		String preNormalizedText = Normalizer.normalize(text, Form.NFC);
+
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (int i = 0; i < preNormalizedText.length(); i++) {
+			char c = preNormalizedText.charAt(i); // fastest approach (refer to https://stackoverflow.com/a/11876086)
+			if (!org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding.INSTANCE.contains(c)) {
+				// normalize character
+				stringBuilder.append(org.apache.commons.lang3.StringUtils.stripAccents(String.valueOf(c)));
+			} else {
+				stringBuilder.append(c);
+			}
+		}
+
+		return stringBuilder.toString();
+
+	}
+
+	private void normalizeContent(Table abstractTable) throws PdfAsException {
+		int rows = abstractTable.getRows().size();
+		for (int i = 0; i < rows; i++) {
+			ArrayList<Entry> row = this.table.getRows().get(i);
+			for (int j = 0; j < row.size(); j++) {
+				Entry cell = (Entry) row.get(j);
+
+				switch (cell.getType()) {
+				case Entry.TYPE_CAPTION:
+				case Entry.TYPE_VALUE:
+					String value = (String) cell.getValue();
+
+					//Check if the used value font supports all characters in string
+					PDFont f = null;
+					try{
+						if(valueFont != null){
+							f = valueFont.getFont();
+							f.getStringWidth(value);
 						}
-						
-						break;
+					}catch(IllegalArgumentException | IOException e){
+						if(f!=null){
+							logger.warn("Font "+f.getName()+" doesnt support a character in the value "+value);
+						}
+						value = normalizeText(value);
+						cell.setValue(value);
 					}
+
+					break;
 				}
 			}
-		} catch (UnsupportedEncodingException e) {
-			throw new PdfAsException("Unsupported Encoding", e);
 		}
 	}
 
@@ -157,7 +187,7 @@ public class PDFBoxTable {
 		padding = style.getPadding();
 
 		bgColor = style.getBgColor();
-		
+
 		try {
 			normalizeContent(abstractTable);
 		} catch (PdfAsException e) {
@@ -352,7 +382,7 @@ public class PDFBoxTable {
 				float maxWidth = 0;
 				string = string.replace(NBSPACE, " ");
 				String[] lines = string.split("\n");
-				
+
 				for (int i = 0; i < lines.length; i++) {
 					float w = c.getStringWidth(lines[i]) / 1000 * fontSize;
 					if (maxWidth < w) {
@@ -419,7 +449,7 @@ public class PDFBoxTable {
 					// }
 					String tmpLine = cLineValue + subword;
 					tmpLine = tmpLine.replace(NBSPACE, " ");
-					
+
 					float size = font.getStringWidth(tmpLine) / 1000.0f
 							* fontSize;
 					if (size > maxwidth && cLineValue.length() != 0) {
@@ -431,7 +461,7 @@ public class PDFBoxTable {
 			} else {
 				String tmpLine = cLineValue + word;
 				tmpLine = tmpLine.replace(NBSPACE, " ");
-				
+
 				float size = font.getStringWidth(tmpLine) / 1000.0f * fontSize;
 				if (size > maxwidth && cLineValue.length() != 0) {
 					lines.add(cLineValue.trim());
