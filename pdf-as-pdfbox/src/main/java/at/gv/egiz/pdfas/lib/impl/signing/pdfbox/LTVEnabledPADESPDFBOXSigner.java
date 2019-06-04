@@ -47,7 +47,7 @@ import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 
 /**
  * Provides support for enriching PAdES signatures with LTV related information.
- * 
+ *
  * @author Thomas Knall, PrimeSign GmbH
  * @see <a href=
  *      "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
@@ -55,12 +55,12 @@ import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
  *
  */
 public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
-	
+
 	private Logger log = LoggerFactory.getLogger(LTVEnabledPADESPDFBOXSigner.class);
-	
+
 	/**
 	 * Adds previously collected LTV verification data to the provided pdf document.
-	 * 
+	 *
 	 * @param pdDocument
 	 *            The pdf document (required; must not be {@code null}).
 	 * @param ltvVerificationInfo
@@ -85,12 +85,12 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			log.info("LTV data (certchain but no revocation info) added to document.");
 		}
 	}
-	
+
 	/**
 	 * Adds the DSS dictionary as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
 	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
-	 * 
+	 *
 	 * @param pdDocument
 	 *            The pdf document (required; must not be {@code null}).
 	 * @param ltvVerificationInfo
@@ -105,7 +105,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	private void addDSS(PDDocument pdDocument, CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
 		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
 		PDDocumentCatalog root = Objects.requireNonNull(pdDocument).getDocumentCatalog();
-		COSDictionary dssDictionary = (COSDictionary) root.getCOSDictionary().getDictionaryObject(COSNAME_DSS); 
+		COSDictionary dssDictionary = (COSDictionary) root.getCOSDictionary().getDictionaryObject(COSNAME_DSS);
 		if (dssDictionary == null) {
 			log.trace("Adding new DSS dictionary.");
 			// add new DSS dictionary
@@ -114,27 +114,27 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			root.getCOSObject().setNeedToBeUpdate(true);
 		}
 		dssDictionary.setNeedToBeUpdate(true);
-	
+
 		// DSS/Certs
 		addDSSCerts(pdDocument, dssDictionary, ltvVerificationInfo.getChainCerts());
-		
+
 		// DSS/OCSPs
 		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
 			addDSSOCSPs(pdDocument, dssDictionary, ltvVerificationInfo.getEncodedOCSPResponses());
 		}
-		
+
 		// DSS/CRLs
 		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs())) {
 			addDSSCRLs(pdDocument, dssDictionary, ltvVerificationInfo.getCRLs());
 		}
-		
+
 	}
-	
+
 	/**
 	 * Adds the "Certs" dictionary to DSS dictionary as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
 	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
-	 * 
+	 *
 	 * @param pdDocument
 	 *            The pdf document (required; must not be {@code null}).
 	 * @param dssDictionary
@@ -169,12 +169,12 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			}
 		}
 	}
-	
+
 	/**
 	 * Adds the "OCSPs" dictionary to DSS dictionary as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
 	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
-	 * 
+	 *
 	 * @param pdDocument
 	 *            The pdf document (required; must not be {@code null}).
 	 * @param dssDictionary
@@ -195,7 +195,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			dssDictionary.setItem(COSNAME_OCSPS, ocspssArray);
 		}
 		ocspssArray.setNeedToBeUpdate(true);
-		
+
 		for (byte[] encodedOcspResponse : encodedOcspResponses) {
 			try (InputStream in = new ByteArrayInputStream(encodedOcspResponse)) {
 				PDStream pdStream = new PDStream(pdDocument, in);
@@ -209,7 +209,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * Adds the "CRLs" dictionary to DSS dictionary as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
 	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
-	 * 
+	 *
 	 * @param pdDocument
 	 *            The pdf document (required; must not be {@code null}).
 	 * @param dssDictionary
@@ -232,7 +232,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			dssDictionary.setItem(COSNAME_CRLS, crlsArray);
 		}
 		crlsArray.setNeedToBeUpdate(true);
-		
+
 		for (X509CRL crl : crls) {
 			try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
 				PDStream pdStream = new PDStream(pdDocument, in);
@@ -244,18 +244,18 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 
 	@Override
 	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
-		
+
 		// LTV mode controls if and how retrieval/embedding LTV data will be done
 		LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
 		log.trace("LTV mode: {}", ltvMode);
 
 		if (ltvMode != LTVMode.NONE) {
-			
+
 			CertificateVerificationData ltvVerificationInfo = requestedSignature.getCertificateVerificationData();
 
 			// Did we get data to be embedded with signature ?
 			if (ltvVerificationInfo != null) {
-				
+
 				// yes, add data to pdf
 				try {
 					addLTVInfo(pdDocument, ltvVerificationInfo);
@@ -271,23 +271,23 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 					// we do not supress I/O errors (regardless of LTV mode)
 					throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
 				}
-				
+
 			} else {
 
 				// no data available, LTV mode controls how this case is handled
 				if (ltvMode == LTVMode.REQUIRED) {
 					throw new PDFASError(
 							ErrorConstants.ERROR_SIG_PADESLTV_NO_DATA,
-							"No LTV data available for the signers certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
+							"No LTV data available for the signer's certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
 					);
 				} else {
-					log.debug("No LTV data available for the signers certificate.");
+					log.debug("No LTV data available for the signer's certificate.");
 				}
 
 			}
-			
+
 		} else {
-			log.debug("Did not add LTV related data since LTV mode was {}.", ltvMode); 
+			log.debug("Did not add LTV related data since LTV mode was {}.", ltvMode);
 		}
 
 	}
