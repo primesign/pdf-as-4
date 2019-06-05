@@ -31,9 +31,11 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,18 +94,48 @@ public class PDFBoxTable {
 		String preNormalizedText = Normalizer.normalize(text, Form.NFC);
 
 		StringBuilder stringBuilder = new StringBuilder();
-
 		for (int i = 0; i < preNormalizedText.length(); i++) {
 			char c = preNormalizedText.charAt(i); // fastest approach (refer to https://stackoverflow.com/a/11876086)
-			if (!org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding.INSTANCE.contains(c)) {
-				// normalize character
-				stringBuilder.append(org.apache.commons.lang3.StringUtils.stripAccents(String.valueOf(c)));
-			} else {
-				stringBuilder.append(c);
-			}
+			stringBuilder.append(normalizeCharacter(c));
 		}
 
-		return stringBuilder.toString();
+		String normalizedText = stringBuilder.toString();
+		if (!normalizedText.equals(text)) {
+			logger.debug("Normalizing text for visual signature representation: \"{}\" -> \"{}\"", text, normalizedText);
+		}
+
+		return normalizedText;
+	}
+
+	/**
+	 * Normalizes a given character making sure the (given) character is either covered by WinAnsiEncoding or
+	 * canonically replaced by a WinAnsi-compatible character.
+	 *
+	 * @param character The given character.
+	 * @return The given character if WinAnsi-compatible, a WinAnsi-compatible equivalent (if possible) or a question mark.
+	 */
+	private char normalizeCharacter(char character) {
+
+		// first stage: is the given character already WinAnsi-compatible ?
+		if (WinAnsiEncoding.INSTANCE.contains(character)) {
+			return character;
+		}
+
+		// second stage: use tool to strip accents (does not cover all diacritics)
+		char withoutAccent = org.apache.commons.lang3.StringUtils.stripAccents(String.valueOf(character)).charAt(0);
+		// is the result already WinAnsi-compatible?
+		if (WinAnsiEncoding.INSTANCE.contains(withoutAccent)) {
+			return withoutAccent;
+		}
+
+		// third stage: use internal map (not necessarily complete) to replace diacritic characters with their WinAnsi-compatible counterparts
+		Optional<Character> nonDiacritic = StringUtils.replaceDiacritic(withoutAccent);
+		if (nonDiacritic.isPresent()) {
+			return nonDiacritic.get();
+		}
+
+		logger.info("Unable to map diacritic character '{}' ({}) to any non-diacritic counterpart.", withoutAccent, String.format ("\\u%04x", (int)withoutAccent));
+		return '?';
 
 	}
 
