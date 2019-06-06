@@ -96,7 +96,12 @@ public class PDFBoxTable {
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int i = 0; i < preNormalizedText.length(); i++) {
 			char c = preNormalizedText.charAt(i); // fastest approach (refer to https://stackoverflow.com/a/11876086)
-			stringBuilder.append(normalizeCharacter(c));
+			if (c == '\n') {
+				// skip normalization for newline which is used for layout control and is not a character actually
+				stringBuilder.append(c);
+			} else {
+				stringBuilder.append(normalizeCharacter(c));
+			}
 		}
 
 		String normalizedText = stringBuilder.toString();
