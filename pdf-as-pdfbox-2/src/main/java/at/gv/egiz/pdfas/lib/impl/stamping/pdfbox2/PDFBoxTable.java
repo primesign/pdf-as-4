@@ -27,11 +27,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -43,6 +40,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.ImageUtils;
+import at.gv.egiz.pdfas.common.utils.PDFTextNormalizationUtils;
 import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
 import at.knowcenter.wag.egov.egiz.table.Entry;
@@ -77,73 +75,6 @@ public class PDFBoxTable {
 
 	PDFBOXObject pdfBoxObject;
 
-	/**
-	 * Normalizes a given text making sure each character is either covered by WinAnsiEncoding or canonically replaced
-	 * by a WinAnsi-compatible character.
-	 *
-	 * @param text The source text (optional; may be {@code null}).
-	 * @return The normalized text (may be {@code null}).
-	 */
-	private String normalizeText(String text) {
-		if (text == null) {
-			return null;
-		}
-
-		// canonical decomposition, followed by canonical composition
-		// for the case the text comes in already decomposed form (we want to evaluate char by char)
-		String preNormalizedText = Normalizer.normalize(text, Form.NFC);
-
-		StringBuilder stringBuilder = new StringBuilder();
-		for (int i = 0; i < preNormalizedText.length(); i++) {
-			char c = preNormalizedText.charAt(i); // fastest approach (refer to https://stackoverflow.com/a/11876086)
-			if (c == '\n') {
-				// skip normalization for newline which is used for layout control and is not a character actually
-				stringBuilder.append(c);
-			} else {
-				stringBuilder.append(normalizeCharacter(c));
-			}
-		}
-
-		String normalizedText = stringBuilder.toString();
-		if (!normalizedText.equals(text)) {
-			logger.debug("Normalizing text for visual signature representation: \"{}\" -> \"{}\"", text, normalizedText);
-		}
-
-		return normalizedText;
-	}
-
-	/**
-	 * Normalizes a given character making sure the (given) character is either covered by WinAnsiEncoding or
-	 * canonically replaced by a WinAnsi-compatible character.
-	 *
-	 * @param character The given character.
-	 * @return The given character if WinAnsi-compatible, a WinAnsi-compatible equivalent (if possible) or a question mark.
-	 */
-	private char normalizeCharacter(char character) {
-
-		// first stage: is the given character already WinAnsi-compatible ?
-		if (WinAnsiEncoding.INSTANCE.contains(character)) {
-			return character;
-		}
-
-		// second stage: use tool to strip accents (does not cover all diacritics)
-		char withoutAccent = org.apache.commons.lang3.StringUtils.stripAccents(String.valueOf(character)).charAt(0);
-		// is the result already WinAnsi-compatible?
-		if (WinAnsiEncoding.INSTANCE.contains(withoutAccent)) {
-			return withoutAccent;
-		}
-
-		// third stage: use internal map (not necessarily complete) to replace diacritic characters with their WinAnsi-compatible counterparts
-		Optional<Character> nonDiacritic = StringUtils.replaceDiacritic(withoutAccent);
-		if (nonDiacritic.isPresent()) {
-			return nonDiacritic.get();
-		}
-
-		logger.info("Unable to map diacritic character '{}' ({}) to any non-diacritic counterpart.", withoutAccent, String.format ("\\u%04x", (int)withoutAccent));
-		return '?';
-
-	}
-
 	private void normalizeContent(Table abstractTable) throws PdfAsException {
 		int rows = abstractTable.getRows().size();
 		for (int i = 0; i < rows; i++) {
@@ -167,8 +98,7 @@ public class PDFBoxTable {
 						if(f!=null){
 							logger.warn("Font "+f.getName()+" doesnt support a character in the value "+value);
 						}
-						value = normalizeText(value);
-						cell.setValue(value);
+						cell.setValue(PDFTextNormalizationUtils.normalizeText(value, WinAnsiEncoding.INSTANCE::contains));
 					}
 
 					break;
