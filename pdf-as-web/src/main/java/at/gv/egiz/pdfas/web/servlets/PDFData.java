@@ -160,6 +160,7 @@ public class PDFData extends HttpServlet {
 				logger.debug("Keeping signed data in session : {}", request.getSession().getId());
 			}
 		} else {
+			logger.info("No signed pdf document available.");
 			PdfAsHelper.setSessionException(request, response,
 					"No signed pdf document available.", null);
 			PdfAsHelper.gotoError(getServletContext(), request, response);
