@@ -13,8 +13,6 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64Encoder;
 import org.jose4j.jwa.AlgorithmConstraints;

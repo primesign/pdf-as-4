@@ -70,14 +70,13 @@ public class PlaceholderFilter implements IConfigurationConstants,
 					.extract(status.getPdfObject(), placeholderID, placeholderMode);
 
 			return signaturePlaceholderData;
-		} else
+		} else if (status.getPlaceholderConfiguration().isProfileConfigurationEnabled(status.getRequestedSignature().getSignatureProfileID())) {
 			//filter for local placeholder in selected profiles
-			if (status.getPlaceholderConfiguration().isProfileConfigurationEnabled(status.getRequestedSignature().getSignatureProfileID())) {
-				PlaceholderExtractor extractor = status.getBackend()
+			PlaceholderExtractor extractor = status.getBackend()
 						.getPlaceholderExtractor();
 				String placeholderID = settings.getValue(PLACEHOLDER_ID);
 				String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
-				int placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
+				int placeholderMode = PLACEHOLDER_MATCH_MODE_SORTED;
 				if (placeholderModeString != null) {
 					try {
 						placeholderMode = Integer.parseInt(placeholderModeString);
@@ -96,9 +95,6 @@ public class PlaceholderFilter implements IConfigurationConstants,
 						.extract(status.getPdfObject(), placeholderID, placeholderMode);
 
 				return signaturePlaceholderData;
-
-
-
 			}
 		return null;
 	}}

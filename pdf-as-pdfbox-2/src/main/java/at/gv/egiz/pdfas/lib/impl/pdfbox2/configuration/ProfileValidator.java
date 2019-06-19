@@ -102,8 +102,7 @@ public class ProfileValidator implements ConfigurationValidator{
 			} catch (Exception e) {
 				logger.info("Configuration Validation for profile "+id+" failed!");
 				throw new PdfAsSettingsValidationException("Configuration Validation for profile "+id+" failed!", e);
-			} 
-
+			}
 		}
 	}
 

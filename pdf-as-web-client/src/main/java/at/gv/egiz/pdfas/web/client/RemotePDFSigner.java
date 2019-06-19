@@ -39,7 +39,6 @@ import at.gv.egiz.pdfas.api.ws.PDFASSigning;
 public class RemotePDFSigner implements PDFASSigning {
 
 	private Service service;
-
 	private PDFASSigning proxy;
 
 	public RemotePDFSigner(URL endpoint, boolean useMTOM) {

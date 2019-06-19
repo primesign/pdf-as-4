@@ -28,6 +28,8 @@ import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 
 public class PlaceholderConfiguration extends SpecificBaseConfiguration 
 		implements IConfigurationConstants {
@@ -57,8 +59,9 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 	{
 		logger.info("SelectedProfileID in ProfileConfEnabled: "+selectedProfileID);
 		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_SEARCH_ENABLED;
-		if (configuration.hasValue(profileMatch)) {
-			String value = configuration.getValue(profileMatch);
+		if (configuration.getValuesPrefix(profileMatch)!=null) {
+			Map<String, String> map = configuration.getValuesPrefix(profileMatch);
+           String value =  map.get(profileMatch);
 			if (value.equalsIgnoreCase(TRUE)) {
 				logger.info("Configuration has Value: "+value);
 				return true;
@@ -67,6 +70,4 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 		return false;
 	}
 }
-
-	
 

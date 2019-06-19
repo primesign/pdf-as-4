@@ -115,10 +115,12 @@ public class TableFactory implements IProfileConstants {
         // ".value.";
         // ArrayList table_def_keys = settings_.getKeys(table_key);
         Vector<String> table_defs = configuration.getFirstLevelKeys(table_key);
+
         if (table_defs == null)
         {
             return null;
         }
+
         Table sig_table = new Table(tableID);
         //SignatureProfileSettings profile = createProfile(profileID);
         boolean found_style = false;
