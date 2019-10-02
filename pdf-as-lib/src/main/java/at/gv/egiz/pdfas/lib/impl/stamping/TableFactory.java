@@ -30,8 +30,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ibm.icu.text.Transliterator;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
@@ -190,6 +193,18 @@ public class TableFactory implements IProfileConstants {
                     	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String value = profile.getValue(key);
                         String resolvedValue = resolver.resolve(key, value, profile);
+
+                        if (resolvedValue != null) {
+                        	String transformPattern = StringUtils.trimToNull(StringUtils.defaultString(profile.getProfileTransformPattern(key), profile.getProfileTransformPattern()));
+                        	if (transformPattern != null) {
+                        		String transliteratedValue = Transliterator.getInstance(transformPattern).transliterate(resolvedValue);
+                        		if (!resolvedValue.equals(transliteratedValue)) {
+                        			logger.debug("Transliterate signature block entry {} using ICU4J pattern '{}': '{}' -> '{}'", key, transformPattern, resolvedValue, transliteratedValue);
+                        			resolvedValue = transliteratedValue;
+                        		}
+                        	}
+                        }
+
                         Entry entry = new Entry(Entry.TYPE_VALUE, resolvedValue, key);
                         entry.setStyle(defaultValueStyle_);
                         row.add(entry);
@@ -221,6 +236,18 @@ public class TableFactory implements IProfileConstants {
                         c_entry.setStyle(defaultCaptionStyle_);
                         ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String resolvedValue = resolver.resolve(key, value, profile);
+
+                        if (resolvedValue != null) {
+                        	String transformPattern = StringUtils.trimToNull(StringUtils.defaultString(profile.getProfileTransformPattern(key), profile.getProfileTransformPattern()));
+                        	if (transformPattern != null) {
+                        		String transliteratedValue = Transliterator.getInstance(transformPattern).transliterate(resolvedValue);
+                        		if (!resolvedValue.equals(transliteratedValue)) {
+                        			logger.debug("Transliterate signature block entry {} using ICU4J pattern '{}': '{}' -> '{}'", key, transformPattern, resolvedValue, transliteratedValue);
+                        			resolvedValue = transliteratedValue;
+                        		}
+                        	}
+                        }
+
                         Entry v_entry = new Entry(Entry.TYPE_VALUE, resolvedValue, key);
                         v_entry.setStyle(defaultValueStyle_);
                         row.add(c_entry);
