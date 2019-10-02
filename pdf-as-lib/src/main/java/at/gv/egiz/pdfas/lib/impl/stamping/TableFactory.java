@@ -26,7 +26,6 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 import static at.gv.egiz.pdfas.common.utils.StringUtils.extractLastID;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -40,7 +39,6 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
-import at.knowcenter.wag.egov.egiz.pdf.sig.SignatureEntry;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
@@ -64,11 +62,6 @@ public class TableFactory implements IProfileConstants {
      * The default style definition for values.
      */
     private static Style defaultValueStyle_ = new Style();
-
-    /**
-     * Reference from signature key to there corresponding value
-     */
-    private static Hashtable<String, SignatureEntry> sigEntries_ = new Hashtable<String, SignatureEntry>(8);
 
     static {
         setDefaultStyles();
@@ -268,68 +261,6 @@ public class TableFactory implements IProfileConstants {
 
     public static SignatureProfileSettings createProfile(String profileID, ISettings configuration) {
         return new SignatureProfileSettings(profileID, configuration);
-    }
-
-    /**
-     * This method returns a value for a given signature key. If the key equals to
-     * <code>SIG_NORM</code> and the value is <code>null</code> the version
-     * string of the current normalizer is returned!
-     *
-     * @param key
-     *          the key to get the value for
-     * @return a value for the given key
-     */
-    public static String getSigValue(String key)
-    {
-
-        String value = null;
-        SignatureEntry sigEntry = null;
-        if (sigEntries_.containsKey(key))
-        {
-            sigEntry = sigEntries_.get(key);
-            value = sigEntry.getValue();
-        }
-        /*
-        if (value == null && SignatureTypes.SIG_NORM.equals(key))
-        {
-            value = normalizer_.getVersion();
-        }
-         */  /*
-        String overrideVal = OverridePropertyHolder.getProperty(key);
-        if (value != null && sigEntry != null && !sigEntry.isPlaceholder &&  overrideVal != null) { 
-            value = overrideVal;
-            if (logger.isDebugEnabled()) {
-                logger.debug("Using override property for key '" + key + "' = " + value);
-            }
-        }  */
-
-        return value;
-    }
-
-    /**
-     * This method returns a caption for a given signature key. If the key exists
-     * and the coresponding value is <code>null</code> the key itself is
-     * returned as caption! If the key does not exist the method returns
-     * <code>null</code>.
-     *
-     * @param key
-     *          the key to get the caption for
-     * @return a caption for the given key
-     */
-    @SuppressWarnings("unused")
-    private static String getSigCaption(String key)
-    {
-
-        String caption = null;
-        if (sigEntries_.containsKey(key))
-        {
-            caption = sigEntries_.get(key).getCaption();
-            if (caption == null)
-            {
-                caption = key;
-            }
-        }
-        return caption;
     }
 
     /**
