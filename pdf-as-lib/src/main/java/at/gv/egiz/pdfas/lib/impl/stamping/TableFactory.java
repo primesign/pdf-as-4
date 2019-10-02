@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -45,7 +45,6 @@ import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class TableFactory implements IProfileConstants {
 
-    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(TableFactory.class);
 
     /**
@@ -91,7 +90,7 @@ public class TableFactory implements IProfileConstants {
      * @param tableID
      *          is the name of the table definition in the settings file
      * @return a new abstract signature table
-     * @throws PdfAsSettingsException 
+     * @throws PdfAsSettingsException
      * @see at.knowcenter.wag.egov.egiz.table.Style
      * @see at.knowcenter.wag.egov.egiz.table.Table
      * @see at.knowcenter.wag.egov.egiz.table.Entry
@@ -112,6 +111,7 @@ public class TableFactory implements IProfileConstants {
         {
             return null;
         }
+
         Table sig_table = new Table(tableID);
         //SignatureProfileSettings profile = createProfile(profileID);
         boolean found_style = false;
@@ -189,21 +189,17 @@ public class TableFactory implements IProfileConstants {
                         // add a single value entry
                     	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String value = profile.getValue(key);
-                        Entry entry = new Entry(Entry.TYPE_VALUE, 
-                        		resolver.resolve(key, value, profile), key);
-                        if (entry != null)
-                        {
-                            //entry.setColSpan(2);
-                            entry.setStyle(defaultValueStyle_);
-                            row.add(entry);
-                        }
+                        String resolvedValue = resolver.resolve(key, value, profile);
+                        Entry entry = new Entry(Entry.TYPE_VALUE, resolvedValue, key);
+                        entry.setStyle(defaultValueStyle_);
+                        row.add(entry);
                     }
                     if (TYPE_CAPTION.equals(type))
                     {
                         // add a single value entry
                     	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String value = profile.getCaption(key);
-                        Entry entry = new Entry(Entry.TYPE_CAPTION, 
+                        Entry entry = new Entry(Entry.TYPE_CAPTION,
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
@@ -219,37 +215,17 @@ public class TableFactory implements IProfileConstants {
                         String value = profile.getValue(key);
                         //String caption = getSigCaption(key);
                         //String value = getSigValue(key);
-                        if (value != null)
-                        {
-                            Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
-                            c_entry.setNoWrap(true);  // dferbas fix bug #331
-                            c_entry.setStyle(defaultCaptionStyle_);
-                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
-                            Entry v_entry = new Entry(Entry.TYPE_VALUE, 
-                            		resolver.resolve(key, value, profile), key);
-                            v_entry.setStyle(defaultValueStyle_);
-                            if (c_entry != null && v_entry != null)
-                            {
-                                row.add(c_entry);
-                                row.add(v_entry);
-                            }
-                        } else {
-                            // RESOLV VALUE!!
-                            Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
-                            c_entry.setNoWrap(true);  // dferbas fix bug #331
-                            c_entry.setStyle(defaultCaptionStyle_);
 
-                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                        Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
+                        c_entry.setNoWrap(true);  // dferbas fix bug #331
+                        c_entry.setStyle(defaultCaptionStyle_);
+                        ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                        String resolvedValue = resolver.resolve(key, value, profile);
+                        Entry v_entry = new Entry(Entry.TYPE_VALUE, resolvedValue, key);
+                        v_entry.setStyle(defaultValueStyle_);
+                        row.add(c_entry);
+                        row.add(v_entry);
 
-                            Entry v_entry = new Entry(Entry.TYPE_VALUE,
-                                    resolver.resolve(key, value, profile), key);
-                            v_entry.setStyle(defaultValueStyle_);
-                            if (c_entry != null && v_entry != null)
-                            {
-                                row.add(c_entry);
-                                row.add(v_entry);
-                            }
-                        }
                     }
                 }
                 sig_table.addRow(table_def, row);
