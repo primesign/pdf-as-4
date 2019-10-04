@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>at.gv.egiz.pdfas</groupId>
 		<artifactId>signature-standards</artifactId>
-		<version>4.1.1-PS-13-SNAPSHOT</version>
+		<version>4.1.1-PS-13</version>
 	</parent>
 
 	<artifactId>sigs-pkcs7detached</artifactId>
