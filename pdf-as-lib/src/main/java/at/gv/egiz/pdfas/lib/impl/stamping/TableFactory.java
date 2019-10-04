@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -26,13 +26,15 @@ package at.gv.egiz.pdfas.lib.impl.stamping;
 import static at.gv.egiz.pdfas.common.utils.StringUtils.extractLastID;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.ibm.icu.text.Transliterator;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
@@ -40,14 +42,12 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
-import at.knowcenter.wag.egov.egiz.pdf.sig.SignatureEntry;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 import at.knowcenter.wag.egov.egiz.table.Style;
 import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class TableFactory implements IProfileConstants {
 
-    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(TableFactory.class);
 
     /**
@@ -64,11 +64,6 @@ public class TableFactory implements IProfileConstants {
      * The default style definition for values.
      */
     private static Style defaultValueStyle_ = new Style();
-
-    /**
-     * Reference from signature key to there corresponding value
-     */
-    private static Hashtable<String, SignatureEntry> sigEntries_ = new Hashtable<String, SignatureEntry>(8);
 
     static {
         setDefaultStyles();
@@ -98,7 +93,7 @@ public class TableFactory implements IProfileConstants {
      * @param tableID
      *          is the name of the table definition in the settings file
      * @return a new abstract signature table
-     * @throws PdfAsSettingsException 
+     * @throws PdfAsSettingsException
      * @see at.knowcenter.wag.egov.egiz.table.Style
      * @see at.knowcenter.wag.egov.egiz.table.Table
      * @see at.knowcenter.wag.egov.egiz.table.Entry
@@ -119,6 +114,7 @@ public class TableFactory implements IProfileConstants {
         {
             return null;
         }
+
         Table sig_table = new Table(tableID);
         //SignatureProfileSettings profile = createProfile(profileID);
         boolean found_style = false;
@@ -196,21 +192,29 @@ public class TableFactory implements IProfileConstants {
                         // add a single value entry
                     	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String value = profile.getValue(key);
-                        Entry entry = new Entry(Entry.TYPE_VALUE, 
-                        		resolver.resolve(key, value, profile), key);
-                        if (entry != null)
-                        {
-                            //entry.setColSpan(2);
-                            entry.setStyle(defaultValueStyle_);
-                            row.add(entry);
+                        String resolvedValue = resolver.resolve(key, value, profile);
+
+                        if (resolvedValue != null) {
+                        	String transformPattern = StringUtils.trimToNull(StringUtils.defaultString(profile.getProfileTransformPattern(key), profile.getProfileTransformPattern()));
+                        	if (transformPattern != null) {
+                        		String transliteratedValue = Transliterator.getInstance(transformPattern).transliterate(resolvedValue);
+                        		if (!resolvedValue.equals(transliteratedValue)) {
+                        			logger.debug("Transliterate signature block entry {} using ICU4J pattern '{}': '{}' -> '{}'", key, transformPattern, resolvedValue, transliteratedValue);
+                        			resolvedValue = transliteratedValue;
+                        		}
+                        	}
                         }
+
+                        Entry entry = new Entry(Entry.TYPE_VALUE, resolvedValue, key);
+                        entry.setStyle(defaultValueStyle_);
+                        row.add(entry);
                     }
                     if (TYPE_CAPTION.equals(type))
                     {
                         // add a single value entry
                     	 ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
                         String value = profile.getCaption(key);
-                        Entry entry = new Entry(Entry.TYPE_CAPTION, 
+                        Entry entry = new Entry(Entry.TYPE_CAPTION,
                         		resolver.resolve(key, value, profile), key);
                         if (entry != null)
                         {
@@ -226,37 +230,29 @@ public class TableFactory implements IProfileConstants {
                         String value = profile.getValue(key);
                         //String caption = getSigCaption(key);
                         //String value = getSigValue(key);
-                        if (value != null)
-                        {
-                            Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
-                            c_entry.setNoWrap(true);  // dferbas fix bug #331
-                            c_entry.setStyle(defaultCaptionStyle_);
-                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
-                            Entry v_entry = new Entry(Entry.TYPE_VALUE, 
-                            		resolver.resolve(key, value, profile), key);
-                            v_entry.setStyle(defaultValueStyle_);
-                            if (c_entry != null && v_entry != null)
-                            {
-                                row.add(c_entry);
-                                row.add(v_entry);
-                            }
-                        } else {
-                            // RESOLV VALUE!!
-                            Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
-                            c_entry.setNoWrap(true);  // dferbas fix bug #331
-                            c_entry.setStyle(defaultCaptionStyle_);
 
-                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                        Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
+                        c_entry.setNoWrap(true);  // dferbas fix bug #331
+                        c_entry.setStyle(defaultCaptionStyle_);
+                        ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                        String resolvedValue = resolver.resolve(key, value, profile);
 
-                            Entry v_entry = new Entry(Entry.TYPE_VALUE,
-                                    resolver.resolve(key, value, profile), key);
-                            v_entry.setStyle(defaultValueStyle_);
-                            if (c_entry != null && v_entry != null)
-                            {
-                                row.add(c_entry);
-                                row.add(v_entry);
-                            }
+                        if (resolvedValue != null) {
+                        	String transformPattern = StringUtils.trimToNull(StringUtils.defaultString(profile.getProfileTransformPattern(key), profile.getProfileTransformPattern()));
+                        	if (transformPattern != null) {
+                        		String transliteratedValue = Transliterator.getInstance(transformPattern).transliterate(resolvedValue);
+                        		if (!resolvedValue.equals(transliteratedValue)) {
+                        			logger.debug("Transliterate signature block entry {} using ICU4J pattern '{}': '{}' -> '{}'", key, transformPattern, resolvedValue, transliteratedValue);
+                        			resolvedValue = transliteratedValue;
+                        		}
+                        	}
                         }
+
+                        Entry v_entry = new Entry(Entry.TYPE_VALUE, resolvedValue, key);
+                        v_entry.setStyle(defaultValueStyle_);
+                        row.add(c_entry);
+                        row.add(v_entry);
+
                     }
                 }
                 sig_table.addRow(table_def, row);
@@ -268,68 +264,6 @@ public class TableFactory implements IProfileConstants {
 
     public static SignatureProfileSettings createProfile(String profileID, ISettings configuration) {
         return new SignatureProfileSettings(profileID, configuration);
-    }
-
-    /**
-     * This method returns a value for a given signature key. If the key equals to
-     * <code>SIG_NORM</code> and the value is <code>null</code> the version
-     * string of the current normalizer is returned!
-     *
-     * @param key
-     *          the key to get the value for
-     * @return a value for the given key
-     */
-    public static String getSigValue(String key)
-    {
-
-        String value = null;
-        SignatureEntry sigEntry = null;
-        if (sigEntries_.containsKey(key))
-        {
-            sigEntry = sigEntries_.get(key);
-            value = sigEntry.getValue();
-        }
-        /*
-        if (value == null && SignatureTypes.SIG_NORM.equals(key))
-        {
-            value = normalizer_.getVersion();
-        }
-         */  /*
-        String overrideVal = OverridePropertyHolder.getProperty(key);
-        if (value != null && sigEntry != null && !sigEntry.isPlaceholder &&  overrideVal != null) { 
-            value = overrideVal;
-            if (logger.isDebugEnabled()) {
-                logger.debug("Using override property for key '" + key + "' = " + value);
-            }
-        }  */
-
-        return value;
-    }
-
-    /**
-     * This method returns a caption for a given signature key. If the key exists
-     * and the coresponding value is <code>null</code> the key itself is
-     * returned as caption! If the key does not exist the method returns
-     * <code>null</code>.
-     *
-     * @param key
-     *          the key to get the caption for
-     * @return a caption for the given key
-     */
-    @SuppressWarnings("unused")
-    private static String getSigCaption(String key)
-    {
-
-        String caption = null;
-        if (sigEntries_.containsKey(key))
-        {
-            caption = sigEntries_.get(key).getCaption();
-            if (caption == null)
-            {
-                caption = key;
-            }
-        }
-        return caption;
     }
 
     /**

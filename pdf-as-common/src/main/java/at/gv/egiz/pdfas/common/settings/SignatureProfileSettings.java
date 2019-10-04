@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -75,11 +75,11 @@ public class SignatureProfileSettings implements IProfileConstants {
 				if(valueKey == null) {
 					valueKey = DefaultSignatureProfileSettings.getDefaultKeyCaption(key);
 				}
-				
+
 				if(valueValue == null) {
 					valueValue = DefaultSignatureProfileSettings.getDefaultKeyValue(key);
 				}
-				
+
 				SignatureProfileEntry entry = new SignatureProfileEntry();
 				entry.setKey(key);
 				entry.setCaption(valueKey);
@@ -100,11 +100,11 @@ public class SignatureProfileSettings implements IProfileConstants {
 				String valueValue = values.get(valuesPrefix + KEY_SEPARATOR
 						+ key);
 
-				// Lookup default values			
+				// Lookup default values
 				if(valueValue == null) {
 					valueValue = DefaultSignatureProfileSettings.getDefaultKeyValue(key);
 				}
-				
+
 				SignatureProfileEntry entry = profileInformations.get(key);
 				if (entry == null) {
 					entry = new SignatureProfileEntry();
@@ -141,10 +141,10 @@ public class SignatureProfileSettings implements IProfileConstants {
 			logger.debug("   Settings: " + key + " : " + value);
 		}
 		}
-		
-		Iterator<SignatureProfileEntry> dumpIterator = 
+
+		Iterator<SignatureProfileEntry> dumpIterator =
 				profileInformations.values().iterator();
-		
+
 		logger.debug("Settings for profile {}", profileID);
 		while(dumpIterator.hasNext()) {
 			SignatureProfileEntry entry = dumpIterator.next();
@@ -197,11 +197,11 @@ public class SignatureProfileSettings implements IProfileConstants {
 	public String getSigningReason() {
 		return this.getValue(SIGNING_REASON);
 	}
-	
+
 	public String getSignFieldValue() {
 		return this.getValue(SIGNFIELD_VALUE);
 	}
-	
+
 	public String getProfileTimeZone() {
 		return this.getValue(TIMEZONE_BASE);
 	}
@@ -251,4 +251,25 @@ public class SignatureProfileSettings implements IProfileConstants {
 		}
 		return false;
 	}
+
+	/**
+	 * Returns the pattern for value transformation/transliteration independent from any value key.
+	 *
+	 * @return The pattern (may be {@code null} or empty).
+	 */
+	public String getProfileTransformPattern() {
+		return getValue(PROFILE_TRANSFORM_PATTERN);
+	}
+
+	/**
+	 * Returns the pattern for value transformation/transliteration for a certain signature profile value identifier.
+	 *
+	 * @param profileValueIdentifier The identifier, e.g. {@code SIG_SUBJECT} (required; must not be {@code null}).
+	 *
+	 * @return The pattern (may be {@code null} or empty).
+	 */
+	public String getProfileTransformPattern(String profileValueIdentifier) {
+		return getValue(PROFILE_TRANSFORM_PATTERN + "-" + Objects.requireNonNull(profileValueIdentifier));
+	}
+
 }
