@@ -23,12 +23,12 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.common.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Formatter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 8/28/13 Time: 12:42 PM To
@@ -62,7 +62,7 @@ public class StringUtils {
 
 	public static String convertStringToPDFFormat(String value)
 			throws UnsupportedEncodingException {
-		
+
 		if(value == null) {
 			logger.warn("Trying to convert null string!");
 			return value;

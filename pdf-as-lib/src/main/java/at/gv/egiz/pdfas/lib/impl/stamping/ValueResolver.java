@@ -23,19 +23,19 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
+import at.gv.egiz.pdfas.common.settings.IProfileConstants;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import at.gv.egiz.pdfas.common.settings.IProfileConstants;
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
-import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 9/11/13 Time: 11:11 AM To
@@ -52,6 +52,9 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
+	private static final Charset ISO = Charset.forName("ISO-8859-1");
+	private static final Charset UTF_8 = Charset.forName("UTF-8");
+
 
 	private CertificateResolver certificateResolver;
 	
@@ -65,6 +68,11 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 		logger.debug("Resolving value for key: " + key);
 		logger.debug("Resolving value with value: " + value);
+
+		//this needs to be encoded because of special characters
+		if(settings.isLatin1Encoding()) {
+			value = new String(value.getBytes(ISO), UTF_8);
+		}
 
 		if (key.equals(SIG_DATE)) {
 			if (value == null) {
@@ -82,7 +90,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			Calendar cal = Calendar.getInstance();
 			return fdf.format(cal.getTime());
 		}
-		
+
 		if (value != null) {
 
 			Pattern pattern = Pattern.compile(PatternRegex);

@@ -238,6 +238,16 @@ public class SignatureProfileSettings implements IProfileConstants {
 		return false;
 	}
 
+
+	public boolean isLatin1Encoding() {
+		SignatureProfileEntry entry = profileInformations.get(LATIN1_ENCODING);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+		return false;
+	}
+
 	public boolean isPDFA3() {
 		if(this.pdfAVersion != null) {
 			return "3".equals(this.pdfAVersion);
