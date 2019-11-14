@@ -23,9 +23,12 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping.pdfbox2;
 
-import java.io.IOException;
-import java.util.List;
-
+import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
+import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
@@ -33,12 +36,7 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleS
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsWrappedIOException;
-import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
-import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
+import java.io.IOException;
 
 public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 
@@ -124,8 +122,7 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	public PDFBoxTable getMainTable() {
 		return main;
 	}
-	
-	
+
 	public float getRotation() {
 		return this.rotationAngle;
 	}
@@ -145,5 +142,4 @@ public class PDFAsVisualSignatureProperties extends PDVisibleSigProperties {
 	public void setAlternativeTableCaption(String alternativeTableCaption) {
 		this.alternativeTableCaption = alternativeTableCaption;
 	}
-	
 }
