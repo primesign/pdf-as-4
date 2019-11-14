@@ -69,5 +69,16 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 		}
 		return false;
 	}
+
+	public String getProfilePlaceholderID(String selectedProfileID)
+	{
+		logger.info("SelectedProfileID in ProfileConfEnabled: "+selectedProfileID);
+		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_ID;
+		if (configuration.getValuesPrefix(profileMatch)!=null) {
+			Map<String, String> map = configuration.getValuesPrefix(profileMatch);
+			return map.get(profileMatch);
+		}
+		return null;
+	}
 }
 

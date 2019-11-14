@@ -74,13 +74,17 @@ public class PlaceholderFilter implements IConfigurationConstants,
 			//filter for local placeholder in selected profiles
 			PlaceholderExtractor extractor = status.getBackend()
 						.getPlaceholderExtractor();
-				String placeholderID = settings.getValue(PLACEHOLDER_ID);
-				String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
-				int placeholderMode = PLACEHOLDER_MATCH_MODE_SORTED;
+			int placeholderMode = PLACEHOLDER_MATCH_MODE_SORTED;
+
+			String placeholderID =status.getPlaceholderConfiguration().getProfilePlaceholderID(status.getRequestedSignature().getSignatureProfileID());
+			if(placeholderID != null)
+			{
+				placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
+			}
+			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
 				if (placeholderModeString != null) {
 					try {
 						placeholderMode = Integer.parseInt(placeholderModeString);
-
 						if (placeholderMode < PLACEHOLDER_MODE_MIN
 								|| placeholderMode > PLACEHOLDER_MODE_MAX) {
 							throw new PdfAsErrorCarrier(new PDFASError(
