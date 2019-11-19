@@ -35,6 +35,7 @@ import at.gv.egiz.pdfas.lib.impl.ErrorExtractor;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
+import at.gv.egiz.pdfas.lib.impl.pdfbox2.placeholder.SignatureFieldsExtractor;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning.Positioning;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.utils.PdfBoxUtils;
 import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderFilter;
@@ -872,7 +873,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	// Find an existing signature.
 	private PDSignature findExistingSignature(PDDocument doc, String sigFieldName)
 	{
-		findEmptySignatureFields(doc);
 		PDSignature signature = null;
 		PDSignatureField signatureField;
 		PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
@@ -898,25 +898,5 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			}
 		}
 		return signature;
-	}
-
-	//Find empty signature fields
-	private List<String> findEmptySignatureFields(PDDocument doc)
-	{
-		PDSignature signature;
-		List<PDField> signatureField;
-		List<String> signatureFieldNames = new ArrayList<>();
-		PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
-		if (acroForm != null) {
-		 signatureField = acroForm.getFields();
-			for (PDField pdField : signatureField) {
-				if(pdField instanceof PDSignatureField && pdField.getPartialName()!=null)
-				{
-					signature = ((PDSignatureField) pdField).getSignature();
-					if(signature == null) signatureFieldNames.add(pdField.getPartialName());
-				}
-			}
-		}
-		return signatureFieldNames;
 	}
 }
