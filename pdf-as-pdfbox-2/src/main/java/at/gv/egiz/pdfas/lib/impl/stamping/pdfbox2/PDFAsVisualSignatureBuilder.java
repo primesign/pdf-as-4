@@ -657,7 +657,6 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 	public void removeCidSet(PDDocument document) throws IOException {
 
 		PDDocumentCatalog catalog = document.getDocumentCatalog();
-
 		COSName cidSet = COSName.getPDFName("CIDSet");
 
 		Iterator<PDPage> pdPageIterator = catalog.getPages().iterator();

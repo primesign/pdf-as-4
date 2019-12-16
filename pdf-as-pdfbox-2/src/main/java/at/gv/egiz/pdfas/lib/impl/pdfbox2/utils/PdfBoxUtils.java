@@ -64,9 +64,7 @@ public class PdfBoxUtils {
 		}
 
 		count++;
-
 		logger.debug("Returning sig number: " + count);
-
 		return count;
 	}
 

@@ -132,6 +132,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		try {
 
 			doc = pdfObject.getDocument();
+			//if signature already exists dont create new page
+			List<PDSignatureField> pdSignatureFieldList = doc.getSignatureFields();
+
 
 			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
 					.checkPlaceholderSignature(pdfObject.getStatus(), pdfObject.getStatus().getSettings());
@@ -172,14 +175,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			String sigFieldName = pdfObject.getStatus().getSettings().getValue(SIGNATURE_FIELD_NAME);
 			signature = findExistingSignature(doc, sigFieldName);
 			//signature = findExistingSignature(doc, "ownerSignature");
-			if (signature == null)
-			{
+			if (signature == null) {
 				// create signature dictionary
 				signature = new PDSignature();
 
 			}
-			else
-			{
+			else {
 				isAdobeSigForm = true;
 			}
 
@@ -304,8 +305,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				logger.debug("Positioning: {}", positioningInstruction.toString());
 
-				if(!isAdobeSigForm){
+				if(!isAdobeSigForm)  {
 				if (positioningInstruction.isMakeNewPage()) {
+
 					int last = doc.getNumberOfPages() - 1;
 					PDDocumentCatalog root = doc.getDocumentCatalog();
 					PDPage lastPage = root.getPages().get(last);
@@ -318,12 +320,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				// handle rotated page
 				int targetPageNumber = positioningInstruction.getPage();
+
 				logger.debug("Target Page: " + targetPageNumber);
 				PDPage targetPage = doc.getPages().get(targetPageNumber - 1);
 				int rot = targetPage.getRotation();
 				logger.debug("Page rotation: " + rot);
 				// positioningInstruction.setRotation(positioningInstruction.getRotation()
-				// + rot);
+					//				// + rot);
 				logger.debug("resulting Sign rotation: " + positioningInstruction.getRotation());
 
 				SignaturePositionImpl position = new SignaturePositionImpl();
@@ -349,13 +352,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				 */
 
 				if (signaturePlaceholderData != null) {
-					// Placeholder found!
-					// replace placeholder
-
 
 					InputStream fis = PADESPDFBOXSigner.class.getResourceAsStream("/placeholder/empty.jpg");
 					PDImageXObject img = JPEGFactory.createFromStream(doc, fis);
-
 
 					img.getCOSObject().setNeedToBeUpdated(true);
 					//							PDDocumentCatalog root = doc.getDocumentCatalog();
@@ -414,11 +413,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			doc.addSignature(signature, signer, options);
 
-			//String sigFieldName = "ownerSignature";
-
 			if (sigFieldName == null) {
 				sigFieldName = "PDF-AS Signatur";
 			}
+
 
 			int count = PdfBoxUtils.countSignatures(doc, sigFieldName);
 
@@ -434,7 +432,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			// pdstRoot);
 
 			//this is not used for Adobe signature fields
-			if(!isAdobeSigForm){
+			if(!isAdobeSigForm) {
 				PDSignatureField signatureField = null;
 			if (acroFormm != null) {
 				@SuppressWarnings("unchecked")
@@ -473,7 +471,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
 			}
 			}
-
 
 			PDSignatureField signatureField = null;
 			PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
@@ -646,7 +643,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
         } catch (IOException e) {
             logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
             throw new PdfAsException("error.pdf.sig.01", e);
-        } finally {
+		} finally {
             if (doc != null) {
                 try {
                     doc.close();
@@ -708,7 +705,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
             throw new PdfAsException("Failed validating PDF Document RuntimeException.");
         } finally {
             if (document != null) {
-                IOUtils.closeQuietly((Closeable) document);
+                IOUtils.closeQuietly(document);
             }
         }
     }
@@ -752,10 +749,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
     public Image generateVisibleSignaturePreview(SignParameter parameter, java.security.cert.X509Certificate cert,
                                                  int resolution, OperationStatus status, RequestedSignature requestedSignature) throws PDFASError {
         try {
+
             PDFBOXObject pdfObject = (PDFBOXObject) status.getPdfObject();
-
             PDDocument origDoc = new PDDocument();
-
 
             origDoc.addPage(new PDPage(PDRectangle.A4));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -779,7 +775,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                     .getSignatureProfileConfiguration(requestedSignature.getSignatureProfileID());
 
             String signaturePosString = signatureProfileConfiguration.getDefaultPositioning();
-            PositioningInstruction positioningInstruction = null;
+            PositioningInstruction positioningInstruction;
             if (signaturePosString != null) {
                 positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
                         origDoc, visualObject, pdfObject.getStatus().getSettings());
@@ -886,9 +882,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				if (signature == null)
 				{
 					signature = new PDSignature();
-					// after solving PDFBOX-3524
-					// signatureField.setValue(signature)
-					// until then:
 					signatureField.getCOSObject().setItem(COSName.V, signature);
 				}
 				else

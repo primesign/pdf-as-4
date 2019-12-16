@@ -26,11 +26,14 @@ package at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageTree;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,27 +162,44 @@ public class Positioning {
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
 			TablePos pos, ISettings settings) throws PdfAsException {
-
+		List<PDSignatureField> pdSignatureFieldList = new ArrayList<>();
 		PdfBoxUtils.checkPDFPermissions(pdfDataSource);
-		// get pages of currentdocument
+		int counter = 0;
 
+		try {
+			//count signature fields with signatures
+			pdSignatureFieldList = pdfDataSource.getSignatureFields();
+			for (PDSignatureField signatureField : pdSignatureFieldList)
+			{
+				if(signatureField.getSignature()!=null){
+					counter++;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		// get pages of currentdocument
 		int doc_pages = pdfDataSource.getNumberOfPages();
 		int page = doc_pages;
 		boolean make_new_page = pos.isNewPage();
+
+		//we cannot add new page if a document is already signed
+
+
 		if (!(pos.isNewPage() || pos.isPauto())) {
 			// we should posit signaturtable on this page
-
 			page = pos.getPage();
 			// System.out.println("XXXXPAGE="+page+" doc_pages="+doc_pages);
-			if (page > doc_pages) {
-				make_new_page = true;
-				page = doc_pages;
-
-			}
-
+				if (page > doc_pages ) {
+                    make_new_page = true;
+                    page = doc_pages;
+                }
 		}
 
-
+		if(make_new_page && counter!=0)
+		{
+			make_new_page = false;
+		}
 
 		PDPage pdPage = pdfDataSource.getPage(page-1);
 
@@ -259,7 +279,7 @@ public class Positioning {
 		// pos_y is auto
 		if (make_new_page) {
 			// ignore footer in new page
-			page++;
+                page++;
 			pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
 			return new PositioningInstruction(make_new_page, page, pos_x,
 					pos_y, pos.rotation);
@@ -287,12 +307,16 @@ public class Positioning {
 			// no text --> SIGNATURE_BORDER
 			pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
 			if (pos_y - footer_line <= table_height) {
-				make_new_page = true;
+				if(counter!=0)
+					make_new_page = false;
+				else{
+					make_new_page = true;
+					page++;
+				}
 				if (!pos.isPauto()) {
 					// we have to correct pagenumber
 					page = pdfDataSource.getNumberOfPages();
 				}
-				page++;
 				// no text --> SIGNATURE_BORDER
 				pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
 			}
@@ -303,20 +327,23 @@ public class Positioning {
 		// we do have text take SIGNATURE_MARGIN
 		pos_y = page_height - page_length - SIGNATURE_MARGIN_VERTICAL;
 		if (pos_y - footer_line <= table_height) {
-			make_new_page = true;
+			///TODO: new page should not be created when signature exists
+			if(counter!=0)
+				make_new_page = false;
+			else{
+				make_new_page = true;
+				page++;
+			}
 			if (!pos.isPauto()) {
 				// we have to correct pagenumber in case of absolute page and
 				// not enough
 				// space
 				page = pdfDataSource.getNumberOfPages();
 			}
-			page++;
 			// no text --> SIGNATURE_BORDER
 			pos_y = page_height - SIGNATURE_MARGIN_VERTICAL;
 		}
 		return new PositioningInstruction(make_new_page, page, pos_x, pos_y,
 				pos.rotation);
-
 	}
-
 }
