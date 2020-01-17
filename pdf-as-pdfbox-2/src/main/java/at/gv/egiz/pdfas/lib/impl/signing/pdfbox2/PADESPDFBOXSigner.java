@@ -35,7 +35,7 @@ import at.gv.egiz.pdfas.lib.impl.ErrorExtractor;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
-import at.gv.egiz.pdfas.lib.impl.pdfbox2.placeholder.SignatureFieldsExtractor;
+import at.gv.egiz.pdfas.lib.impl.pdfbox2.placeholder.SignaturePlaceholderExtractor;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning.Positioning;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.utils.PdfBoxUtils;
 import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderFilter;
@@ -69,8 +69,6 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
-import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
@@ -93,7 +91,6 @@ import javax.activation.DataSource;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -109,6 +106,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			PDFASSignatureInterface genericSigner) throws PdfAsException {
 
 		PDFAsVisualSignatureProperties properties = null;
+		String placeholder_id = "";
 
 		if (!(genericPdfObject instanceof PDFBOXObject)) {
 			// tODO:
@@ -134,12 +132,36 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			doc = pdfObject.getDocument();
 			//if signature already exists dont create new page
 			List<PDSignatureField> pdSignatureFieldList = doc.getSignatureFields();
+			PDSignature signature;
 
+			// sign a PDF with an existing empty signature, as created by the CreateEmptySignatureForm example.
+			String sigFieldName = pdfObject.getStatus().getSettings().getValue(SIGNATURE_FIELD_NAME);
+			signature = findExistingSignature(doc, sigFieldName);
+			if (signature == null) {
+				// create signature dictionary
+				signature = new PDSignature();
+			}
+			else {
+				isAdobeSigForm = true;
+			}
 
+			signature.setFilter(COSName.getPDFName(signer.getPDFFilter()));
+			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
+
+			SignaturePlaceholderData signaturePlaceholderDataInit = PlaceholderFilter.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(), placeholder_id);
+
+			//gives a list of all placeholders
+			List<SignaturePlaceholderData> placeholders = SignaturePlaceholderExtractor.listPlaceholders();
+            if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
+			{
+				placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+			};
 			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-					.checkPlaceholderSignature(pdfObject.getStatus(), pdfObject.getStatus().getSettings());
+					.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
 
 			TablePos tablePos = null;
+
+			signature.setLocation(signaturePlaceholderData.getPlaceholderName());
 
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
@@ -166,32 +188,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					logger.debug("Placeholder Position set to: " + tablePos.toString());
 				}
 			}
-
-			//PDSignature signature = new PDSignature();
-
-			PDSignature signature;
-
-			// sign a PDF with an existing empty signature, as created by the CreateEmptySignatureForm example.
-			String sigFieldName = pdfObject.getStatus().getSettings().getValue(SIGNATURE_FIELD_NAME);
-			signature = findExistingSignature(doc, sigFieldName);
-			//signature = findExistingSignature(doc, "ownerSignature");
-			if (signature == null) {
-				// create signature dictionary
-				signature = new PDSignature();
-
-			}
-			else {
-				isAdobeSigForm = true;
-			}
-
-			signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
-			// filter
-			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
-
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
-
-
             //Check if input document is PDF-A conform
             if (signatureProfileSettings.isPDFA()) {
                 DataSource origDoc = pdfObject.getOriginalDocument();
@@ -199,7 +197,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                 //Run PreflightParser for checking conformity//
                 //runPDFAPreflight(origDoc);
             }
-
 
 			ValueResolver resolver = new ValueResolver(requestedSignature, pdfObject.getStatus());
 			String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"),
@@ -351,7 +348,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				 * (properties .getVisibleSignature())); sigbos.close();
 				 */
 
-				if (signaturePlaceholderData != null) {
+				/*if (signaturePlaceholderData != null) {
 
 					InputStream fis = PADESPDFBOXSigner.class.getResourceAsStream("/placeholder/empty.jpg");
 					PDImageXObject img = JPEGFactory.createFromStream(doc, fis);
@@ -367,12 +364,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					logger.info("Placeholder name: " + signaturePlaceholderData.getPlaceholderName());
 					COSDictionary xobjectsDictionary = (COSDictionary) page.getResources().getCOSObject()
 							.getDictionaryObject(COSName.XOBJECT);
+
+
 					xobjectsDictionary.setItem(signaturePlaceholderData.getPlaceholderName(), img);
 					xobjectsDictionary.setNeedToBeUpdated(true);
 					page.getResources().getCOSObject().setNeedToBeUpdated(true);
 					logger.info("Placeholder name: " + signaturePlaceholderData.getPlaceholderName());
-
-				}
+				}*/
 
 				if (signatureProfileSettings.isPDFA() || signatureProfileSettings.isPDFA3()) {
                     PDDocumentCatalog root = doc.getDocumentCatalog();
@@ -597,13 +595,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							signatureField.setAlternateFieldName(sigFieldName);
 					}
 
-
 					ntn.getCOSObject().setNeedToBeUpdated(true);
 					sigBlock.getCOSObject().setNeedToBeUpdated(true);
 					structureTreeRoot.getCOSObject().setNeedToBeUpdated(true);
 					objectDic.setNeedToBeUpdated(true);
 					docElement.getCOSObject().setNeedToBeUpdated(true);
-
 				}
 			} catch (Throwable e) {
 				if (signatureProfileSettings.isPDFUA() == true) {
@@ -652,9 +648,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                     // Ignore
                 }
             }
-
 			logger.debug("Signature done!");
-
 		}
 	}
 
@@ -722,8 +716,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
     }
 
     @Override
-    public PDFASSignatureExtractor buildBlindSignaturInterface(X509Certificate certificate, String filter,
-                                                               String subfilter, Calendar date) {
+    public PDFASSignatureExtractor buildBlindSignaturInterface(X509Certificate certificate, String filter, String subfilter, Calendar date) {
         return new SignatureDataExtractor(certificate, filter, subfilter, date);
     }
 
@@ -867,29 +860,51 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
     }
 
 	// Find an existing signature.
-	private PDSignature findExistingSignature(PDDocument doc, String sigFieldName)
-	{
+	private PDSignature findExistingSignature(PDDocument doc, String sigFieldName) {
 		PDSignature signature = null;
 		PDSignatureField signatureField;
 		PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
-		if (acroForm != null)
-		{
+		if (acroForm != null) {
 			signatureField = (PDSignatureField) acroForm.getField(sigFieldName);
-			if (signatureField != null)
-			{
+			if (signatureField != null) {
 				// retrieve signature dictionary
 				signature = signatureField.getSignature();
-				if (signature == null)
-				{
+				if (signature == null) {
 					signature = new PDSignature();
 					signatureField.getCOSObject().setItem(COSName.V, signature);
 				}
-				else
-				{
+				else {
 					throw new IllegalStateException("The signature field " + sigFieldName + " is already signed.");
 				}
 			}
 		}
 		return signature;
+	}
+
+	private List<String> existingSignatureLocations(PDDocument doc) {
+		List<String> existingLocations = new ArrayList<>();
+		try {
+			List <PDSignature> pdSignatureList =  doc.getSignatureDictionaries();
+			if(pdSignatureList.size() != 0) {
+				for(PDSignature sig : pdSignatureList) {
+					existingLocations.add(sig.getLocation());
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return existingLocations;
+	}
+
+	//find first available placeholder
+	public SignaturePlaceholderData checkAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
+		SignaturePlaceholderData result = null;
+		for(int i = 0; i < placeholders.size(); ++i) {
+            if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
+				result = placeholders.get(i);
+				break;
+			}
+		}
+		return result;
 	}
 }

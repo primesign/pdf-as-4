@@ -196,8 +196,7 @@ public class Positioning {
                 }
 		}
 
-		if(make_new_page && counter!=0)
-		{
+		if(make_new_page && counter!=0) {
 			make_new_page = false;
 		}
 
@@ -327,7 +326,6 @@ public class Positioning {
 		// we do have text take SIGNATURE_MARGIN
 		pos_y = page_height - page_length - SIGNATURE_MARGIN_VERTICAL;
 		if (pos_y - footer_line <= table_height) {
-			///TODO: new page should not be created when signature exists
 			if(counter!=0)
 				make_new_page = false;
 			else{

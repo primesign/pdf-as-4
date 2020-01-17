@@ -148,7 +148,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				doc = pdfObject.getDocument();
 
 				SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-						.checkPlaceholderSignature(pdfObject.getStatus(), pdfObject.getStatus().getSettings());
+						.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(), null);
 
 				TablePos tablePos = null;
 

@@ -50,14 +50,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.Vector;
 
 import javassist.bytecode.stackmap.TypeData.ClassName;
 
@@ -109,7 +103,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
 
-	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
+	private static List<SignaturePlaceholderData> placeholders = new Vector<>();
 	private int currentPage = 0;
 	private PDDocument doc;
 	
@@ -131,10 +125,12 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
             
             addOperator( processor );
 		}
-		
 		this.doc = doc;
 	}
 
+	public static List<SignaturePlaceholderData> listPlaceholders() {
+		return placeholders;
+	}
 	/**
 	 * Search the document for placeholder images and possibly included
 	 * additional info.<br/>
@@ -310,8 +306,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 						float yPos = unrotatedCTM.getYPosition();
 						float yScale = unrotatedCTM.getScaleY();
 						float y = yPos + yScale;
-						float w = unrotatedCTM.getScaleX();;
-						
+						float w = unrotatedCTM.getScaleX();
+
 						logger.debug("Page height: {}", page.getCropBox().getHeight());
 						logger.debug("Page width: {}", page.getCropBox().getWidth());
 						
@@ -349,39 +345,31 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	
 	//TODO: pdfbox2 - was override
 	public Map<String, PDFont> getFonts() {
-		if (fonts == null)
-        {
+		if (fonts == null) {
             // at least an empty map will be returned
             // TODO we should return null instead of an empty map
             fonts = new HashMap<String, PDFont>();
             if(this.getResources() != null && this.getResources().getCOSObject() != null) {
             COSDictionary fontsDictionary = (COSDictionary) this.getResources().getCOSObject().getDictionaryObject(COSName.FONT);
-            if (fontsDictionary == null)
-            {
+            if (fontsDictionary == null) {
             	// ignore we do not want to set anything, never when creating a signature!!!!!
                 //fontsDictionary = new COSDictionary();
                 //this.getResources().getCOSDictionary().setItem(COSName.FONT, fontsDictionary);
             }
-            else
-            {
-                for (COSName fontName : fontsDictionary.keySet())
-                {
+            else {
+                for (COSName fontName : fontsDictionary.keySet()) {
                     COSBase font = fontsDictionary.getDictionaryObject(fontName);
                     // data-000174.pdf contains a font that is a COSArray, looks to be an error in the
                     // PDF, we will just ignore entries that are not dictionaries.
-                    if (font instanceof COSDictionary)
-                    {
+                    if (font instanceof COSDictionary) {
                         PDFont newFont = null;
-                        try
-                        {
+                        try {
                             newFont = PDFontFactory.createFont((COSDictionary) font);
                         }
-                        catch (IOException exception)
-                        {
+                        catch (IOException exception) {
                             logger.error("error while creating a font", exception);
                         }
-                        if (newFont != null)
-                        {
+                        if (newFont != null) {
                             fonts.put(fontName.getName(), newFont);
                         }
                     }
@@ -488,5 +476,4 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		}
 		return null;
 	}
-
 }

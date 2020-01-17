@@ -36,18 +36,22 @@ import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 public class PlaceholderFilter implements IConfigurationConstants,
 		PlaceholderExtractorConstants {
 
-	public static SignaturePlaceholderData checkPlaceholderSignature(
-			OperationStatus status, ISettings settings) throws PdfAsException,
+	public static SignaturePlaceholderData checkPlaceholderSignatureLocation(
+			OperationStatus status, ISettings settings, String signatureLocation) throws PdfAsException,
 			IOException {
 
-		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
-			PlaceholderExtractor extractor = status.getBackend()
-					.getPlaceholderExtractor();
+		String placeholderID;
 
-			String placeholderID = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
-			if(placeholderID == null)
-			{
-				 placeholderID = settings.getValue(PLACEHOLDER_ID);
+		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
+			PlaceholderExtractor extractor = status.getBackend().getPlaceholderExtractor();
+
+			if(signatureLocation!=null) {
+				placeholderID = signatureLocation;
+			} else {
+				placeholderID = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
+				if(placeholderID == null) {
+					placeholderID = settings.getValue(PLACEHOLDER_ID);
+				}
 			}
 
 			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
@@ -55,7 +59,6 @@ public class PlaceholderFilter implements IConfigurationConstants,
 			if (placeholderModeString != null) {
 				try {
 					placeholderMode = Integer.parseInt(placeholderModeString);
-
 					if (placeholderMode < PLACEHOLDER_MODE_MIN
 							|| placeholderMode > PLACEHOLDER_MODE_MAX) {
 						throw new PdfAsErrorCarrier(new PDFASError(
@@ -66,39 +69,36 @@ public class PlaceholderFilter implements IConfigurationConstants,
 							PDFASError.ERROR_INVALID_PLACEHOLDER_MODE, e));
 				}
 			}
-			SignaturePlaceholderData signaturePlaceholderData = extractor
-					.extract(status.getPdfObject(), placeholderID, placeholderMode);
-
+			SignaturePlaceholderData signaturePlaceholderData = extractor.extract(status.getPdfObject(), placeholderID, placeholderMode);
 			return signaturePlaceholderData;
+
 		} else if (status.getPlaceholderConfiguration().isProfileConfigurationEnabled(status.getRequestedSignature().getSignatureProfileID())) {
 			//filter for local placeholder in selected profiles
-			PlaceholderExtractor extractor = status.getBackend()
-						.getPlaceholderExtractor();
+			PlaceholderExtractor extractor = status.getBackend().getPlaceholderExtractor();
 			int placeholderMode = PLACEHOLDER_MATCH_MODE_SORTED;
 
-			String placeholderID =status.getPlaceholderConfiguration().getProfilePlaceholderID(status.getRequestedSignature().getSignatureProfileID());
-			if(placeholderID != null)
-			{
+			placeholderID = status.getPlaceholderConfiguration().getProfilePlaceholderID(status.getRequestedSignature().getSignatureProfileID());
+			if(placeholderID != null) {
 				placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
 			}
 			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
-				if (placeholderModeString != null) {
-					try {
-						placeholderMode = Integer.parseInt(placeholderModeString);
-						if (placeholderMode < PLACEHOLDER_MODE_MIN
-								|| placeholderMode > PLACEHOLDER_MODE_MAX) {
-							throw new PdfAsErrorCarrier(new PDFASError(
-									PDFASError.ERROR_INVALID_PLACEHOLDER_MODE));
-						}
-					} catch (NumberFormatException e) {
+			if (placeholderModeString != null) {
+				try {
+					placeholderMode = Integer.parseInt(placeholderModeString);
+					if (placeholderMode < PLACEHOLDER_MODE_MIN
+							|| placeholderMode > PLACEHOLDER_MODE_MAX) {
 						throw new PdfAsErrorCarrier(new PDFASError(
-								PDFASError.ERROR_INVALID_PLACEHOLDER_MODE, e));
+								PDFASError.ERROR_INVALID_PLACEHOLDER_MODE));
 					}
+				} catch (NumberFormatException e) {
+					throw new PdfAsErrorCarrier(new PDFASError(
+							PDFASError.ERROR_INVALID_PLACEHOLDER_MODE, e));
 				}
-				SignaturePlaceholderData signaturePlaceholderData = extractor
-						.extract(status.getPdfObject(), placeholderID, placeholderMode);
-
-				return signaturePlaceholderData;
 			}
+			SignaturePlaceholderData signaturePlaceholderData = extractor.extract(status.getPdfObject(), placeholderID, placeholderMode);
+			return signaturePlaceholderData;
+		}
 		return null;
-	}}
+	}
+
+}
