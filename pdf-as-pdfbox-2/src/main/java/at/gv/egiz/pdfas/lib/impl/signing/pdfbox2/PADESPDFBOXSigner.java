@@ -161,6 +161,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			TablePos tablePos = null;
 
+			if(signaturePlaceholderData!=null)
 			signature.setLocation(signaturePlaceholderData.getPlaceholderName());
 
 			if (signaturePlaceholderData != null) {
