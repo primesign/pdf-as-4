@@ -353,11 +353,13 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 				}
 				else
 				{
+					// FIXME: We must set the very same date and must not create a new date, e.g. use requestedSignature.getStatus().getSigningDate()
 					setAttributes("application/pdf", cert, new Date(), signer1);
 				}
 			}
 			else
 			{
+				// FIXME: We must set the very same date and must not create a new date, e.g. use requestedSignature.getStatus().getSigningDate()
 				setAttributes("application/pdf", cert, new Date(), signer1);
 			}
 
