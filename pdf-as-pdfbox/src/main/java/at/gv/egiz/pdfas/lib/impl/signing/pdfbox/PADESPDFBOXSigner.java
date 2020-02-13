@@ -75,6 +75,7 @@ import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.sign.SignatureObserver;
 import at.gv.egiz.pdfas.lib.impl.ErrorExtractor;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
@@ -393,7 +394,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							}
 						}
 					}
-					
+
 					options.setPage(positioningInstruction.getPage());
 
 					options.setVisualSignature(properties.getVisibleSignature());
@@ -624,11 +625,21 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						logger.info("Could not create PDF-UA conform signature");
 					}
 				}
-				
+
 				try {
 					applyFilter(doc, requestedSignature);
 				} catch (PDFASError e) {
 					throw new PdfAsErrorCarrier(e);
+				}
+
+				/**
+				 * Note that the cryptographic signature operation on the (already modified) document (visual signature, certificate,
+				 * acroform field, ltv data etc. may have already bee added) is actually performed when the document is incrementally
+				 * saved.
+				 */
+				SignatureObserver signatureObserver = requestedSignature.getStatus().getSignParamter().getSignatureObserver();
+				if (signatureObserver != null) {
+					signatureObserver.onBeforeSignature(pdfObject);
 				}
 
 				FileInputStream tmpFileIs = null;
@@ -822,13 +833,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			throw ErrorExtractor.searchPdfAsError(e, status);
 		}
 	}
-	
+
 	/**
 	 * Allows to apply modifications to the pdf document in the course of this signature related incremental update.
 	 * <p>
 	 * Can be overridden in order to add filtering.
 	 * </p>
-	 * 
+	 *
 	 * @param pdDocument
 	 *            The pdf document (required; must not be {@code null} and must be opened).
 	 * @param requestedSignature
@@ -838,5 +849,5 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	 */
 	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
 	}
-	
+
 }
