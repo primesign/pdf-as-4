@@ -3,19 +3,19 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
@@ -83,6 +83,7 @@ import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.sign.SignatureObserver;
 import at.gv.egiz.pdfas.lib.impl.ErrorExtractor;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
@@ -196,12 +197,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					signatureProfileSettings);
 
 			signature.setName(signerName);
-			
+
 			// take signing time from provided signer...
 			signature.setSignDate(signer.getSigningDate());
 			// ...and update operation status in order to use exactly this date for the complete signing process
 			requestedSignature.getStatus().setSigningDate(signer.getSigningDate());
-			
+
 			String signerReason = signatureProfileSettings.getSigningReason();
 
 			if (signerReason == null) {
@@ -344,7 +345,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					// replace placeholder
 
 					URL fileUrl = PADESPDFBOXSigner.class.getResource("/placeholder/empty.jpg");
-					
+
 					PDImageXObject img = PDImageXObject.createFromFile(fileUrl.getPath(), doc);
 
 					img.getCOSObject().setNeedToBeUpdated(true);
@@ -596,9 +597,19 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				}
 			}
 
+			/**
+			 * Note that the cryptographic signature operation on the (already modified) document (visual signature, certificate,
+			 * acroform field, ltv data etc. may have already bee added) is actually performed when the document is incrementally
+			 * saved.
+			 */
+			SignatureObserver signatureObserver = requestedSignature.getStatus().getSignParamter().getSignatureObserver();
+			if (signatureObserver != null) {
+				signatureObserver.onBeforeSignature(pdfObject);
+			}
+
 			try {
 				ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				
+
 				synchronized (doc) {
 					doc.saveIncremental(bos);
 					byte[] outputDocument = bos.toByteArray();
@@ -613,7 +624,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					pdfObject.setSignedDocument(outputDocument);
 				}
-				
+
 			} finally {
 				if (options != null) {
 					if (options.getVisualSignature() != null) {
