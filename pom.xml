@@ -33,6 +33,28 @@
 		<module>pdf-as-pdfbox-2</module>
 	</modules>
 	
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<name>libs-releases-local</name>
+			<url>${env.MAVEN_REPO_URL}/libs-releases-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<name>libs-snapshots-local</name>
+			<url>${env.MAVEN_REPO_URL}/libs-snapshots-local</url>
+		</snapshotRepository>
+		<site>
+			<id>gitlab-pages-site</id>
+			<url>site/${project.version}</url>
+		</site>
+	</distributionManagement>
+
+	<scm>
+		<developerConnection>scm:git:${CI_REPOSITORY_URL}</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
 	<build>
 	
 		<pluginManagement>
