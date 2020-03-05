@@ -38,6 +38,7 @@ import java.util.List;
 import javax.activation.DataSource;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -203,14 +204,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			// ...and update operation status in order to use exactly this date for the complete signing process
 			requestedSignature.getStatus().setSigningDate(signer.getSigningDate());
 
-			String signerReason = signatureProfileSettings.getSigningReason();
-
-			if (signerReason == null) {
-				signerReason = "PAdES Signature";
+			String reason = StringUtils.trimToNull(signatureProfileSettings.getSigningReason());
+			if (reason != null) {
+				signature.setReason(reason);
+				logger.debug("Signing reason: {}", reason);
 			}
-
-			signature.setReason(signerReason);
-			logger.debug("Signing reason: " + signerReason);
 
 			logger.debug("Signing @ " + signer.getSigningDate().getTime().toString());
 			// the signing date, needed for valid signature
