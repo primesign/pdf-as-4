@@ -12,6 +12,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.util.EntityUtils;
 import org.jose4j.base64url.Base64Url;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -380,18 +381,26 @@ public class SL20JSONExtractorUtils {
 	}
 	
 	private static JsonObject parseSL20ResultFromResponse(HttpEntity resp) throws Exception {
-		if (resp != null && resp.getContent() != null) {			
-			JsonElement sl20Resp = new JsonParser().parse(new InputStreamReader(resp.getContent()));
-			if (sl20Resp != null && sl20Resp.isJsonObject()) {
-				return sl20Resp.getAsJsonObject();
+		if (resp != null && resp.getContent() != null) {
+			String htmlRespBody = EntityUtils.toString(resp);
+			try {
+				JsonElement sl20Resp = new JsonParser().parse(htmlRespBody);
+				if (sl20Resp != null && sl20Resp.isJsonObject()) {
+					return sl20Resp.getAsJsonObject();
 				
-			} else {
-				log.warn("SL2.0 can NOT parse to a JSON object");
-				throw new SLCommandoParserException();
+				} else {
+					log.warn("SL2.0 can NOT parse to a JSON object");
+					throw new SLCommandoParserException();
+				
+				}
+				
+			} catch (Exception e) {
+				log.info("Can NOT parse SL2.0 respone from VDA. Raw SL2.0 response: {}",
+						htmlRespBody);
+				throw new SLCommandoParserException(e);
 				
 			}
-			
-			
+						
 		} else {
 			log.warn("Can NOT find content in http response");
 			throw new SLCommandoParserException();
