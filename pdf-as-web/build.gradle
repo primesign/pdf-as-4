@@ -85,25 +85,27 @@ test {
     systemProperties 'pdf-as-web.conf': System.getProperty("user.home") + '/.pdfas/pdf-as-web.properties'
 }
 
-task downloadTomcat << {
-	if(!project.buildDir.exists()){
-		project.buildDir.mkdirs()
-	}
+task downloadTomcat {
+	doLast {
+		if(!project.buildDir.exists()){
+			project.buildDir.mkdirs()
+		}
 	
-	String url  = "http://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
-	String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
+		String url  = "http://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
+		String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
 	
-	url = url.replaceAll("##VERSION##", project.tomcatVersion);
-	filename = filename.replaceAll("##VERSION##", project.tomcatVersion);
+		url = url.replaceAll("##VERSION##", project.tomcatVersion);
+		filename = filename.replaceAll("##VERSION##", project.tomcatVersion);
 	
-	println "Tomcat Version: " + url
+		println "Tomcat Version: " + url
 	
-	println "Tomcat file: " + filename
+		println "Tomcat file: " + filename
 	
-	def f = new File(filename)
-	if (!f.exists()) {
-		println "Downloading Tomcat ..."
-		new URL(url).withInputStream{ i -> f.withOutputStream{ it << i }}
+		def f = new File(filename)
+		if (!f.exists()) {
+			println "Downloading Tomcat ..."
+			new URL(url).withInputStream{ i -> f.withOutputStream{ it << i }}
+		}
 	}
 }
 
@@ -126,68 +128,78 @@ task extractTomcat(dependsOn: downloadTomcat, type: Copy) {
 
 def deployVersions=['','-pdfbox1']
 
-task copyTomcat(dependsOn: extractTomcat)<<{
-	deployVersions.each{
-		String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it;
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		println "copiing to "+targetDir
-		copy{
-			with extractTomcat
-			into targetDir
+task copyTomcat(dependsOn: extractTomcat) {
+	doLast {
+		deployVersions.each{
+			String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it;
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			println "copiing to "+targetDir	
+			copy{
+				with extractTomcat
+				into targetDir
+			}
 		}
 	}
 }
 
-task cleanWebAppsInTomcat(dependsOn: copyTomcat) << {
-	deployVersions.each{
-		String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/webapps/";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		
-		def webappDir = new File(targetDir);
-		println "Removing: " + webappDir.toString()
-		def result = webappDir.deleteDir()  // Returns true if all goes well, false otherwise.
-		println result.toString()
-		
-		assert result
-		
-		webappDir.mkdirs()
-	}
-}
-
-task putTemplateIntoTomcat(dependsOn: cleanWebAppsInTomcat)<<{
-	deployVersions.each{
-		String source = project.projectDir.toString() + "/";
-		
-		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		copy{
-			from "src/main/assembly/tomcat"
-			into targetDir
+task cleanWebAppsInTomcat(dependsOn: copyTomcat) {
+	doLast {
+		deployVersions.each{
+			String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/webapps/";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			
+			def webappDir = new File(targetDir);
+			println "Removing: " + webappDir.toString()
+			def result = webappDir.deleteDir()  // Returns true if all goes well, false otherwise.
+			println result.toString()
+			
+			assert result
+			
+			webappDir.mkdirs()
 		}
 	}
 }
 
-task putConfigIntoTomcat(dependsOn: putTemplateIntoTomcat)<<{
-	deployVersions.each{
-		String source = "../pdf-as-lib/build/resources/main/config/config.zip";
-		
-		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		copy{
-			from zipTree(source)
-			into targetDir
+task putTemplateIntoTomcat(dependsOn: cleanWebAppsInTomcat) {
+	doLast {
+		deployVersions.each{
+			String source = project.projectDir.toString() + "/";
+			
+			String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			copy{
+				from "src/main/assembly/tomcat"
+				into targetDir
+			}
 		}
 	}
 }
 
-task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat)<<{
-	deployVersions.each{
-		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		
-		copy{
-			from 'src/main/configuration/'
-			into targetDir
+task putConfigIntoTomcat(dependsOn: putTemplateIntoTomcat) {
+	doLast {
+		deployVersions.each{
+			String source = "../pdf-as-lib/build/resources/main/config/config.zip";
+			
+			String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			copy{
+				from zipTree(source)
+				into targetDir
+			}
+		}
+	}
+}
+
+task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat) {
+	doLast {
+		deployVersions.each{
+			String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			
+			copy{
+				from 'src/main/configuration/'
+				into targetDir
+			}
 		}
 	}
 }

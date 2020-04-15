@@ -5,16 +5,18 @@ buildscript {
 	}
 	
 	dependencies {
-		classpath 'com.github.ben-manes:gradle-versions-plugin:0.11.3'
+		 classpath "com.github.ben-manes:gradle-versions-plugin:0.28.0"
 	}
 }
 
+/*
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.5'
+    gradleVersion = '5.6.4'
 }
+*/
 
 allprojects {
-	apply plugin: 'com.github.ben-manes.versions'
+	apply plugin: "com.github.ben-manes.versions"
 	repositories {  mavenCentral()  }
 	version = '4.1.6-RC'
 }
@@ -27,19 +29,21 @@ dependencies {
 	cveCheck 'org.owasp:dependency-check-ant:1.2.5'
 }
 
-task checkCVE << {
-	// Redefine checkCVEAnt Ant task, with the classpath property set to our newly defined
-	// cveCheck configuration classpath.
-	ant.taskdef(name: 'checkCVEAnt', classname: 'org.owasp.dependencycheck.taskdefs.DependencyCheckTask',
-		classpath: configurations.cveCheck.asPath)
+task checkCVE {
+	doLast {
+		// Redefine checkCVEAnt Ant task, with the classpath property set to our newly defined
+		// cveCheck configuration classpath.
+		ant.taskdef(name: 'checkCVEAnt', classname: 'org.owasp.dependencycheck.taskdefs.DependencyCheckTask',
+			classpath: configurations.cveCheck.asPath)
 	
-	// executing checkCVEAnt Task
-	ant.checkCVEAnt(
-		applicationname: "PDF-AS",
-		reportoutputdirectory: (new File(rootDir, 'releases/cvecheck/' + project.name)).toString(),
-		reportformat: "ALL") {
-		fileset(dir: (new File(rootDir, 'build/alldependencies')).toString()) {
-			include(name: '**/**')
+		// executing checkCVEAnt Task
+		ant.checkCVEAnt(
+			applicationname: "PDF-AS",
+			reportoutputdirectory: (new File(rootDir, 'releases/cvecheck/' + project.name)).toString(),
+			reportformat: "ALL") {
+			fileset(dir: (new File(rootDir, 'build/alldependencies')).toString()) {
+				include(name: '**/**')
+			}
 		}
 	}
 }
@@ -81,7 +85,7 @@ subprojects {
 		revision = getCheckedOutGitCommitHash()
 		//tomcatVersion = '7.0.54';
 		tomcatVersion = '8.0.36';
-		slf4jVersion = '1.7.7'
+		slf4jVersion = '1.7.30'
 		cxfVersion = '3.0.1'
 	  }
 	
@@ -99,19 +103,21 @@ subprojects {
 		
 	rootProject.checkCVE.dependsOn copyDeps
 	
-	task checkCVELocal << {
-		// Redefine checkCVEAnt Ant task, with the classpath property set to our newly defined
-		// cveCheck configuration classpath.
-		ant.taskdef(name: 'checkCVEAnt', classname: 'org.owasp.dependencycheck.taskdefs.DependencyCheckTask',
-			classpath: configurations.cveCheck.asPath)
+	task checkCVELocal {
+		doLast {
+			// Redefine checkCVEAnt Ant task, with the classpath property set to our newly defined
+			// cveCheck configuration classpath.
+			ant.taskdef(name: 'checkCVEAnt', classname: 'org.owasp.dependencycheck.taskdefs.DependencyCheckTask',
+				classpath: configurations.cveCheck.asPath)
 	
-		// executing checkCVEAnt Task
-		ant.checkCVEAnt(
-			applicationname: project.name,
-			reportoutputdirectory: (new File(rootDir, 'releases/' + version + '/cvecheck/' + project.name)).toString(),
-			reportformat: "ALL") {
-				fileset(dir: 'build/alldependencies') {
-				include(name: '**/**')
+			// executing checkCVEAnt Task
+			ant.checkCVEAnt(
+				applicationname: project.name,
+				reportoutputdirectory: (new File(rootDir, 'releases/' + version + '/cvecheck/' + project.name)).toString(),
+				reportformat: "ALL") {
+					fileset(dir: 'build/alldependencies') {
+					include(name: '**/**')
+				}
 			}
 		}
 	}
@@ -125,7 +131,10 @@ subprojects {
 		}
 	}
 	
-	task(internalRelease) << {
+	task(internalRelease) {
+		doLast {
+		
+		}
 	}
 	
 	internalRelease.dependsOn jar
@@ -143,22 +152,24 @@ subprojects {
 
 }
 
-task(doFullRelease) << {
-	println "done building all distribution stuff for " + project.version
+task(doFullRelease) {
+	doLast {
+		println "done building all distribution stuff for " + project.version
+	}
 }
 
-task copyLicenses<<{
-   	mkdir("releases/"+ version +"/licenses");
-   	def target = project.projectDir.toString() + "/releases/" + version + "/licenses"
-	subprojects{
-	    def src=project.projectDir.toString() + "/licenses"
-	    copy{
-			from src
-			into target
+task copyLicenses {
+	doLast {
+   		mkdir("releases/"+ version +"/licenses");
+   		def target = project.projectDir.toString() + "/releases/" + version + "/licenses"
+		subprojects{
+	    	def src=project.projectDir.toString() + "/licenses"
+	    	copy{
+				from src
+				into target
+			}
 		}
 	}
-	
-	
 }
 
 task releases(type: Copy) {

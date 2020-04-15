@@ -144,14 +144,16 @@ suiteDir.eachDir {	File subDir ->
 		delete fileTree (dir: subDir.absolutePath, include: "**/test_result.html")
 	}
 	
-	task "cleanOutFolders${dirname.capitalize()}"() << {
-		subDir.eachDir { File tcDir -> 
-			File outDir = new File(tcDir, "out");
-			if(outDir.exists() && outDir.isDirectory()) {
-				outDir.eachFileRecurse { File mfile -> 
-					mfile.delete()
+	task "cleanOutFolders${dirname.capitalize()}"() {
+		doLast {
+			subDir.eachDir { File tcDir -> 
+				File outDir = new File(tcDir, "out");
+				if(outDir.exists() && outDir.isDirectory()) {
+					outDir.eachFileRecurse { File mfile -> 
+						mfile.delete()
+					}
+					outDir.delete()
 				}
-				outDir.delete()
 			}
 		}
 	}

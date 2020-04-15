@@ -16,9 +16,9 @@ task releases(type: Copy) {
 }
 
 configurations { 
-				 pdfBox2Compile 
-				 pdfBox1Compile
-			   }
+	pdfBox2Compile 
+	pdfBox1Compile	
+}
 
 sourceSets{
 	pdfBox2{
@@ -67,37 +67,32 @@ task pdfbox1Startscript(type: CreateStartScripts) {
 }
 
 distZip {
+	baseName = archivesBaseName
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-	doFirst{
-    	baseName = archivesBaseName
-		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-	    into("${baseName}-${version}/lib") {
-	        from startScripts.classpath
-	    }
-	    into("${baseName}-${version}/lib") {
-	        from pdfbox1Startscript.classpath
-	    }
-	    into("${baseName}-${version}/bin") {
-	        from pdfbox1Startscript
-	    }
-  	}
+    into("${baseName}-${version}/lib") {
+        from startScripts.classpath
+    }
+    into("${baseName}-${version}/lib") {
+        from pdfbox1Startscript.classpath
+    }
+    into("${baseName}-${version}/bin") {
+        from pdfbox1Startscript
+    }
 }
 
 distTar {
-	doFirst{
-	    baseName = archivesBaseName
-		duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	
-	     into("${baseName}-${version}/lib") {
-	        from startScripts.classpath
-	    }
-	    into("${baseName}-${version}/lib") {
-	        from pdfbox1Startscript.classpath
-	    }
-	    into("${baseName}-${version}/bin") {
-	        from pdfbox1Startscript
-	    }
+    baseName = archivesBaseName
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    into("${baseName}-${version}/lib") {
+        from startScripts.classpath
+    }
+    into("${baseName}-${version}/lib") {
+        from pdfbox1Startscript.classpath
+    }
+    into("${baseName}-${version}/bin") {
+        from pdfbox1Startscript
     }
 }
 
