@@ -3,27 +3,25 @@
  * PDF-AS has been contracted by the E-Government Innovation Center EGIZ, a
  * joint initiative of the Federal Chancellery Austria and Graz University of
  * Technology.
- * 
+ *
  * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
  * the European Commission - subsequent versions of the EUPL (the "Licence");
  * You may not use this work except in compliance with the Licence.
  * You may obtain a copy of the Licence at:
  * http://www.osor.eu/eupl/
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the Licence is distributed on an "AS IS" basis,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the Licence for the specific language governing permissions and
  * limitations under the Licence.
- * 
+ *
  * This product combines work with different licenses. See the "NOTICE" text
  * file for details on the various modules and licenses.
  * The "NOTICE" text file is part of the distribution. Any derivative works
  * that you distribute must include a readable copy of the "NOTICE" text file.
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
-
-import iaik.x509.X509Certificate;
 
 import java.awt.Image;
 import java.io.File;
@@ -47,6 +45,7 @@ import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.preprocessor.PreProcessor;
+import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
@@ -57,11 +56,15 @@ import at.gv.egiz.pdfas.lib.impl.configuration.ConfigurationImpl;
 import at.gv.egiz.pdfas.lib.impl.preprocessor.PreProcessorLoader;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
 import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureExtractor;
+import at.gv.egiz.pdfas.lib.impl.signing.PDFASSignatureInterface;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 import at.gv.egiz.pdfas.lib.settings.Settings;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.util.BKUHeader;
+import iaik.x509.X509Certificate;
 
 public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		ErrorConstants {
@@ -142,16 +145,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			ISettings settings = (ISettings) parameter.getConfiguration();
 			status = new OperationStatus(settings, parameter, backend);
 
-			IPdfSigner signer = backend.getPdfSigner();
+			IPdfSigner pdfSigner = backend.getPdfSigner();
 
-			status.setPdfObject(signer.buildPDFObject(status));
+			status.setPdfObject(pdfSigner.buildPDFObject(status));
 
 			// set Original PDF Document Data
 			status.getPdfObject()
 					.setOriginalDocument(parameter.getDataSource());
 
 			// Check PDF Permissions
-			signer.checkPDFPermissions(status.getPdfObject());
+			pdfSigner.checkPDFPermissions(status.getPdfObject());
 
 			// PlaceholderConfiguration placeholderConfiguration = status
 			// .getPlaceholderConfiguration();
@@ -161,10 +164,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			status.setRequestedSignature(requestedSignature);
 
+			final IPlainSigner plainSigner = status.getSignParamter().getPlainSigner();
+
 			try {
-			requestedSignature.setCertificate(status.getSignParamter()
-					.getPlainSigner().getCertificate(parameter));
-				requestedSignature.setCertificateVerificationData(status.getSignParamter().getPlainSigner().getCertificateVerificationData(requestedSignature));
+
+				X509Certificate certificate = plainSigner.getCertificate(parameter);
+				requestedSignature.setCertificate(certificate);
+
+				CertificateVerificationData certificateVerificationData = plainSigner.getCertificateVerificationData(requestedSignature);
+				requestedSignature.setCertificateVerificationData(certificateVerificationData);
+
 			} finally {
 				if (parameter instanceof BKUHeaderHolder) {
 					BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
@@ -205,9 +214,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			// Create signature
 			try {
-				signer.signPDF(status.getPdfObject(), requestedSignature, signer
-					.buildSignaturInterface(status.getSignParamter()
-							.getPlainSigner(), parameter, requestedSignature));
+
+				PDFObject pdfObject = status.getPdfObject();
+
+				PDFASSignatureInterface signaturInterface = pdfSigner.buildSignaturInterface(plainSigner, parameter, requestedSignature);
+
+				pdfSigner.signPDF(pdfObject, requestedSignature, signaturInterface);
+
 			} finally {
 				if (parameter instanceof BKUHeaderHolder) {
 					BKUHeaderHolder holder = (BKUHeaderHolder) parameter;
