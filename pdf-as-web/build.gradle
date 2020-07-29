@@ -91,7 +91,7 @@ task downloadTomcat {
 			project.buildDir.mkdirs()
 		}
 	
-		String url  = "http://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
+		String url  = "https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
 		String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
 	
 		url = url.replaceAll("##VERSION##", project.tomcatVersion);
