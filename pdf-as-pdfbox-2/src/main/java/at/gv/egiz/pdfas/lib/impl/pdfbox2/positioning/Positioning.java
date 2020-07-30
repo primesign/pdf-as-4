@@ -162,7 +162,7 @@ public class Positioning {
 	public static PositioningInstruction adjustSignatureTableandCalculatePosition(
 			final PDDocument pdfDataSource, IPDFVisualObject pdf_table,
 			TablePos pos, ISettings settings) throws PdfAsException {
-		List<PDSignatureField> pdSignatureFieldList = new ArrayList<>();
+		List<PDSignatureField> pdSignatureFieldList;
 		PdfBoxUtils.checkPDFPermissions(pdfDataSource);
 		int counter = 0;
 
@@ -326,8 +326,9 @@ public class Positioning {
 		// we do have text take SIGNATURE_MARGIN
 		pos_y = page_height - page_length - SIGNATURE_MARGIN_VERTICAL;
 		if (pos_y - footer_line <= table_height) {
-			if(counter!=0)
+			if(counter!=0){
 				make_new_page = false;
+			}
 			else{
 				make_new_page = true;
 				page++;
