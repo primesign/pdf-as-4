@@ -33,6 +33,7 @@ import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.ErrorExtractor;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
+import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderWebConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.placeholder.SignaturePlaceholderExtractor;
@@ -108,6 +109,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		PDFAsVisualSignatureProperties properties = null;
 		String placeholder_id = "";
 
+		if(PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID) != null  && !PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID).equalsIgnoreCase("")){
+			placeholder_id = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
+		}
+
+
 		if (!(genericPdfObject instanceof PDFBOXObject)) {
 			// tODO:
 			throw new PdfAsException();
@@ -152,10 +158,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			//gives a list of all placeholders
 			List<SignaturePlaceholderData> placeholders = SignaturePlaceholderExtractor.listPlaceholders();
-            if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
-			{
-				placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
-			};
+			if(placeholder_id.equalsIgnoreCase("")){
+				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
+				{
+					placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+				};
+			}
+
 			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
 					.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
 

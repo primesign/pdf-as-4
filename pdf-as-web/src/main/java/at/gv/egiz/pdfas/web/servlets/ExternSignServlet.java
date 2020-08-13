@@ -343,8 +343,9 @@ public class ExternSignServlet extends HttpServlet {
 		//read and set placholder web id
 		try{
 			String placeholder_id = PdfAsParameterExtractor.getPlaceholderId(request);
-			if(!placeholder_id.equalsIgnoreCase(""))
+			if(!placeholder_id.equalsIgnoreCase("")) {
 				PlaceholderWebConfiguration.setValue(IConfigurationConstants.PLACEHOLDER_WEB_ID, placeholder_id);
+			}
 		} catch(Exception e) {
 			logger.error(e.getLocalizedMessage());
 		}
