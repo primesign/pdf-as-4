@@ -95,14 +95,14 @@ public class ProfileValidator implements ConfigurationValidator{
 					continue;
 				}
 			}
-			Table t;
+			/*Table t;
 			try {
 				t = TableFactory.createSigTable(profileSetting, "main", opState, certProvider);
 				new PDFBoxTable(t, null, settings, pdfBoxObject);
 			} catch (Exception e) {
 				logger.info("Configuration Validation for profile "+id+" failed!");
 				throw new PdfAsSettingsValidationException("Configuration Validation for profile "+id+" failed!", e);
-			}
+			}*/
 		}
 	}
 
