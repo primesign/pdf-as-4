@@ -324,8 +324,9 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		// String innerFormComment = "q 1 0 0 1 0 0 cm /" + imageObjectName +
 		// " Do Q\n";
 
-		String innerFormComment = new String(getStructure().getInnerFormStream().toByteArray(), "ISO-8859-1");
-	
+		//String innerFormComment = new String(getStructure().getInnerFormStream().toByteArray(), "ISO-8859-1");
+		String innerFormComment = new String(getStructure().getInnerFormStream().toByteArray(), "UTF-8");
+
 		//		.getInputStreamAsString();//TODO: pdfbox2 - get the string from the stream
 
 		// logger.debug("Inner Form Stream: " + innerFormComment);

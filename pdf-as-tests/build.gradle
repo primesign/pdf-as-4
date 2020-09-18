@@ -42,13 +42,13 @@ dependencies {
 	testCompile group: 'org.icepdf', name: 'icepdf-core', version: '5.0.7'
 
 	pdfBox1Compile project (':pdf-as-pdfbox')
-	pdfBox1Compile group: 'org.apache.pdfbox', name: 'preflight', version: '1.8.7'
-	pdfBox1Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.7'
+	pdfBox1Compile group: 'org.apache.pdfbox', name: 'preflight', version: '1.8.16'
+	pdfBox1Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.16'
 
 	pdfBox2Compile project (':pdf-as-pdfbox-2')
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'preflight', version: '2.0.2'
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.2'
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '2.0.2'
+	pdfBox2Compile group: 'org.apache.pdfbox', name: 'preflight', version: '2.0.21'
+	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.21'
+	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '2.0.21'
 
 }
 
