@@ -67,7 +67,7 @@ dependencies {
 
 	compile group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.4.0-b180830.0438'
 
-	compile 'org.apache.commons:commons-collections4:4.0'
+	compile 'org.apache.commons:commons-collections4:4.4'
 	compile group: 'ognl', name: 'ognl', version: '3.0.8'
 	compile files('libs/iaik_eccelerate_cms.jar')
 	compile files('libs/iaik_eccelerate.jar')

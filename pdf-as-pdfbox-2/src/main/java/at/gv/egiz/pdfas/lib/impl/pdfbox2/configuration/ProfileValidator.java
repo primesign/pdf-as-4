@@ -1,8 +1,21 @@
 package at.gv.egiz.pdfas.lib.impl.pdfbox2.configuration;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
+import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
+import at.gv.egiz.pdfas.lib.configuration.ConfigurationValidator;
+import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
+import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
+import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import iaik.asn1.ObjectID;
 import iaik.asn1.structures.Name;
 import iaik.x509.X509Certificate;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -11,24 +24,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
-import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
-import at.gv.egiz.pdfas.lib.configuration.ConfigurationValidator;
-import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
-import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
-import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox2.PDFBoxTable;
-import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
-import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
-import at.knowcenter.wag.egov.egiz.table.Table;
 
 public class ProfileValidator implements ConfigurationValidator{
 

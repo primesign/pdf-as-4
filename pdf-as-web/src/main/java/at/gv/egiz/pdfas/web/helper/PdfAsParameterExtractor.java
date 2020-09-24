@@ -76,7 +76,6 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
 
 
-
 	public static String getConnector(HttpServletRequest request) {
 		String connector = (String)request.getAttribute(PARAM_CONNECTOR);
 		if(connector != null) {

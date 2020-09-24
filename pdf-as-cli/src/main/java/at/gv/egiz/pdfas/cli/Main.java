@@ -33,7 +33,6 @@ import java.util.UUID;
 
 import javax.activation.DataSource;
 
-import at.gv.egiz.pdfas.lib.api.*;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;

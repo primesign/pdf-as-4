@@ -32,6 +32,7 @@ import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderWebConfiguration;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+import org.apache.commons.lang3.StringUtils;
 
 public class PlaceholderFilter implements IConfigurationConstants,
 		PlaceholderExtractorConstants {
@@ -45,18 +46,18 @@ public class PlaceholderFilter implements IConfigurationConstants,
 		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
 			PlaceholderExtractor extractor = status.getBackend().getPlaceholderExtractor();
 
-			if(signatureLocation!=null) {
+			if(StringUtils.isNotEmpty(signatureLocation)) {
 				placeholderID = signatureLocation;
 			} else {
 				placeholderID = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
-				if(placeholderID == null) {
+				if(StringUtils.isEmpty(placeholderID)) {
 					placeholderID = settings.getValue(PLACEHOLDER_ID);
 				}
 			}
 
 			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
 			int placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
-			if (placeholderModeString != null) {
+			if (StringUtils.isNotEmpty(placeholderModeString)) {
 				try {
 					placeholderMode = Integer.parseInt(placeholderModeString);
 					if (placeholderMode < PLACEHOLDER_MODE_MIN
@@ -78,11 +79,11 @@ public class PlaceholderFilter implements IConfigurationConstants,
 			int placeholderMode = PLACEHOLDER_MATCH_MODE_SORTED;
 
 			placeholderID = status.getPlaceholderConfiguration().getProfilePlaceholderID(status.getRequestedSignature().getSignatureProfileID());
-			if(placeholderID != null) {
+			if(StringUtils.isNotEmpty(placeholderID)) {
 				placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
 			}
 			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
-			if (placeholderModeString != null) {
+			if (StringUtils.isNotEmpty(placeholderModeString))  {
 				try {
 					placeholderMode = Integer.parseInt(placeholderModeString);
 					if (placeholderMode < PLACEHOLDER_MODE_MIN
