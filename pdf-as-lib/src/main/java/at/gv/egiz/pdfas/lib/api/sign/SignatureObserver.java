@@ -11,12 +11,12 @@ import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 public interface SignatureObserver {
 
 	/**
-	 * Called right bevor the cryptographic signature is calculated from the document's content. Note that the signature
+	 * Called right before the cryptographic signature is calculated from the document's content. Note that the signature
 	 * widget might already be added to the document while the signature value is still empty (for obvious reasons).
 	 *
 	 * <p>
-	 * The passed pdf object reflects an implementation-agnostic reference to the document being processed. Observing units
-	 * knowing the actual pdf processor being used (e.g. PDFBox 1.x) may cast the object accordingly.
+	 * The provided pdf object reflects an implementation-agnostic reference to the document being processed. Observing
+	 * units being aware of the actual pdf processor being used (e.g. PDFBox 1.x) may cast the object accordingly.
 	 * </p>
 	 *
 	 * @param pdfObject The processed pdf object (required; must not be {@code null}).
