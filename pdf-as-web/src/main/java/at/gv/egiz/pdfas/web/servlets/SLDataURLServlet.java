@@ -118,7 +118,7 @@ public class SLDataURLServlet extends HttpServlet {
 			String sl20ReqId = (String) request.getSession(false).getAttribute(PdfAsHelper.PDF_SESSION_PREFIX + SL20Constants.SL20_REQID);
 			String inRespTo = SL20JSONExtractorUtils.getStringValue(sl20ReqObj, SL20Constants.SL20_INRESPTO, true);
 			if (sl20ReqId == null || !sl20ReqId.equals(inRespTo)) {
-				logger.info("SL20 'reqId': " + sl20ReqId + " does NOT match to 'inResponseTo':" + inRespTo);
+				logger.debug("SL20 'reqId': " + sl20ReqId + " does NOT match to 'inResponseTo':" + inRespTo);
 				throw new SL20SecurityException("SL20 'reqId': " + sl20ReqId + " does NOT match to 'inResponseTo':" + inRespTo);
 			}
 			

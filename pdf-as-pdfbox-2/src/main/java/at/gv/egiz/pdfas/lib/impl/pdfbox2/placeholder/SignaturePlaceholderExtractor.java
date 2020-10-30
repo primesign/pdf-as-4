@@ -103,7 +103,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
 
-	private static List<SignaturePlaceholderData> placeholders = new Vector<>();
+	private static List<SignaturePlaceholderData> placeholders = new ArrayList<>();
 	private int currentPage = 0;
 	private PDDocument doc;
 	
@@ -128,6 +128,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		this.doc = doc;
 	}
 
+	//todo lists returns duplicates
 	public static List<SignaturePlaceholderData> listPlaceholders() {
 		return placeholders;
 	}

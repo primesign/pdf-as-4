@@ -1,6 +1,5 @@
 package at.gv.egiz.sl20.utils;
 
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -200,7 +199,7 @@ public class SL20JSONExtractorUtils {
 		while (entry.hasNext()) {
 			Entry<String, JsonElement> el = entry.next();
 			if (result.containsKey(el.getKey()))
-				log.info("Attr. Map already contains Element with Key: " + el.getKey() + ". Overwrite element ... ");
+				log.debug("Attr. Map already contains Element with Key: " + el.getKey() + ". Overwrite element ... ");
 			
 			result.put(el.getKey(), el.getValue().getAsString());
 		

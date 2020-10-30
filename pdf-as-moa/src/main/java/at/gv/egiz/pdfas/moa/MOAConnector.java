@@ -123,7 +123,7 @@ public class MOAConnector implements ISignatureConnector,
 			String certificateValue = config.getValue(MOA_SIGN_CERTIFICATE);
 
 			if (certificateValue.startsWith("http")) {
-				logger.info("Loading certificate from url: " + certificateValue);
+				logger.trace("Loading certificate from url: " + certificateValue);
 
 				try {
 					URL certificateURL = new URL(certificateValue);
@@ -144,7 +144,7 @@ public class MOAConnector implements ISignatureConnector,
 					certFile = new File(certificateValue);
 				}
 
-				logger.info("Loading certificate from file: "
+				logger.trace("Loading certificate from file: "
 						+ certificateValue);
 
 				this.certificate = new X509Certificate(new FileInputStream(

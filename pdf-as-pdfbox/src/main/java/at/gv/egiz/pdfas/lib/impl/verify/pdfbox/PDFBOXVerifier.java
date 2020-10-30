@@ -93,10 +93,10 @@ public class PDFBOXVerifier implements VerifyBackend {
 						COSBase base = field.getDictionaryObject("V");
 						COSDictionary dict = (COSDictionary) base;
 
-						logger.debug("Signer: " + dict.getNameAsString("Name"));
-						logger.debug("SubFilter: " + dict.getNameAsString("SubFilter"));
-						logger.debug("Filter: " + dict.getNameAsString("Filter"));
-						logger.debug("Modified: " + dict.getNameAsString("M"));
+						logger.trace("Signer: " + dict.getNameAsString("Name"));
+						logger.trace("SubFilter: " + dict.getNameAsString("SubFilter"));
+						logger.trace("Filter: " + dict.getNameAsString("Filter"));
+						logger.trace("Modified: " + dict.getNameAsString("M"));
 						COSArray byteRange = (COSArray) dict.getDictionaryObject("ByteRange");
 
 						StringBuilder sb = new StringBuilder();
@@ -106,7 +106,7 @@ public class PDFBOXVerifier implements VerifyBackend {
 							sb.append(" " + bytes[j]);
 						}
 
-						logger.debug("ByteRange" + sb.toString());
+						logger.trace("ByteRange" + sb.toString());
 
 						COSString content = (COSString) dict.getDictionaryObject("Contents");
 

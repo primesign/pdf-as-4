@@ -1,20 +1,16 @@
 package at.gv.egiz.pdfas.web.sl20;
 
-import java.io.IOException;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.util.encoders.Base64Encoder;
 import org.jose4j.jwa.AlgorithmConstraints;
 import org.jose4j.jwa.AlgorithmConstraints.ConstraintType;
 import org.jose4j.jwe.JsonWebEncryption;
@@ -85,7 +81,7 @@ public class JsonSecurityUtils implements IJOSETools{
 					if (certChainSigning[i] instanceof X509Certificate) {
 						signCertChain[i] = (X509Certificate)certChainSigning[i];
 					} else
-						logger.warn("NO X509 certificate for signing: " + certChainSigning[i].getType());
+						logger.warn("NO X509 certificate for signing: ");
 					
 				}
 				
@@ -99,7 +95,7 @@ public class JsonSecurityUtils implements IJOSETools{
 							if (certChainEncryption[i] instanceof X509Certificate) {
 								encCertChain[i] = (X509Certificate)certChainEncryption[i];
 							} else
-								logger.warn("NO X509 certificate for encryption: " + certChainEncryption[i].getType());
+								logger.warn("NO X509 certificate for encryption: ");
 						}									
 					} else
 						logger.info("No encryption key for SL2.0 found. End-to-End encryption is not used.");
@@ -119,20 +115,20 @@ public class JsonSecurityUtils implements IJOSETools{
 						if (cert != null && cert instanceof X509Certificate)
 							trustedCerts.add((X509Certificate) cert);
 						else
-							logger.info("Can not process entry: " + el + ". Reason: " + cert.toString());
+							logger.info("Can not process entry: " + el + ". Reason: ");
 						
 					}
 				}
 	
 				//some short validation
 				if (signPrivKey == null || !(signPrivKey instanceof PrivateKey)) {
-					logger.info("Can NOT open privateKey for SL2.0 signing. KeyStore=" + getKeyStoreFilePath());
+					logger.info("Can NOT open privateKey for SL2.0 signing. KeyStore=");
 					throw new SL20Exception("sl20.03");
 					
 				}
 				
 				if (signCertChain == null || signCertChain.length == 0) {
-					logger.info("NO certificate for SL2.0 signing. KeyStore=" + getKeyStoreFilePath());
+					logger.info("NO certificate for SL2.0 signing. KeyStore=");
 					throw new SL20Exception("sl20.03");
 					
 				}
@@ -205,15 +201,6 @@ public class JsonSecurityUtils implements IJOSETools{
 					
 				} else {
 					logger.info("Can NOT find JOSE certificate in truststore.");
-					logger.debug("JOSE certificate: " + sortedX5cCerts.get(0).toString());
-					try {						
-						logger.debug("Cert: " + Base64.getEncoder().encodeToString(sortedX5cCerts.get(0).getEncoded()));
-						
-					} catch (CertificateEncodingException e) {
-						e.printStackTrace();
-						
-					}
-					
 				}
 				
 			} else if (StringUtils.isNotEmpty(x5t256)) {
@@ -289,12 +276,6 @@ public class JsonSecurityUtils implements IJOSETools{
 				if (!sortedX5cCerts.get(0).equals(encCertChain[0])) {
 					logger.info("Certificate from JOSE header does NOT match encryption certificate");
 					logger.debug("JOSE certificate: " + sortedX5cCerts.get(0).toString());
-					
-					try {
-						logger.debug("Cert: " + Base64.getEncoder().encodeToString(sortedX5cCerts.get(0).getEncoded()));
-					} catch (CertificateEncodingException e) {
-						e.printStackTrace();
-					}
 					throw new SL20Exception("sl20.05");
 				}
 				
@@ -303,7 +284,6 @@ public class JsonSecurityUtils implements IJOSETools{
 				String certFingerPrint = X509Util.x5tS256(encCertChain[0]);
 				if (!certFingerPrint.equals(x5t256)) {
 					logger.info("X5t256 from JOSE header does NOT match encryption certificate");
-					logger.debug("X5t256 from JOSE header: " + x5t256 + " Encrytption cert: " + certFingerPrint);
 					throw new SL20Exception("sl20.05");
 					
 				}
