@@ -72,7 +72,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 	private ISettings settings;
 
 	public PdfAsImpl(File cfgFile) {
-		logger.trace("Initializing PDF-AS with config: " + cfgFile.getPath());
+		logger.debug("Initializing PDF-AS with config: " + cfgFile.getPath());
 		this.settings = new Settings(cfgFile);
 	}
 
@@ -369,9 +369,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				for (int i = 0; i < byteRange.length; i++) {
 					sb.append(" " + byteRange[i]);
 				}
-
-				logger.trace("ByteRange: " + sb.toString());
-
+				logger.debug("ByteRange: " + sb.toString());
 
 				request.setSignatureData(signatureDataExtractor
 						.getSignatureData());

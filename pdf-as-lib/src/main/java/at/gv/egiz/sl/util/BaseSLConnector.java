@@ -97,7 +97,7 @@ public abstract class BaseSLConnector implements ISLConnector,
 		byte[] data = PDFUtils.blackOutSignature(signatureData, byteRange);
 		RequestPackage pack = new RequestPackage();
 		int[] exclude_range = PDFUtils.buildExcludeRange(byteRange);
-		logger.info("Exclude Byte Range: " + exclude_range[0] + " "
+		logger.debug("Exclude Byte Range: " + exclude_range[0] + " "
 				+ exclude_range[1]);
 
 		MetaInfoType metaInfoType = new MetaInfoType();

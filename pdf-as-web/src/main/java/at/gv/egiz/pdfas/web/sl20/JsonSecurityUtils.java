@@ -116,7 +116,6 @@ public class JsonSecurityUtils implements IJOSETools{
 							trustedCerts.add((X509Certificate) cert);
 						else
 							logger.info("Can not process entry: " + el + ". Reason: ");
-						
 					}
 				}
 	
@@ -124,13 +123,11 @@ public class JsonSecurityUtils implements IJOSETools{
 				if (signPrivKey == null || !(signPrivKey instanceof PrivateKey)) {
 					logger.info("Can NOT open privateKey for SL2.0 signing. KeyStore=");
 					throw new SL20Exception("sl20.03");
-					
 				}
 				
 				if (signCertChain == null || signCertChain.length == 0) {
 					logger.info("NO certificate for SL2.0 signing. KeyStore=");
 					throw new SL20Exception("sl20.03");
-					
 				}
 				
 				isInitialized = true;
@@ -291,7 +288,6 @@ public class JsonSecurityUtils implements IJOSETools{
 			} else {
 				logger.info("Signed SL2.0 response contains NO signature certificate or NO certificate fingerprint");
 				throw new SLCommandoParserException();
-				
 			}
 						
 			//set key
