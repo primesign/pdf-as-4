@@ -153,7 +153,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signature.setFilter(COSName.getPDFName(signer.getPDFFilter()));
 			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
-
 			SignaturePlaceholderData signaturePlaceholderDataInit = PlaceholderFilter.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(), placeholder_id);
 
 			//gives a list of all placeholders
@@ -246,7 +245,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                 signatureProfileSettings.setPDFAVersion(pdfaVersion);
             }
 
-
 			// Is visible Signature
 			if (requestedSignature.isVisual()) {
 				logger.info("Creating visual siganture block");
@@ -314,7 +312,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				if(!isAdobeSigForm)  {
 				if (positioningInstruction.isMakeNewPage()) {
-
 					int last = doc.getNumberOfPages() - 1;
 					PDDocumentCatalog root = doc.getDocumentCatalog();
 					PDPage lastPage = root.getPages().get(last);
@@ -327,13 +324,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				// handle rotated page
 				int targetPageNumber = positioningInstruction.getPage();
-
 				logger.debug("Target Page: " + targetPageNumber);
 				PDPage targetPage = doc.getPages().get(targetPageNumber - 1);
 				int rot = targetPage.getRotation();
 				logger.debug("Page rotation: " + rot);
-				// positioningInstruction.setRotation(positioningInstruction.getRotation()
-					//				// + rot);
 				logger.debug("resulting Sign rotation: " + positioningInstruction.getRotation());
 
 				SignaturePositionImpl position = new SignaturePositionImpl();
@@ -342,7 +336,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				position.setPage(positioningInstruction.getPage());
 				position.setHeight(visualObject.getHeight());
 				position.setWidth(visualObject.getWidth());
-
 				requestedSignature.setSignaturePosition(position);
 				}
 
@@ -389,7 +382,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                     InputStream colorProfile = null;
                     //colorProfile = this.getClass().getResourceAsStream("/icm/sRGB.icm");
 					colorProfile = this.getClass().getResourceAsStream("/icm/sRGB Color Space Profile.icm");
-
                      //Set output intents for PDF/A conformity//
                             try {
                                 PDOutputIntent intent = new PDOutputIntent(doc, colorProfile);
@@ -412,7 +404,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                             IOUtils.closeQuietly(colorProfile);
                         }
                     }
-
                 options.setPage(positioningInstruction.getPage()-1);
                 options.setVisualSignature(properties.getVisibleSignature());
             }
@@ -424,8 +415,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			if (sigFieldName == null) {
 				sigFieldName = "PDF-AS Signatur";
 			}
-
-
 			int count = PdfBoxUtils.countSignatures(doc, sigFieldName);
 
 			sigFieldName = sigFieldName + count;
@@ -625,7 +614,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                         synchronized (doc) {
                     doc.saveIncremental(bos);
                             byte[] outputDocument = bos.toByteArray();
-                            doc.save(bos);
                             pdfObject.setSignedDocument(outputDocument);
                 }
                         /* Check if resulting pdf is PDF-A conform */
