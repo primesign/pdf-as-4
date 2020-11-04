@@ -53,8 +53,7 @@ dependencies {
 	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-databinding-jaxb', version: cxfVersion
 	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-frontend-jaxws', version: cxfVersion
 	compile group: 'javax.xml.ws', name: 'jaxws-api', version: '2.3.1'
-	compile group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.4.0-b180830.0438'
-}
+	compile group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.3'}
 
 task wsdl2Java() {
 	if (!wsdlDir.listFiles()) {
