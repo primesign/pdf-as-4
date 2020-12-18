@@ -348,7 +348,6 @@ public class ExternSignServlet extends HttpServlet {
 			} else
 			{
 				PlaceholderWebConfiguration.clear();
-
 			}
 
 

@@ -128,9 +128,12 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		this.doc = doc;
 	}
 
-	//todo lists returns duplicates
-	public static List<SignaturePlaceholderData> listPlaceholders() {
+	public  static List<SignaturePlaceholderData> listPlaceholders() {
 		return placeholders;
+	}
+
+	public static void clearPlaceholders(){
+		placeholders.clear();
 	}
 	/**
 	 * Search the document for placeholder images and possibly included

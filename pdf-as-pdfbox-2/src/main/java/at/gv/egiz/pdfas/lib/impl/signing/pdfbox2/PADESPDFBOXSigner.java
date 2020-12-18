@@ -157,6 +157,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			//gives a list of all placeholders
 			List<SignaturePlaceholderData> placeholders = SignaturePlaceholderExtractor.listPlaceholders();
+			if(placeholders!=null){
+				SignaturePlaceholderExtractor.clearPlaceholders();
+			}
 			if(placeholder_id.equalsIgnoreCase("")){
 				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
 				{
