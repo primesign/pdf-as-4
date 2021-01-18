@@ -107,6 +107,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			PDFASSignatureInterface genericSigner) throws PdfAsException {
 
 		PDFAsVisualSignatureProperties properties = null;
+		List<SignaturePlaceholderData> placeholders;
 		String placeholder_id = "";
 
 		if(PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID) != null  && !PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID).equalsIgnoreCase("")){
@@ -155,11 +156,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
 			SignaturePlaceholderData signaturePlaceholderDataInit = PlaceholderFilter.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(), placeholder_id);
 
-			//gives a list of all placeholders
-			List<SignaturePlaceholderData> placeholders = SignaturePlaceholderExtractor.listPlaceholders();
-			if(placeholders!=null){
-				SignaturePlaceholderExtractor.clearPlaceholders();
-			}
+            placeholders = SignaturePlaceholderExtractor.getPlaceholders();
+
+
 			if(placeholder_id.equalsIgnoreCase("")){
 				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
 				{
@@ -177,7 +176,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
-				logger.info("Placeholder data found.");
+                placeholders.clear();
+                logger.info("Placeholder data found.");
 				if (signaturePlaceholderData.getProfile() != null) {
 					logger.debug("Placeholder Profile set to: " + signaturePlaceholderData.getProfile());
 					requestedSignature.setSignatureProfileID(signaturePlaceholderData.getProfile());
@@ -900,12 +900,15 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	//find first available placeholder
 	public SignaturePlaceholderData checkAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
 		SignaturePlaceholderData result = null;
+
+		if(placeholders!=null){
 		for(int i = 0; i < placeholders.size(); ++i) {
             if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
 				result = placeholders.get(i);
 				break;
 			}
 		}
+	}
 		return result;
 	}
 }

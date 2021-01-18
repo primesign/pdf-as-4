@@ -106,8 +106,6 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static List<SignaturePlaceholderData> placeholders = new ArrayList<>();
 	private int currentPage = 0;
 	private PDDocument doc;
-	
-	
 
 	private SignaturePlaceholderExtractor(String placeholderId,
 			int placeholderMatchMode, PDDocument doc) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
@@ -128,13 +126,18 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		this.doc = doc;
 	}
 
-	public  static List<SignaturePlaceholderData> listPlaceholders() {
+	public static List<SignaturePlaceholderData> getPlaceholders() {
 		return placeholders;
 	}
 
-	public static void clearPlaceholders(){
+	public void setPlaceholders(List<SignaturePlaceholderData> placeholders) {
+		this.placeholders = placeholders;
+	}
+
+	public static void clearPlaceholders() {
 		placeholders.clear();
 	}
+
 	/**
 	 * Search the document for placeholder images and possibly included
 	 * additional info.<br/>

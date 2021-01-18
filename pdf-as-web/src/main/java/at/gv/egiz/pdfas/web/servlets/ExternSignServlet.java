@@ -27,6 +27,7 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.utils.StringUtils;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
@@ -343,10 +344,9 @@ public class ExternSignServlet extends HttpServlet {
 		//read and set placholder web id
 		try{
 			String placeholder_id = PdfAsParameterExtractor.getPlaceholderId(request);
-			if(!placeholder_id.equalsIgnoreCase("")) {
+			if(org.apache.commons.lang3.StringUtils.isNotEmpty(placeholder_id)) {
 				PlaceholderWebConfiguration.setValue(IConfigurationConstants.PLACEHOLDER_WEB_ID, placeholder_id);
-			} else
-			{
+			} else {
 				PlaceholderWebConfiguration.clear();
 			}
 
