@@ -130,13 +130,6 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		return placeholders;
 	}
 
-	public void setPlaceholders(List<SignaturePlaceholderData> placeholders) {
-		this.placeholders = placeholders;
-	}
-
-	public static void clearPlaceholders() {
-		placeholders.clear();
-	}
 
 	/**
 	 * Search the document for placeholder images and possibly included
