@@ -198,11 +198,6 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			throw new NullPointerException();
 		}
 
-		if(privKey == null) {
-			logger.error("PAdESSignerKeystore provided private Key is NULL");
-			throw new NullPointerException();
-		}
-
 		if(cert instanceof X509Certificate) {
 			this.cert = (X509Certificate)cert;
 		} else {
