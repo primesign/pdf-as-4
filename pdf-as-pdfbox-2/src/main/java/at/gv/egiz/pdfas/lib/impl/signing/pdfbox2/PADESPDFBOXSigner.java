@@ -175,6 +175,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
+                placeholders.clear();
                 logger.info("Placeholder data found.");
 				if (signaturePlaceholderData.getProfile() != null) {
 					logger.debug("Placeholder Profile set to: " + signaturePlaceholderData.getProfile());
