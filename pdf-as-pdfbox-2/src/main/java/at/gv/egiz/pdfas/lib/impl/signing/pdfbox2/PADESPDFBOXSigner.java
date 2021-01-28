@@ -896,15 +896,26 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		return existingLocations;
 	}
 
-	//find first available placeholder
+	//find first placeholder_id
 	public SignaturePlaceholderData checkAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
 		SignaturePlaceholderData result = null;
 
 		if(placeholders!=null) {
 		for(int i = 0; i < placeholders.size(); ++i) {
+			//take smallest id
             if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
-				result = placeholders.get(i);
-				break;
+				SignaturePlaceholderData spd = placeholders.get(i);
+				if (spd.getId() != null) {
+					if(result == null) {
+						result = spd;
+					} else {
+						String currentID = result.getId();
+						String testID = spd.getId();
+						if(testID.compareToIgnoreCase(currentID) < 0) {
+							result = spd;
+						}
+					}
+				}
 			}
 		}
 	}
