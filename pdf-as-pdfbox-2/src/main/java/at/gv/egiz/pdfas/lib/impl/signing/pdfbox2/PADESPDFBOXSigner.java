@@ -108,6 +108,9 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 		PDFAsVisualSignatureProperties properties = null;
 		List<SignaturePlaceholderData> placeholders;
+		List<SignaturePlaceholderData> availablePlaceholders;
+		SignaturePlaceholderData signaturePlaceholderData = null;
+
 		String placeholder_id = "";
 
 		if(PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID) != null  && !PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID).equalsIgnoreCase("")){
@@ -157,6 +160,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			SignaturePlaceholderData signaturePlaceholderDataInit = PlaceholderFilter.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(), placeholder_id);
 
             placeholders = SignaturePlaceholderExtractor.getPlaceholders();
+            availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
+
 
 			if(placeholder_id.equalsIgnoreCase("")){
 				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
@@ -165,8 +170,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				};
 			}
 
-			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-					.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
+			if(availablePlaceholders!=null) {
+				signaturePlaceholderData = PlaceholderFilter
+						.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
+			}
+
+
+
 
 			TablePos tablePos = null;
 
@@ -643,6 +653,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
             if (doc != null) {
                 try {
                     doc.close();
+					SignaturePlaceholderExtractor.getPlaceholders().clear();
                 } catch (IOException e) {
                     logger.debug("Failed to close COS Doc!", e);
                     // Ignore
@@ -919,6 +930,22 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			}
 		}
 	}
+		return result;
+	}
+
+
+	//find first placeholder_id
+	public List<SignaturePlaceholderData>  listAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
+		List<SignaturePlaceholderData> result = null;
+
+		if(placeholders!=null) {
+			for(int i = 0; i < placeholders.size(); ++i) {
+				//take smallest id
+				if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
+					result.add(placeholders.get(i));
+				}
+			}
+		}
 		return result;
 	}
 }
