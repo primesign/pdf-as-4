@@ -35,3 +35,20 @@ https://joinup.ec.europa.eu/collection/e-government-innovation-center-egiz/solut
 Run git push with tag also to  https://git.egiz.gv.at/pdf-as-4/ (this is the public EGIZ GIT REPO) 
 
 #### 3. Add release notes to EGIZ or ASIT website! 
+
+# Setup
+
+
+#### 1. Deployment of configuration 
+
+
+#### 1. DebugRun 
+
+
+### PDF-AS-Web 
+
+`-Dpdf-as-web.conf=$CATALINA_BASE/conf/pdf-as/pdf-as-web.properties \` 
+
+
+
+
