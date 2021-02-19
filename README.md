@@ -41,11 +41,23 @@ Run git push with tag also to  https://git.egiz.gv.at/pdf-as-4/ (this is the pub
 
 #### 1. Deployment of configuration 
 
+arguments: 
 
-#### 1. DebugRun 
+-d
 
+#### 2. DebugRun 
 
-### PDF-AS-Web 
+arguments: 
+
+-p SIGNATURBLOCK_DE 
+
+-c bku 
+  
+-m sign C:\Users\username\Desktop\testing\test.pdf
+
+-pos "x:220;y:220;w:300;p:1" 
+
+#### 3. PDF-AS-Web 
 
 `-Dpdf-as-web.conf=$CATALINA_BASE/conf/pdf-as/pdf-as-web.properties \` 
 
