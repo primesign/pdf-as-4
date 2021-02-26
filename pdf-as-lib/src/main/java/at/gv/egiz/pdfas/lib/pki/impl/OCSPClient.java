@@ -172,7 +172,7 @@ public class OCSPClient implements AutoCloseable {
 	private OCSPClient(boolean httpCachingEnabled, RequestConfig requestConfig) {
 		this.httpCachingEnabled = httpCachingEnabled;
 		this.requestConfig = Objects.requireNonNull(requestConfig);
-		httpClient = HttpClients.createDefault();
+		httpClient = HttpClients.createSystem();
 	}
 	
 	/**
