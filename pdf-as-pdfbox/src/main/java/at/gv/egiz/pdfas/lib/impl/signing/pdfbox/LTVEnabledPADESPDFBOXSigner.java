@@ -249,45 +249,43 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 		LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
 		log.trace("LTV mode: {}", ltvMode);
 
-		if (ltvMode != LTVMode.NONE) {
-
-			CertificateVerificationData ltvVerificationInfo = requestedSignature.getCertificateVerificationData();
-
-			// Did we get data to be embedded with signature ?
-			if (ltvVerificationInfo != null) {
-
-				// yes, add data to pdf
-				try {
-					addLTVInfo(pdDocument, ltvVerificationInfo);
-				} catch (CertificateEncodingException | CRLException e) {
-					// error embedding LTV data, LTV mode controls how errors are handled
-					final String message = "Unable to encode LTV related data to be added to the document.";
-					if (ltvMode == LTVMode.OPTIONAL) {
-						log.warn(message, e);
-						return;
-					}
-					throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_INTERNAL_ADDING_DATA_TO_PDF, message, e);
-				} catch (IOException e) {
-					// we do not supress I/O errors (regardless of LTV mode)
-					throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
-				}
-
-			} else {
-
-				// no data available, LTV mode controls how this case is handled
-				if (ltvMode == LTVMode.REQUIRED) {
-					throw new PDFASError(
-							ErrorConstants.ERROR_SIG_PADESLTV_NO_DATA,
-							"No LTV data available for the signer's certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
-					);
-				} else {
-					log.debug("No LTV data available for the signer's certificate.");
-				}
-
-			}
-
-		} else {
+		if (ltvMode == LTVMode.NONE) {
+			// no need to determine and add any certificate verification data
 			log.debug("Did not add LTV related data since LTV mode was {}.", ltvMode);
+			return;
+		}
+
+		// we need to consider certificate verification data
+		CertificateVerificationData ltvVerificationInfo = requestedSignature.getCertificateVerificationData();
+		if (ltvVerificationInfo == null) {
+			// we do not have any certificate verification data, LTV mode controls how this case is handled
+			if (ltvMode == LTVMode.REQUIRED) {
+				throw new PDFASError(
+						ErrorConstants.ERROR_SIG_PADESLTV_NO_DATA,
+						"No LTV data available for the signer's certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available.");
+			}
+			
+			// certificate verification data is not required
+			log.debug("No LTV data available for the signer's certificate.");
+			return;
+		}
+		
+		
+		// we have data that can be added
+		try {
+			
+			addLTVInfo(pdDocument, ltvVerificationInfo);
+			
+		} catch (CertificateEncodingException | CRLException e) {
+			// error embedding LTV data, LTV mode controls how errors are handled
+			final String message = "Unable to encode LTV related data to be added to the document.";
+			if (ltvMode == LTVMode.REQUIRED) {
+				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_INTERNAL_ADDING_DATA_TO_PDF, message, e);
+			}
+			log.warn(message, e);
+		} catch (IOException e) {
+			// we do not supress I/O errors (regardless of LTV mode)
+			throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
 		}
 
 	}
