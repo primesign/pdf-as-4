@@ -168,7 +168,7 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 					}
 					
 				} catch (Exception e) {
-					log.info("Unable to retrieve OCSP response: {}", String.valueOf(e));
+					log.warn("Unable to retrieve OCSP response.", e);
 					certAndRevStatus.setRevocationStatus(RevocationStatus.CHECK_FAILED);
 				}
 				
@@ -258,25 +258,25 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 						} else {
 							certAndRevStatus.setRevocationStatus(RevocationStatus.GOOD);
 						}
-						
+
 						crls.add(x509Crl);
-						
+
 					} else if (lastException != null) {
-						
-						log.info("Unable to load CRL: {}", String.valueOf(lastException));
+
+						log.warn("Unable to load CRL.", lastException);
 						certAndRevStatus.setRevocationStatus(RevocationStatus.CHECK_FAILED);
-						
+
 					}
-					
+
 				}
-				
+
 			}
-			
+
 			// remove an already existing certificate (without revocation checks) (the OCSP responder certificate)...
 			certsAndRevStatus.remove(certAndRevStatus);
 			// ...and add the certificate with revocation checks
 			certsAndRevStatus.add(certAndRevStatus);
-			
+
 		}
 
 		// add (trust) anchor certificate without any revocation checks
