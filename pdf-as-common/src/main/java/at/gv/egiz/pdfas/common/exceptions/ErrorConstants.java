@@ -42,6 +42,11 @@ public interface ErrorConstants {
 	 */
 	long ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF = 11103;
 
+	/**
+	 * The state of at least one of the signer certificate's chain certificates is not valid (e.g. revoked).
+	 */
+	long ERROR_SIG_PADESLTV_CERT_STATUS_NOT_VALID = 11104;
+
 	// Verification Errors
 
 
