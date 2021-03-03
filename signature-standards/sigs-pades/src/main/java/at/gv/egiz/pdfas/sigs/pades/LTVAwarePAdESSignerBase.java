@@ -46,8 +46,6 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 		log.trace("LTV mode: {}", ltvMode);
 
 		if (ltvMode == LTVMode.NONE) {
-			// do not try to fetch any data in case of LTV disabled
-			log.debug("Did not add LTV related data since LTV mode was {}.", ltvMode);
 			return null;
 		}
 
@@ -55,8 +53,6 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 		if (eeCertificate == null) {
 			throw new IllegalStateException("Retrieving certificate verification data required retrieval of the certificate beforehand.");
 		}
-
-		CertificateVerificationData ltvVerificationInfo = null;
 
 		try {
 
@@ -66,39 +62,27 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 			// fetch/create service in order to see if we can handle the signer's CA
 			CertificateVerificationDataService ltvVerificationInfoService = CertificateVerificationDataService.getInstance();
 			if (ltvVerificationInfoService.canHandle(eeCertificate, settings)) {
+				
 				// yes, we can
 				log.debug("Retrieving LTV verification info.");
-				ltvVerificationInfo = ltvVerificationInfoService.getCertificateVerificationData(eeCertificate, settings);
+				return ltvVerificationInfoService.getCertificateVerificationData(eeCertificate, settings);
+				
 			} else {
 				log.info("Unable to handle LTV retrieval for signer certificate with issuer (ski: {}): {}", CertificateUtils.getAuthorityKeyIdentifierHexString(eeCertificate), eeCertificate.getIssuerDN());
 			}
 
 		} catch (Exception e) {
+			
 			// error retrieving LTV data, LTV mode controls how errors are handled
 			final String message = "Unable to retrieve LTV related data.";
-			if (ltvMode == LTVMode.OPTIONAL) {
-				log.warn(message, e);
-				return null;
-			}
-			throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_RETRIEVING_REQUIRED_DATA, message, e);
-		}
-
-		// Did we get data to be embedded with signature ?
-		if (ltvVerificationInfo == null) {
-
-			// no data available, LTV mode controls how this case is handled
 			if (ltvMode == LTVMode.REQUIRED) {
-				throw new PDFASError(
-						ErrorConstants.ERROR_SIG_PADESLTV_NO_DATA,
-						"No LTV data available for the signer's certificate while LTV-enabled signatures are required. Make sure appropriate verification data providers are available."
-				);
-			} else {
-				log.debug("No LTV data available for the signer's certificate.");
+				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_RETRIEVING_REQUIRED_DATA, message, e);
 			}
-
+			log.warn(message, e);
+			
 		}
 
-		return ltvVerificationInfo;
+		return null;
 
 	}
 
