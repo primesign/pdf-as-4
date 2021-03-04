@@ -5,7 +5,7 @@
 	<groupId>at.gv.egiz.pdfas</groupId>
 	<artifactId>pdf-as</artifactId>
 	<packaging>pom</packaging>
-	<version>4.1.1-PS-17</version>
+	<version>4.1.1-PS-18-SNAPSHOT</version>
 	
 	<name>pdf-as</name>
 	
@@ -52,7 +52,7 @@
 
 	<scm>
 		<developerConnection>scm:git:${CI_REPOSITORY_URL}</developerConnection>
-		<tag>4.1.1-PS-17</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<build>
@@ -89,55 +89,55 @@
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-common</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 			
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-lib</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-moa</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-cli</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>signature-standards</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pades</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pkcs7detached</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-pdfbox</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-pdfbox-2</artifactId>
-				<version>4.1.1-PS-17</version>
+				<version>4.1.1-PS-18-SNAPSHOT</version>
 			</dependency>
 
 
