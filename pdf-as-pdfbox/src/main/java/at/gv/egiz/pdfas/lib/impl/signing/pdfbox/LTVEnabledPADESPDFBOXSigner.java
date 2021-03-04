@@ -23,12 +23,16 @@ package at.gv.egiz.pdfas.lib.impl.signing.pdfbox;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.Objects;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
@@ -44,6 +48,7 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData.CertificateAndRevocationStatus;
 
 /**
  * Provides support for enriching PAdES signatures with LTV related information.
@@ -269,7 +274,10 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			log.debug("No LTV data available for the signer's certificate.");
 			return;
 		}
+
+		logTrustStatusCheckResults(ltvVerificationInfo.getChainCertsWithRevocationStatus());
 		
+		assessCertificateVerificationData(ltvVerificationInfo, ltvMode);
 		
 		// we have data that can be added
 		try {
@@ -286,6 +294,70 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 		} catch (IOException e) {
 			// we do not supress I/O errors (regardless of LTV mode)
 			throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
+		}
+
+	}
+	
+	/**
+	 * Creates log entries for each certificate with its revocation check result.
+	 * 
+	 * @param chainCertsWithRevocationStatus A collection of certificates with revocation check results (required; must not
+	 *                                       be {@code null} but may be empty).
+	 * @implNote In case of log level DEBUG the certificate's subject dn is shown, otherwise the certificate's fingerprint
+	 *           is logged.
+	 */
+	private void logTrustStatusCheckResults(Collection<CertificateAndRevocationStatus> chainCertsWithRevocationStatus) {
+		chainCertsWithRevocationStatus.forEach(certWithRevStatus -> {
+			if (log.isDebugEnabled()) {
+				log.debug("Revocation status of certificate with subject dn '{}': {}", certWithRevStatus.getCertificate().getSubjectX500Principal(), certWithRevStatus.getRevocationStatus());
+			} else if (log.isInfoEnabled()) {
+				try {
+					String sha1FingerPrint = Hex.encodeHexString(MessageDigest.getInstance("SHA-1").digest(certWithRevStatus.getCertificate().getEncoded()));
+					log.info("Revocation status of certificate with SHA-1 fingerprint '{}': {}", sha1FingerPrint, certWithRevStatus.getRevocationStatus());
+				} catch (CertificateEncodingException | NoSuchAlgorithmException e) {
+					// do nothing
+				}
+				
+			}
+		});
+	}
+
+	/**
+	 * Evaluates the certificate check results considering the provided {@code ltvMode}.
+	 * 
+	 * @param certificateVerificationData The certificate verification data (required; must not be {@code null}).
+	 * @param ltvMode                     The LTV mode (required; must not be {@code null}).
+	 * @throws PDFASError Throws an appropriate error in case the revocation status is not accepted.
+	 */
+	private void assessCertificateVerificationData(CertificateVerificationData certificateVerificationData, LTVMode ltvMode) throws PDFASError {
+		for (CertificateAndRevocationStatus certAndRevStatus : certificateVerificationData.getChainCertsWithRevocationStatus()) {
+			assess(certAndRevStatus, ltvMode);
+		}
+	}
+
+	/**
+	 * Evaluates a certificate with its revocation status considering the provided {@code ltvMode}.
+	 * 
+	 * @param certAndRevStatus The certificate with its revocation status. (required; must not be {@code null}).
+	 * @param ltvMode          The LTV mode (required; must not be {@code null}).
+	 * @throws PDFASError Throws an appropriate error in case the revocation status is not accepted.
+	 */
+	private void assess(CertificateAndRevocationStatus certAndRevStatus, LTVMode ltvMode) throws PDFASError {
+		switch (certAndRevStatus.getRevocationStatus()) {
+		case GOOD:
+		case NOT_CHECKED:
+			// ok
+			break;
+		case CHECK_FAILED:
+			final String message = "Revocation status of certificate with subject DN '" + certAndRevStatus.getCertificate().getSubjectDN() + "' could not be determined.";
+			if (ltvMode == LTVMode.REQUIRED) {
+				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_RETRIEVING_REQUIRED_DATA, message);
+			}
+			log.warn(message);
+			break;
+		default:
+			throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_CERT_STATUS_NOT_VALID, "Revocation status of certificate with subject DN '"
+					+ certAndRevStatus.getCertificate().getSubjectDN() + "' is " + certAndRevStatus.getRevocationStatus());
 		}
 
 	}
