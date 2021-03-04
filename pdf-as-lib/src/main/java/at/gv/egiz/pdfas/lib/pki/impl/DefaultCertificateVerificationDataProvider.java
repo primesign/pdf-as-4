@@ -32,13 +32,13 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.time.StopWatch;
@@ -47,16 +47,21 @@ import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData.CertificateAndRevocationStatus;
+import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData.RevocationStatus;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationDataProviderSpi;
 import iaik.asn1.structures.DistributionPoint;
 import iaik.utils.Util;
+import iaik.x509.RevokedCertificate;
 import iaik.x509.X509CRL;
 import iaik.x509.X509Certificate;
 import iaik.x509.X509ExtensionInitException;
 import iaik.x509.extensions.AuthorityKeyIdentifier;
 import iaik.x509.extensions.CRLDistributionPoints;
 import iaik.x509.ocsp.BasicOCSPResponse;
+import iaik.x509.ocsp.CertStatus;
 import iaik.x509.ocsp.OCSPResponse;
+import iaik.x509.ocsp.SingleResponse;
 
 /**
  * Provides basic support for gathering certificate verification information.
@@ -69,16 +74,14 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 	
 	private static final Logger log = LoggerFactory.getLogger(DefaultCertificateVerificationDataProvider.class);
 
-	// @formatter:off
-		// Timeouts for OCSP and CRL connections
-		private final int    DEFAULT_CONNECTION_TIMEOUT_MS  = 10000;
-		private final int    DEFAULT_READ_TIMEOUT_MS        = 10000;
-		
-		/**
-		 * Name of configuration folder containing PKCS#7 certificate chains.
-		 */
-		private final String DEFAULT_CHAINSTORE_FOLDER_NAME = "/certchains";
-	// @formatter:on	
+	// Timeouts for OCSP and CRL connections
+	private final int DEFAULT_CONNECTION_TIMEOUT_MS  = 10000;
+	private final int DEFAULT_READ_TIMEOUT_MS        = 10000;
+	
+	/**
+	 * Name of configuration folder containing PKCS#7 certificate chains.
+	 */
+	private final String DEFAULT_CHAINSTORE_FOLDER_NAME = "/certchains";
 	
 	@Override
 	public boolean canHandle(java.security.cert.X509Certificate eeCertificate, ISettings settings) {
@@ -91,9 +94,9 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 		X509Certificate iaikEeCertificate = toIAIKX509Certificate(Objects.requireNonNull(eeCertificate));
 		
 		// @formatter:off
-		final Set<java.security.cert.X509Certificate> certs = new LinkedHashSet<>();  // not thread-safe
-		final List<byte[]>                            ocsps = new ArrayList<>();      // not thread-safe
-		final Set<java.security.cert.X509CRL>         crls  = new LinkedHashSet<>();  // not thread-safe
+		final Set<CertificateAndRevocationStatus> certsAndRevStatus = new LinkedHashSet<>();  // not thread-safe
+		final List<byte[]>                        ocsps             = new ArrayList<>();      // not thread-safe
+		final Set<java.security.cert.X509CRL>     crls              = new LinkedHashSet<>();  // not thread-safe
 		// @formatter:on
 		
 		StopWatch sw = new StopWatch();
@@ -109,8 +112,6 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 		X509Certificate[] caChainCertificates = retrieveChain(iaikEeCertificate, Objects.requireNonNull(settings));
 		// build up full (sorted) chain including eeCertificate
 		X509Certificate[] fullChainCertificates = Util.createCertificateChain(iaikEeCertificate, caChainCertificates);
-		// add chain to certs list
-		certs.addAll(Arrays.asList(fullChainCertificates));
 		
 		// determine revocation info, preferring OCSP
 		// assume last certificate in chain is trust anchor
@@ -118,30 +119,63 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 				.setConnectTimeOutMillis(DEFAULT_CONNECTION_TIMEOUT_MS)
 				.setSocketTimeOutMillis(DEFAULT_READ_TIMEOUT_MS)
 				.build();
+		
+		// iterate over all chain certificates except for the trust anchor
 		for (int i = 0; i < fullChainCertificates.length - 1; i++) {
+			
 			final X509Certificate subjectCertificate = fullChainCertificates[i];
 			final X509Certificate issuerCertificate = fullChainCertificates[i+1];
+			
+			DefaultCertificateAndRevocationStatus certAndRevStatus = new DefaultCertificateAndRevocationStatus(subjectCertificate);
+			
 			OCSPResponse ocspResponse = null;
 			if (OCSPClient.Util.hasOcspResponder(subjectCertificate)) {
+				
 				try {
+					
 					ocspResponse = ocspClient.getOcspResponse(issuerCertificate, subjectCertificate);
+
+					// determine status from response
+					// The currently used OCSP client support BasicOCSPResponse only, otherwise an exception would have been
+					// thrown earlier. Therefore we can safely cast to BasicOCSPResponse here.
+					BasicOCSPResponse basicOCSPResponse = (BasicOCSPResponse) ocspResponse.getResponse();
+					SingleResponse singleResponse = basicOCSPResponse.getSingleResponse(subjectCertificate, issuerCertificate, null);
+					if (singleResponse != null) {
+						CertStatus certStatus = singleResponse.getCertStatus();
+						switch (certStatus.getCertStatus()) {
+						case CertStatus.GOOD:
+							certAndRevStatus.setRevocationStatus(RevocationStatus.GOOD);
+							break;
+						case CertStatus.REVOKED:
+							certAndRevStatus.setRevocationStatus(RevocationStatus.REVOKED);
+							break;
+						default:
+							certAndRevStatus.setRevocationStatus(RevocationStatus.UNKNOWN);
+							break;
+						}
+					} else {
+						log.info("OCSP response retrieved, but unable to match the requested certificate.");
+						certAndRevStatus.setRevocationStatus(RevocationStatus.CHECK_FAILED);
+					}
+					
+					// add ocsp signer certificate to certs
+					ocsps.add(ocspResponse.getEncoded());
+					
+					X509Certificate ocspSignerCertificate = basicOCSPResponse.getSignerCertificate();
+					if (ocspSignerCertificate != null) {
+						// add ocsp signer certificate without revocation check - in case the certificate has not been added before
+						certsAndRevStatus.add(new DefaultCertificateAndRevocationStatus(ocspSignerCertificate));
+					}
+					
 				} catch (Exception e) {
-					log.info("Unable to retrieve OCSP response: {}", String.valueOf(e));
+					log.warn("Unable to retrieve OCSP response.", e);
+					certAndRevStatus.setRevocationStatus(RevocationStatus.CHECK_FAILED);
 				}
+				
 			}
 			
-			if (ocspResponse != null) {
-				
-				ocsps.add(ocspResponse.getEncoded());
-				
-				// add ocsp signer certificate to certs
-				// The currently used OCSP client support BasicOCSPResponse only, otherwise an exception would have been
-				// thrown earlier. Therefore we can safely cast to BasicOCSPResponse here.
-				X509Certificate ocspSignerCertificate = ((BasicOCSPResponse) ocspResponse.getResponse()).getSignerCertificate();
-				certs.add(ocspSignerCertificate);
-				
-			} else {
-				
+			if (ocspResponse == null) {
+
 				// fall back to CRL
 				
 				CRLDistributionPoints cRLDistributionPoints;
@@ -149,9 +183,10 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 					cRLDistributionPoints = (CRLDistributionPoints) subjectCertificate.getExtension(CRLDistributionPoints.oid);
 				} catch (X509ExtensionInitException e) {
 					throw new IllegalStateException("Unable to initialize extension CRLDistributionPoints.", e);
-				}				
+				}
 				X509CRL x509Crl = null;
 				if (cRLDistributionPoints != null) {
+					
 					if (log.isDebugEnabled()) {
 						log.debug("Retrieving CRL revocation info for: {}", subjectCertificate.getSubjectDN());
 					} else if (log.isInfoEnabled()) {
@@ -203,35 +238,75 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 						}
 						
 					}
+					
 					if (x509Crl != null) {
+						
+						RevokedCertificate revokedCertificate = x509Crl.containsCertificate(subjectCertificate);
+						if (revokedCertificate != null) {
+							switch (revokedCertificate.getRevocationReason()) {
+							case CERTIFICATE_HOLD:
+								certAndRevStatus.setRevocationStatus(RevocationStatus.SUSPENDED);
+								break;
+							case REMOVE_FROM_CRL:
+								// used for delta-crls indicating that the certificate has already been removed from crl
+								certAndRevStatus.setRevocationStatus(RevocationStatus.GOOD);
+								break;
+							default:
+								certAndRevStatus.setRevocationStatus(RevocationStatus.REVOKED);
+								break;
+							}
+						} else {
+							certAndRevStatus.setRevocationStatus(RevocationStatus.GOOD);
+						}
+
 						crls.add(x509Crl);
+
 					} else if (lastException != null) {
-						log.info("Unable to load CRL: {}", String.valueOf(lastException));
+
+						log.warn("Unable to load CRL.", lastException);
+						certAndRevStatus.setRevocationStatus(RevocationStatus.CHECK_FAILED);
+
 					}
+
 				}
-				
+
 			}
-			
+
+			// remove an already existing certificate (without revocation checks) (the OCSP responder certificate)...
+			certsAndRevStatus.remove(certAndRevStatus);
+			// ...and add the certificate with revocation checks
+			certsAndRevStatus.add(certAndRevStatus);
+
 		}
+
+		// add (trust) anchor certificate without any revocation checks
+		certsAndRevStatus.add(new DefaultCertificateAndRevocationStatus(fullChainCertificates[fullChainCertificates.length - 1]));
+
 		sw.stop();
 		log.debug("Querying certificate validation info took: {}ms", sw.getTime());
 				
 		return new CertificateVerificationData() {
 			
 			@Override
+			public Set<CertificateAndRevocationStatus> getChainCertsWithRevocationStatus() {
+				return certsAndRevStatus;
+			}
+
+			@Override
 			public List<byte[]> getEncodedOCSPResponses() {
 				return ocsps;
 			}
 			
 			@Override
-			public Set<java.security.cert.X509Certificate> getChainCerts() {
-				return certs;
+			public List<java.security.cert.X509Certificate> getChainCerts() {
+				return certsAndRevStatus.stream().map(CertificateAndRevocationStatus::getCertificate).collect(Collectors.toList());
 			}
 			
 			@Override
 			public Set<java.security.cert.X509CRL> getCRLs() {
 				return crls;
 			}
+			
 		};
 	}
 
@@ -310,14 +385,14 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 	 *             Thrown in case of an error parsing the chain.
 	 * @throws IllegalStateException
 	 *             In case the {@code eeCertificate}'s chain is not supported. Use
-	 *             {@link #isSupportedCA(X509Certificate)} in order to assure the CA is supported before calling this
+	 *             {@link #canHandle(java.security.cert.X509Certificate, ISettings)} in order to assure the CA is supported before calling this
 	 *             method).
 	 */
 	private X509Certificate[] retrieveChain(X509Certificate eeCertificate, ISettings settings) throws IOException, CertificateException {
 		
 		File certChainFile = findChainFile(eeCertificate, settings);
 		if (certChainFile == null) {
-			throw new IllegalStateException("Unsupported CA.");
+			throw new IllegalStateException("Unsupported CA. Use canHandle(eeCertificate) in order to test if the eeCertificate's CA is supported.");
 		}
 
 		// load certificate chain
@@ -352,6 +427,99 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 				throw new IllegalStateException("Unable to encode/decode certificate.", e);
 			}
 		}
+	}
+	
+	/**
+	 * Associates a certain certificate with its revocation status.
+	 * 
+	 * @author Thomas Knall, PrimeSign GmbH
+	 * 
+	 * @implNote The object's {@link #equals(Object)} and {@link #hashCode()} consider the underlying certificate but not
+	 *           the respective state.
+	 *
+	 */
+	private static class DefaultCertificateAndRevocationStatus implements CertificateAndRevocationStatus {
+		
+		private final java.security.cert.X509Certificate certificate;
+		private RevocationStatus revocationStatus;
+
+		/**
+		 * Creates a new association.
+		 * 
+		 * @param certificate      The underlying certificate (required; must not be {@code null}).
+		 * @param revocationStatus The respective revocation status (required; must not be {@code null}).
+		 */
+		public DefaultCertificateAndRevocationStatus(java.security.cert.X509Certificate certificate, RevocationStatus revocationStatus) {
+			this.certificate = Objects.requireNonNull(certificate, "'certificate' must not be null.");
+			setRevocationStatus(revocationStatus);
+		}
+		
+		/**
+		 * Creates a new association assuming an initial revocation status {@link RevocationStatus#NOT_CHECKED}).
+		 * 
+		 * @param certificate      The underlying certificate (required; must not be {@code null}).
+		 */
+		public DefaultCertificateAndRevocationStatus(java.security.cert.X509Certificate certificate) {
+			this(certificate, RevocationStatus.NOT_CHECKED);
+		}
+
+		/**
+		 * Sets the revocation status.
+		 * 
+		 * @param revocationStatus The revocation status (required; must not be {@code null}).
+		 */
+		public void setRevocationStatus(RevocationStatus revocationStatus) {
+			this.revocationStatus = Objects.requireNonNull(revocationStatus, "'revocationStatus' must not be null.");
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((certificate == null) ? 0 : certificate.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			DefaultCertificateAndRevocationStatus other = (DefaultCertificateAndRevocationStatus) obj;
+			if (certificate == null) {
+				if (other.certificate != null)
+					return false;
+			} else if (!certificate.equals(other.certificate))
+				return false;
+			return true;
+		}
+
+		@Override
+		public java.security.cert.X509Certificate getCertificate() {
+			return certificate;
+		}
+
+		@Override
+		public RevocationStatus getRevocationStatus() {
+			return revocationStatus;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			// @formatter:off
+			builder
+				.append("DefaultCertificateAndRevocationStatus [")
+					.append("certificate=<SubjectDN='").append(certificate.getSubjectDN()).append("'>")
+					.append(", revocationStatus=").append(revocationStatus)
+				.append("]");
+			// @formatter:on
+			return builder.toString();
+		}
+		
 	}
 	
 }

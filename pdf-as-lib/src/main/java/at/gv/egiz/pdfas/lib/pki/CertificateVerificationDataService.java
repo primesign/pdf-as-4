@@ -113,30 +113,27 @@ public class CertificateVerificationDataService {
 	}
 
 	/**
-	 * Retrieves {@link CertificateVerificationData} for a certain {@code eeCertificate}. The service delegates the
-	 * request to registered {@link CertificateVerificationDataProviderSpi}s in order to retrieve the required
-	 * information.
+	 * Retrieves {@link CertificateVerificationData} for a certain {@code eeCertificate}. The service delegates the request
+	 * to registered {@link CertificateVerificationDataProviderSpi}s in order to retrieve the required information.
 	 * 
-	 * @param eeCertificate
-	 *            The end entity certificate (required; must not be {@code null}).
-	 * @param settings
-	 *            The configuration of the PDF-AS environment (required; must not be {@code null}).
+	 * @param eeCertificate The end entity certificate (required; must not be {@code null}).
+	 * @param settings      The configuration of the PDF-AS environment (required; must not be {@code null}).
 	 * @return Certificate verification data (never {@code null}).
-	 * @throws CertificateException
-	 *             Thrown in case a problem occurs while encoding of decoding certificates.
-	 * @throws IOException
-	 *             Thrown in case retrieval of data (OCSP, CRL, LDAP...) could not be performed due to IO errors.
+	 * @throws CertificateException  Thrown in case a problem occurs while encoding of decoding certificates.
+	 * @throws IOException           Thrown in case retrieval of data (OCSP, CRL, LDAP...) could not be performed due to IO
+	 *                               errors.
+	 * @throws IllegalStateException In case there is not provider that is able to handle the {@code eeCertificate}. This
+	 *                               case has to be avoided by calling
+	 *                               {@link #canHandle(java.security.cert.X509Certificate, ISettings)} first.
+	 * @see #canHandle(java.security.cert.X509Certificate, ISettings)
 	 */
 	public CertificateVerificationData getCertificateVerificationData(java.security.cert.X509Certificate eeCertificate, ISettings settings) throws CertificateException, IOException {
 		for (CertificateVerificationDataProviderSpi provider : providers) {
 			if (provider.canHandle(eeCertificate, settings)) {
-				CertificateVerificationData certificateVerificationData = provider.getCertificateVerificationData(eeCertificate, settings);
-				if (certificateVerificationData != null) {
-					return certificateVerificationData;
-				}
+				return provider.getCertificateVerificationData(eeCertificate, settings);
 			}
 		}
-		return null;
+		throw new IllegalStateException("Unsupported CA. Use canHandle(eeCertificate) in order to test if the eeCertificate's CA is supported.");
 	}
 	
 }

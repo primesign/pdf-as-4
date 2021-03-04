@@ -47,6 +47,7 @@ import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.preprocessor.PreProcessor;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
@@ -171,8 +172,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				X509Certificate certificate = plainSigner.getCertificate(parameter);
 				requestedSignature.setCertificate(certificate);
 
-				CertificateVerificationData certificateVerificationData = plainSigner.getCertificateVerificationData(requestedSignature);
-				requestedSignature.setCertificateVerificationData(certificateVerificationData);
+				// LTV mode controls if and how retrieval/embedding LTV data will be done
+				LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
+				logger.trace("LTV mode: {}", ltvMode);
+				if (ltvMode != LTVMode.NONE) {
+					CertificateVerificationData certificateVerificationData = plainSigner.getCertificateVerificationData(requestedSignature);
+					requestedSignature.setCertificateVerificationData(certificateVerificationData);
+				}
 
 			} finally {
 				if (parameter instanceof BKUHeaderHolder) {

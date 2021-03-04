@@ -20,7 +20,10 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.pki.spi;
 
+import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * Collection of data required for validation of a certain end entity certificate.
@@ -31,12 +34,14 @@ import java.util.Collection;
 public interface CertificateVerificationData {
 
 	/**
-	 * Returns a group of certificates reflecting the chain of a certain end entity certificate.
+	 * Returns several certificates relevant for validating the pdf signature (e.g. chain with signature certificate, OCSP
+	 * responder certificate etc.).
 	 * 
-	 * @return The chain of certificates (never {@code null}).
+	 * @return A collection of certificates. (never {@code null})
 	 * @apiNote The implementation should return the full chain of certificates (end entity certificate, intermediate
-	 *          certificates (if any) and root certificate/trust anchor) in any order. The chain should at least contain
-	 *          the end entity certificate.
+	 *          certificates (if any) and root certificate/trust anchor) in any order. The chain should at least contain the
+	 *          end entity certificate.
+	 * @see #getChainCertsWithRevocationStatus()
 	 */
 	Collection<java.security.cert.X509Certificate> getChainCerts();
 
@@ -59,5 +64,101 @@ public interface CertificateVerificationData {
 	 * @see #getChainCerts()
 	 */
 	Collection<java.security.cert.X509CRL> getCRLs();
+	
+	/**
+	 * Returns several certificates relevant for validating the pdf signature (e.g. chain with signature certificate, OCSP
+	 * responder certificate etc.) including their individual revocation status.
+	 * 
+	 * @return A collection of certificates with their revocation status. (never {@code null})
+	 * @apiNote The implementation should return the full chain of certificates (end entity certificate, intermediate
+	 *          certificates (if any) and root certificate/trust anchor) in any order. The chain should at least contain the
+	 *          end entity certificate.
+	 * @see #getChainCerts()
+	 */
+	default Collection<CertificateAndRevocationStatus> getChainCertsWithRevocationStatus() {
+		
+		Collection<X509Certificate> chainCerts = getChainCerts();
+		if (chainCerts == null || chainCerts.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		// @formatter:off
+		return chainCerts.stream()
+			.map(certificate -> new CertificateAndRevocationStatus() {
+				@Override
+				public X509Certificate getCertificate() {
+					return certificate;
+				}
+				@Override
+				public RevocationStatus getRevocationStatus() {
+					return RevocationStatus.NOT_CHECKED;
+				}})
+			.collect(Collectors.toList());
+		// @formatter:on
+	}
+	
+	/**
+	 * Associates a certain certificate with its revocation status at the time of signature.
+	 * 
+	 * @author Thomas Knall, PrimeSign GmbH
+	 *
+	 */
+	interface CertificateAndRevocationStatus {
+
+		/**
+		 * Returns the underlying certificate.
+		 * 
+		 * @return The certificate (never {@code null}).
+		 */
+		X509Certificate getCertificate();
+
+		/**
+		 * Returns the certificate's revocation status.
+		 * 
+		 * @return The revocation status (never {@code null}).
+		 */
+		RevocationStatus getRevocationStatus();
+
+	}
+
+	/**
+	 * Reflects a certain revocation status.
+	 * 
+	 * @author Thomas Knall, PrimeSign GmbH
+	 *
+	 */
+	enum RevocationStatus {
+
+		/**
+		 * The revocation check has not been performed.
+		 */
+		NOT_CHECKED,
+
+		/**
+		 * The revocation was performed but failed (e.g. unreachable OCSP responder).
+		 */
+		CHECK_FAILED,
+
+		/**
+		 * The revocation check was performed an returned an "unknown" state.
+		 */
+		UNKNOWN,
+
+		/**
+		 * The revocation check was performed an returned a "good" state (the certificate has not been revoked).
+		 */
+		GOOD,
+
+		/**
+		 * The revocation check was performed: the certificate has been suspended.
+		 */
+		SUSPENDED,
+
+		/**
+		 * The revocation check was performed: the certificate has been revoked.
+		 */
+		REVOKED
+
+	}
 
 }
