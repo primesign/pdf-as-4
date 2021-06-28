@@ -289,7 +289,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						int last = doc.getNumberOfPages() - 1;
 						PDDocumentCatalog root = doc.getDocumentCatalog();
 						PDPageNode rootPages = root.getPages();
-						List<PDPage> kids = new ArrayList<PDPage>();
+						List<PDPage> kids = new ArrayList<>();
 						rootPages.getAllKids(kids);
 						PDPage lastPage = kids.get(last);
 						rootPages.getCOSObject().setNeedToBeUpdate(true);
@@ -302,7 +302,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					// handle rotated page
 					PDDocumentCatalog documentCatalog = doc.getDocumentCatalog();
 					PDPageNode documentPages = documentCatalog.getPages();
-					List<PDPage> documentPagesKids = new ArrayList<PDPage>();
+					List<PDPage> documentPagesKids = new ArrayList<>();
 					documentPages.getAllKids(documentPagesKids);
 					int targetPageNumber = positioningInstruction.getPage();
 					logger.debug("Target Page: " + targetPageNumber);
@@ -347,7 +347,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 							PDDocumentCatalog root = doc.getDocumentCatalog();
 							PDPageNode rootPages = root.getPages();
-							List<PDPage> kids = new ArrayList<PDPage>();
+							List<PDPage> kids = new ArrayList<>();
 							rootPages.getAllKids(kids);
 							int pageNumber = positioningInstruction.getPage();
 							// rootPages.getAllKids(kids);
@@ -497,7 +497,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 						objectDic.setItem("Pg", signatureField.getWidget().getPage());
 						objectDic.setItem("Obj", signatureField.getWidget());
 
-						List<Object> l = new ArrayList<Object>();
+						List<Object> l = new ArrayList<>();
 						l.add(objectDic);
 						sigBlock.setKids(l);
 						sigBlock.setPage(signatureField.getWidget().getPage());
@@ -801,7 +801,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				visualDoc = PDDocument.load(properties.getVisibleSignature());
 			}
 			// PDPageable pageable = new PDPageable(visualDoc);
-			List<PDPage> pages = new ArrayList<PDPage>();
+			List<PDPage> pages = new ArrayList<>();
 			visualDoc.getDocumentCatalog().getPages().getAllKids(pages);
 
 			PDPage firstPage = pages.get(0);
