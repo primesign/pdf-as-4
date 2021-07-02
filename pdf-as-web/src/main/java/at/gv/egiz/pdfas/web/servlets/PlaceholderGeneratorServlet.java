@@ -73,9 +73,11 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 		String filename = "placeholder";
 		
 		if(id != null && !id.isEmpty()) {
-			id = id.replaceAll("[^a-zA-Z0-9]", "_");
-			buildString = buildString + ";" + SignaturePlaceholderData.ID_KEY + "=" + id;
-			filename = filename + "_" + id;
+			id = id.replaceAll("[^0-9]", "");
+			if(id != null && !id.isEmpty()) {
+				buildString = buildString + ";" + SignaturePlaceholderData.ID_KEY + "=" + id;
+				filename = filename + "_" + id;
+			}
 		}
 		
 		if(profile != null && !profile.isEmpty()) {

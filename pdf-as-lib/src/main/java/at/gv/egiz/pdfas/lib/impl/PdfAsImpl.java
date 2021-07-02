@@ -23,6 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
+import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import iaik.x509.X509Certificate;
 
 import java.awt.Image;
@@ -144,7 +145,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			IPdfSigner signer = backend.getPdfSigner();
 
-			status.setPdfObject(signer.buildPDFObject(status));
+
+			PDFObject pdfObject = signer.buildPDFObject(status);
+
+			status.setPdfObject(pdfObject);
 
 			// set Original PDF Document Data
 			status.getPdfObject()

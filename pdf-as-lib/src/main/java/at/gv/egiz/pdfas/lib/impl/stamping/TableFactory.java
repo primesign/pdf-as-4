@@ -221,19 +221,23 @@ public class TableFactory implements IProfileConstants {
                             row.add(entry);
                         }
                     }
-                    if ((TYPE_VALUE + TYPE_CAPTION).equals(type) || (TYPE_CAPTION + TYPE_VALUE).equals(type))
+                    
+                    if ((TYPE_VALUE + TYPE_CAPTION).equals(type) || (TYPE_CAPTION + TYPE_VALUE).equals(type) || "req".equals(type))
                     {
                         // add a caption value pair
                         String caption = profile.getCaption(key);
                         String value = profile.getValue(key);
                         //String caption = getSigCaption(key);
                         //String value = getSigValue(key);
-                        if (value != null)
-                        {
+
+                        ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                                                
+                        if (value != null) {
                             Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
                             c_entry.setNoWrap(true);  // dferbas fix bug #331
                             c_entry.setStyle(defaultCaptionStyle_);
-                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
+                            
+                            
                             Entry v_entry = new Entry(Entry.TYPE_VALUE, 
                             		resolver.resolve(key, value, profile), key);
                             v_entry.setStyle(defaultValueStyle_);
@@ -247,8 +251,6 @@ public class TableFactory implements IProfileConstants {
                             Entry c_entry = new Entry(Entry.TYPE_CAPTION, caption, key);
                             c_entry.setNoWrap(true);  // dferbas fix bug #331
                             c_entry.setStyle(defaultCaptionStyle_);
-
-                            ValueResolver resolver = new ValueResolver(certProvider, operationStatus);
 
                             Entry v_entry = new Entry(Entry.TYPE_VALUE,
                                     resolver.resolve(key, value, profile), key);

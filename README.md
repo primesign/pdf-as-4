@@ -61,6 +61,14 @@ arguments:
 
 `-Dpdf-as-web.conf=$CATALINA_BASE/conf/pdf-as/pdf-as-web.properties \` 
 
+#### 4. Intellij Config for testing:
+
+* Main class: at.gv.egiz.pdfas.cli.Main
+* Classpath: pdf-as-4-pdf-as-cli.pdfbox2
+* Parameters: -p SIGNATURBLOCK_DE_NOTE_DYNAMIC -c bku -m sign /Users/user/Documents/pdf-as-4/unsigned.pdf
+* Needs local BKU (e.g. Mocca)
+* Uses configuration from /Users/user/.pdfas/
+
 
 
 

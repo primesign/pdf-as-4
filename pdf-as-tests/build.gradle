@@ -7,48 +7,42 @@ jar {
 	}
 }
 
-repositories {
+repositories {	
 	mavenLocal()
 	mavenCentral()
+	maven { url "https://repository.jboss.org/maven2/" }
 	maven { url "http://anonsvn.icesoft.org/repo/maven2/releases/" }
 	maven { url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/" }
+	
 }
 
 configurations{
 	pdfBox2Compile
-	pdfBox1Compile
 }
 
 sourceSets{
 	pdfBox2{
 		compileClasspath = configurations.pdfBox2Compile
 	}
-	pdfBox1{
-		compileClasspath = configurations.pdfBox1Compile
-	}
 }
 
 dependencies {
-	compile project (':pdf-as-lib')
-	testCompile project (':pdf-as-moa')
+	implementation project (':pdf-as-lib')
+	testImplementation project (':pdf-as-moa')
 	
-	compile project (':signature-standards:sigs-pkcs7detached')
-	compile project (':signature-standards:sigs-pades')
+	implementation project (':signature-standards:sigs-pkcs7detached')
+	implementation project (':signature-standards:sigs-pades')
 
-	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.7'
-	compile group: 'javax.activation', name: 'activation', version: '1.1.1'
+	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.7'
+	implementation group: 'javax.activation', name: 'activation', version: '1.1.1'
 
-	testCompile group: 'junit', name: 'junit', version: '4.+'
-	testCompile group: 'org.icepdf', name: 'icepdf-core', version: '5.0.7'
+	testImplementation group: 'junit', name: 'junit', version: '4.12'
+	testImplementation group: 'org.icepdf.os', name: 'icepdf-core', version: '6.1.1'
 
-	pdfBox1Compile project (':pdf-as-pdfbox')
-	pdfBox1Compile group: 'org.apache.pdfbox', name: 'preflight', version: '1.8.16'
-	pdfBox1Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.16'
-
-	pdfBox2Compile project (':pdf-as-pdfbox-2')
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'preflight', version: '2.0.21'
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.21'
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '2.0.21'
+	implementation project (':pdf-as-pdfbox-2')
+	//compile group: 'org.apache.pdfbox', name: 'preflight', version: '2.0.21'
+	//compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.21'
+	//compile group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '2.0.21'
 
 }
 
@@ -58,7 +52,7 @@ def suiteDir = new File(projectDir, "src/test/test-suites")
 logger.info("Searching: " + suiteDir.absolutePath)
 
 //Eclipse UI shows an error because source set dependencies are not recognized, so we add the dependencies manually
-eclipse.classpath.plusConfigurations+=[configurations.pdfBox1Compile]
+//eclipse.classpath.plusConfigurations+=[configurations.pdfBox1Compile]
 
 suiteDir.eachDir {	File subDir ->
 	def dirname = subDir.name
@@ -69,11 +63,6 @@ suiteDir.eachDir {	File subDir ->
 		description "runs tests from Test Suite: " + dirname
 		systemProperties 'test.dir': subDir.absolutePath
 
-		//based on executed testsuit we setup the classpath
-    	if(dirname =="public_pdfbox1"){
-			classpath += sourceSets.pdfBox1.compileClasspath
-			compileTestJava.classpath += sourceSets.pdfBox1.compileClasspath
-		}
 		if(dirname =="public_pdfbox2"){
 			classpath += sourceSets.pdfBox2.compileClasspath
 			compileTestJava.classpath += sourceSets.pdfBox2.compileClasspath

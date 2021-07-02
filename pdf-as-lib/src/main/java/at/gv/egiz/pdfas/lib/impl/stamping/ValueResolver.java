@@ -27,12 +27,17 @@ import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.lib.impl.status.ICertificateProvider;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+
+import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,13 +61,12 @@ public class ValueResolver implements IProfileConstants, IResolver {
 	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
 
-	private CertificateResolver certificateResolver;
-	
+	private IResolver internalResolver;
 	public ValueResolver(ICertificateProvider certProvider, OperationStatus operationStatus) {
-		certificateResolver = new CertificateResolver(
-				certProvider.getCertificate(), operationStatus);
+		internalResolver = new CertificateAndRequestParameterResolver(certProvider.getCertificate(),
+				operationStatus);
 	}
-	
+
 	public String resolve(String key, String value,
 			SignatureProfileSettings settings) {
 
@@ -102,11 +106,16 @@ public class ValueResolver implements IProfileConstants, IResolver {
 				do {
 					int idx = matcher.start(0);
 					int idxe = matcher.end(0);
-					result += value.substring(curidx, idx);
+					String tmp1 = value.substring(curidx, idx);
+					result += tmp1;
 					curidx = idxe;
-					result += certificateResolver.resolve(key,
-							matcher.group(1), settings);
+					String tmpValue = matcher.group(1);
+					String tmp2 = internalResolver.resolve(key, tmpValue, settings);
+					result += tmp2;
 				} while (matcher.find());
+				if(value.length() > curidx){
+					result += value.substring(curidx);
+				}
 			} else {
 				result = value;
 			}

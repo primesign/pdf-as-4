@@ -42,14 +42,24 @@ import javax.activation.DataSource;
 import javax.crypto.Cipher;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -347,7 +357,12 @@ public class PdfAsFactory implements IConfigurationConstants {
 	 */
 	public static String getSCMRevision() {
 		Package pack = PdfAsFactory.class.getPackage();
-		return pack.getSpecificationVersion();
+		String specificationVersion =  pack.getSpecificationVersion();
+
+		if(specificationVersion != null)
+			return specificationVersion;
+		//fallback
+		return getJarAttributes().getValue("Specification-Version");
 	}
 
 	/**
@@ -356,8 +371,39 @@ public class PdfAsFactory implements IConfigurationConstants {
 	 * @return PDF-AS Verison string
 	 */
 	public static String getVersion() {
+
 		Package pack = PdfAsFactory.class.getPackage();
-		return pack.getImplementationVersion();
+		String version =  pack.getImplementationVersion();
+		if(version != null)
+			return version;
+		//fallback
+		return getJarAttributes().getValue("Implementation-Version");
+	}
+
+	private static Attributes jarAttributes = null;
+	private static Attributes getJarAttributes() {
+		if(jarAttributes != null)
+			return jarAttributes;
+		try {
+			URLClassLoader cl = (URLClassLoader) PdfAsFactory.class.getClassLoader();
+			Enumeration<URL> urls = cl.findResources("META-INF/MANIFEST.MF");
+			URL url = null;
+			while (urls.hasMoreElements()) {
+				URL tmp = urls.nextElement();
+				if (tmp.getFile().contains("pdf-as-lib")) {
+					//System.out.println("Found:" + tmp);
+					url = tmp;
+				}
+
+			}
+			Manifest manifest = new Manifest(url.openStream());
+			Attributes mainAttributes = manifest.getMainAttributes();
+			jarAttributes = mainAttributes;
+			return mainAttributes;
+		} catch (Exception e) {
+
+		}
+		return new Attributes();
 	}
 	
 	/**

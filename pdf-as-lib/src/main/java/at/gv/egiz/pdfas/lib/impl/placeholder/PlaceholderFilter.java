@@ -24,6 +24,7 @@
 package at.gv.egiz.pdfas.lib.impl.placeholder;
 
 import java.io.IOException;
+import java.util.List;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
@@ -102,4 +103,66 @@ public class PlaceholderFilter implements IConfigurationConstants,
 		return null;
 	}
 
+	public static List<SignaturePlaceholderData> checkPlaceholderSignatureLocationList(OperationStatus status, ISettings settings, String signatureLocation) throws PdfAsException,
+			IOException {
+		String placeholderID;
+
+		if (status.getPlaceholderConfiguration().isGlobalPlaceholderEnabled()) {
+			PlaceholderExtractor extractor = status.getBackend().getPlaceholderExtractor();
+
+			if(StringUtils.isNotEmpty(signatureLocation)) {
+				placeholderID = signatureLocation;
+			} else {
+				placeholderID = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
+				if(StringUtils.isEmpty(placeholderID)) {
+					placeholderID = settings.getValue(PLACEHOLDER_ID);
+				}
+			}
+
+			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
+			int placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
+			if (StringUtils.isNotEmpty(placeholderModeString)) {
+				try {
+					placeholderMode = Integer.parseInt(placeholderModeString);
+					if (placeholderMode < PLACEHOLDER_MODE_MIN
+							|| placeholderMode > PLACEHOLDER_MODE_MAX) {
+						throw new PdfAsErrorCarrier(new PDFASError(
+								PDFASError.ERROR_INVALID_PLACEHOLDER_MODE));
+					}
+				} catch (NumberFormatException e) {
+					throw new PdfAsErrorCarrier(new PDFASError(
+							PDFASError.ERROR_INVALID_PLACEHOLDER_MODE, e));
+				}
+			}
+			return extractor.extractList(status.getPdfObject(), placeholderID,
+					placeholderMode);
+
+		} else if (status.getPlaceholderConfiguration().isProfileConfigurationEnabled(status.getRequestedSignature().getSignatureProfileID())) {
+			//filter for local placeholder in selected profiles
+			PlaceholderExtractor extractor = status.getBackend().getPlaceholderExtractor();
+			int placeholderMode = PLACEHOLDER_MATCH_MODE_SORTED;
+
+			placeholderID = status.getPlaceholderConfiguration().getProfilePlaceholderID(status.getRequestedSignature().getSignatureProfileID());
+			if(StringUtils.isNotEmpty(placeholderID)) {
+				placeholderMode = PLACEHOLDER_MATCH_MODE_MODERATE;
+			}
+			String placeholderModeString = settings.getValue(PLACEHOLDER_MODE);
+			if (StringUtils.isNotEmpty(placeholderModeString))  {
+				try {
+					placeholderMode = Integer.parseInt(placeholderModeString);
+					if (placeholderMode < PLACEHOLDER_MODE_MIN
+							|| placeholderMode > PLACEHOLDER_MODE_MAX) {
+						throw new PdfAsErrorCarrier(new PDFASError(
+								PDFASError.ERROR_INVALID_PLACEHOLDER_MODE));
+					}
+				} catch (NumberFormatException e) {
+					throw new PdfAsErrorCarrier(new PDFASError(
+							PDFASError.ERROR_INVALID_PLACEHOLDER_MODE, e));
+				}
+			}
+			return extractor.extractList(status.getPdfObject(), placeholderID,
+					placeholderMode);
+		}
+		return null;
+	}
 }

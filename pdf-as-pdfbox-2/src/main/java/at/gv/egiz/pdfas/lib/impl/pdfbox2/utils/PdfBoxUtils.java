@@ -16,15 +16,25 @@ public class PdfBoxUtils {
 	
 	public static void checkPDFPermissions(PDDocument doc)
 			throws PdfAsValidationException {
-
 		AccessPermission accessPermission = doc.getCurrentAccessPermission();
-		if (doc.isEncrypted()) {
-			throw new PdfAsValidationException("error.pdf.sig.12", null);
+		if (doc.isEncrypted() || !accessPermission.isOwnerPermission()) {
+			//canFillInForm()
+			//This will tell if the user can fill in interactive form fields (including signature fields) even if
+			// canModifyAnnotations() returns false.
+
+			//canModifyAnnotations()
+			//This will tell if the user can add or modify text annotations and fill in interactive forms fields and, if
+			// canModify() returns true, create or modify interactive form fields (including signature fields).
+			if ((accessPermission.canModify() && accessPermission.canModifyAnnotations())
+					|| accessPermission.canFillInForm()) {			
+				logger.debug("Document is protected, but Signing is allowed");
+				
+			} else {
+				throw new PdfAsValidationException("error.pdf.sig.12", null);
+								
+			}			
 		}
 
-		if (!accessPermission.isOwnerPermission()) {
-			throw new PdfAsValidationException("error.pdf.sig.12", null);
-		}
 
 	}
 

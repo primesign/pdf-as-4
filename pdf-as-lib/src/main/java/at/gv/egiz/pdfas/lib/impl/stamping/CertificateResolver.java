@@ -28,11 +28,17 @@ import at.gv.egiz.pdfas.common.utils.DNUtils;
 import at.gv.egiz.pdfas.common.utils.OgnlUtils;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import iaik.x509.X509Certificate;
+import ognl.AbstractMemberAccess;
+import ognl.MemberAccess;
+import ognl.Ognl;
 import ognl.OgnlContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.naming.InvalidNameException;
+
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +51,16 @@ public class CertificateResolver implements IResolver {
 
     public CertificateResolver(X509Certificate certificate, OperationStatus operationStatus) {
         this.certificate = certificate;
-        this.ctx = new OgnlContext();
+
+        MemberAccess memberAccess = new AbstractMemberAccess() {
+            @Override
+            public boolean isAccessible(Map context, Object target, Member member, String propertyName) {
+                int modifiers = member.getModifiers();
+                return Modifier.isPublic(modifiers);
+            }
+        };
+                
+        this.ctx = new OgnlContext(null, null, memberAccess);
 
         this.ctx.put("sn", this.certificate.getSerialNumber().toString());
         

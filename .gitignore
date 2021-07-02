@@ -49,4 +49,6 @@ local.properties
 .buildpath
 /PDF-AS/.nb-gradle/        
 
+/releases
+
 .idea/*

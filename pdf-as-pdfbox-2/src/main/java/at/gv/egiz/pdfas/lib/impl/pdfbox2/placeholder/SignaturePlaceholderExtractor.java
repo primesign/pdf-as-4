@@ -103,11 +103,11 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
 
-	private static List<SignaturePlaceholderData> placeholders = new ArrayList<>();
+	private List<SignaturePlaceholderData> placeholders = new ArrayList<>();
 	private int currentPage = 0;
 	private PDDocument doc;
 
-	private SignaturePlaceholderExtractor(String placeholderId,
+	protected SignaturePlaceholderExtractor(String placeholderId,
 			int placeholderMatchMode, PDDocument doc) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 		super();
 		
@@ -126,9 +126,9 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		this.doc = doc;
 	}
 
-	public static List<SignaturePlaceholderData> getPlaceholders() {
-		return placeholders;
-	}
+//	public static List<SignaturePlaceholderData> getPlaceholders() {
+//		return placeholders;
+//	}
 
 
 	/**
@@ -136,38 +136,36 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	 * additional info.<br/>
 	 * Searches only for the first placeholder page after page from top.
 	 *
-	 * @param inputStream
 	 * @return all available info from the first found placeholder.
-	 * @throws PDFDocumentException
+	 * @throws PdfAsException
 	 *             if the document could not be read.
 	 * @throws PlaceholderExtractionException
 	 *             if STRICT matching mode was requested and no suitable
 	 *             placeholder could be found.
 	 */
-	public static SignaturePlaceholderData extract(PDDocument doc,
+	public SignaturePlaceholderData extract(PDDocument doc,
 			String placeholderId, int matchMode) throws PdfAsException {
 		SignaturePlaceholderContext.setSignaturePlaceholderData(null);
-
-		SignaturePlaceholderExtractor extractor;
-		try {
-			extractor = new SignaturePlaceholderExtractor(placeholderId,
-					matchMode, doc);
-		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
-			throw new PDFIOException("error.pdf.io.04", e2);
-		}
+//		SignaturePlaceholderExtractor extractor;
+//		try {
+//			extractor = new SignaturePlaceholderExtractor(placeholderId,
+//					matchMode, doc);
+//		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
+//			throw new PDFIOException("error.pdf.io.04", e2);
+//		}
 
 		int pageNr = 0;
 		for(PDPage page : doc.getPages()){
 			pageNr++;
 
 			try {
-				extractor.setCurrentPage(pageNr);
+				setCurrentPage(pageNr);
 				if(page.getContents() != null && page.getResources() != null && page.getContentStreams() != null) {
-						extractor.processPage(page); //TODO: pdfbox2 - right?
+						processPage(page); //TODO: pdfbox2 - right?
 					
 				}
 				SignaturePlaceholderData ret = matchPlaceholderPage(
-						extractor.placeholders, placeholderId, matchMode);
+						placeholders, placeholderId, matchMode);
 				if (ret != null) {
 					SignaturePlaceholderContext
 							.setSignaturePlaceholderData(ret);
@@ -179,9 +177,9 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 				throw new PDFIOException("error.pdf.io.04", e);
 			}
 		}
-		if (extractor.placeholders.size() > 0) {
+		if (placeholders.size() > 0) {
 			SignaturePlaceholderData ret = matchPlaceholderDocument(
-					extractor.placeholders, placeholderId, matchMode);
+					placeholders, placeholderId, matchMode);
 			SignaturePlaceholderContext.setSignaturePlaceholderData(ret);
 			return ret;
 		}
@@ -193,7 +191,56 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		return null;
 	}
 
-	private static SignaturePlaceholderData matchPlaceholderDocument(
+	public List<SignaturePlaceholderData> extractList(PDDocument doc,
+																								 String placeholderId, int matchMode) throws PdfAsException {
+		SignaturePlaceholderContext.setSignaturePlaceholderData(null);
+//		List<SignaturePlaceholderData> placeholders = new ArrayList<>();
+//		SignaturePlaceholderExtractor extractor;
+//		try {
+//			extractor = new SignaturePlaceholderExtractor(placeholderId,
+//					matchMode, doc);
+//		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
+//			throw new PDFIOException("error.pdf.io.04", e2);
+//		}
+
+		int pageNr = 0;
+		for(PDPage page : doc.getPages()){
+			pageNr++;
+
+			try {
+				setCurrentPage(pageNr);
+				if(page.getContents() != null && page.getResources() != null && page.getContentStreams() != null) {
+					processPage(page); //TODO: pdfbox2 - right?
+
+				}
+				SignaturePlaceholderData ret = matchPlaceholderPage(
+						placeholders, placeholderId, matchMode);
+				if (ret != null) {
+					SignaturePlaceholderContext
+							.setSignaturePlaceholderData(ret);
+					return placeholders;
+				}
+			} catch (IOException e1) {
+				throw new PDFIOException("error.pdf.io.04", e1);
+			} catch(Throwable e) {
+				throw new PDFIOException("error.pdf.io.04", e);
+			}
+		}
+		if (placeholders.size() > 0) {
+			SignaturePlaceholderData ret = matchPlaceholderDocument(
+					placeholders, placeholderId, matchMode);
+			SignaturePlaceholderContext.setSignaturePlaceholderData(ret);
+			return placeholders;
+		}
+		// no placeholders found, apply strict mode if set
+		if (matchMode == PLACEHOLDER_MATCH_MODE_STRICT) {
+			throw new PlaceholderExtractionException("error.pdf.stamp.09");
+		}
+
+		return null;
+	}
+
+	private SignaturePlaceholderData matchPlaceholderDocument(
 			List<SignaturePlaceholderData> placeholders, String placeholderId,
 			int matchMode) throws PlaceholderExtractionException {
 
@@ -247,7 +294,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		return null;
 	}
 
-	private static SignaturePlaceholderData matchPlaceholderPage(
+	private SignaturePlaceholderData matchPlaceholderPage(
 			List<SignaturePlaceholderData> placeholders, String placeholderId,
 			int matchMode) {
 		
@@ -265,6 +312,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		}
 		return null;
 	}
+
+
 
 	private void setCurrentPage(int pageNr) {
 		this.currentPage = pageNr;

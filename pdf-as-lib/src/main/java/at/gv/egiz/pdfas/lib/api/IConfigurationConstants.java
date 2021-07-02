@@ -113,6 +113,9 @@ public interface IConfigurationConstants {
 	public static final String BG_COLOR_DETECTION = "sigblock.placement.bgcolor.detection.enabled";
 	public static final String SIG_PLACEMENT_DEBUG_OUTPUT = "sigblock.placement.debug.file";
 
+	public static final String SIG_BLOCK_PARAMETER_KEY_REGEX = "sigblockparameter.key.regex";
+	public static final String SIG_BLOCK_PARAMETER_VALUE_REGEX = "sigblockparameter.value.regex";
+
 	/**
 	 * PADES Constants
 	 */

@@ -1,9 +1,7 @@
 package at.gv.egiz.pdfas.web.servlets;
 
 import at.gv.egiz.pdfas.api.ws.PDFASSignParameters;
-import at.gv.egiz.pdfas.api.ws.PDFASSignRequest;
 import at.gv.egiz.pdfas.api.ws.PDFASSignResponse;
-import at.gv.egiz.pdfas.api.ws.VerificationLevel;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
@@ -15,10 +13,9 @@ import at.gv.egiz.pdfas.web.helper.JSONStartResponse;
 import at.gv.egiz.pdfas.web.helper.PdfAsHelper;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
-import at.gv.egiz.pdfas.web.store.RequestStore;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.json.HTTP;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +24,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.ws.WebServiceException;
-import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +45,7 @@ public class JSONAPIServlet extends HttpServlet {
     private static final String JSON_DATAURL = "dataUrl";
     private static final String JSON_BKUURL = "bkuUrl";
     private static final String JSON_SLREQUEST = "slRequest";
-
+    private static final String JSON_SBP = "sbp";
     private static final Logger logger = LoggerFactory.getLogger(JSONAPIServlet.class);
 
     @Override
@@ -139,16 +135,32 @@ public class JSONAPIServlet extends HttpServlet {
             parameters.setPosition(position);
             parameters.setProfile(profile);
 
+            Map<String, String> signatureBlockParametersMap = new HashMap<>();
+            try {
+                JSONArray jsonArray = jsonObject.getJSONArray(JSON_SBP);
+                if (jsonArray != null) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        String s = jsonArray.getString(0);
+                        if (!s.contains("=")) {//TODO or pass as map?
+                            throw new Exception("Invalid parameter: " + s);
+                        }
+                        String[] values = s.split("=", 2);
+                        signatureBlockParametersMap.put(values[0], values[1]);
+                    }
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
             if (PDFASSignParameters.Connector.MOA.equals(connectorEnum)
                     || PDFASSignParameters.Connector.JKS.equals(connectorEnum)) {
                 // Plain server based signatures!!
-                PDFASSignResponse pdfasSignResponse = PdfAsHelper.synchornousServerSignature(
-                        inputDocument, parameters);
+                PDFASSignResponse pdfasSignResponse = PdfAsHelper.synchronousServerSignature(
+                        inputDocument, parameters, signatureBlockParametersMap);
 
                 VerifyResult verifyResult = null;
 
                 List<VerifyResult> verResults = PdfAsHelper
-                           .synchornousVerify(
+                           .synchronousVerify(
                                     pdfasSignResponse.getSignedPDF(),
                                     -1,
                                     VerifyParameter.SignatureVerificationLevel.INTEGRITY_ONLY_VERIFICATION,

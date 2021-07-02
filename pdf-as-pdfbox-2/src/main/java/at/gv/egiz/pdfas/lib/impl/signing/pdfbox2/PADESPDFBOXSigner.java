@@ -64,6 +64,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.COSObjectable;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -96,7 +97,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
@@ -157,9 +161,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signature.setFilter(COSName.getPDFName(signer.getPDFFilter()));
 			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
-			SignaturePlaceholderData signaturePlaceholderDataInit = PlaceholderFilter.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(), placeholder_id);
+//			SignaturePlaceholderData signaturePlaceholderDataInit =
+			placeholders =PlaceholderFilter.checkPlaceholderSignatureLocationList(pdfObject.getStatus(),
+							pdfObject.getStatus().getSettings(), placeholder_id);
 
-            placeholders = SignaturePlaceholderExtractor.getPlaceholders();
+//            placeholders = SignaturePlaceholderExtractor.getPlaceholders();
             availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
 
 
@@ -211,15 +217,16 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			}
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
-            //Check if input document is PDF-A conform
+            			
+			//Check if input document is PDF-A conform
             if (signatureProfileSettings.isPDFA()) {
                 DataSource origDoc = pdfObject.getOriginalDocument();
                 InputStream stream = origDoc.getInputStream();
                 //Run PreflightParser for checking conformity//
                 //runPDFAPreflight(origDoc);
             }
-
 			ValueResolver resolver = new ValueResolver(requestedSignature, pdfObject.getStatus());
+
 			String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"),
 					signatureProfileSettings);
 
@@ -508,12 +515,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 						}
 					}
-
+					
 					PDStructureElement sigBlock = new PDStructureElement("Form", docElement);
 
 					// create object dictionary and add as child element
 					COSDictionary objectDic = new COSDictionary();
 					objectDic.setName("Type", "OBJR");
+										
 					objectDic.setItem("Pg", signatureField.getWidget().getPage());
 					objectDic.setItem("Obj", signatureField.getWidget());
 
@@ -539,7 +547,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					// Modify number tree
 					PDNumberTreeNode ntn = structureTreeRoot.getParentTree();
-					int parentTreeNextKey = structureTreeRoot.getParentTreeNextKey();
 					if (ntn == null) {
 						ntn = new PDNumberTreeNode(objectDic, null);
 						logger.info("No number-tree-node found!");
@@ -547,9 +554,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					COSArray ntnKids = (COSArray) ntn.getCOSObject().getDictionaryObject(COSName.KIDS);
 					COSArray ntnNumbers = (COSArray) ntn.getCOSObject().getDictionaryObject(COSName.NUMS);
-
-					if(ntnNumbers == null && ntnKids != null){//no number array, so continue with the kids array
-
+					
+					int parentTreeNextKey = getParentTreeNextKey(structureTreeRoot);
+					
+					if(ntnNumbers == null && ntnKids != null){//no number array, so continue with the kids array																								
 						//create dictionary with limits and nums array
 						COSDictionary pTreeEntry = new COSDictionary();
 						COSArray limitsArray = new COSArray();
@@ -628,7 +636,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                             byte[] outputDocument = bos.toByteArray();
                             pdfObject.setSignedDocument(outputDocument);
                 }
-                        /* Check if resulting pdf is PDF-A conform */
+                        /* Check if resulting pdf is PDF-A conform */                                                
                     if (signatureProfileSettings.isPDFA()) {
                         runPDFAPreflight(new ByteArrayDataSource(pdfObject.getSignedDocument()));
                     }
@@ -653,7 +661,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
             if (doc != null) {
                 try {
                     doc.close();
-					SignaturePlaceholderExtractor.getPlaceholders().clear();
+					//SignaturePlaceholderExtractor.getPlaceholders().clear();
                 } catch (IOException e) {
                     logger.debug("Failed to close COS Doc!", e);
                     // Ignore
@@ -663,7 +671,23 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		}
 	}
 
-    /**
+    private int getParentTreeNextKey(PDStructureTreeRoot structureTreeRoot) throws IOException {
+    	int nextKey = structureTreeRoot.getParentTreeNextKey();
+    	if (nextKey < 0) {
+    		Map<Integer, COSObjectable> destNumberTreeAsMap = getNumberTreeAsMap(structureTreeRoot.getParentTree());
+    		if (destNumberTreeAsMap.isEmpty()) {
+    			nextKey = 0;
+                
+            } else {
+            	nextKey = Collections.max(destNumberTreeAsMap.keySet()) + 1;
+            	
+            }    		
+    	} 
+    	    	
+		return nextKey;
+	}
+
+	/**
      * Check via PreFlightParser if PDF-Document is a valid PDFA1
      * @param signedDocument: signed Document
      * @throws PdfAsException
@@ -914,16 +938,25 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		if(placeholders!=null) {
 		for(int i = 0; i < placeholders.size(); ++i) {
 			//take smallest id
-            if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
+			if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
 				SignaturePlaceholderData spd = placeholders.get(i);
 				if (spd.getId() != null) {
 					if(result == null) {
 						result = spd;
 					} else {
-						String currentID = result.getId();
-						String testID = spd.getId();
-						if(testID.compareToIgnoreCase(currentID) < 0) {
-							result = spd;
+						try{
+							int currentID = Integer.parseInt(result.getId());
+							int testID = Integer.parseInt(spd.getId());
+							if(testID < currentID) {
+								result = spd;
+							}
+						}catch(Exception e){
+							//fallback to string compare
+							String currentID = result.getId();
+							String testID = spd.getId();
+							if(testID.compareToIgnoreCase(currentID) < 0) {
+								result = spd;
+							}
 						}
 					}
 				}
@@ -936,7 +969,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 	//find first placeholder_id
 	public List<SignaturePlaceholderData>  listAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
-		List<SignaturePlaceholderData> result = null;
+		List<SignaturePlaceholderData> result = new ArrayList<>();
 
 		if(placeholders!=null) {
 			for(int i = 0; i < placeholders.size(); ++i) {
@@ -948,4 +981,29 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		}
 		return result;
 	}
+	
+	static Map<Integer, COSObjectable> getNumberTreeAsMap(PDNumberTreeNode tree)
+            throws IOException
+    {
+        Map<Integer, COSObjectable> numbers = tree.getNumbers();
+        if (numbers == null)
+        {
+            numbers = new LinkedHashMap<>();
+        }
+        else
+        {
+            // must copy because the map is read only
+            numbers = new LinkedHashMap<>(numbers);
+        }
+        List<PDNumberTreeNode> kids = tree.getKids();
+        if (kids != null)
+        {
+            for (PDNumberTreeNode kid : kids)
+            {
+                numbers.putAll(getNumberTreeAsMap(kid));
+            }
+        }
+        return numbers;
+    }
+	
 }
