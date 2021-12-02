@@ -327,8 +327,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 						float x = unrotatedCTM.getXPosition();
 						float yPos = unrotatedCTM.getYPosition();
-						float yScale = unrotatedCTM.getYScale();
-						float y = yPos + yScale;
+						float h = unrotatedCTM.getYScale();
+						float y = yPos + h;
 						float w = unrotatedCTM.getXScale();
 						
 						logger.debug("Page height: {}", page.findCropBox().getHeight());
@@ -348,7 +348,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 						logger.debug("Found Placeholder at: {}", posString);
 						try {
-							data.setTablePos(new TablePos(posString));
+							data.setTablePos(new TablePos(posString).setHeight(h));
 							data.setPlaceholderName(objectName.getName());
 							placeholders.add(data);
 						} catch (PdfAsException e) {
