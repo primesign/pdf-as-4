@@ -111,7 +111,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
 
-	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
+	private List<SignaturePlaceholderData> placeholders = new Vector<>();
 	private int currentPage = 0;
 	private PDDocument doc;
 
@@ -154,7 +154,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			}
 		}
 		
-		return ListUtils.unmodifiableList(new ArrayList<SignaturePlaceholderData>(extractor.placeholders));
+		return ListUtils.unmodifiableList(new ArrayList<>(extractor.placeholders));
 	}
 
 	/**
@@ -327,8 +327,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 						float x = unrotatedCTM.getXPosition();
 						float yPos = unrotatedCTM.getYPosition();
-						float yScale = unrotatedCTM.getYScale();
-						float y = yPos + yScale;
+						float h = unrotatedCTM.getYScale();
+						float y = yPos + h;
 						float w = unrotatedCTM.getXScale();
 						
 						logger.debug("Page height: {}", page.findCropBox().getHeight());
@@ -348,7 +348,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 						logger.debug("Found Placeholder at: {}", posString);
 						try {
-							data.setTablePos(new TablePos(posString));
+							data.setTablePos(new TablePos(posString).setHeight(h));
 							data.setPlaceholderName(objectName.getName());
 							placeholders.add(data);
 						} catch (PdfAsException e) {
@@ -372,7 +372,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
         {
             // at least an empty map will be returned
             // TODO we should return null instead of an empty map
-            fonts = new HashMap<String, PDFont>();
+            fonts = new HashMap<>();
             if(this.getResources() != null && this.getResources().getCOSDictionary() != null) {
             COSDictionary fontsDictionary = (COSDictionary) this.getResources().getCOSDictionary().getDictionaryObject(COSName.FONT);
             if (fontsDictionary == null)
@@ -444,8 +444,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		Result result;
 		long before = System.currentTimeMillis();
 		try {
-			Hashtable<DecodeHintType, Object> hints = new Hashtable<DecodeHintType, Object>();
-			Vector<BarcodeFormat> formats = new Vector<BarcodeFormat>();
+			Hashtable<DecodeHintType, Object> hints = new Hashtable<>();
+			Vector<BarcodeFormat> formats = new Vector<>();
 			formats.add(BarcodeFormat.QR_CODE);
 			hints.put(DecodeHintType.POSSIBLE_FORMATS, formats);
 			result = new MultiFormatReader().decode(bitmap, hints);

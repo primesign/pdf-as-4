@@ -87,6 +87,9 @@ public class TablePos implements Serializable
    * The width of the block.
    */
   public float width = 0.0f;
+  
+  private float height = 0.0f;
+  
   /**
    * The top y position of the footer line.
    */
@@ -152,8 +155,18 @@ public class TablePos implements Serializable
   public float getWidth()
   {
 	return this.width;  
-  }  
-  public TablePos()
+  } 
+  
+  public float getHeight() {
+	return height;
+  }
+  
+  public TablePos setHeight(float height) {
+	this.height = height;
+	return this;
+  }
+
+public TablePos()
   {
     //nothing to do --> default
   } 
