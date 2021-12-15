@@ -57,6 +57,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.pdfbox.cos.COSBase;
@@ -112,10 +113,17 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 	private List<SignaturePlaceholderData> placeholders = new ArrayList<>();
 	private int currentPage = 0;
+	private final Predicate<PDRectangle> predicate;
+	private final PDDocument doc;
+	
+	private SignaturePlaceholderExtractor(PDDocument doc) throws IOException {
+		this(doc, pdfImageRectangle -> true);
+	}
 
-	private SignaturePlaceholderExtractor() throws IOException {
-		super(ResourceLoader.loadProperties(
-				"placeholder/pdfbox-reader.properties", true));
+	private SignaturePlaceholderExtractor(PDDocument doc, Predicate<PDRectangle> predicate) throws IOException {
+		super(ResourceLoader.loadProperties("placeholder/pdfbox-reader.properties", true));
+		this.doc = Objects.requireNonNull(doc, "'doc' must not be null.");
+		this.predicate = Objects.requireNonNull(predicate, "'predicate' must not be null.");
 	}
 	
 	/**
@@ -129,24 +137,42 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	 * @throws IOException
 	 *             Thrown in case of I/O error reading/parsing the pdf document.
 	 */
-	@SuppressWarnings("unchecked")
 	public static List<SignaturePlaceholderData> extract(PDDocument doc) throws IOException {
-		Objects.requireNonNull(doc, "Pdfbox document must not be null.");
-		
-		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor();
-		
+		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor(doc);
+		return extractor.extract();
+	}
+	
+	/**
+	 * Extracts all placeholders (with placeholder identifier
+	 * {@linkplain at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractorConstants#QR_PLACEHOLDER_IDENTIFIER
+	 * QR_PLACEHOLDER_IDENTIFIER}).
+	 * 
+	 * @param doc
+	 *            The pdfbox document object.
+	 * @param predicate A predicate allowing filtering of images before being scanned for qr-codes (required; must not be {@code null}).
+	 * @return A (unmodifiable) list of signature place holders (never {@code null}).
+	 * @throws IOException
+	 *             Thrown in case of I/O error reading/parsing the pdf document.
+	 */
+	public static List<SignaturePlaceholderData> extract(PDDocument doc, Predicate<PDRectangle> predicate) throws IOException {
+		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor(doc, predicate);
+		return extractor.extract();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<SignaturePlaceholderData> extract() throws IOException {
 		int pageNr = 0;
 		for (PDPage page : (Iterable<PDPage>) doc.getDocumentCatalog().getAllPages()) {
-			extractor.setCurrentPage(++pageNr);
+			setCurrentPage(++pageNr);
 			PDStream contents;
 			PDResources resources;
 			if ((contents = page.getContents()) != null && contents.getStream() != null
 					&& (resources = page.findResources()) != null) {
-				extractor.processStream(page, resources, contents.getStream());
+				processStream(page, resources, contents.getStream());
 			}
 		}
 		
-		return ListUtils.unmodifiableList(new ArrayList<>(extractor.placeholders));
+		return ListUtils.unmodifiableList(new ArrayList<>(placeholders));
 	}
 
 	/**
@@ -169,7 +195,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 		SignaturePlaceholderExtractor extractor;
 		try {
-			extractor = new SignaturePlaceholderExtractor();
+			extractor = new SignaturePlaceholderExtractor(doc);
 		} catch (IOException e2) {
 			throw new PDFIOException("error.pdf.io.04", e2);
 		}
@@ -282,7 +308,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private void setCurrentPage(int pageNr) {
 		this.currentPage = pageNr;
 	}
-
+	
 	@Override
 	protected void processOperator(PDFOperator operator, List<COSBase> arguments)
 			throws IOException {
@@ -291,53 +317,79 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			COSName objectName = (COSName) arguments.get(0);
 			Map<?, ?> xobjects = getResources().getXObjects();
 			PDXObject xobject = (PDXObject) xobjects.get(objectName.getName());
+			
 			if (xobject instanceof PDXObjectImage) {
+				
 				try {
+					
 					PDXObjectImage image = (PDXObjectImage) xobject;
-					SignaturePlaceholderData data = checkImage(image);
-					if (data != null) {
 						
-						PDPage page = getCurrentPage();
-						int pageRotation = page.findRotation() % 360;
-
-						// prepare reverting page rotation
-						AffineTransform rotation = AffineTransform.getRotateInstance(Math.toRadians(pageRotation));
-						Matrix rotationInverseMatrix = new Matrix();
-						rotationInverseMatrix.setFromAffineTransform(rotation.createInverse());
+					PDPage page = getCurrentPage();
+					Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
+					
+					PDRectangle pdfImageFrame = new PDRectangle(ctm.getXScale(), ctm.getYScale());
+					pdfImageFrame.move(ctm.getXPosition(), ctm.getYPosition());
+					
+					logger.trace("Processing image '{}' ({} x {} @ {}/{}) on page #{}.", objectName.getName(),
+							pdfImageFrame.getWidth(), pdfImageFrame.getHeight(), pdfImageFrame.getLowerLeftX(), pdfImageFrame.getLowerLeftY(),
+							currentPage);
+					
+					// apply predicate (and make sure image has minimum dimension)
+					if (predicate.test(pdfImageFrame) && pdfImageFrame.getWidth() >= 10 && pdfImageFrame.getHeight() >= 10) {
 						
-						// modify ctm in order to compensate page rotation
-						Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
-						Matrix unrotatedCTM = ctm.multiply(rotationInverseMatrix);
-
-						float w = unrotatedCTM.getXScale();
-						float h = unrotatedCTM.getYScale();
+						logger.debug("Scanning image '{}' ({} x {} @ {}/{}) on page #{} for qrcode.", objectName.getName(),
+								pdfImageFrame.getWidth(), pdfImageFrame.getHeight(), pdfImageFrame.getLowerLeftX(), pdfImageFrame.getLowerLeftY(),
+								currentPage);
 						
-						// x/y denotes top left corner of rectangle while the origin of unrotatedCTM is lower left corner of page
-						float x = unrotatedCTM.getXPosition();
-						float y = unrotatedCTM.getYPosition() + h; 
-						
-						final PDRectangle pageDimension = page.findCropBox();
-						// FIXME: x/y and w/h do not seem to be correct with rotated pages or rotated images
-						if (pageRotation == 90) {
-							y = pageDimension.getWidth() - (y * (-1));
-						} else if (pageRotation == 180) {
-							x = pageDimension.getWidth() + x;
-							y = pageDimension.getHeight() - (y * (-1));
-						} else if (pageRotation == 270) {
-							x = pageDimension.getHeight() + x;
+						SignaturePlaceholderData data = detectPlaceholder(image);
+						if (data != null) {
+							
+							int pageRotation = page.findRotation() % 360;
+							
+							// prepare reverting page rotation
+							AffineTransform rotation = AffineTransform.getRotateInstance(Math.toRadians(pageRotation));
+							Matrix rotationInverseMatrix = new Matrix();
+							rotationInverseMatrix.setFromAffineTransform(rotation.createInverse());
+							
+							// modify ctm in order to compensate page rotation
+							Matrix unrotatedCTM = ctm.multiply(rotationInverseMatrix);
+							
+							float w = unrotatedCTM.getXScale();
+							float h = unrotatedCTM.getYScale();
+							
+							// x/y denotes top left corner of rectangle while the origin of unrotatedCTM is lower left corner of page
+							float x = unrotatedCTM.getXPosition();
+							float y = unrotatedCTM.getYPosition() + h; 
+							
+							final PDRectangle pageDimension = page.findCropBox();
+							// FIXME: x/y and w/h do not seem to be correct with rotated pages or rotated images
+							if (pageRotation == 90) {
+								y = pageDimension.getWidth() - (y * (-1));
+							} else if (pageRotation == 180) {
+								x = pageDimension.getWidth() + x;
+								y = pageDimension.getHeight() - (y * (-1));
+							} else if (pageRotation == 270) {
+								x = pageDimension.getHeight() + x;
+							}
+							
+							String posString = "p:" + currentPage + ";x:" + x + ";y:" + y + ";w:" + w;
+							
+							logger.debug("Found Placeholder at: {};h:{}", posString, h);
+							try {
+								data.setTablePos(new TablePos(posString).setHeight(h));
+								data.setPlaceholderName(objectName.getName());
+								placeholders.add(data);
+							} catch (PdfAsException e) {
+								throw new WrappedIOException(e);
+							}
 						}
 						
-						String posString = "p:" + currentPage + ";x:" + x + ";y:" + y + ";w:" + w;
-
-						logger.debug("Found Placeholder at: {};h:{}", posString, h);
-						try {
-							data.setTablePos(new TablePos(posString).setHeight(h));
-							data.setPlaceholderName(objectName.getName());
-							placeholders.add(data);
-						} catch (PdfAsException e) {
-							throw new WrappedIOException(e);
-						}
+					} else {
+						logger.debug("Skipping qrcode scanning for image '{}' ({} x {} @ {}/{}) on page #{}.", objectName.getName(),
+								pdfImageFrame.getWidth(), pdfImageFrame.getHeight(), pdfImageFrame.getLowerLeftX(), pdfImageFrame.getLowerLeftY(),
+								currentPage);
 					}
+
 				} catch (NoninvertibleTransformException e) {
 					throw new WrappedIOException(e);
 				}
@@ -402,7 +454,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	 * @return
 	 * @throws IOException
 	 */
-	private SignaturePlaceholderData checkImage(PDXObjectImage image)
+	private static SignaturePlaceholderData detectPlaceholder(PDXObjectImage image)
 			throws IOException {
 		BufferedImage bimg = image.getRGBImage();
 		if (bimg == null) {
@@ -415,6 +467,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			logger.info("Unable to extract image for QRCode analysis. {} not supported. Add additional JAI Image filters to your classpath. Refer to https://jai.dev.java.net. Skipping image.", type);
 			return null;
 		}
+		
 		if (bimg.getHeight() < 10 || bimg.getWidth() < 10) {
 			logger.debug("Image too small for QRCode. Skipping image.");
 			return null;
