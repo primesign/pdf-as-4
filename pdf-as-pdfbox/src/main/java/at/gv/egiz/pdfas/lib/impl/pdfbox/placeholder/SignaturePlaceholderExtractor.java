@@ -317,6 +317,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 						float y = unrotatedCTM.getYPosition() + h; 
 						
 						final PDRectangle pageDimension = page.findCropBox();
+						// FIXME: x/y and w/h do not seem to be correct with rotated pages or rotated images
 						if (pageRotation == 90) {
 							y = pageDimension.getWidth() - (y * (-1));
 						} else if (pageRotation == 180) {
