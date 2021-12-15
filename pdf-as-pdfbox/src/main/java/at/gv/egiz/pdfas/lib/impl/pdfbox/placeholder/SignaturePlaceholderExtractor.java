@@ -52,7 +52,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,6 @@ import java.util.function.Predicate;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -69,8 +67,6 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDFontFactory;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObjectImage;
 import org.apache.pdfbox.util.Matrix;
@@ -398,54 +394,6 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			super.processOperator(operator, arguments);
 		}
 	}
-	
-		private  Map<String, PDFont> fonts;
-	
-	@Override
-	public Map<String, PDFont> getFonts() {
-		if (fonts == null)
-        {
-            // at least an empty map will be returned
-            // TODO we should return null instead of an empty map
-            fonts = new HashMap<>();
-            if(this.getResources() != null && this.getResources().getCOSDictionary() != null) {
-            COSDictionary fontsDictionary = (COSDictionary) this.getResources().getCOSDictionary().getDictionaryObject(COSName.FONT);
-            if (fontsDictionary == null)
-            {
-            	// ignore we do not want to set anything, never when creating a signature!!!!!
-                //fontsDictionary = new COSDictionary();
-                //this.getResources().getCOSDictionary().setItem(COSName.FONT, fontsDictionary);
-            }
-            else
-            {
-                for (COSName fontName : fontsDictionary.keySet())
-                {
-                    COSBase font = fontsDictionary.getDictionaryObject(fontName);
-                    // data-000174.pdf contains a font that is a COSArray, looks to be an error in the
-                    // PDF, we will just ignore entries that are not dictionaries.
-                    if (font instanceof COSDictionary)
-                    {
-                        PDFont newFont = null;
-                        try
-                        {
-                            newFont = PDFontFactory.createFont((COSDictionary) font);
-                        }
-                        catch (IOException exception)
-                        {
-                            logger.debug("Unable to create font: {}", String.valueOf(exception));
-                        }
-                        if (newFont != null)
-                        {
-                            fonts.put(fontName.getName(), newFont);
-                        }
-                    }
-                }
-            }
-            }
-        }
-        return fonts;
-	}
-	
 
 	/**
 	 * Checks an image if it is a placeholder for a signature.
