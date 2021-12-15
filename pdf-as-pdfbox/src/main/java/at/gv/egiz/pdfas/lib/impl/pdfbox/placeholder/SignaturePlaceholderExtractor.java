@@ -51,13 +51,12 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Vector;
 
 import org.apache.commons.collections4.ListUtils;
 import org.apache.pdfbox.cos.COSBase;
@@ -79,6 +78,16 @@ import org.apache.pdfbox.util.ResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.DecodeHintType;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.Result;
+import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
+import com.google.zxing.common.HybridBinarizer;
+
 import at.gv.egiz.pdfas.common.exceptions.PDFIOException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PlaceholderExtractionException;
@@ -86,17 +95,6 @@ import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractorConstants;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderContext;
 import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.BinaryBitmap;
-import com.google.zxing.DecodeHintType;
-import com.google.zxing.LuminanceSource;
-import com.google.zxing.MultiFormatReader;
-import com.google.zxing.NotFoundException;
-import com.google.zxing.ReaderException;
-import com.google.zxing.Result;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
 
 /**
  * Extract all relevant information from a placeholder image.
@@ -111,15 +109,12 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
 
-	private List<SignaturePlaceholderData> placeholders = new Vector<>();
+	private List<SignaturePlaceholderData> placeholders = new ArrayList<>();
 	private int currentPage = 0;
-	private PDDocument doc;
 
-	private SignaturePlaceholderExtractor(String placeholderId,
-			int placeholderMatchMode, PDDocument doc) throws IOException {
+	private SignaturePlaceholderExtractor() throws IOException {
 		super(ResourceLoader.loadProperties(
 				"placeholder/pdfbox-reader.properties", true));
-				this.doc = doc;
 	}
 	
 	/**
@@ -137,11 +132,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	public static List<SignaturePlaceholderData> extract(PDDocument doc) throws IOException {
 		Objects.requireNonNull(doc, "Pdfbox document must not be null.");
 		
-		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor(
-				QR_PLACEHOLDER_IDENTIFIER,        // is ignored anyway
-				PLACEHOLDER_MATCH_MODE_MODERATE   // is ignored anyway
-				, doc
-		);
+		SignaturePlaceholderExtractor extractor = new SignaturePlaceholderExtractor();
 		
 		int pageNr = 0;
 		for (PDPage page : (Iterable<PDPage>) doc.getDocumentCatalog().getAllPages()) {
@@ -161,11 +152,12 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	 * Search the document for placeholder images and possibly included
 	 * additional info.<br/>
 	 * Searches only for the first placeholder page after page from top.
+	 * @param doc The parsed pdf document (required; must not be {@code null})
+	 * @param placeholderId The identifier of the placeholder (required; must not be {@code null})
+	 * @param matchMode The matchmode to be applied.
 	 *
-	 * @param inputStream
 	 * @return all available info from the first found placeholder.
-	 * @throws PDFDocumentException
-	 *             if the document could not be read.
+	 * @throws PdfAsException if the document could not be read. 
 	 * @throws PlaceholderExtractionException
 	 *             if STRICT matching mode was requested and no suitable
 	 *             placeholder could be found.
@@ -176,8 +168,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 
 		SignaturePlaceholderExtractor extractor;
 		try {
-			extractor = new SignaturePlaceholderExtractor(placeholderId,
-					matchMode, doc);
+			extractor = new SignaturePlaceholderExtractor();
 		} catch (IOException e2) {
 			throw new PDFIOException("error.pdf.io.04", e2);
 		}
@@ -203,14 +194,14 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 				}
 			} catch (IOException e1) {
 				throw new PDFIOException("error.pdf.io.04", e1);
-			} catch(Throwable e) {
+			} catch (Exception e) {
 				throw new PDFIOException("error.pdf.io.04", e);
 			}
 
 		}
-		if (extractor.placeholders.size() > 0) {
+		if (!extractor.placeholders.isEmpty()) {
 			SignaturePlaceholderData ret = matchPlaceholderDocument(
-					extractor.placeholders, placeholderId, matchMode);
+					extractor.placeholders, matchMode);
 			SignaturePlaceholderContext.setSignaturePlaceholderData(ret);
 			return ret;
 		}
@@ -223,13 +214,12 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	}
 
 	private static SignaturePlaceholderData matchPlaceholderDocument(
-			List<SignaturePlaceholderData> placeholders, String placeholderId,
-			int matchMode) throws PlaceholderExtractionException {
+			List<SignaturePlaceholderData> placeholders, int matchMode) throws PlaceholderExtractionException {
 
 		if (matchMode == PLACEHOLDER_MATCH_MODE_STRICT)
 			throw new PlaceholderExtractionException("error.pdf.stamp.09");
 
-		if (placeholders.size() == 0)
+		if (placeholders.isEmpty())
 			return null;
 
 		if (matchMode == PLACEHOLDER_MATCH_MODE_SORTED) {
@@ -276,7 +266,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		if(matchMode == PLACEHOLDER_MATCH_MODE_SORTED)
 			return null;
 		
-		if (placeholders.size() == 0)
+		if (placeholders.isEmpty())
 			return null;
 		for (int i = 0; i < placeholders.size(); i++) {
 			SignaturePlaceholderData data = placeholders.get(i);
@@ -310,7 +300,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 								.getCurrentTransformationMatrix();
 						int pageRotation = page.findRotation();
 						pageRotation = pageRotation % 360;
-						double rotationInRadians = Math.toRadians(pageRotation);//(page.findRotation() * Math.PI) / 180;
+						double rotationInRadians = Math.toRadians(pageRotation);
 
 						AffineTransform rotation = new AffineTransform();
 						rotation.setToRotation(rotationInRadians);
@@ -397,7 +387,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
                         }
                         catch (IOException exception)
                         {
-                            logger.error("error while creating a font", exception);
+                            logger.debug("Unable to create font: {}", String.valueOf(exception));
                         }
                         if (newFont != null)
                         {
@@ -429,9 +419,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 			} else {
 				type = "Image type";
 			}
-			logger.info("Unable to extract image for QRCode analysis. "
-					+ type
-					+ " not supported. Add additional JAI Image filters to your classpath. Refer to https://jai.dev.java.net. Skipping image.");
+			logger.info("Unable to extract image for QRCode analysis. {} not supported. Add additional JAI Image filters to your classpath. Refer to https://jai.dev.java.net. Skipping image.", type);
 			return null;
 		}
 		if (bimg.getHeight() < 10 || bimg.getWidth() < 10) {
@@ -442,10 +430,9 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		LuminanceSource source = new BufferedImageLuminanceSource(bimg);
 		BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 		Result result;
-		long before = System.currentTimeMillis();
 		try {
-			Hashtable<DecodeHintType, Object> hints = new Hashtable<>();
-			Vector<BarcodeFormat> formats = new Vector<>();
+			Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
+			List<BarcodeFormat> formats = new ArrayList<>();
 			formats.add(BarcodeFormat.QR_CODE);
 			hints.put(DecodeHintType.POSSIBLE_FORMATS, formats);
 			result = new MultiFormatReader().decode(bitmap, hints);
@@ -463,8 +450,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 							String kvPair = data[i];
 							String[] kv = kvPair.split("=");
 							if (kv.length != 2) {
-								logger.debug("Invalid parameter in placeholder data: "
-										+ kvPair);
+								logger.debug("Invalid parameter in placeholder data: {}", kvPair);
 							} else {
 								if (kv[0]
 										.equalsIgnoreCase(SignaturePlaceholderData.ID_KEY)) {
@@ -482,30 +468,20 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 							}
 						}
 					}
-					return new SignaturePlaceholderData(profile, type, sigKey,
-							id);
+					return new SignaturePlaceholderData(profile, type, sigKey, id);
 				} else {
-					logger.warn("QR-Code found but does not start with \""
-							+ QR_PLACEHOLDER_IDENTIFIER
-							+ "\". Ignoring QR placeholder.");
+					logger.info("QR-Code found but does not start with \"{}\". Ignoring QR placeholder.", QR_PLACEHOLDER_IDENTIFIER);
 				}
 			}
-		} catch (ReaderException re) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Could not decode - not a placeholder. needed: "
-						+ (System.currentTimeMillis() - before));
-			}
-			if (!(re instanceof NotFoundException)) {
-				if (logger.isInfoEnabled()) {
-					logger.info("Failed to decode image", re);
-				}
-			}
-		} catch (ArrayIndexOutOfBoundsException e) {
-			if (logger.isInfoEnabled()) {
-				logger.info("Failed to decode image. Probably a zxing bug", e);
-			}
+		
+		} catch (NotFoundException e) {
+			// ok: image may not contain qr code
+		} catch (Exception re) {
+			logger.info("Failed to scan image: {}", String.valueOf(re));
 		}
+		
 		return null;
+		
 	}
 
 }
