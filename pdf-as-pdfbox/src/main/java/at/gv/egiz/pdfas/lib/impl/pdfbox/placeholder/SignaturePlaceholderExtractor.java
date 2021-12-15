@@ -336,7 +336,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 						String posString = "p:" + currentPage + ";x:" + x
 								+ ";y:" + y + ";w:" + w;
 
-						logger.debug("Found Placeholder at: {}", posString);
+						logger.debug("Found Placeholder at: {};h:{}", posString, h);
 						try {
 							data.setTablePos(new TablePos(posString).setHeight(h));
 							data.setPlaceholderName(objectName.getName());
