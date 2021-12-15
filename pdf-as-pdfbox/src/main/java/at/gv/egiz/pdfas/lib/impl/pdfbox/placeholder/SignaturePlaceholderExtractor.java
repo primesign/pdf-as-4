@@ -66,6 +66,7 @@ import org.apache.pdfbox.exceptions.WrappedIOException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDFontFactory;
@@ -295,46 +296,37 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 					PDXObjectImage image = (PDXObjectImage) xobject;
 					SignaturePlaceholderData data = checkImage(image);
 					if (data != null) {
+						
 						PDPage page = getCurrentPage();
-						Matrix ctm = getGraphicsState()
-								.getCurrentTransformationMatrix();
-						int pageRotation = page.findRotation();
-						pageRotation = pageRotation % 360;
-						double rotationInRadians = Math.toRadians(pageRotation);
+						int pageRotation = page.findRotation() % 360;
 
-						AffineTransform rotation = new AffineTransform();
-						rotation.setToRotation(rotationInRadians);
-						AffineTransform rotationInverse = rotation
-								.createInverse();
+						// prepare reverting page rotation
+						AffineTransform rotation = AffineTransform.getRotateInstance(Math.toRadians(pageRotation));
 						Matrix rotationInverseMatrix = new Matrix();
-						rotationInverseMatrix
-								.setFromAffineTransform(rotationInverse);
-						Matrix rotationMatrix = new Matrix();
-						rotationMatrix.setFromAffineTransform(rotation);
+						rotationInverseMatrix.setFromAffineTransform(rotation.createInverse());
+						
+						// modify ctm in order to compensate page rotation
+						Matrix ctm = getGraphicsState().getCurrentTransformationMatrix();
+						Matrix unrotatedCTM = ctm.multiply(rotationInverseMatrix);
 
-						Matrix unrotatedCTM = ctm
-								.multiply(rotationInverseMatrix);
-
-						float x = unrotatedCTM.getXPosition();
-						float yPos = unrotatedCTM.getYPosition();
-						float h = unrotatedCTM.getYScale();
-						float y = yPos + h;
 						float w = unrotatedCTM.getXScale();
+						float h = unrotatedCTM.getYScale();
 						
-						logger.debug("Page height: {}", page.findCropBox().getHeight());
-						logger.debug("Page width: {}", page.findCropBox().getWidth());
+						// x/y denotes top left corner of rectangle while the origin of unrotatedCTM is lower left corner of page
+						float x = unrotatedCTM.getXPosition();
+						float y = unrotatedCTM.getYPosition() + h; 
 						
-						if(pageRotation == 90) {
-							y = page.findCropBox().getWidth() - (y * (-1));
-						} else if(pageRotation == 180) {
-							x = page.findCropBox().getWidth() + x;
-							y = page.findCropBox().getHeight() - (y * (-1));
-						} else if(pageRotation == 270) {
-							x = page.findCropBox().getHeight() + x;
+						final PDRectangle pageDimension = page.findCropBox();
+						if (pageRotation == 90) {
+							y = pageDimension.getWidth() - (y * (-1));
+						} else if (pageRotation == 180) {
+							x = pageDimension.getWidth() + x;
+							y = pageDimension.getHeight() - (y * (-1));
+						} else if (pageRotation == 270) {
+							x = pageDimension.getHeight() + x;
 						}
 						
-						String posString = "p:" + currentPage + ";x:" + x
-								+ ";y:" + y + ";w:" + w;
+						String posString = "p:" + currentPage + ";x:" + x + ";y:" + y + ";w:" + w;
 
 						logger.debug("Found Placeholder at: {};h:{}", posString, h);
 						try {
