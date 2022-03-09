@@ -73,9 +73,11 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 		String filename = "placeholder";
 		
 		if(id != null && !id.isEmpty()) {
-			id = id.replaceAll("[^a-zA-Z0-9]", "_");
-			buildString = buildString + ";" + SignaturePlaceholderData.ID_KEY + "=" + id;
-			filename = filename + "_" + id;
+			id = id.replaceAll("[^0-9]", "");
+			if(id != null && !id.isEmpty()) {
+				buildString = buildString + ";" + SignaturePlaceholderData.ID_KEY + "=" + id;
+				filename = filename + "_" + id;
+			}
 		}
 		
 		if(profile != null && !profile.isEmpty()) {
@@ -96,8 +98,8 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 		//if(id != null || profile != null) {
 			// We need to generate the image
 		// default values set for pdf-as wai on buergerkarte.at
-		int height = 85;
-		int width = 250;
+		int height = 60;
+		int width = 300;
 		int border = 2;
 		
 		if(req.getParameter(PARAM_HEIGHT) != null) {
@@ -155,7 +157,7 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 					                    BufferedImage.TYPE_INT_ARGB);
 			
 			Graphics g = off_Image.getGraphics();
-			g.setColor(Color.BLUE);
+			g.setColor(new Color(255,255,255,1));
 			g.fillRect(0, 0, width, height);
 			g.setColor(Color.WHITE);
 			g.fillRect(border, border, width - (2 * border), height - (2 * border));
@@ -163,7 +165,7 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 			g.drawImage(qr, border, border, qrSize + border, qrSize + border, 0, 0, qr.getWidth(), qr.getHeight(), null);
 			
 			//g.(x, y, width, height);
-			Font writeFont = new Font(Font.SANS_SERIF, Font.BOLD, 14);
+			Font writeFont = new Font(Font.SANS_SERIF, Font.BOLD, 10);
 			g.setFont(writeFont);
 			g.setColor(Color.BLACK);
 			
@@ -179,20 +181,18 @@ public class PlaceholderGeneratorServlet extends HttpServlet implements Placehol
 			
 			if(profile != null && profile.endsWith("_EN")) {
 				
-				g.drawString("placeholder for", qrSize + ( 3 * border), start + lineSpace);
-				g.drawString("the electronic", qrSize + ( 3 * border), start + (2 * lineSpace));
-				g.drawString("signature", qrSize + ( 3 * border), start + (3 * lineSpace));
+				g.drawString("placeholder for the", qrSize + ( 3 * border), start + lineSpace);
+				g.drawString("electronic signature", qrSize + ( 3 * border), start + (2 * lineSpace));
 			} else {
-				g.drawString("Platzhalter für", qrSize + ( 3 * border), start + lineSpace);
-				g.drawString("die elektronische", qrSize + ( 3 * border), start + (2 * lineSpace));
-				g.drawString("Signatur", qrSize + ( 3 * border), start + (3 * lineSpace));
+				g.drawString("Platzhalter fuer die", qrSize + ( 3 * border), start + lineSpace);
+				g.drawString("elektronische Signatur", qrSize + ( 3 * border), start + (2 * lineSpace));
 			}
 			if(id != null && !id.isEmpty()) {
 				
-				Font nrFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 14);
+				Font nrFont = new Font(Font.SANS_SERIF, Font.BOLD | Font.ITALIC, 10);
 				g.setFont(nrFont);
 				
-				g.drawString("NR: " + id, qrSize + ( 3 * border), start + (4 * lineSpace));
+				g.drawString("NR: " + id, qrSize + ( 3 * border), start + (3 * lineSpace));
 			}
 			
 			logger.info("serving qr placeholder for '{}'", buildString);

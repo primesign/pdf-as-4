@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'java-library-distribution'
 
@@ -15,13 +15,13 @@ repositories {
 }
 
 dependencies {
-	compile project (':pdf-as-lib')
-	compile project (':pdf-as-moa')
-	compile project (':signature-standards:sigs-pkcs7detached')
-	compile project (':signature-standards:sigs-pades')
-	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.1'
-	compile group: 'commons-codec', name: 'commons-codec', version: '1.8'
-	testCompile group: 'junit', name: 'junit', version: '4.+'
+	implementation project (':pdf-as-lib')
+	implementation project (':pdf-as-moa')
+	implementation project (':signature-standards:sigs-pkcs7detached')
+	implementation project (':signature-standards:sigs-pades')
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
+	implementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
+	testImplementation group: 'junit', name: 'junit', version: '4.+'
 }
 
 task releases(type: Copy) {

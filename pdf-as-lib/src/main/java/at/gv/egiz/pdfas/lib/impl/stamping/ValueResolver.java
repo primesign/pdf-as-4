@@ -23,6 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -52,21 +53,28 @@ public class ValueResolver implements IProfileConstants, IResolver {
 
 	public static final String EXP_START = "${";
 	public static final String EXP_END = "}";
+	private static final Charset ISO = Charset.forName("ISO-8859-1");
+	private static final Charset UTF_8 = Charset.forName("UTF-8");
 
-	private CertificateResolver certificateResolver;
 	private final OperationStatus operationStatus;
 	
+	private IResolver internalResolver;
 	public ValueResolver(ICertificateProvider certProvider, OperationStatus operationStatus) {
-		certificateResolver = new CertificateResolver(
-				certProvider.getCertificate(), operationStatus);
+		internalResolver = new CertificateAndRequestParameterResolver(certProvider.getCertificate(),
+				operationStatus);
 		this.operationStatus = operationStatus;
 	}
-	
+
 	public String resolve(String key, String value,
 			SignatureProfileSettings settings) {
 
 		logger.debug("Resolving value for key: " + key);
 		logger.debug("Resolving value with value: " + value);
+
+		//this needs to be encoded because of special characters
+		if(settings.isLatin1Encoding()) {
+			value = new String(value.getBytes(ISO), UTF_8);
+		}
 
 		if (key.equals(SIG_DATE)) {
 			if (value == null) {
@@ -89,7 +97,7 @@ public class ValueResolver implements IProfileConstants, IResolver {
 			
 			return fdf.format(cal.getTime());
 		}
-		
+
 		if (value != null) {
 
 			Pattern pattern = Pattern.compile(PatternRegex);
@@ -101,11 +109,16 @@ public class ValueResolver implements IProfileConstants, IResolver {
 				do {
 					int idx = matcher.start(0);
 					int idxe = matcher.end(0);
-					result += value.substring(curidx, idx);
+					String tmp1 = value.substring(curidx, idx);
+					result += tmp1;
 					curidx = idxe;
-					result += certificateResolver.resolve(key,
-							matcher.group(1), settings);
+					String tmpValue = matcher.group(1);
+					String tmp2 = internalResolver.resolve(key, tmpValue, settings);
+					result += tmp2;
 				} while (matcher.find());
+				if(value.length() > curidx){
+					result += value.substring(curidx);
+				}
 			} else {
 				result = value;
 			}

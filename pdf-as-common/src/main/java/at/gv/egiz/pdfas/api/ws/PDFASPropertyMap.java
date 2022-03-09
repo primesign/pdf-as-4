@@ -46,7 +46,7 @@ public class PDFASPropertyMap {
 				String key = keyIt.next();
 				PDFASPropertyEntry entry = new PDFASPropertyEntry();
 				entry.setKey(key);
-				entry.setvalue(map.get(key));
+				entry.setValue(map.get(key));
 				propertyEntries.add(entry);
 			}
 		}

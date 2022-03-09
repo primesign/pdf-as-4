@@ -23,28 +23,14 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.servlets;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
+import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderWebConfiguration;
 import at.gv.egiz.pdfas.web.config.WebConfiguration;
 import at.gv.egiz.pdfas.web.exception.PdfAsWebException;
 import at.gv.egiz.pdfas.web.filter.UserAgentFilter;
@@ -57,6 +43,20 @@ import at.gv.egiz.pdfas.web.stats.StatisticEvent.Operation;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Source;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Servlet implementation class Sign
@@ -181,6 +181,7 @@ public class ExternSignServlet extends HttpServlet {
 					throw new PdfAsWebException("No Signature data defined!");
 				}
 			} else {
+
 				// configures upload settings
 				DiskFileItemFactory factory = new DiskFileItemFactory();
 				factory.setSizeThreshold(WebConfiguration.getFilesizeThreshold());
@@ -335,7 +336,24 @@ public class ExternSignServlet extends HttpServlet {
 		
 		String locale = PdfAsParameterExtractor.getLocale(request);
 		PdfAsHelper.setLocale(request, response, locale);
+
+		String responseMode = PdfAsParameterExtractor.getResonseMode(request);
+		PdfAsHelper.setResponseMode(request, response, responseMode);
 		
+		
+		//read and set placholder web id
+		try{
+			String placeholder_id = PdfAsParameterExtractor.getPlaceholderId(request);
+			if(org.apache.commons.lang3.StringUtils.isNotEmpty(placeholder_id)) {
+				PlaceholderWebConfiguration.setValue(IConfigurationConstants.PLACEHOLDER_WEB_ID, placeholder_id);
+			} else {
+				PlaceholderWebConfiguration.clear();
+			}
+
+		} catch(Exception e) {
+			logger.error(e.getLocalizedMessage());
+		}
+
 		String filename = PdfAsParameterExtractor.getFilename(request);
 		if(filename != null) {
 			logger.debug("Setting Filename in session: " + filename);
@@ -346,11 +364,15 @@ public class ExternSignServlet extends HttpServlet {
 		
 		PdfAsHelper.setSignatureDataHash(request, pdfDataHash);
 		logger.debug("Storing signatures data hash: " + pdfDataHash);
-		
+
+		Map<String, String> dynamicSignatureBlockArguments =
+				PdfAsParameterExtractor.getDynamicSignatureBlockParameters(request);
+
 		logger.debug("Starting signature creation with: " + connector);
 		
 		//IPlainSigner signer;
-		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")) {
+		if (connector.equals("bku") || connector.equals("onlinebku") || connector.equals("mobilebku")
+				|| connector.equals("sl20")) {
 			// start asynchronous signature creation
 			
 			if(connector.equals("bku")) {
@@ -363,13 +385,24 @@ public class ExternSignServlet extends HttpServlet {
 					throw new PdfAsWebException("Invalid connector mobilebku is not supported");
 				}
 			}
-			
+			if(connector.equals("onlinebku")) {
+				if(WebConfiguration.getOnlineBKUURL() == null) {
+					throw new PdfAsWebException("Invalid connector bku is not supported");
+				}
+			}
+			if (connector.equals("sl20")) {
+				if(WebConfiguration.getSecurityLayer20URL() == null) {
+					throw new PdfAsWebException("Invalid connector bku is not supported");
+				}
+			}
+
 			PdfAsHelper.setStatisticEvent(request, response, statisticEvent);
-			
-			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector, 
+
+
+			PdfAsHelper.startSignature(request, response, getServletContext(), pdfData, connector,
 					PdfAsHelper.buildPosString(request, response), transactionId, PdfAsParameterExtractor
 					.getSigType(request), PdfAsParameterExtractor.getPreProcessorMap(request), 
-					PdfAsParameterExtractor.getOverwriteMap(request));
+					PdfAsParameterExtractor.getOverwriteMap(request), dynamicSignatureBlockArguments);
 			return;
 		} else if (connector.equals("jks") || connector.equals("moa")) {
 			// start synchronous signature creation
@@ -400,11 +433,9 @@ public class ExternSignServlet extends HttpServlet {
 					throw new PdfAsWebException("Invalid connector moa is not supported");
 				}
 			}
-			
-			
-			
-			byte[] pdfSignedData = PdfAsHelper.synchornousSignature(request,
-					response, pdfData);
+
+			byte[] pdfSignedData = PdfAsHelper.synchronousSignature(request,
+					response, pdfData, dynamicSignatureBlockArguments);
 			PdfAsHelper.setSignedPdf(request, response, pdfSignedData);
 			
 			statisticEvent.setStatus(Status.OK);
@@ -418,7 +449,5 @@ public class ExternSignServlet extends HttpServlet {
 		} else {
 			throw new PdfAsWebException("Invalid connector (bku | moa | jks)");
 		}
-
 	}
-
 }

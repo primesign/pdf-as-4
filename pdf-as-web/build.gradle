@@ -3,11 +3,16 @@ apply plugin: 'eclipse'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'war'
 
+apply plugin: 'org.akhikhl.gretty'
+
 buildscript {
   repositories {
-    jcenter()
+	gradlePluginPortal()
     // enable this to use snapshot versions of Gretty:
     // maven { url 'http://oss.jfrog.org/artifactory/oss-snapshot-local' }
+    maven {
+    	url "https://plugins.gradle.org/m2/"
+    }
   }
 
   dependencies {
@@ -15,11 +20,10 @@ buildscript {
   }
 }
 
-apply plugin: 'org.akhikhl.gretty'
+
 
 configurations { providedCompile
-				 pdfbox2 
-				 pdfbox1
+				 pdfbox2
 			   }
 
 jar {
@@ -41,26 +45,29 @@ sourceSets.test.runtimeClasspath += configurations.providedCompile
 
 
 dependencies {
-	compile project (':pdf-as-lib')
-	compile project (':pdf-as-moa')
-	compile project (':signature-standards:sigs-pkcs7detached')
-	compile project (':signature-standards:sigs-pades')
-	pdfbox1 project (':pdf-as-pdfbox')
-	compile project (':pdf-as-web-status')
-	compile project (':pdf-as-web-statistic-api')
-	compile group: 'commons-fileupload', name: 'commons-fileupload', version: '1.3.1'
-	compile group: 'opensymphony', name: 'sitemesh', version: '2.4.2'
-	compile "commons-codec:commons-codec:1.9"
-	compile 'org.apache.commons:commons-lang3:3.3.2'
-	compile 'org.apache.cxf:cxf-rt-transports-http:3.0.1'
-	compile 'org.apache.cxf:cxf-rt-frontend-jaxws:3.0.1'
-	compile 'com.thetransactioncompany:cors-filter:2.3'
-	compile 'ch.qos.logback:logback-classic:1.1.3'
-	compile 'ch.qos.logback:logback-core:1.1.3'
-	compile 'org.json:json:20160212'
+	api project (':pdf-as-lib')
+	api project (':pdf-as-moa')
+	api project (':signature-standards:sigs-pkcs7detached')
+	api project (':signature-standards:sigs-pades')
+	api project (':pdf-as-web-status')
+	api project (':pdf-as-web-statistic-api')
+	api group: 'commons-fileupload', name: 'commons-fileupload', version: '1.3.1'
+	api group: 'opensymphony', name: 'sitemesh', version: '2.4.2'
+	api group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
+    api group: 'javax.xml.ws', name: 'jaxws-api', version: '2.3.1'
+	api group: 'org.glassfish.jaxb', name: 'jaxb-runtime', version: '2.3.3'
+    api "commons-codec:commons-codec:1.15"
+	api 'org.apache.commons:commons-lang3:3.12.0'
+	api 'org.apache.cxf:cxf-rt-transports-http:3.4.1'
+	api 'org.apache.cxf:cxf-rt-frontend-jaxws:3.4.1'
+	api 'com.thetransactioncompany:cors-filter:2.9.1'
+	api 'ch.qos.logback:logback-classic:1.2.3'
+	api 'ch.qos.logback:logback-core:1.2.3'
+	api 'org.json:json:20210307'
+	api group: 'javax.jws', name: 'javax.jws-api', version: '1.1'
 	pdfbox2 project (':pdf-as-pdfbox-2')
-	providedCompile 'javax.servlet:javax.servlet-api:3.0.1'
-    testCompile group: 'junit', name: 'junit', version: '4.+'
+	compileOnly 'javax.servlet:javax.servlet-api:3.0.1'
+    testImplementation group: 'junit', name: 'junit', version: '4.+'
 }
 
 gretty {
@@ -76,25 +83,27 @@ test {
     systemProperties 'pdf-as-web.conf': System.getProperty("user.home") + '/.pdfas/pdf-as-web.properties'
 }
 
-task downloadTomcat << {
-	if(!project.buildDir.exists()){
-		project.buildDir.mkdirs()
-	}
+task downloadTomcat {
+	doLast {
+		if(!project.buildDir.exists()){
+			project.buildDir.mkdirs()
+		}
 	
-	String url  = "http://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
-	String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
+		String url  = "https://repo1.maven.org/maven2/org/apache/tomcat/tomcat/##VERSION##/tomcat-##VERSION##.zip"
+		String filename = project.buildDir.toString() + "/tomcat-##VERSION##.zip";
 	
-	url = url.replaceAll("##VERSION##", project.tomcatVersion);
-	filename = filename.replaceAll("##VERSION##", project.tomcatVersion);
+		url = url.replaceAll("##VERSION##", project.tomcatVersion);
+		filename = filename.replaceAll("##VERSION##", project.tomcatVersion);
 	
-	println "Tomcat Version: " + url
+		println "Tomcat Version: " + url
 	
-	println "Tomcat file: " + filename
+		println "Tomcat file: " + filename
 	
-	def f = new File(filename)
-	if (!f.exists()) {
-		println "Downloading Tomcat ..."
-		new URL(url).withInputStream{ i -> f.withOutputStream{ it << i }}
+		def f = new File(filename)
+		if (!f.exists()) {
+			println "Downloading Tomcat ..."
+			new URL(url).withInputStream{ i -> f.withOutputStream{ it << i }}
+		}
 	}
 }
 
@@ -115,70 +124,80 @@ task extractTomcat(dependsOn: downloadTomcat, type: Copy) {
 	into outputDir
 }
 
-def deployVersions=['','-pdfbox1']
+def deployVersions=['']
 
-task copyTomcat(dependsOn: extractTomcat)<<{
-	deployVersions.each{
-		String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it;
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		println "copiing to "+targetDir
-		copy{
-			with extractTomcat
-			into targetDir
+task copyTomcat(dependsOn: extractTomcat) {
+	doLast {
+		deployVersions.each{
+			String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it;
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			println "copiing to "+targetDir	
+			copy{
+				with extractTomcat
+				into targetDir
+			}
 		}
 	}
 }
 
-task cleanWebAppsInTomcat(dependsOn: copyTomcat) << {
-	deployVersions.each{
-		String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/webapps/";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		
-		def webappDir = new File(targetDir);
-		println "Removing: " + webappDir.toString()
-		def result = webappDir.deleteDir()  // Returns true if all goes well, false otherwise.
-		println result.toString()
-		
-		assert result
-		
-		webappDir.mkdirs()
-	}
-}
-
-task putTemplateIntoTomcat(dependsOn: cleanWebAppsInTomcat)<<{
-	deployVersions.each{
-		String source = project.projectDir.toString() + "/";
-		
-		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		copy{
-			from "src/main/assembly/tomcat"
-			into targetDir
+task cleanWebAppsInTomcat(dependsOn: copyTomcat) {
+	doLast {
+		deployVersions.each{
+			String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/webapps/";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			
+			def webappDir = new File(targetDir);
+			println "Removing: " + webappDir.toString()
+			def result = webappDir.deleteDir()  // Returns true if all goes well, false otherwise.
+			println result.toString()
+			
+			assert result
+			
+			webappDir.mkdirs()
 		}
 	}
 }
 
-task putConfigIntoTomcat(dependsOn: putTemplateIntoTomcat)<<{
-	deployVersions.each{
-		String source = "../pdf-as-lib/build/resources/main/config/config.zip";
-		
-		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		copy{
-			from zipTree(source)
-			into targetDir
+task putTemplateIntoTomcat(dependsOn: cleanWebAppsInTomcat) {
+	doLast {
+		deployVersions.each{
+			String source = project.projectDir.toString() + "/";
+			
+			String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			copy{
+				from "src/main/assembly/tomcat"
+				into targetDir
+			}
 		}
 	}
 }
 
-task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat)<<{
-	deployVersions.each{
-		String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
-		targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-		
-		copy{
-			from 'src/main/configuration/'
-			into targetDir
+task putConfigIntoTomcat(dependsOn: putTemplateIntoTomcat) {
+	doLast {
+		deployVersions.each{
+			String source = "../pdf-as-lib/build/resources/main/config/config.zip";
+			
+			String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			copy{
+				from zipTree(source)
+				into targetDir
+			}
+		}
+	}
+}
+
+task putWebConfigIntoTomcat(dependsOn: putConfigIntoTomcat) {
+	doLast {
+		deployVersions.each{
+			String targetDir = "build/tomcat-##VERSION##"+it+"/apache-tomcat-##VERSION##/conf/pdf-as";
+			targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
+			
+			copy{
+				from 'src/main/configuration/'
+				into targetDir
+			}
 		}
 	}
 }
@@ -195,49 +214,11 @@ task injectPdfAsWebApp(dependsOn: putWebConfigIntoTomcat, type: Copy) {
 }
 injectPdfAsWebApp.dependsOn war
 
-task createPdfbox1War(type:War){
-	//destinationDir = file("$buildDir/libs/pdfbox2")
-	appendix = "pdfbox1"
-	doFirst{
-		sourceSets.main.compileClasspath -= configurations.pdfbox2
-		sourceSets.test.compileClasspath -= configurations.pdfbox2
-		sourceSets.main.compileClasspath += configurations.pdfbox1
-		sourceSets.test.compileClasspath += configurations.pdfbox1
-		classpath+=sourceSets.main.compileClasspath
-	}
-}
-
-
-
-task injectPdfAsWebAppPdfbox1(dependsOn: putWebConfigIntoTomcat, type: Copy) {
-	//war.execute();
-	
-	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+deployVersions[1]+"/apache-tomcat-##VERSION##/webapps/";
-	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-	
-	from createPdfbox1War.outputs
-	into targetDir
-	rename '.*.war', 'pdf-as-web.war'
-}
-injectPdfAsWebAppPdfbox1.dependsOn createPdfbox1War
-
 task buildTomcat(dependsOn: injectPdfAsWebApp, type: Zip) {
 	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##/apache-tomcat-##VERSION##";
 	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
 	
 	String archive = "apache-tomcat-##VERSION##-pdf-as-web-##PVERSION##.zip";
-	archive = archive.replaceAll("##VERSION##", project.tomcatVersion);
-	archive = archive.replaceAll("##PVERSION##", project.version);
-	
-	from targetDir
-	archiveName archive
-	destinationDir project.buildDir
-}
-task buildTomcatPdfbox1(dependsOn: injectPdfAsWebAppPdfbox1, type: Zip) {
-	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+deployVersions[1]+"/apache-tomcat-##VERSION##";
-	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-	
-	String archive = "apache-tomcat-##VERSION##"+deployVersions[1]+"-pdf-as-web-##PVERSION##.zip";
 	archive = archive.replaceAll("##VERSION##", project.tomcatVersion);
 	archive = archive.replaceAll("##PVERSION##", project.version);
 	
@@ -260,20 +241,6 @@ task buildTomcatTar(dependsOn: injectPdfAsWebApp, type: Tar) {
 	destinationDir project.buildDir
 }
 
-task buildTomcatTarPdfbox1(dependsOn: injectPdfAsWebAppPdfbox1, type: Tar) {
-
-	String targetDir = project.buildDir.toString() + "/tomcat-##VERSION##"+deployVersions[1]+"/apache-tomcat-##VERSION##";
-	targetDir = targetDir.replaceAll("##VERSION##", project.tomcatVersion);
-	
-	String archive = "apache-tomcat-##VERSION##"+deployVersions[1]+"-pdf-as-web-##PVERSION##.tar";
-	archive = archive.replaceAll("##VERSION##", project.tomcatVersion);
-	archive = archive.replaceAll("##PVERSION##", project.version);
-	
-	from targetDir
-	archiveName archive
-	destinationDir project.buildDir
-}
-
 
 
 task releaseConfig(type: Copy) {
@@ -287,8 +254,6 @@ war{
 	doFirst{
 		sourceSets.main.compileClasspath += configurations.pdfbox2
 		sourceSets.test.compileClasspath += configurations.pdfbox2
-		sourceSets.main.compileClasspath -= configurations.pdfbox1
-		sourceSets.test.compileClasspath -= configurations.pdfbox1
 		classpath+=sourceSets.main.compileClasspath
 	}
 }
@@ -312,20 +277,6 @@ task releases(dependsOn: buildTomcat, type: Copy) {
 
 }
 
-task releaseCopyPdfbox1(type: Copy){
-	String archive = project.buildDir.toString() + "/apache-tomcat-##VERSION##"+deployVersions[1]+"-pdf-as-web-##PVERSION##.zip";
-	archive = archive.replaceAll("##VERSION##", project.tomcatVersion);
-	archive = archive.replaceAll("##PVERSION##", project.version);
-	
-	String tararchive = project.buildDir.toString() + "/apache-tomcat-##VERSION##"+deployVersions[1]+"-pdf-as-web-##PVERSION##.tar";
-	tararchive = tararchive.replaceAll("##VERSION##", project.tomcatVersion);
-	tararchive = tararchive.replaceAll("##PVERSION##", project.version);
-	
-	from archive
-	from tararchive
-	from createPdfbox1War
-	into rootDir.toString() + "/releases/" + version + "/pdfbox1"
-}
 
 
 releases.dependsOn jar
@@ -333,10 +284,4 @@ releases.dependsOn sourcesJar
 releases.dependsOn war
 releases.dependsOn releaseConfig
 releases.dependsOn buildTomcatTar
-releases.dependsOn createPdfbox1War
-releases.dependsOn releaseCopyPdfbox1
-releases.dependsOn buildTomcatPdfbox1
-releases.dependsOn buildTomcatTarPdfbox1
-
-war.dependsOn createPdfbox1War
 

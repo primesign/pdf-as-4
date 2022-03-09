@@ -24,13 +24,20 @@
 package at.gv.egiz.pdfas.common.utils;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Formatter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 8/28/13 Time: 12:42 PM To
  * change this template use File | Settings | File Templates.
  */
 public class StringUtils {
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(StringUtils.class);
 
 	public static String bytesToHexString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder(bytes.length * 2);
@@ -51,6 +58,24 @@ public class StringUtils {
 			result = id.substring(lastIDX + 1);
 		}
 		return result;
+	}
+
+	public static String convertStringToPDFFormat(String value)
+			throws UnsupportedEncodingException {
+
+		if(value == null) {
+			logger.warn("Trying to convert null string!");
+			return value;
+		}
+		
+		byte[] replace_bytes = applyWinAnsiEncoding(value);
+
+		String restored_value = unapplyWinAnsiEncoding(replace_bytes);
+		if (!value.equals(restored_value)) {
+			// Cannot encode String with CP1252 have to use URL encoding ...
+			return URLEncoder.encode(value, "UTF-8");
+		}
+		return value;
 	}
 
 	public static byte[] applyWinAnsiEncoding(String text)

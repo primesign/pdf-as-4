@@ -57,8 +57,7 @@ public class SignatureProfileSettings implements IProfileConstants {
 		logger.debug("Table Prefix: " + tablePrefix);
 
 		Map<String, String> keys = configuration.getValuesPrefix(keysPrefix);
-		Map<String, String> values = configuration
-				.getValuesPrefix(valuesPrefix);
+		Map<String, String> values = configuration.getValuesPrefix(valuesPrefix);
 
 		if (keys != null) {
 			Iterator<String> keyIterator = keys.keySet().iterator();
@@ -232,6 +231,16 @@ public class SignatureProfileSettings implements IProfileConstants {
 
 	public boolean isPDFUA() {
 		SignatureProfileEntry entry = profileInformations.get(SIG_PDFUA_FORCE);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+		return false;
+	}
+
+
+	public boolean isLatin1Encoding() {
+		SignatureProfileEntry entry = profileInformations.get(LATIN1_ENCODING);
 		if (entry != null) {
 			String value = entry.getCaption();
 			return "true".equals(value);

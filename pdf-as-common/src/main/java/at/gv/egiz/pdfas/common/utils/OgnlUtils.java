@@ -30,6 +30,8 @@ import ognl.OgnlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.Charset;
+
 /**
  * Created with IntelliJ IDEA.
  * User: afitzek
@@ -52,6 +54,7 @@ public class OgnlUtils {
 				valueString = valueString.substring(0, valueString.length() - 1);
 			}
 			return valueString;
+
 		} catch (OgnlException e) {
 			logger.warn("OGNL resolver failed!", e);
 		}

@@ -31,7 +31,22 @@
                 <param-value>*</param-value>
         </init-param>
 	</filter>
-	
+	<!-- A filter that sets character encoding that is used to decode -->
+	<!-- parameters in a POST request -->
+	<filter>
+		<filter-name>setCharacterEncodingFilter</filter-name>
+		<filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+
+	<!-- The mapping for the Set Character Encoding Filter -->
+	<filter-mapping>
+		<filter-name>setCharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
 
 	<!-- filter-mapping>
 		<filter-name>sitemesh</filter-name>
@@ -84,6 +99,12 @@
 		<display-name>DataURLServlet</display-name>
 		<description></description>
 		<servlet-class>at.gv.egiz.pdfas.web.servlets.DataURLServlet</servlet-class>
+	</servlet>
+ 	<servlet>
+		<servlet-name>SLDataURLServlet</servlet-name>
+		<display-name>SLDataURLServlet</display-name>
+		<description></description>
+		<servlet-class>at.gv.egiz.pdfas.web.servlets.SLDataURLServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>VisBlockServlet</servlet-name>
@@ -183,6 +204,10 @@
 	<servlet-mapping>
 		<servlet-name>DataURLServlet</servlet-name>
 		<url-pattern>/DataURL</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>SLDataURLServlet</servlet-name>
+		<url-pattern>/DataURLSL20</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>VerifyServlet</servlet-name>

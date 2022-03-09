@@ -202,7 +202,6 @@ public class PDFBoxFont {
 		
 		return font;
 
-
 	}
 
 	private PDFont generateFont(String fonttype, String fontder,
@@ -242,7 +241,6 @@ public class PDFBoxFont {
 			this.font = defaultFont;
 			this.fontSize = defaultFontSize;
 		}
-
 	}
 
 	public PDFBoxFont(String fontDesc, ISettings settings,

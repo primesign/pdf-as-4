@@ -50,14 +50,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.Vector;
 
 import javassist.bytecode.stackmap.TypeData.ClassName;
 
@@ -109,13 +103,11 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	private static Logger logger = LoggerFactory
 			.getLogger(SignaturePlaceholderExtractor.class);
 
-	private List<SignaturePlaceholderData> placeholders = new Vector<SignaturePlaceholderData>();
+	private List<SignaturePlaceholderData> placeholders = new ArrayList<>();
 	private int currentPage = 0;
 	private PDDocument doc;
-	
-	
 
-	private SignaturePlaceholderExtractor(String placeholderId,
+	protected SignaturePlaceholderExtractor(String placeholderId,
 			int placeholderMatchMode, PDDocument doc) throws IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 		super();
 		
@@ -131,47 +123,49 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
             
             addOperator( processor );
 		}
-		
 		this.doc = doc;
 	}
+
+//	public static List<SignaturePlaceholderData> getPlaceholders() {
+//		return placeholders;
+//	}
+
 
 	/**
 	 * Search the document for placeholder images and possibly included
 	 * additional info.<br/>
 	 * Searches only for the first placeholder page after page from top.
 	 *
-	 * @param inputStream
 	 * @return all available info from the first found placeholder.
-	 * @throws PDFDocumentException
+	 * @throws PdfAsException
 	 *             if the document could not be read.
 	 * @throws PlaceholderExtractionException
 	 *             if STRICT matching mode was requested and no suitable
 	 *             placeholder could be found.
 	 */
-	public static SignaturePlaceholderData extract(PDDocument doc,
+	public SignaturePlaceholderData extract(PDDocument doc,
 			String placeholderId, int matchMode) throws PdfAsException {
 		SignaturePlaceholderContext.setSignaturePlaceholderData(null);
-
-		SignaturePlaceholderExtractor extractor;
-		try {
-			extractor = new SignaturePlaceholderExtractor(placeholderId,
-					matchMode, doc);
-		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
-			throw new PDFIOException("error.pdf.io.04", e2);
-		}
+//		SignaturePlaceholderExtractor extractor;
+//		try {
+//			extractor = new SignaturePlaceholderExtractor(placeholderId,
+//					matchMode, doc);
+//		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
+//			throw new PDFIOException("error.pdf.io.04", e2);
+//		}
 
 		int pageNr = 0;
 		for(PDPage page : doc.getPages()){
 			pageNr++;
 
 			try {
-				extractor.setCurrentPage(pageNr);
+				setCurrentPage(pageNr);
 				if(page.getContents() != null && page.getResources() != null && page.getContentStreams() != null) {
-						extractor.processPage(page); //TODO: pdfbox2 - right?
+						processPage(page); //TODO: pdfbox2 - right?
 					
 				}
 				SignaturePlaceholderData ret = matchPlaceholderPage(
-						extractor.placeholders, placeholderId, matchMode);
+						placeholders, placeholderId, matchMode);
 				if (ret != null) {
 					SignaturePlaceholderContext
 							.setSignaturePlaceholderData(ret);
@@ -183,9 +177,9 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 				throw new PDFIOException("error.pdf.io.04", e);
 			}
 		}
-		if (extractor.placeholders.size() > 0) {
+		if (placeholders.size() > 0) {
 			SignaturePlaceholderData ret = matchPlaceholderDocument(
-					extractor.placeholders, placeholderId, matchMode);
+					placeholders, placeholderId, matchMode);
 			SignaturePlaceholderContext.setSignaturePlaceholderData(ret);
 			return ret;
 		}
@@ -197,7 +191,56 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		return null;
 	}
 
-	private static SignaturePlaceholderData matchPlaceholderDocument(
+	public List<SignaturePlaceholderData> extractList(PDDocument doc,
+																								 String placeholderId, int matchMode) throws PdfAsException {
+		SignaturePlaceholderContext.setSignaturePlaceholderData(null);
+//		List<SignaturePlaceholderData> placeholders = new ArrayList<>();
+//		SignaturePlaceholderExtractor extractor;
+//		try {
+//			extractor = new SignaturePlaceholderExtractor(placeholderId,
+//					matchMode, doc);
+//		} catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException e2) {
+//			throw new PDFIOException("error.pdf.io.04", e2);
+//		}
+
+		int pageNr = 0;
+		for(PDPage page : doc.getPages()){
+			pageNr++;
+
+			try {
+				setCurrentPage(pageNr);
+				if(page.getContents() != null && page.getResources() != null && page.getContentStreams() != null) {
+					processPage(page); //TODO: pdfbox2 - right?
+
+				}
+				SignaturePlaceholderData ret = matchPlaceholderPage(
+						placeholders, placeholderId, matchMode);
+				if (ret != null) {
+					SignaturePlaceholderContext
+							.setSignaturePlaceholderData(ret);
+					return placeholders;
+				}
+			} catch (IOException e1) {
+				throw new PDFIOException("error.pdf.io.04", e1);
+			} catch(Throwable e) {
+				throw new PDFIOException("error.pdf.io.04", e);
+			}
+		}
+		if (placeholders.size() > 0) {
+			SignaturePlaceholderData ret = matchPlaceholderDocument(
+					placeholders, placeholderId, matchMode);
+			SignaturePlaceholderContext.setSignaturePlaceholderData(ret);
+			return placeholders;
+		}
+		// no placeholders found, apply strict mode if set
+		if (matchMode == PLACEHOLDER_MATCH_MODE_STRICT) {
+			throw new PlaceholderExtractionException("error.pdf.stamp.09");
+		}
+
+		return null;
+	}
+
+	private SignaturePlaceholderData matchPlaceholderDocument(
 			List<SignaturePlaceholderData> placeholders, String placeholderId,
 			int matchMode) throws PlaceholderExtractionException {
 
@@ -251,7 +294,7 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		return null;
 	}
 
-	private static SignaturePlaceholderData matchPlaceholderPage(
+	private SignaturePlaceholderData matchPlaceholderPage(
 			List<SignaturePlaceholderData> placeholders, String placeholderId,
 			int matchMode) {
 		
@@ -269,6 +312,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		}
 		return null;
 	}
+
+
 
 	private void setCurrentPage(int pageNr) {
 		this.currentPage = pageNr;
@@ -310,8 +355,8 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 						float yPos = unrotatedCTM.getYPosition();
 						float yScale = unrotatedCTM.getScaleY();
 						float y = yPos + yScale;
-						float w = unrotatedCTM.getScaleX();;
-						
+						float w = unrotatedCTM.getScaleX();
+
 						logger.debug("Page height: {}", page.getCropBox().getHeight());
 						logger.debug("Page width: {}", page.getCropBox().getWidth());
 						
@@ -349,39 +394,31 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 	
 	//TODO: pdfbox2 - was override
 	public Map<String, PDFont> getFonts() {
-		if (fonts == null)
-        {
+		if (fonts == null) {
             // at least an empty map will be returned
             // TODO we should return null instead of an empty map
             fonts = new HashMap<String, PDFont>();
             if(this.getResources() != null && this.getResources().getCOSObject() != null) {
             COSDictionary fontsDictionary = (COSDictionary) this.getResources().getCOSObject().getDictionaryObject(COSName.FONT);
-            if (fontsDictionary == null)
-            {
+            if (fontsDictionary == null) {
             	// ignore we do not want to set anything, never when creating a signature!!!!!
                 //fontsDictionary = new COSDictionary();
                 //this.getResources().getCOSDictionary().setItem(COSName.FONT, fontsDictionary);
             }
-            else
-            {
-                for (COSName fontName : fontsDictionary.keySet())
-                {
+            else {
+                for (COSName fontName : fontsDictionary.keySet()) {
                     COSBase font = fontsDictionary.getDictionaryObject(fontName);
                     // data-000174.pdf contains a font that is a COSArray, looks to be an error in the
                     // PDF, we will just ignore entries that are not dictionaries.
-                    if (font instanceof COSDictionary)
-                    {
+                    if (font instanceof COSDictionary) {
                         PDFont newFont = null;
-                        try
-                        {
+                        try {
                             newFont = PDFontFactory.createFont((COSDictionary) font);
                         }
-                        catch (IOException exception)
-                        {
+                        catch (IOException exception) {
                             logger.error("error while creating a font", exception);
                         }
-                        if (newFont != null)
-                        {
+                        if (newFont != null) {
                             fonts.put(fontName.getName(), newFont);
                         }
                     }
@@ -488,5 +525,4 @@ public class SignaturePlaceholderExtractor extends PDFStreamEngine implements Pl
 		}
 		return null;
 	}
-
 }

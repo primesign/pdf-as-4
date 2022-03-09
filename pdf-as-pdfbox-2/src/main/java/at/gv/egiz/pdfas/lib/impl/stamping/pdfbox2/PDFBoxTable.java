@@ -80,7 +80,7 @@ public class PDFBoxTable {
 		for (int i = 0; i < rows; i++) {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 
 				switch (cell.getType()) {
 				case Entry.TYPE_CAPTION:
@@ -222,7 +222,7 @@ public class PDFBoxTable {
 		for (int i = 0; i < rows; i++) {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 
 				float colWidth = 0;// colWidths[j];
 
@@ -272,7 +272,7 @@ public class PDFBoxTable {
 		for (int i = 0; i < rows; i++) {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 				float cellWidth = getCellWidth(cell);
 
 				if (colWidths[j] < cellWidth) {
@@ -308,7 +308,7 @@ public class PDFBoxTable {
 		for (int i = 0; i < rowHeights.length; i++) {
 			ArrayList<Entry> row = this.table.getRows().get(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 				if (cell.getType() == Entry.TYPE_TABLE) {
 					PDFBoxTable tbl = (PDFBoxTable) cell.getValue();
 					if (rowHeights[i] != tbl.getHeight()) {
@@ -397,7 +397,7 @@ public class PDFBoxTable {
 	private String[] breakString(String value, float maxwidth, PDFont font,
 			float fontSize) throws IOException {
 		String[] words = value.split(" ");
-		List<String> lines = new ArrayList<String>();
+		List<String> lines = new ArrayList<>();
 		String cLineValue = "";
 		for (int i = 0; i < words.length; i++) {
 			String word = words[i];
@@ -446,7 +446,7 @@ public class PDFBoxTable {
 
 	private String[] breakString(String value, int maxline) {
 		String[] words = value.split(" ");
-		List<String> lines = new ArrayList<String>();
+		List<String> lines = new ArrayList<>();
 		int cLine = 0;
 		String cLineValue = "";
 		for (int i = 0; i < words.length; i++) {
@@ -575,11 +575,11 @@ public class PDFBoxTable {
 			float wfactor = (float) ((width - padding * 2.0f) / dim.getWidth());
 			float scaleFactor = wfactor;
 			float iheight = (float) Math
-					.floor((double) (scaleFactor * dim.getHeight()));
+					.floor(scaleFactor * dim.getHeight());
 			//if (dim.getHeight() > 80.0f) {
 			//	return width + padding * 2;
 			//}
-			return (float) iheight + padding * 2;
+			return iheight + padding * 2;
 		case Entry.TYPE_TABLE:
 			PDFBoxTable pdfBoxTable = null;
 			if (cell.getValue() instanceof Table) {

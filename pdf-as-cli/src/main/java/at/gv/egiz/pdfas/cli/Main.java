@@ -26,8 +26,10 @@ package at.gv.egiz.pdfas.cli;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
@@ -83,6 +85,9 @@ public class Main {
 
 	public static final String CLI_ARG_CONF_SHORT = "conf";
 	public static final String CLI_ARG_CONF = "configuration";
+
+	public static final String CLI_ARG_SIGNATURE_BLOCK_PARAM_SHORT = "sbp";
+	public static final String CLI_ARG_SIGNATURE_BLOCK_PARAM = "signature_block_parameter";
 
 	public static final String CLI_ARG_DEPLOY_SHORT = "d";
 	public static final String CLI_ARG_DEPLOY = "deploy";
@@ -197,6 +202,10 @@ public class Main {
 		Option outputOption = new Option(CLI_ARG_OUTPUT_SHORT, CLI_ARG_OUTPUT,
 				true, "The output file");
 		cliOptions.addOption(outputOption);
+
+		Option signatureBlockParameters = new Option(CLI_ARG_SIGNATURE_BLOCK_PARAM_SHORT, CLI_ARG_SIGNATURE_BLOCK_PARAM,
+				true, "Parameters or signature block");
+		cliOptions.addOption(signatureBlockParameters);
 
 		return cliOptions;
 	}
@@ -431,9 +440,26 @@ public class Main {
 		System.out.println("Starting signature for " + pdfFile);
 		System.out.println("Selected signature Profile " + profilID);
 
+		// get console parameters related to signature block
+		String[] signatureBlockParameters = null;
+		if (cli.hasOption(CLI_ARG_SIGNATURE_BLOCK_PARAM_SHORT)) {
+			signatureBlockParameters = cli.getOptionValues(CLI_ARG_SIGNATURE_BLOCK_PARAM_SHORT);
+		}
+		Map<String, String> signatureBlockParametersMap = new HashMap<>();
+		if(signatureBlockParameters != null && signatureBlockParameters.length > 0) {
+			for(String s : signatureBlockParameters) {
+				if(!s.contains("=")) {
+					throw new Exception("Invalid parameter: "+s);
+				}
+				String[] values = s.split("=", 2);
+				signatureBlockParametersMap.put(values[0], values[1]);
+			}
+		}
+		signParameter.setDynamicSignatureBlockArguments(signatureBlockParametersMap);
+
 		SignResult result = null;
 		try {
-			result = pdfAs.sign(signParameter);
+ 			result = pdfAs.sign(signParameter);
 		} finally {
 			if (result != null) {
 				Iterator<Entry<String, String>> infoIt = result
@@ -449,6 +475,7 @@ public class Main {
 
 		fos.close();
 		System.out.println("Signed document " + outputFile);
+
 	}
 
 	private static void perform_verify(CommandLine cli) throws Exception {
@@ -583,3 +610,6 @@ public class Main {
 		}
 	}
 }
+
+
+

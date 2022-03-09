@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+ 
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date{ISO8601} [%thread] %-5level %class - %msg%n</Pattern>
+    </layout>
+  </appender>
+   
+  <logger name="at.gv.egiz" level="INFO"/>
+  <logger name="at.knowcenter" level="INFO"/>
+   
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>

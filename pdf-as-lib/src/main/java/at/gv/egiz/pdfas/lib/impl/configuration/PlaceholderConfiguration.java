@@ -24,26 +24,17 @@
 package at.gv.egiz.pdfas.lib.impl.configuration;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.settings.Profiles;
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
-import at.gv.egiz.pdfas.lib.api.PdfAs;
-import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
-import at.gv.egiz.pdfas.lib.impl.PdfAsParameterImpl;
-import at.gv.egiz.pdfas.lib.impl.placeholder.SignaturePlaceholderData;
-import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
-import at.gv.egiz.pdfas.lib.settings.Settings;
-import at.gv.egiz.pdfas.lib.util.SignatureUtils;
-import at.gv.egiz.pdfas.lib.api.PdfAs;
-import com.sun.corba.se.spi.orb.Operation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.security.Signature;
-import java.util.Properties;
+import java.util.Map;
 
 
 public class PlaceholderConfiguration extends SpecificBaseConfiguration 
 		implements IConfigurationConstants {
+
+	private static final Logger logger = LoggerFactory.getLogger(PlaceholderConfiguration.class);
 
 	public PlaceholderConfiguration(ISettings configuration) {
 		super(configuration);
@@ -59,7 +50,6 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 		return false;
 	}
 
-
 	/**
 	 * Match selected Profile for Placeholder
 	 * Enables to activate placeholder search/match for different profiles
@@ -67,16 +57,28 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 	 */
 	public boolean isProfileConfigurationEnabled(String selectedProfileID)
 	{
+		logger.info("SelectedProfileID in ProfileConfEnabled: "+selectedProfileID);
 		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_SEARCH_ENABLED;
-		if (configuration.hasValue(profileMatch)) {
-			String value = configuration.getValue(profileMatch);
+		if (configuration.getValuesPrefix(profileMatch)!=null) {
+			Map<String, String> map = configuration.getValuesPrefix(profileMatch);
+           String value =  map.get(profileMatch);
 			if (value.equalsIgnoreCase(TRUE)) {
+				logger.info("Configuration has Value: "+value);
 				return true;
 			}
 		}
 		return false;
 	}
-}
 
-	
+	public String getProfilePlaceholderID(String selectedProfileID)
+	{
+		logger.info("SelectedProfileID in ProfileConfEnabled: "+selectedProfileID);
+		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_ID;
+		if (configuration.getValuesPrefix(profileMatch)!=null) {
+			Map<String, String> map = configuration.getValuesPrefix(profileMatch);
+			return map.get(profileMatch);
+		}
+		return null;
+	}
+}
 

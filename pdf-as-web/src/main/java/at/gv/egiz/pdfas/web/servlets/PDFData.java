@@ -23,8 +23,7 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.servlets;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -41,6 +40,15 @@ import at.gv.egiz.pdfas.web.helper.PdfAsParameterExtractor;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent;
 import at.gv.egiz.pdfas.web.stats.StatisticEvent.Status;
 import at.gv.egiz.pdfas.web.stats.StatisticFrontend;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Servlet implementation class PDFData
@@ -152,6 +160,7 @@ public class PDFData extends HttpServlet {
 				logger.debug("Keeping signed data in session : {}", request.getSession().getId());
 			}
 		} else {
+			logger.info("No signed pdf document available.");
 			PdfAsHelper.setSessionException(request, response,
 					"No signed pdf document available.", null);
 			PdfAsHelper.gotoError(getServletContext(), request, response);

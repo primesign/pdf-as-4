@@ -44,7 +44,8 @@ public interface IConfigurationConstants {
 	public static final String LEGACY_POSITIONING = ".legacy.pos";
 	public static final String LEGACY_40_POSITIONING = ".legacy40.pos";
 	public static final String MIN_WIDTH = "minWidth";
-	
+
+	public static final String PLACEHOLDER_WEB_ID = "placeholder_web_id";
 	public static final String PLACEHOLDER_ID = "placeholder_id";
 	public static final String PLACEHOLDER_MODE = "placeholder_mode";
 	
@@ -52,7 +53,13 @@ public interface IConfigurationConstants {
 	public static final String DEFAULT_SIGNATURE_PROFILE = SIG_OBJECT + SEPERATOR + TYPE + SEPERATOR + DEFAULT;
 
 	public static final String CONFIG_BKU_URL = "bku.sign.url";
-	
+
+	/*Acrobat Signature Fields */
+
+	public static final String SIGNATURE_FIELD_NAME = "signature_field_name";
+
+
+
 	/**
 	 * MOA SS Signing Key Identifier
 	 */
@@ -87,6 +94,7 @@ public interface IConfigurationConstants {
 	
 	public static final String MOC_SIGN_URL = "moc.sign.url";
 	public static final String MOBILE_SIGN_URL = "mobile.sign.url";
+	public static final String SL20_SIGN_URL = "sl20.sign.url";
 	
 	public static final String REGISTER_PROVIDER = "registerSecurityProvider";
 	
@@ -105,10 +113,13 @@ public interface IConfigurationConstants {
 	public static final String BG_COLOR_DETECTION = "sigblock.placement.bgcolor.detection.enabled";
 	public static final String SIG_PLACEMENT_DEBUG_OUTPUT = "sigblock.placement.debug.file";
 
+	public static final String SIG_BLOCK_PARAMETER_KEY_REGEX = "sigblockparameter.key.regex";
+	public static final String SIG_BLOCK_PARAMETER_VALUE_REGEX = "sigblockparameter.value.regex";
 
 	/**
 	 * PADES Constants
 	 */
 	public static final String SIG_PADES_FORCE_FLAG= SIG_OBJECT + SEPERATOR+"PAdESCompatibility";
 	public static final String SIG_PADES_INTELL_FLAG = SIG_OBJECT + SEPERATOR+"CheckPAdESCompatibility";
+
 }

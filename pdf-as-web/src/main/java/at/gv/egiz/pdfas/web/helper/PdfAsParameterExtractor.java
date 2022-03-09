@@ -23,13 +23,17 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.web.helper;
 
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter.SignatureVerificationLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PdfAsParameterExtractor {
 
@@ -49,6 +53,8 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_INVOKE_URL = "invoke-app-url";
 	public static final String PARAM_INVOKE_URL_TARGET = "invoke-app-url-target";
 	public static final String PARAM_INVOKE_URL_ERROR = "invoke-app-error-url";
+	public static final String PARAM_RESPONSE_MODE = "responsemode";
+	
 	
 	public static final String PARAM_VERIFY_LEVEL = "verify-level";
 	public static final String PARAM_VERIFY_LEVEL_OPTION_FULL = "full";
@@ -71,8 +77,11 @@ public class PdfAsParameterExtractor {
 	public static final String PARAM_PREPROCESSOR_PREFIX = "pp:";
 	public static final String PARAM_OVERWRITE_PREFIX = "ov:";
 	public static final String PARAM_QRCODE_CONTENT = "qrcontent";
-	
-	
+	public static final String PARAM_DYNAMIC_SIGNATURE_BLOCK_PARAMETER = "sbp:";
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(PdfAsParameterExtractor.class);
+
 	public static String getConnector(HttpServletRequest request) {
 		String connector = (String)request.getAttribute(PARAM_CONNECTOR);
 		if(connector != null) {
@@ -80,12 +89,35 @@ public class PdfAsParameterExtractor {
 		} 
 		return PARAM_CONNECTOR_DEFAULT;
 	}
-	
+
+	public static Map<String,String> getDynamicSignatureBlockParameters(HttpServletRequest request) throws Exception {
+		HashMap<String, String> signatureBlockParametersMap = new HashMap<String, String>();
+		logger.debug("Default charset:"+ Charset.defaultCharset());
+		logger.debug("Request charset:"+ request.getCharacterEncoding());
+		
+		Enumeration<String> parameterNames = request.getAttributeNames();
+		while(parameterNames.hasMoreElements()) {
+			String parameterName = parameterNames.nextElement();
+			if (parameterName.startsWith(PARAM_DYNAMIC_SIGNATURE_BLOCK_PARAMETER)) {
+				String key = parameterName.substring(PARAM_DYNAMIC_SIGNATURE_BLOCK_PARAMETER.length());
+				String value = (String) request.getAttribute(parameterName);
+				if(value != null && !value.isEmpty()){
+					signatureBlockParametersMap.put(key, value);
+					logger.debug("Setting key "+ key +" to "+ value );
+				}
+			}
+		}
+			return signatureBlockParametersMap;
+	}
 	public static String getQRCodeContent(HttpServletRequest request) {
 		String qrcodeContent = (String)request.getAttribute(PARAM_QRCODE_CONTENT);
 		return qrcodeContent;
 	}
-	
+
+	public static String getPlaceholderId(HttpServletRequest request) {
+		return (String)request.getAttribute(IConfigurationConstants.PLACEHOLDER_WEB_ID);
+	}
+
 	public static String getTransactionId(HttpServletRequest request) {
 		String transactionId = (String)request.getAttribute(PARAM_TRANSACTION_ID);
 		return transactionId;
@@ -232,5 +264,9 @@ public class PdfAsParameterExtractor {
 	
 	public static String getSigIdx(HttpServletRequest request) {
 		return (String)request.getAttribute(PARAM_SIG_IDX);
+	}
+
+	public static String getResonseMode(HttpServletRequest request) {
+		return (String)request.getAttribute(PARAM_RESPONSE_MODE);
 	}
 }

@@ -7,45 +7,42 @@ jar {
 	}
 }
 
-repositories {
+repositories {	
 	mavenLocal()
 	mavenCentral()
+	maven { url "https://repository.jboss.org/maven2/" }
 	maven { url "http://anonsvn.icesoft.org/repo/maven2/releases/" }
 	maven { url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/" }
+	
 }
 
 configurations{
 	pdfBox2Compile
-	pdfBox1Compile
 }
 
 sourceSets{
 	pdfBox2{
 		compileClasspath = configurations.pdfBox2Compile
 	}
-	pdfBox1{
-		compileClasspath = configurations.pdfBox1Compile
-	}
 }
 
 dependencies {
-	compile project (':pdf-as-lib')
-	testCompile project (':pdf-as-moa')
+	implementation project (':pdf-as-lib')
+	testImplementation project (':pdf-as-moa')
 	
-	compile project (':signature-standards:sigs-pkcs7detached')
-	compile project (':signature-standards:sigs-pades')
-	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.7'
-	testCompile group: 'junit', name: 'junit', version: '4.+'
-	testCompile group: 'org.icepdf', name: 'icepdf-core', version: '5.0.7'
+	implementation project (':signature-standards:sigs-pkcs7detached')
+	implementation project (':signature-standards:sigs-pades')
 
-	pdfBox1Compile project (':pdf-as-pdfbox')
-	pdfBox1Compile group: 'org.apache.pdfbox', name: 'preflight', version: '1.8.12'
-	pdfBox1Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '1.8.12'
+	implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.7'
+	implementation group: 'javax.activation', name: 'activation', version: '1.1.1'
 
-	pdfBox2Compile project (':pdf-as-pdfbox-2')
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'preflight', version: '2.0.2'
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.2'
-	pdfBox2Compile group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '2.0.2'
+	testImplementation group: 'junit', name: 'junit', version: '4.12'
+	testImplementation group: 'org.icepdf.os', name: 'icepdf-core', version: '6.1.1'
+
+	implementation project (':pdf-as-pdfbox-2')
+	//compile group: 'org.apache.pdfbox', name: 'preflight', version: '2.0.21'
+	//compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.21'
+	//compile group: 'org.apache.pdfbox', name: 'pdfbox-tools', version: '2.0.21'
 
 }
 
@@ -55,29 +52,26 @@ def suiteDir = new File(projectDir, "src/test/test-suites")
 logger.info("Searching: " + suiteDir.absolutePath)
 
 //Eclipse UI shows an error because source set dependencies are not recognized, so we add the dependencies manually
-eclipse.classpath.plusConfigurations+=[configurations.pdfBox1Compile]
+//eclipse.classpath.plusConfigurations+=[configurations.pdfBox1Compile]
 
 suiteDir.eachDir {	File subDir ->
 	def dirname = subDir.name
 	logger.info("Test Suite " + subDir.name + " found in " + subDir.absolutePath)
-	
+
 	task "runTestSuite${dirname.capitalize()}"(type: Test) {
+
 		description "runs tests from Test Suite: " + dirname
 		systemProperties 'test.dir': subDir.absolutePath
-		
-		//based on executed testsuit we setup the classpath
-    	if(dirname =="public_pdfbox1"){
-			classpath += sourceSets.pdfBox1.compileClasspath
-			compileTestJava.classpath += sourceSets.pdfBox1.compileClasspath
-		}
+
 		if(dirname =="public_pdfbox2"){
 			classpath += sourceSets.pdfBox2.compileClasspath
 			compileTestJava.classpath += sourceSets.pdfBox2.compileClasspath
 		}
-			
+
 		include '**/ParameterizedSignatureTestSuite.class'
 
 		beforeSuite { TestDescriptor descriptor ->
+
 			if(descriptor.getParent() == null) {
 				logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 			}
@@ -124,6 +118,8 @@ suiteDir.eachDir {	File subDir ->
 				}
 			}
 		}
+		
+
 	}
 
 
@@ -137,14 +133,16 @@ suiteDir.eachDir {	File subDir ->
 		delete fileTree (dir: subDir.absolutePath, include: "**/test_result.html")
 	}
 	
-	task "cleanOutFolders${dirname.capitalize()}"() << {
-		subDir.eachDir { File tcDir -> 
-			File outDir = new File(tcDir, "out");
-			if(outDir.exists() && outDir.isDirectory()) {
-				outDir.eachFileRecurse { File mfile -> 
-					mfile.delete()
+	task "cleanOutFolders${dirname.capitalize()}"() {
+		doLast {
+			subDir.eachDir { File tcDir -> 
+				File outDir = new File(tcDir, "out");
+				if(outDir.exists() && outDir.isDirectory()) {
+					outDir.eachFileRecurse { File mfile -> 
+						mfile.delete()
+					}
+					outDir.delete()
 				}
-				outDir.delete()
 			}
 		}
 	}
@@ -158,25 +156,6 @@ tasks.getByPath(":pdf-as-lib:test").dependsOn test
 test {
 	include '**/DummyTest.class'
 
-	/*beforeSuite { TestDescriptor descriptor ->
-		logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-		logger.quiet("Starting suite: " + descriptor.getName())
-	}
-
-	afterSuite { TestDescriptor descriptor, TestResult result ->
-		logger.quiet("Ending suite: " + descriptor.getName());
-		logger.quiet("\tResult (SUCCESS/ERROR/SKIPPED/TOTAL): " +
-				result.getSuccessfulTestCount() + "/" +
-				result.getFailedTestCount() + "/" +
-				result.getSkippedTestCount() + "/" +
-				result.getTestCount());
-		logger.quiet("\tDuration: " + (result.getEndTime() - result.getStartTime()) + " MS");
-		if(descriptor.getClassName().equals("at.gv.egiz.param_tests.ParameterizedSignatureTestSuite")) {
-			logger.quiet("\tReport @ file:///" + subDir.absolutePath + "/index.html")
-		}
-		logger.quiet("++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-	}*/
-
 	beforeTest { TestDescriptor descriptor ->
 		logger.quiet("------------------");
 		logger.quiet("Running test: " + descriptor.getName())
@@ -185,4 +164,9 @@ test {
 	afterTest { TestDescriptor descriptor, TestResult result ->
 		logger.quiet("Ending test: " + descriptor.getName() + " result " + result)
 	}
+	
 }
+
+
+
+

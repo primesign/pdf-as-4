@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'eclipse'
 
 jar {
@@ -21,10 +21,10 @@ releases.dependsOn jar
 releases.dependsOn sourcesJar
 
 dependencies {
-	compile project (':pdf-as-lib')
-	compile project (':pdf-as-common')
-    compile 'org.apache.commons:commons-collections4:4.0'
-    testCompile group: 'junit', name: 'junit', version: '4.+'
+	implementation project (':pdf-as-lib')
+	implementation project (':pdf-as-common')
+    implementation 'org.apache.commons:commons-collections4:4.4'
+    testImplementation group: 'junit', name: 'junit', version: '4.+'
 }
 
 test {

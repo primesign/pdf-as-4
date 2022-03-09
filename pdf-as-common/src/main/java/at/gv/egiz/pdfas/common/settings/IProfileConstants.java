@@ -34,72 +34,75 @@ public interface IProfileConstants {
     /**
      * The settings key prefix for signature definitions. <code>"sig_obj."</code>
      */
-    public static final String SIG_OBJ = "sig_obj.";
+    String SIG_OBJ = "sig_obj.";
 
-    public static final String SIG_DATE = "SIG_DATE";
+    String SIG_DATE = "SIG_DATE";
 
     /**
      * The settings key prefix for the signature table object definition
      */
-    public static final String TABLE = "table.";
+    String TABLE = "table.";
 
     /**
      * The settings value refering to a table
      */
-    public final static String TYPE_TABLE = "TABLE";
+    String TYPE_TABLE = "TABLE";
 
     /**
      * The settings value refering to an image
      */
-    public final static String TYPE_IMAGE = "i";
+    String TYPE_IMAGE = "i";
 
     /**
      * The settings value refering to a text caption
      */
-    public final static String TYPE_CAPTION = "c";
+    String TYPE_CAPTION = "c";
 
     /**
      * The settings value refering to a text value
      */
-    public final static String TYPE_VALUE = "v";
+    String TYPE_VALUE = "v";
 
     /**
      * The settings key sub prefix getting the width of columns for a table
      * definition
      */
-    public final static String COLS_WITH = "ColsWidth";
+    String COLS_WITH = "ColsWidth";
 
     /**
      * The settings key sub prefix getting the style definition
      */
-    public final static String STYLE = "Style";
+    String STYLE = "Style";
 
-    public final static String PROFILE_VALUE = "value";
+    String PROFILE_VALUE = "value";
 
-    public final static String PROFILE_KEY = "key";
+    String PROFILE_KEY = "key";
 
-    public final static String KEY_SEPARATOR = ".";
+    String KEY_SEPARATOR = ".";
 
-    public final static String INCLUDE = "include";
+    String INCLUDE = "include";
 
-    public final static String CFG_DIR = "cfg";
-    public final static String CFG_FILE = "config.properties";
+    String CFG_DIR = "cfg";
+    String CFG_FILE = "config.properties";
 
-    public final static String TMP_DIR = "default.pdfastmp_dir";
-    public final static String TMP_DIR_DEFAULT_VALUE = "pdfastmp";
+    String TMP_DIR = "default.pdfastmp_dir";
+    String TMP_DIR_DEFAULT_VALUE = "pdfastmp";
 
-    public final static String SIGNING_REASON = "adobeSignReasonValue";
-    public final static String SIGNFIELD_VALUE = "adobeSignFieldValue";
-    public final static String TIMEZONE_BASE = "timezone";
-    public final static String SIG_PDFA1B_VALID = "SIG_PDFA1B_VALID";
-    public final static String SIG_PDFA_VALID = "SIG_PDFA_VALID";
-    public final static String SIG_PDFUA_FORCE = "SIG_PDFUA_FORCE";
+    String SIGNING_REASON = "adobeSignReasonValue";
+    String SIGNFIELD_VALUE = "adobeSignFieldValue";
+    String TIMEZONE_BASE = "timezone";
+    String SIG_PDFA1B_VALID = "SIG_PDFA1B_VALID";
+    String SIG_PDFA_VALID = "SIG_PDFA_VALID";
+    String SIG_PDFUA_FORCE = "SIG_PDFUA_FORCE";
+    String LATIN1_ENCODING = "latin1_encoding";
 
 	/**
 	 * Configuration key (segment) for declaration of transformation/transliteration according to ICU4J pattern.
 	 *
 	 * @see <a href="http://userguide.icu-project.org">ICU User Guide</a>
 	 */
-	public static final String PROFILE_TRANSFORM_PATTERN = "transformPattern";
+	String PROFILE_TRANSFORM_PATTERN = "transformPattern";
+
+    String SIGNATURE_BLOCK_PARAMETER = "sbp";
 
 }

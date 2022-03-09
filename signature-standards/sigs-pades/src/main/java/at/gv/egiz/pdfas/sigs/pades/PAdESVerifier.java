@@ -51,7 +51,7 @@ public class PAdESVerifier implements IVerifyFilter, PAdESConstants {
 	public List<VerifyResult> verify(byte[] contentData,
 			byte[] signatureContent, Date verificationTime, int[] byteRange, IVerifier verifier)
 			throws PdfAsException {
-		
+
 		byte[] data = contentData;
 		byte[] signature = signatureContent;
 		

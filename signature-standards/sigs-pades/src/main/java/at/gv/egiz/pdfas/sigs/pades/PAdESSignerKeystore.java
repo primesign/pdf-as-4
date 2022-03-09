@@ -127,7 +127,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 	private KeyStore buildKeyStoreFromFile(String file, String kspassword,
 			String type, String provider)  throws Throwable {
 		String viusalProvider = (provider == null ? "IAIK" : provider);
-		logger.info("Opening Keystore: " + file + " with [" + viusalProvider
+		logger.trace("Opening Keystore: " + file + " with [" + viusalProvider
 				+ "]");
 
 		KeyStore ks = null;
