@@ -29,7 +29,6 @@
 		<module>pdf-as-moa</module>
 		<module>signature-standards</module>
 		<module>pdf-as-cli</module>
-		<module>pdf-as-pdfbox</module>
 		<module>pdf-as-pdfbox-2</module>
 	</modules>
 	
@@ -125,12 +124,6 @@
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pkcs7detached</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
-			</dependency>
-
-			<dependency>
-				<groupId>at.gv.egiz.pdfas</groupId>
-				<artifactId>pdf-as-pdfbox</artifactId>
 				<version>4.1.1-PS-20-SNAPSHOT</version>
 			</dependency>
 
