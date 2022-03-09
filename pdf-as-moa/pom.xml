@@ -9,9 +9,7 @@
 		<version>4.2.0-PS-1-SNAPSHOT</version>
 	</parent>
 
-	<groupId>at.gv.egiz.pdfas</groupId>
 	<artifactId>pdf-as-moa</artifactId>
-	<version>4.2.0-PS-1-SNAPSHOT</version>
 
 	<build>
 
