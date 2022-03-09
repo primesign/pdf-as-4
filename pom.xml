@@ -30,6 +30,7 @@
 		<module>signature-standards</module>
 		<module>pdf-as-cli</module>
 		<module>pdf-as-pdfbox-2</module>
+		<module>pdf-as-legacy</module>
 	</modules>
 	
 	<distributionManagement>
@@ -133,6 +134,11 @@
 				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
+			<dependency>
+				<groupId>at.gv.egiz.pdfas</groupId>
+				<artifactId>pdf-as-legacy</artifactId>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
+			</dependency>
 
 			<dependency>
 				<groupId>ognl</groupId>
@@ -149,13 +155,13 @@
 			<dependency>
 				<groupId>commons-codec</groupId>
 				<artifactId>commons-codec</artifactId>
-				<version>1.9</version>
+				<version>1.15</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.3.2</version>
+				<version>3.12.0</version>
 			</dependency>
 
 			<dependency>
