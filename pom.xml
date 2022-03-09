@@ -5,7 +5,7 @@
 	<groupId>at.gv.egiz.pdfas</groupId>
 	<artifactId>pdf-as</artifactId>
 	<packaging>pom</packaging>
-	<version>4.1.1-PS-20-SNAPSHOT</version>
+	<version>4.2.0-PS-1-SNAPSHOT</version>
 	
 	<name>pdf-as</name>
 	
@@ -88,49 +88,49 @@
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-common</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 			
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-lib</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-moa</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-cli</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>signature-standards</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pades</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>sigs-pkcs7detached</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 			<dependency>
 				<groupId>at.gv.egiz.pdfas</groupId>
 				<artifactId>pdf-as-pdfbox-2</artifactId>
-				<version>4.1.1-PS-20-SNAPSHOT</version>
+				<version>4.2.0-PS-1-SNAPSHOT</version>
 			</dependency>
 
 
