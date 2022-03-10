@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -22,10 +23,12 @@ import com.google.gson.JsonObject;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.sl.schema.BulkResponseType;
 import at.gv.egiz.sl.schema.CreateCMSSignatureResponseType;
 import at.gv.egiz.sl.schema.InfoboxReadRequestType;
 import at.gv.egiz.sl.schema.InfoboxReadResponseType;
 import at.gv.egiz.sl.util.BaseSLConnector;
+import at.gv.egiz.sl.util.BulkRequestPackage;
 import at.gv.egiz.sl.util.RequestPackage;
 import at.gv.egiz.sl20.exceptions.SLCommandoParserException;
 import at.gv.egiz.sl20.utils.SL20Constants;
@@ -94,6 +97,11 @@ public class SL20Connector extends BaseSLConnector {
 	private CloseableHttpClient buildHttpClient() {
 		HttpClientBuilder builder = HttpClientBuilder.create();
 		return builder.build();
+	}
+
+	@Override
+	public BulkResponseType sendBulkRequest(BulkRequestPackage pack, SignParameter parameter) throws PdfAsException {
+		throw new NotImplementedException("SL 2.0 based bulk signature is not supported.");
 	}
 
 }
