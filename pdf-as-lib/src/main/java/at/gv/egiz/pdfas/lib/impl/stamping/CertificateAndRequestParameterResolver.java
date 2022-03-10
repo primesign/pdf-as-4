@@ -63,7 +63,10 @@ public class CertificateAndRequestParameterResolver implements IResolver {
                 
         this.ctx = new OgnlContext(null, null, memberAccess);
 
-        Map<String, String> map = operationStatus.getSignParamter().getDynamicSignatureBlockArguments();
+        Map<String, String> map = null;
+        if (operationStatus.getSignParamter() != null) {
+        	map = operationStatus.getSignParamter().getDynamicSignatureBlockArguments();
+        }
         if(map == null)
             map = new HashMap<>();
         this.ctx.put(IProfileConstants.SIGNATURE_BLOCK_PARAMETER, map);
