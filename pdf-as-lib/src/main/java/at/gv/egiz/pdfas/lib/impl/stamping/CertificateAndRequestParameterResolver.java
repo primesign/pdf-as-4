@@ -23,6 +23,16 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.stamping;
 
+import java.lang.reflect.Member;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.naming.InvalidNameException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import at.gv.egiz.pdfas.common.settings.IProfileConstants;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.DNUtils;
@@ -32,14 +42,6 @@ import iaik.x509.X509Certificate;
 import ognl.AbstractMemberAccess;
 import ognl.MemberAccess;
 import ognl.OgnlContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.naming.InvalidNameException;
-import java.lang.reflect.Member;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CertificateAndRequestParameterResolver implements IResolver {
 
@@ -61,7 +63,6 @@ public class CertificateAndRequestParameterResolver implements IResolver {
                 
         this.ctx = new OgnlContext(null, null, memberAccess);
 
-        this.ctx = new OgnlContext(null, null, memberAccess);
         Map<String, String> map = operationStatus.getSignParamter().getDynamicSignatureBlockArguments();
         if(map == null)
             map = new HashMap<>();
@@ -83,7 +84,7 @@ public class CertificateAndRequestParameterResolver implements IResolver {
             logger.warn("Failed to build subject Map", e);
         }
 
-        Map<String, String> iuiMap = new HashMap<String, String>();
+        Map<String, String> iuiMap = new HashMap<>();
         try {
         	iuiMap.put("pdfVersion", operationStatus.getPdfObject().getPDFVersion());
         } catch(Throwable e) {

@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -50,7 +49,7 @@ public class SL20Connector extends BaseSLConnector {
 			
 			//build http POST request
 			HttpPost httpReq = new HttpPost(new URIBuilder(vdaURL).build());
-			List<NameValuePair> parameters = new ArrayList<NameValuePair>();;
+			List<NameValuePair> parameters = new ArrayList<>();
 			parameters.add(new BasicNameValuePair(SL20Constants.PARAM_SL20_REQ_COMMAND_PARAM, Base64Url.encode(sl20Req.toString().getBytes())));
 			httpReq.setEntity(new UrlEncodedFormEntity(parameters ));				
 			
