@@ -10,9 +10,9 @@
 	</parent>
 
 	<artifactId>pdf-as-lib</artifactId>
-	
+
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>at.gv.egiz.pdfas</groupId>
 			<artifactId>pdf-as-common</artifactId>
@@ -23,7 +23,7 @@
 			<artifactId>iaik_jce_full</artifactId>
 			<classifier>moa</classifier>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>at.gv.egiz.pdfas</groupId>
 			<artifactId>iaik_cms</artifactId>
@@ -32,12 +32,12 @@
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>			
+			<artifactId>httpclient</artifactId>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpmime</artifactId>			
+			<artifactId>httpmime</artifactId>
 		</dependency>
 
 		<dependency>
@@ -51,10 +51,30 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
-        <dependency>
-            <groupId>com.ibm.icu</groupId>
-            <artifactId>icu4j</artifactId>
-        </dependency>
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
 
 	</dependencies>
 

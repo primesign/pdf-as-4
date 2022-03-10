@@ -38,6 +38,12 @@
 			<artifactId>commons-cli</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>at.gv.egiz.pdfas</groupId>
+			<artifactId>pdf-as-pdfbox-2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 	</dependencies>
 
 </project>
