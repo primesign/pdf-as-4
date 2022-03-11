@@ -80,6 +80,7 @@ dependencies {
 	api files('libs/iaik_cms.jar')
 	api group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
 	api group: 'org.slf4j', name: 'jcl-over-slf4j', version: slf4jVersion
+	api group: 'com.ibm.icu', name: 'icu4j', version: '64.2'
 	
 	api group: 'com.google.zxing', name: 'core', version: '3.4.1'
 	api group: 'com.google.zxing', name: 'javase', version: '3.4.1'
