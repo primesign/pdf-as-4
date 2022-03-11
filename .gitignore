@@ -13,7 +13,6 @@ build/
 *.ipr
 *.iml
 *.iws
-out/
 
 pdf-as-tests/src/test/test-suites/*
 pdf-as-tests/src/test/test-suites/*/
