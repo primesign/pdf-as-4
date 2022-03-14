@@ -87,20 +87,23 @@ public class PDFBoxTable {
 				case Entry.TYPE_VALUE:
 					String value = (String) cell.getValue();
 
-					//Check if the used value font supports all characters in string
-					PDFont f = null;
-					try{
-						if(valueFont != null){
-							f = valueFont.getFont();
-							f.getStringWidth(value);
+					String checkedOrNormalizedValue = null;
+					PDFont pdFont;
+					if (valueFont != null && (pdFont = valueFont.getFont()) != null) {
+						try {
+							// try to encode value using the provided font
+							pdFont.getStringWidth(value);
+							checkedOrNormalizedValue = value;
+						} catch (IllegalArgumentException | IOException e) {
+							logger.debug("Font '{}' does not support a character of the value '{}': {}", pdFont.getName(), value, String.valueOf(e));
 						}
-					}catch(IllegalArgumentException | IOException e){
-						if(f!=null){
-							logger.warn("Font "+f.getName()+" doesnt support a character in the value "+value);
-						}
-						cell.setValue(PDFTextNormalizationUtils.normalizeText(value, WinAnsiEncoding.INSTANCE::contains));
 					}
-
+					if (checkedOrNormalizedValue == null) {
+						// when encoding failed or no font was declared -> normalize value in order to meet ansi encoding
+						checkedOrNormalizedValue = PDFTextNormalizationUtils.normalizeText(value, WinAnsiEncoding.INSTANCE::contains); 
+					}
+					cell.setValue(checkedOrNormalizedValue);
+					
 					break;
 				}
 			}
