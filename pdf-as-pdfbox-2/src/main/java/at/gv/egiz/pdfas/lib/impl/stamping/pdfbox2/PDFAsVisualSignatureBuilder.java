@@ -30,17 +30,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
-import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject;
 import org.apache.pdfbox.pdmodel.graphics.image.JPEGFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
@@ -52,12 +60,12 @@ import org.apache.pdfbox.pdmodel.interactive.digitalsignature.visible.PDVisibleS
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
-import org.apache.pdfbox.pdmodel.font.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
 import at.gv.egiz.pdfas.common.utils.ImageUtils;
 import at.knowcenter.wag.egov.egiz.table.Entry;
 
@@ -72,7 +80,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 	private ISettings settings;
 	public SignatureProfileSettings signatureProfileSettings;
 	private PDResources innerFormResources;
-	private Map<String, ImageObject> images = new HashMap<String, ImageObject>();
+	private Map<String, ImageObject> images = new HashMap<>();
 
 	public PDFAsVisualSignatureBuilder(
 			PDFAsVisualSignatureProperties properties, ISettings settings,
@@ -171,7 +179,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		for (int i = 0; i < table.getRowCount(); i++) {
 			ArrayList<Entry> row = table.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 				if (cell.getType() == Entry.TYPE_IMAGE) {
 					String img_value = (String) cell.getValue();
 					String img_ref = createHashedId(img_value);
@@ -182,14 +190,14 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 						float width = colsSizes[j];
 						float height = table.getRowHeights()[i] + padding * 2;
 
-						float iwidth = (int) Math.floor((double) width);
+						float iwidth = (int) Math.floor(width);
 						iwidth -= 2 * padding;
 
-						float iheight = (int) Math.floor((double) height);
+						float iheight = (int) Math.floor(height);
 						iheight -= 2 * padding;
 
-						float origWidth = (float) img.getWidth();
-						float origHeight = (float) img.getHeight();
+						float origWidth = img.getWidth();
+						float origHeight = img.getHeight();
 
 						if (table.style != null) {
 							if (table.style.getImageScaleToFit() != null) {
@@ -208,9 +216,9 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 						}
 
 						iwidth = (float) Math
-								.floor((double) (scaleFactor * origWidth));
+								.floor(scaleFactor * origWidth);
 						iheight = (float) Math
-								.floor((double) (scaleFactor * origHeight));
+								.floor(scaleFactor * origHeight);
 
 						logger.debug("Scaling image to: " + iwidth + " x "
 								+ iheight);
@@ -268,7 +276,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 			PDStream innterFormStream = new PDStream(template,getStructure().getPage().getContents());
 
 			getStructure().setInnterFormStream(innterFormStream);
-			logger.debug("Strean of another form (inner form - it would be inside holder form) has been created");
+			logger.debug("Stream of another form (inner form - it would be inside holder form) has been created");
 
 		} catch (Throwable e) {
 			logger.warn("Failed to create visual signature block", e);
@@ -300,14 +308,6 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 			String imageObjectName, String imageName, String innerFormName,
 			PDFAsVisualSignatureDesigner properties) throws IOException {
 
-		// 100 means that document width is 100% via the rectangle. if rectangle
-		// is 500px, images 100% is 500px.
-		// String imgFormComment = "q "+imageWidthSize+ " 0 0 50 0 0 cm /" +
-		// imageName + " Do Q\n" + builder.toString();
-		/*
-		 * String imgFormComment = "q " + 100 + " 0 0 50 0 0 cm /" + imageName +
-		 * " Do Q\n";
-		 */
 		double m00 = getStructure().getAffineTransform().getScaleX();
 		double m10 = getStructure().getAffineTransform().getShearY();
 		double m01 = getStructure().getAffineTransform().getShearX();
@@ -321,18 +321,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 
 		logger.debug("Holder Form Stream: " + holderFormComment);
 
-		// String innerFormComment = "q 1 0 0 1 0 0 cm /" + imageObjectName +
-		// " Do Q\n";
-
-		//String innerFormComment = new String(getStructure().getInnerFormStream().toByteArray(), "ISO-8859-1");
 		String innerFormComment = new String(getStructure().getInnerFormStream().toByteArray(), "UTF-8");
-
-		//		.getInputStreamAsString();//TODO: pdfbox2 - get the string from the stream
-
-		// logger.debug("Inner Form Stream: " + innerFormComment);
-
-		// appendRawCommands(getStructure().getInnterFormStream().createOutputStream(),
-		// getStructure().getInnterFormStream().getInputStreamAsString());
 
 		appendRawCommands(getStructure().getHolderFormStream()
 				.createOutputStream(), holderFormComment.trim().replace("\n", "").replace("\r", ""));
@@ -376,7 +365,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		pdSignature.setByteRange(new int[] { 0, 0, 0, 0 });
 		pdSignature.setContents(new byte[4096]);
 		getStructure().setPdSignature(pdSignature);
-		logger.debug("PDSignatur has been created");
+		logger.debug("PDSignature has been created");
 	}
 
 	public void createAcroFormDictionary(PDAcroForm acroForm,
@@ -554,7 +543,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		signatureField.getWidget().setAppearance(appearance);
 
 		getStructure().setAppearanceDictionary(appearance);
-		logger.debug("PDF appereance Dictionary has been created");
+		logger.debug("PDF appeareance Dictionary has been created");
 
 	}
 
@@ -570,7 +559,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		innerForm.setBBox(formrect);
 		innerForm.setFormType(1);
 		getStructure().setInnerForm(innerForm);
-		logger.debug("Another form (inner form - it would be inside holder form) have been created");
+		logger.debug("Another form (inner form - it would be inside holder form) has been created");
 
 	}
 
@@ -578,7 +567,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 			PDResources holderFormResources) {
 		COSName name = holderFormResources.add(innerForm, "FRM");//TODO: pdfbox2 - is this right?
 		getStructure().setInnerFormName(name);
-		logger.debug("Alerady inserted inner form  inside holder form");
+		logger.debug("Already inserted inner form  inside holder form");
 	}
 
 	public void createImageFormStream(PDDocument template) {
@@ -647,7 +636,7 @@ public class PDFAsVisualSignatureBuilder extends PDVisibleSigBuilder implements
 		widgetDict.setItem(COSName.DR, holderFormResources.getCOSObject());
 
 		getStructure().setWidgetDictionary(widgetDict);
-		logger.debug("WidgetDictionary has been crated");
+		logger.debug("WidgetDictionary has been created");
 	}
 
 	public void closeTemplate(PDDocument template) throws IOException {
