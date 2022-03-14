@@ -34,7 +34,6 @@ import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
 import at.gv.egiz.pdfas.lib.impl.configuration.ConfigValidatorLoader;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,8 +119,6 @@ public class PdfAsFactory implements IConfigurationConstants {
 			// TODO: register ECCelerate in second position when TLS issue is
 			// fixed
 			registerProvider(new ECCelerate(), -1);
-
-			registerProvider( new  BouncyCastleProvider(), -2);
 
 		} else {
 			logger.info("Skipping Security Provider registration!");
