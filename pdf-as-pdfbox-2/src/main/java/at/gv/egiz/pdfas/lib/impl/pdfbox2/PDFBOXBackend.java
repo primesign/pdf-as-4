@@ -7,7 +7,7 @@ import at.gv.egiz.pdfas.lib.backend.PDFASBackend;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.placeholder.PDFBoxPlaceholderExtractor;
 import at.gv.egiz.pdfas.lib.impl.placeholder.PlaceholderExtractor;
 import at.gv.egiz.pdfas.lib.impl.signing.IPdfSigner;
-import at.gv.egiz.pdfas.lib.impl.signing.pdfbox2.PADESPDFBOXSigner;
+import at.gv.egiz.pdfas.lib.impl.signing.pdfbox2.LTVEnabledPADESPDFBOXSigner;
 import at.gv.egiz.pdfas.lib.impl.verify.VerifyBackend;
 import at.gv.egiz.pdfas.lib.impl.verify.pdfbox2.PDFBOXVerifier;
 
@@ -37,7 +37,7 @@ public class PDFBOXBackend implements PDFASBackend {
 
 	@Override
 	public IPdfSigner getPdfSigner() {
-		return new PADESPDFBOXSigner();
+		return new LTVEnabledPADESPDFBOXSigner();
 	}
 
 	@Override

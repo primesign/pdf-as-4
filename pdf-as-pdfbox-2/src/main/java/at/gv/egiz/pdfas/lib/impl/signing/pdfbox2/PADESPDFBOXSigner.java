@@ -78,6 +78,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -642,6 +643,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				}
 			}
 
+			try {
+				applyFilter(doc, requestedSignature);
+			} catch (PDFASError e) {
+				throw new PdfAsErrorCarrier(e);
+			}
+
 			/**
 			 * Note that the cryptographic signature operation on the (already modified) document (visual signature, certificate,
 			 * acroform field, ltv data etc. may have already bee added) is actually performed when the document is incrementally
@@ -1026,4 +1033,20 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
         return numbers;
     }
 	
+	/**
+	 * Allows to apply modifications to the pdf document in the course of this signature related incremental update.
+	 * <p>
+	 * Can be overridden in order to add filtering.
+	 * </p>
+	 *
+	 * @param pdDocument
+	 *            The pdf document (required; must not be {@code null} and must be opened).
+	 * @param requestedSignature
+	 *            The requested signature data (required; must not be {@code null}).
+	 * @throws PDFASError
+	 *             In case of error.
+	 */
+	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
+	}
+
 }
