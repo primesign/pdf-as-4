@@ -2,6 +2,7 @@ package at.gv.egiz.sl20.utils;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -535,7 +536,7 @@ public class SL20JSONBuilderUtils {
 			throw new SLCommandoBuildException();
 		
 		} else if (value != null)
-			parent.addProperty(keyId, org.bouncycastle.util.encoders.Base64.toBase64String(value));
+			parent.addProperty(keyId, Base64.getEncoder().encodeToString(value));
 		
 	}
 	
@@ -559,7 +560,7 @@ public class SL20JSONBuilderUtils {
 			throw new SLCommandoBuildException();
 		
 		} else if (value != null)
-			parent.addProperty(keyId, value);;
+			parent.addProperty(keyId, value);
 		
 	}
 	

@@ -3,6 +3,7 @@ package at.gv.egiz.sl20;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import org.apache.commons.lang3.NotImplementedException;
@@ -46,7 +47,9 @@ public class SL20Connector extends BaseSLConnector {
 
 	public JsonObject sendSL20Request(JsonObject sl20Req, SignParameter parameter, String vdaURL) {					
 		try {
-			log.trace("Request VDA via SL20 with: " + org.bouncycastle.util.encoders.Base64.toBase64String(sl20Req.toString().getBytes()));
+			if (log.isTraceEnabled()) {
+				log.trace("Request VDA via SL20 with: {}", Base64.getEncoder().encodeToString(sl20Req.toString().getBytes()));
+			}
 			//build http client
 			CloseableHttpClient httpClient = buildHttpClient();
 			
