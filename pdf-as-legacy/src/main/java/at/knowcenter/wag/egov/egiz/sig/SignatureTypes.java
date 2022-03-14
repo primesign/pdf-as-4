@@ -102,7 +102,7 @@ public class SignatureTypes {
 
 		private String[] keyWords;
 
-		private State(String... keyWords) {
+		State(String... keyWords) {
 			this.keyWords = keyWords;
 		}
 
