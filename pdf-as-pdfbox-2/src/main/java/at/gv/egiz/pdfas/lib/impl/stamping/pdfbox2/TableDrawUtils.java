@@ -88,7 +88,7 @@ public class TableDrawUtils {
 		for (int i = 0; i < abstractTable.getRowCount(); i++) {
 			ArrayList<Entry> row = abstractTable.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 
 				// Cell only contains default values so table style is the primary style
 				Style inherit_style = Style.doInherit(abstractTable.style, cell.getStyle());
@@ -364,11 +364,8 @@ public class TableDrawUtils {
 		logger.debug("Drawing Caption @ X: {} Y: {}", contentx, contenty);
 
 		try {
-			float fontSize = PDFBoxFont.defaultFontSize;
-			PDFont textFont = PDFBoxFont.defaultFont;
-
-			textFont = abstractTable.getFont().getFont();//doc);
-			fontSize = abstractTable.getFont().getFontSize();
+			PDFont textFont = abstractTable.getFont().getFont();
+			float fontSize = abstractTable.getFont().getFontSize();
 
 			// get the cell Text
 			String text = (String) cell.getValue();
@@ -398,11 +395,8 @@ public class TableDrawUtils {
 		logger.debug("Drawing Value @ X: {} Y: {}", contentx, contenty);
 
 		try {
-			float fontSize = PDFBoxFont.defaultFontSize;
-			PDFont textFont = PDFBoxFont.defaultFont;
-
-			textFont = abstractTable.getValueFont().getFont();//doc);
-			fontSize = abstractTable.getValueFont().getFontSize();
+			PDFont textFont = abstractTable.getFont().getFont();
+			float fontSize = abstractTable.getFont().getFontSize();
 
 			// get the cell Text
 			String text = (String) cell.getValue();
@@ -540,7 +534,6 @@ public class TableDrawUtils {
 				float x_from = x;
 				float x_to = x + width;
 				float y_from = y + height;
-				float y_to = y + height;
 
 				// draw first line
 				logger.debug("ROW LINE: {} {} {} {}", x_from, y_from, x_to,
@@ -560,7 +553,7 @@ public class TableDrawUtils {
 
 				// reset y for "line feed"
 				y_from = y + height;
-				y_to = y_from - abstractTable.getRowHeights()[0];
+				float y_to = y_from - abstractTable.getRowHeights()[0];
 
 				// Draw all column borders
 				for (int i = 0; i < rows; i++) {
@@ -576,7 +569,7 @@ public class TableDrawUtils {
 					contentStream.drawLine(x_from, y_from, x_from, y_to);
 
 					for (int j = 0; j < row.size(); j++) {
-						Entry cell = (Entry) row.get(j);
+						Entry cell = row.get(j);
 
 						for (int k = 0; k < cell.getColSpan(); k++) {
 							if (k + j < colsSizes.length) {
