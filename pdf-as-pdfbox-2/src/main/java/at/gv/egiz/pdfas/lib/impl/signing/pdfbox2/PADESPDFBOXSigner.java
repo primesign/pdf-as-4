@@ -127,12 +127,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 		List<SignaturePlaceholderData> availablePlaceholders;
 		SignaturePlaceholderData signaturePlaceholderData = null;
 
-		String placeholder_id = "";
-
-		if(PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID) != null  && !PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID).equalsIgnoreCase("")){
-			placeholder_id = PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID);
-		}
-
+		String placeholder_id = StringUtils.trimToEmpty(PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID));
 
 		if (!(genericPdfObject instanceof PDFBOXObject)) {
 			// tODO:
@@ -150,12 +145,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
         String pdfaVersion = null;
 
-		PDDocument doc = null;
+		PDDocument doc = pdfObject.getDocument();
 		SignatureOptions options = new SignatureOptions();
 		COSDocument visualSignatureDocumentGuard = null;
 		try {
 
-			doc = pdfObject.getDocument();
 			//if signature already exists dont create new page
 			List<PDSignatureField> pdSignatureFieldList = doc.getSignatureFields();
 			PDSignature signature;
@@ -680,9 +674,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				}
 			}
 
-            System.gc();
         } catch (IOException e) {
-            logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
+        	logger.info(MessageResolver.resolveMessage("error.pdf.sig.01") + ": {}", e.toString());
             throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
             if (doc != null) {
