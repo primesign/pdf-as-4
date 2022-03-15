@@ -436,30 +436,27 @@ public class TableDrawUtils {
 
 
 			float imgx = contentx;
-			float hoffset = innerWidth - image.getWidth();
-			if (cell.getStyle().getImageHAlign() != null
-					&& cell.getStyle().getImageHAlign().equals(Style.LEFT)) {
-				hoffset = hoffset / 2.0f;
-				imgx += hoffset;
-			} else if (cell.getStyle().getImageHAlign() != null
-					&& cell.getStyle().getImageHAlign().equals(Style.RIGHT)) {
-				imgx += hoffset;
+			float remainingCanvasWidth = innerWidth - image.getWidth();
+			if (Style.LEFT.equals(cell.getStyle().getImageHAlign())) {
+				// do nothing
+			} else if (Style.RIGHT.equals(cell.getStyle().getImageHAlign())) {
+				imgx += remainingCanvasWidth;
 			} else {
-				hoffset = hoffset / 2.0f;
-				imgx += hoffset;
+				// CENTER or not set
+				imgx += (remainingCanvasWidth / 2.0f);
 			}
 
 			float imgy = contenty;
-			float voffset = innerHeight - image.getHeight();
-			if (cell.getStyle().getImageVAlign() != null
-					&& cell.getStyle().getImageVAlign().equals(Style.MIDDLE)) {
-				voffset = voffset / 2.0f;
-				imgy -= voffset;
-			} else if (cell.getStyle().getImageVAlign() != null
-					&& cell.getStyle().getImageVAlign().equals(Style.BOTTOM)) {
-				imgy -= voffset;
+			float remainingCanvasHeight = innerHeight - image.getHeight();
+			
+			if (Style.MIDDLE.equals(cell.getStyle().getImageVAlign())) {
+				imgy -= (remainingCanvasHeight / 2.0f);
+			} else if (Style.BOTTOM.equals(cell.getStyle().getImageVAlign())) {
+				imgy -= remainingCanvasHeight;
+			} else {
+				// TOP or not set
 			}
-
+			
 			drawDebugLine(contentStream, imgx, imgy, image.getWidth(),
 					image.getHeight(), settings);
 
