@@ -395,8 +395,8 @@ public class TableDrawUtils {
 		logger.debug("Drawing Value @ X: {} Y: {}", contentx, contenty);
 
 		try {
-			PDFont textFont = abstractTable.getFont().getFont();
-			float fontSize = abstractTable.getFont().getFontSize();
+			PDFont textFont = abstractTable.getValueFont().getFont();
+			float fontSize = abstractTable.getValueFont().getFontSize();
 
 			// get the cell Text
 			String text = (String) cell.getValue();
