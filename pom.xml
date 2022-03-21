@@ -263,6 +263,12 @@
 				<groupId>org.apache.pdfbox</groupId>
 				<artifactId>pdfbox-tools</artifactId>
 				<version>${at.gv.egiz.pdfas.pdfbox.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.apache.pdfbox</groupId>
+						<artifactId>pdfbox-debugger</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 	
         </dependencies>
