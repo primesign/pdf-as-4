@@ -1030,7 +1030,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	/**
 	 * Allows to apply modifications to the pdf document in the course of this signature related incremental update.
 	 * <p>
-	 * Can be overridden in order to add filtering.
+	 * Can be overwritten in order to add filtering.
 	 * </p>
 	 *
 	 * @param pdDocument
@@ -1041,6 +1041,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	 *             In case of error.
 	 */
 	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
+		// this method is intended to be overwritten in order to add certain filtering
 	}
 
 }
