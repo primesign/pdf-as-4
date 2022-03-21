@@ -54,11 +54,6 @@ public interface IConfigurationConstants {
 
 	public static final String CONFIG_BKU_URL = "bku.sign.url";
 
-	/*Acrobat Signature Fields */
-
-	public static final String SIGNATURE_FIELD_NAME = "signature_field_name";
-
-
 
 	/**
 	 * MOA SS Signing Key Identifier

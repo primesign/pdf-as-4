@@ -119,7 +119,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	// FIXME: Make this code release ready (placeholder handling, logging (using {}, appropriate level, etc), remove orphaned fields, remove dead code, add tests, reduce complexity, use try-with-resources, replace deprecated code, consider code style, call placeholder methods only when needed, and much more...)
 
 	private static final Logger logger = LoggerFactory.getLogger(PADESPDFBOXSigner.class);
-	private boolean isAdobeSigForm = false;
 
 	public void signPDF(PDFObject genericPdfObject, RequestedSignature requestedSignature,
 			PDFASSignatureInterface genericSigner) throws PdfAsException {
@@ -154,18 +153,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			//if signature already exists dont create new page
 			List<PDSignatureField> pdSignatureFieldList = doc.getSignatureFields();
-			PDSignature signature;
-
-			// sign a PDF with an existing empty signature, as created by the CreateEmptySignatureForm example.
-			String sigFieldName = pdfObject.getStatus().getSettings().getValue(SIGNATURE_FIELD_NAME);
-			signature = findExistingSignature(doc, sigFieldName);
-			if (signature == null) {
-				// create signature dictionary
-				signature = new PDSignature();
-			}
-			else {
-				isAdobeSigForm = true;
-			}
+			PDSignature signature = new PDSignature();
 
 			signature.setFilter(COSName.getPDFName(signer.getPDFFilter()));
 			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
@@ -339,7 +327,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 				logger.debug("Positioning: {}", positioningInstruction.toString());
 
-				if(!isAdobeSigForm)  {
 				if (positioningInstruction.isMakeNewPage()) {
 					int last = doc.getNumberOfPages() - 1;
 					PDDocumentCatalog root = doc.getDocumentCatalog();
@@ -366,7 +353,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				position.setHeight(visualObject.getHeight());
 				position.setWidth(visualObject.getWidth());
 				requestedSignature.setSignaturePosition(position);
-				}
 
 				properties = new PDFAsVisualSignatureProperties(pdfObject.getStatus().getSettings(), pdfObject,
 						(PdfBoxVisualObject) visualObject, positioningInstruction, signatureProfileSettings);
@@ -440,25 +426,13 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			doc.addSignature(signature, signer, options);
 
-			if (sigFieldName == null) {
-				sigFieldName = "PDF-AS Signatur";
-			}
+			String sigFieldName = StringUtils.defaultIfBlank(signatureProfileSettings.getSignFieldValue(), "PDF-AS Signatur");
 			int count = PdfBoxUtils.countSignatures(doc, sigFieldName);
-
 			sigFieldName = sigFieldName + count;
 
 			PDAcroForm acroFormm = doc.getDocumentCatalog().getAcroForm();
 
-			// PDStructureTreeRoot pdstRoot =
-			// doc.getDocumentCatalog().getStructureTreeRoot();
-			// COSDictionary dic =
-			// doc.getDocumentCatalog().getCOSDictionary();
-			// PDStructureElement el = new PDStructureElement("Widget",
-			// pdstRoot);
-
-			//this is not used for Adobe signature fields
-			if(!isAdobeSigForm) {
-				PDSignatureField signatureField = null;
+			PDSignatureField signatureField = null;
 			if (acroFormm != null) {
 				@SuppressWarnings("unchecked")
 				List<PDField> fields = acroFormm.getFields();
@@ -494,13 +468,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				}
 			} else {
 				logger.warn("Failed to name Signature Field! [Cannot find acroForm!]");
-			}
-			}
-
-			PDSignatureField signatureField = null;
-			PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
-			if (acroForm != null) {
-				signatureField = (PDSignatureField) acroForm.getField(sigFieldName);
 			}
 
 			// PDF-UA
@@ -914,28 +881,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
         }
         return null;
     }
-
-	// Find an existing signature.
-	private PDSignature findExistingSignature(PDDocument doc, String sigFieldName) {
-		PDSignature signature = null;
-		PDSignatureField signatureField;
-		PDAcroForm acroForm = doc.getDocumentCatalog().getAcroForm();
-		if (acroForm != null) {
-			signatureField = (PDSignatureField) acroForm.getField(sigFieldName);
-			if (signatureField != null) {
-				// retrieve signature dictionary
-				signature = signatureField.getSignature();
-				if (signature == null) {
-					signature = new PDSignature();
-					signatureField.getCOSObject().setItem(COSName.V, signature);
-				}
-				else {
-					throw new IllegalStateException("The signature field " + sigFieldName + " is already signed.");
-				}
-			}
-		}
-		return signature;
-	}
 
 	private List<String> existingSignatureLocations(PDDocument doc) {
 		List<String> existingLocations = new ArrayList<>();
