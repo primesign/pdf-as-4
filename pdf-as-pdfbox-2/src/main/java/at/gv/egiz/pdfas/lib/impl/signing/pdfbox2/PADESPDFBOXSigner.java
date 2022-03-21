@@ -424,7 +424,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
                                 logger.info("added Output Intent");
                             } catch (Throwable e) {
-                                e.printStackTrace();
                                 throw new PdfAsException("Failed to add Output Intent", e);
                             }
                          finally {
