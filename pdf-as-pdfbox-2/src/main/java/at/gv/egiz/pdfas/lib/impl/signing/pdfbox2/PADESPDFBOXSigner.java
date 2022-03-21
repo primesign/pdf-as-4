@@ -115,6 +115,8 @@ import at.knowcenter.wag.egov.egiz.table.Table;
 import iaik.x509.X509Certificate;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
+	
+	// FIXME: Make this code release ready (placeholder handling, logging (using {}, appropriate level, etc), remove orphaned fields, remove dead code, add tests, reduce complexity, use try-with-resources, replace deprecated code, consider code style, call placeholder methods only when needed, and much more...)
 
 	private static final Logger logger = LoggerFactory.getLogger(PADESPDFBOXSigner.class);
 	private boolean isAdobeSigForm = false;
