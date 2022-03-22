@@ -23,19 +23,22 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.common.settings;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class SignatureProfileSettings implements IProfileConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(SignatureProfileSettings.class);
 
-	private Map<String, SignatureProfileEntry> profileInformations = new HashMap<String, SignatureProfileEntry>();
+	private Map<String, SignatureProfileEntry> profileInformations = new HashMap<>();
 
-	private Map<String, String> profileSettings = new HashMap<String, String>();
+	private Map<String, String> profileSettings = new HashMap<>();
 
 	private String profileID;
 
