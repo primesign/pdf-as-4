@@ -874,7 +874,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
                 }
             }
         } catch (Throwable e) {
-            logger.warn("Failed to determine PDF/A Version!", e);
+            logger.info("Failed to determine PDF/A Version!: {}", String.valueOf(e));
         }
         return null;
     }
