@@ -144,8 +144,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 		PDFASPDFBOXSignatureInterface signer = (PDFASPDFBOXSignatureInterface) genericSigner;
 
-        String pdfaVersion = null;
-
 		PDDocument doc = pdfObject.getDocument();
 		SignatureOptions options = new SignatureOptions();
 		COSDocument visualSignatureDocumentGuard = null;
@@ -258,8 +256,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			options.setPreferredSignatureSize(signatureSize);
 
             if(signatureProfileSettings.isPDFA() || signatureProfileSettings.isPDFA3()) {
-                pdfaVersion = getPDFAVersion(doc);
-                signatureProfileSettings.setPDFAVersion(pdfaVersion);
+                signatureProfileSettings.setPDFAVersion(getPDFAVersion(doc));
             }
 
 			// Is visible Signature
