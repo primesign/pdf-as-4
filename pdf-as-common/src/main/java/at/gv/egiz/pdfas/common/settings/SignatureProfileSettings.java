@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -282,6 +283,15 @@ public class SignatureProfileSettings implements IProfileConstants {
 	 */
 	public String getProfileTransformPattern(String profileValueIdentifier) {
 		return getValue(PROFILE_TRANSFORM_PATTERN + "-" + Objects.requireNonNull(profileValueIdentifier));
+	}
+	
+	/**
+	 * Tells if a PDF/A-1b preflight check should be executed after signature is performed.
+	 * 
+	 * @return {@code true} in order to perform preflight, {@code false} otherwise.
+	 */
+	public boolean isRunPreflightAfterPDFASignature() {
+		return BooleanUtils.toBoolean(getValue(SIG_PDFA1B_PREFLIGHT_AFTER_SIGNATURE));
 	}
 
 }

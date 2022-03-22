@@ -213,12 +213,14 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					.createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
             			
 			//Check if input document is PDF-A conform
+			/*
             if (signatureProfileSettings.isPDFA()) {
                 DataSource origDoc = pdfObject.getOriginalDocument();
                 InputStream stream = origDoc.getInputStream();
                 //Run PreflightParser for checking conformity//
                 //runPDFAPreflight(origDoc);
             }
+            */
 			ValueResolver resolver = new ValueResolver(requestedSignature, pdfObject.getStatus());
 
 			String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"),
@@ -625,7 +627,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					doc.saveIncremental(bos);
 					byte[] outputDocument = bos.toByteArray();
 					pdfObject.setSignedDocument(outputDocument);
-                    if (signatureProfileSettings.isPDFA()) {
+                    if (signatureProfileSettings.isPDFA() && signatureProfileSettings.isRunPreflightAfterPDFASignature()) {
                         runPDFAPreflight(new ByteArrayDataSource(pdfObject.getSignedDocument()));
                     }
 

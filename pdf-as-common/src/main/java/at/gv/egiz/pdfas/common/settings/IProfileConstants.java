@@ -96,6 +96,11 @@ public interface IProfileConstants {
     String SIG_PDFUA_FORCE = "SIG_PDFUA_FORCE";
     String LATIN1_ENCODING = "latin1_encoding";
 
+    /**
+     * Configuration key for enabling/disabling PDF/A-1b preflight check after signature. 
+     */
+    String SIG_PDFA1B_PREFLIGHT_AFTER_SIGNATURE = "SIG_PDFA1B_PREFLIGHT_AFTER_SIGNATURE";
+    
 	/**
 	 * Configuration key (segment) for declaration of transformation/transliteration according to ICU4J pattern.
 	 *
