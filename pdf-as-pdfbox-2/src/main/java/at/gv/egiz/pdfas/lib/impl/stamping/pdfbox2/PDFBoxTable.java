@@ -128,6 +128,8 @@ public class PDFBoxTable {
 		String fontString = style.getFont();
 
 		String vfontString = style.getValueFont();
+		
+		// FIXME: Fix this bogus code section
 
 		if (parent != null && style == parent.style) {
 			font = parent.getFont();
