@@ -146,7 +146,7 @@ public class PDFBoxTable {
 
 			if (vfontString == null && parent != null && parent.style != null) {
 				vfontString = parent.style.getValueFont();
-			} else if (fontString == null) {
+			} else if (vfontString == null) {
 				throw new IOException(
 						"Failed to determine value Table font style, for table "
 								+ abstractTable.getName());
