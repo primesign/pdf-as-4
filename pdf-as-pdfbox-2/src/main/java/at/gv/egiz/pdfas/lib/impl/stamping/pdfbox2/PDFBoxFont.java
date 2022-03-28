@@ -27,8 +27,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
-import at.gv.egiz.pdfas.lib.impl.stamping.TableFactory;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
@@ -251,7 +249,7 @@ public class PDFBoxFont {
 		this.setFont(fontDesc, pdfObject);
 	}
 
-	public PDFont getFont(/*PDFBOXObject pdfObject*/) throws IOException {
+	public PDFont getFont(/*PDFBOXObject pdfObject*/) {
 		if (cachedfont != null) {
 			return cachedfont;
 		}

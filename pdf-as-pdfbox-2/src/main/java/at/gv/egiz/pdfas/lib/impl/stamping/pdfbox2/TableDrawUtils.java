@@ -363,26 +363,21 @@ public class TableDrawUtils {
 
 		logger.debug("Drawing Caption @ X: {} Y: {}", contentx, contenty);
 
-		try {
-			PDFont textFont = abstractTable.getFont().getFont();
-			float fontSize = abstractTable.getFont().getFontSize();
+		PDFont textFont = abstractTable.getFont().getFont();
+		float fontSize = abstractTable.getFont().getFontSize();
 
-			// get the cell Text
-			String text = (String) cell.getValue();
-			String[] tlines = text.split("\n");
-			float textHeight = fontSize * tlines.length;
+		// get the cell Text
+		String text = (String) cell.getValue();
+		String[] tlines = text.split("\n");
+		float textHeight = fontSize * tlines.length;
 
-			Style cellStyle = cell.getStyle();
-			String valign = cellStyle.getVAlign();
-			String halign = cellStyle.getHAlign();
-			
-			drawString(page, contentStream, contentx, contenty, width, height,
-					padding, abstractTable, doc, cell, fontSize, textHeight,
-					valign, halign, tlines, textFont, formResources, settings);
-		} catch (IOException e) {
-			logger.warn("IO Exception", e);
-			throw new PdfAsException("Error", e);
-		}
+		Style cellStyle = cell.getStyle();
+		String valign = cellStyle.getVAlign();
+		String halign = cellStyle.getHAlign();
+		
+		drawString(page, contentStream, contentx, contenty, width, height,
+				padding, abstractTable, doc, cell, fontSize, textHeight,
+				valign, halign, tlines, textFont, formResources, settings);
 	}
 
 	public static void drawValue(PDPage page,
@@ -394,26 +389,21 @@ public class TableDrawUtils {
 
 		logger.debug("Drawing Value @ X: {} Y: {}", contentx, contenty);
 
-		try {
-			PDFont textFont = abstractTable.getValueFont().getFont();
-			float fontSize = abstractTable.getValueFont().getFontSize();
+		PDFont textFont = abstractTable.getValueFont().getFont();
+		float fontSize = abstractTable.getValueFont().getFontSize();
 
-			// get the cell Text
-			String text = (String) cell.getValue();
-			String[] tlines = text.split("\n");
-			float textHeight = fontSize * tlines.length;
+		// get the cell Text
+		String text = (String) cell.getValue();
+		String[] tlines = text.split("\n");
+		float textHeight = fontSize * tlines.length;
 
-			Style cellStyle = cell.getStyle();
-			String valign = cellStyle.getValueVAlign();
-			String halign = cellStyle.getValueHAlign();
+		Style cellStyle = cell.getStyle();
+		String valign = cellStyle.getValueVAlign();
+		String halign = cellStyle.getValueHAlign();
 
-			drawString(page, contentStream, contentx, contenty, width, height,
-					padding, abstractTable, doc, cell, fontSize, textHeight,
-					valign, halign, tlines, textFont, formResources, settings);
-		} catch (IOException e) {
-			logger.warn("IO Exception", e);
-			throw new PdfAsException("Error", e);
-		}
+		drawString(page, contentStream, contentx, contenty, width, height,
+				padding, abstractTable, doc, cell, fontSize, textHeight,
+				valign, halign, tlines, textFont, formResources, settings);
 	}
 
 	public static void drawImage(PDPage page,
