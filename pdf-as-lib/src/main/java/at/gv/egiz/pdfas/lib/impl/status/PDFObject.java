@@ -24,6 +24,8 @@
 package at.gv.egiz.pdfas.lib.impl.status;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.activation.DataSource;
 
@@ -69,4 +71,8 @@ public abstract class PDFObject {
 	}
 	
 	public abstract String getPDFVersion();
+
+	public Map<String, String> getRequestParameters() {
+		return status.getSignParamter().getDynamicSignatureBlockArguments();
+	}
 }

@@ -21,7 +21,7 @@ public class PDFASPropertyEntry {
 	public String getValue() {
 		return value;
 	}
-	public void setvalue(String value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 }

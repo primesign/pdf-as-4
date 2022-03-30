@@ -23,10 +23,23 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
+import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
+import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
+import at.gv.egiz.pdfas.lib.configuration.ConfigurationValidator;
+import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
+import at.gv.egiz.pdfas.lib.impl.SignParameterImpl;
+import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
+import at.gv.egiz.pdfas.lib.impl.configuration.ConfigValidatorLoader;
 import iaik.security.ec.provider.ECCelerate;
 import iaik.security.provider.IAIK;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.awt.Graphics2D;
+import javax.activation.DataSource;
+import javax.crypto.Cipher;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -37,29 +50,17 @@ import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.Provider;
 import java.security.Security;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import javax.activation.DataSource;
-import javax.crypto.Cipher;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
-import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsValidationException;
-import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
-import at.gv.egiz.pdfas.lib.configuration.ConfigurationValidator;
-import at.gv.egiz.pdfas.lib.impl.PdfAsImpl;
-import at.gv.egiz.pdfas.lib.impl.SignParameterImpl;
-import at.gv.egiz.pdfas.lib.impl.VerifyParameterImpl;
-import at.gv.egiz.pdfas.lib.impl.configuration.ConfigValidatorLoader;
 
 public class PdfAsFactory implements IConfigurationConstants {
 
@@ -118,6 +119,7 @@ public class PdfAsFactory implements IConfigurationConstants {
 			// TODO: register ECCelerate in second position when TLS issue is
 			// fixed
 			registerProvider(new ECCelerate(), -1);
+
 		} else {
 			logger.info("Skipping Security Provider registration!");
 		}
@@ -352,7 +354,12 @@ public class PdfAsFactory implements IConfigurationConstants {
 	 */
 	public static String getSCMRevision() {
 		Package pack = PdfAsFactory.class.getPackage();
-		return pack.getSpecificationVersion();
+		String specificationVersion =  pack.getSpecificationVersion();
+
+		if(specificationVersion != null)
+			return specificationVersion;
+		//fallback
+		return getJarAttributes().getValue("Specification-Version");
 	}
 
 	/**
@@ -361,8 +368,39 @@ public class PdfAsFactory implements IConfigurationConstants {
 	 * @return PDF-AS Verison string
 	 */
 	public static String getVersion() {
+
 		Package pack = PdfAsFactory.class.getPackage();
-		return pack.getImplementationVersion();
+		String version =  pack.getImplementationVersion();
+		if(version != null)
+			return version;
+		//fallback
+		return getJarAttributes().getValue("Implementation-Version");
+	}
+
+	private static Attributes jarAttributes = null;
+	private static Attributes getJarAttributes() {
+		if(jarAttributes != null)
+			return jarAttributes;
+		try {
+			URLClassLoader cl = (URLClassLoader) PdfAsFactory.class.getClassLoader();
+			Enumeration<URL> urls = cl.findResources("META-INF/MANIFEST.MF");
+			URL url = null;
+			while (urls.hasMoreElements()) {
+				URL tmp = urls.nextElement();
+				if (tmp.getFile().contains("pdf-as-lib")) {
+					//System.out.println("Found:" + tmp);
+					url = tmp;
+				}
+
+			}
+			Manifest manifest = new Manifest(url.openStream());
+			Attributes mainAttributes = manifest.getMainAttributes();
+			jarAttributes = mainAttributes;
+			return mainAttributes;
+		} catch (Exception e) {
+
+		}
+		return new Attributes();
 	}
 	
 	/**

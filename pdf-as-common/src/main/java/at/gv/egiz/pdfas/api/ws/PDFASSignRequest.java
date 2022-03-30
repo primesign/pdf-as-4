@@ -24,6 +24,8 @@
 package at.gv.egiz.pdfas.api.ws;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -40,6 +42,9 @@ public class PDFASSignRequest implements Serializable {
 	byte[] inputData;
 	PDFASSignParameters parameters;
 	VerificationLevel verificationLevel;
+
+	//map of user provided parameters, these values can be used in the signature block
+	Map<String,String> signatureBlockParameters;
 	
 	@XmlElement(required = true, nillable = false, name="requestID")
 	public String getRequestID() {
@@ -75,5 +80,16 @@ public class PDFASSignRequest implements Serializable {
 	
 	public void setParameters(PDFASSignParameters parameters) {
 		this.parameters = parameters;
+	}
+
+	@XmlElement(required = false, nillable = true, name="signatureBlockParameter")
+	public Map<String, String> getSignatureBlockParameters() {
+		if(signatureBlockParameters == null)
+			signatureBlockParameters = new HashMap<>();
+		return signatureBlockParameters;
+	}
+
+	public void setSignatureBlockParameters(Map<String, String> signatureBlockParameters) {
+		this.signatureBlockParameters = signatureBlockParameters;
 	}
 }

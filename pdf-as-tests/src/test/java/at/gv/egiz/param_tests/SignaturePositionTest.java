@@ -164,9 +164,10 @@ public class SignaturePositionTest extends SignatureTest {
      *            reference image, as well as the location of the reference
      *            image with ignored areas
      * @throws IOException
+     * @throws InterruptedException 
      */
     private void captureReferenceImage(SignaturePositionTestInfo testInfo)
-            throws IOException {
+            throws IOException, InterruptedException {
         String pdfName = baseTestData.getOutputFile();
         String referenceOutputFile = refImageFileName;
         int pageNumber = sigPageNumber;
@@ -194,12 +195,13 @@ public class SignaturePositionTest extends SignatureTest {
      * @throws IndexOutOfBoundsException
      * @throws PrinterException
      * @throws PDFASError 
+     * @throws InterruptedException 
      */
     @Ignore
     @Test
     public void signaturePositionTest() throws FileNotFoundException,
             CertificateException, IOException, PdfAsException,
-            IndexOutOfBoundsException, PrinterException, PDFASError {
+            IndexOutOfBoundsException, PrinterException, PDFASError, InterruptedException {
         SignaturePositionTestInfo testInfo = SerializiationManager
                 .getInstance().createTestInfo(SignaturePositionTestInfo.class,
                         baseTestData);
@@ -311,8 +313,9 @@ public class SignaturePositionTest extends SignatureTest {
      * @param pageNumber
      *            the page number which should be captured
      * @return the captured image
+     * @throws InterruptedException 
      */
-    private BufferedImage captureImage(String fileName, int pageNumber) {
+    private BufferedImage captureImage(String fileName, int pageNumber) throws InterruptedException {
         Document document = new Document();
         try {
             document.setFile(fileName);

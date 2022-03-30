@@ -89,17 +89,22 @@ public abstract class PDFUtilities implements IConfigurationConstants{
 
 		int yCoord = bim.getHeight() - 1 - (int)footer_line;
 
-		for(int row = yCoord; row >= 0; row--){
-			for(int col = 0; col < bim.getWidth(); col++){
-				int val = bim.getRGB(col, row);
-				if(val != bgColor.getRGB()){
-					yCoord = row;
-					row=-1;
-					break;
+		for(int row = yCoord; row >= 0; row--)
+		{
+			if (row == 0)
+				yCoord = row;
+			else
+			{
+				for(int col = 0; col < bim.getWidth(); col++){
+					int val = bim.getRGB(col, row);
+					if(val != bgColor.getRGB()){
+						yCoord = row;
+						row=-1;
+						break;
+					}
 				}
 			}
 		}
-
 		String outFile = settings.getValue(SIG_PLACEMENT_DEBUG_OUTPUT);
 		if(outFile!=null){
 			ImageIOUtil.writeImage(bim, outFile, 72);

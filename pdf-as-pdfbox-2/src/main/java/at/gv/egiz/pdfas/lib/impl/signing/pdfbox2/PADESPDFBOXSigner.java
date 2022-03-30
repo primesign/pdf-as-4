@@ -23,17 +23,19 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
+
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.activation.DataSource;
 
@@ -50,19 +52,18 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
+import org.apache.pdfbox.pdmodel.common.COSObjectable;
 import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDNumberTreeNode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureElement;
 import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.PDStructureTreeRoot;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.SignatureOptions;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDSignatureField;
-import org.apache.pdfbox.preflight.Format;
 import org.apache.pdfbox.preflight.PreflightDocument;
 import org.apache.pdfbox.preflight.ValidationResult;
 import org.apache.pdfbox.preflight.exception.SyntaxValidationException;
@@ -77,6 +78,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
+import at.gv.egiz.pdfas.common.exceptions.PdfAsErrorCarrier;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.messages.MessageResolver;
 import at.gv.egiz.pdfas.common.settings.SignatureProfileSettings;
@@ -87,6 +89,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignatureObserver;
 import at.gv.egiz.pdfas.lib.impl.ErrorExtractor;
 import at.gv.egiz.pdfas.lib.impl.SignaturePositionImpl;
+import at.gv.egiz.pdfas.lib.impl.configuration.PlaceholderWebConfiguration;
 import at.gv.egiz.pdfas.lib.impl.configuration.SignatureProfileConfiguration;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.PDFBOXObject;
 import at.gv.egiz.pdfas.lib.impl.pdfbox2.positioning.Positioning;
@@ -112,14 +115,20 @@ import at.knowcenter.wag.egov.egiz.table.Table;
 import iaik.x509.X509Certificate;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
+	
+	// FIXME: Make this code release ready (placeholder handling, logging (using {}, appropriate level, etc), remove orphaned fields, remove dead code, add tests, reduce complexity, use try-with-resources, replace deprecated code, consider code style, call placeholder methods only when needed, and much more...)
 
 	private static final Logger logger = LoggerFactory.getLogger(PADESPDFBOXSigner.class);
 
 	public void signPDF(PDFObject genericPdfObject, RequestedSignature requestedSignature,
 			PDFASSignatureInterface genericSigner) throws PdfAsException {
-		//String fisTmpFile = null;
 
 		PDFAsVisualSignatureProperties properties = null;
+		List<SignaturePlaceholderData> placeholders;
+		List<SignaturePlaceholderData> availablePlaceholders;
+		SignaturePlaceholderData signaturePlaceholderData = null;
+
+		String placeholder_id = StringUtils.trimToEmpty(PlaceholderWebConfiguration.getValue(PLACEHOLDER_WEB_ID));
 
 		if (!(genericPdfObject instanceof PDFBOXObject)) {
 			// tODO:
@@ -135,24 +144,49 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 		PDFASPDFBOXSignatureInterface signer = (PDFASPDFBOXSignatureInterface) genericSigner;
 
-        String pdfaVersion = null;
-
-		PDDocument doc = null;
+		PDDocument doc = pdfObject.getDocument();
 		SignatureOptions options = new SignatureOptions();
 		COSDocument visualSignatureDocumentGuard = null;
 		try {
 
+			//if signature already exists dont create new page
+			List<PDSignatureField> pdSignatureFieldList = doc.getSignatureFields();
+			PDSignature signature = new PDSignature();
 
-			doc = pdfObject.getDocument();
+			signature.setFilter(COSName.getPDFName(signer.getPDFFilter()));
+			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
+//			SignaturePlaceholderData signaturePlaceholderDataInit =
+			placeholders =PlaceholderFilter.checkPlaceholderSignatureLocationList(pdfObject.getStatus(),
+							pdfObject.getStatus().getSettings(), placeholder_id);
 
-			SignaturePlaceholderData signaturePlaceholderData = PlaceholderFilter
-					.checkPlaceholderSignature(pdfObject.getStatus(), pdfObject.getStatus().getSettings());
+//            placeholders = SignaturePlaceholderExtractor.getPlaceholders();
+            availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
+
+
+			if(placeholder_id.equalsIgnoreCase("")){
+				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
+				{
+					placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+				}
+			}
+
+			if(availablePlaceholders!=null) {
+				signaturePlaceholderData = PlaceholderFilter
+						.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
+			}
+
+
+
 
 			TablePos tablePos = null;
 
+			if(signaturePlaceholderData!=null)
+			signature.setLocation(signaturePlaceholderData.getPlaceholderName());
+
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
-				logger.info("Placeholder data found.");
+                placeholders.clear();
+                logger.info("Placeholder data found.");
 				if (signaturePlaceholderData.getProfile() != null) {
 					logger.debug("Placeholder Profile set to: " + signaturePlaceholderData.getProfile());
 					requestedSignature.setSignatureProfileID(signaturePlaceholderData.getProfile());
@@ -175,25 +209,20 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					logger.debug("Placeholder Position set to: " + tablePos.toString());
 				}
 			}
-
-			PDSignature signature = new PDSignature();
-			signature.setFilter(COSName.getPDFName(signer.getPDFFilter())); // default
-			// filter
-			signature.setSubFilter(COSName.getPDFName(signer.getPDFSubFilter()));
-
 			SignatureProfileSettings signatureProfileSettings = TableFactory
 					.createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
-
+            			
+			//Check if input document is PDF-A conform
 			/*
-			 * Check if input document is PDF-A conform
-			 *
-			if (signatureProfileSettings.isPDFA()) {
-				// TODO: run preflight parser
-				runPDFAPreflight(pdfObject.getOriginalDocument());
-			}
-			*/
-
+            if (signatureProfileSettings.isPDFA()) {
+                DataSource origDoc = pdfObject.getOriginalDocument();
+                InputStream stream = origDoc.getInputStream();
+                //Run PreflightParser for checking conformity//
+                //runPDFAPreflight(origDoc);
+            }
+            */
 			ValueResolver resolver = new ValueResolver(requestedSignature, pdfObject.getStatus());
+
 			String signerName = resolver.resolve("SIG_SUBJECT", signatureProfileSettings.getValue("SIG_SUBJECT"),
 					signatureProfileSettings);
 
@@ -229,8 +258,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			options.setPreferredSignatureSize(signatureSize);
 
             if(signatureProfileSettings.isPDFA() || signatureProfileSettings.isPDFA3()) {
-                pdfaVersion = getPDFAVersion(doc);
-                signatureProfileSettings.setPDFAVersion(pdfaVersion);
+                signatureProfileSettings.setPDFAVersion(getPDFAVersion(doc));
             }
 
 			// Is visible Signature
@@ -278,6 +306,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 //				boolean legacy40Position = signatureProfileConfiguration.getLegacy40Positioning();
 
 				// create Table describtion
+
+
 				Table main = TableFactory.createSigTable(signatureProfileSettings, MAIN, pdfObject.getStatus(),
 						requestedSignature);
 
@@ -313,8 +343,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				PDPage targetPage = doc.getPages().get(targetPageNumber - 1);
 				int rot = targetPage.getRotation();
 				logger.debug("Page rotation: " + rot);
-				// positioningInstruction.setRotation(positioningInstruction.getRotation()
-				// + rot);
 				logger.debug("resulting Sign rotation: " + positioningInstruction.getRotation());
 
 				SignaturePositionImpl position = new SignaturePositionImpl();
@@ -323,7 +351,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				position.setPage(positioningInstruction.getPage());
 				position.setHeight(visualObject.getHeight());
 				position.setWidth(visualObject.getWidth());
-
 				requestedSignature.setSignaturePosition(position);
 
 				properties = new PDFAsVisualSignatureProperties(pdfObject.getStatus().getSettings(), pdfObject,
@@ -338,13 +365,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				 * (properties .getVisibleSignature())); sigbos.close();
 				 */
 
-				if (signaturePlaceholderData != null) {
-					// Placeholder found!
-					// replace placeholder
+				/*if (signaturePlaceholderData != null) {
 
-					URL fileUrl = PADESPDFBOXSigner.class.getResource("/placeholder/empty.jpg");
-
-					PDImageXObject img = PDImageXObject.createFromFile(fileUrl.getPath(), doc);
+					InputStream fis = PADESPDFBOXSigner.class.getResourceAsStream("/placeholder/empty.jpg");
+					PDImageXObject img = JPEGFactory.createFromStream(doc, fis);
 
 					img.getCOSObject().setNeedToBeUpdated(true);
 					//							PDDocumentCatalog root = doc.getDocumentCatalog();
@@ -357,69 +381,55 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 					logger.info("Placeholder name: " + signaturePlaceholderData.getPlaceholderName());
 					COSDictionary xobjectsDictionary = (COSDictionary) page.getResources().getCOSObject()
 							.getDictionaryObject(COSName.XOBJECT);
+
+
 					xobjectsDictionary.setItem(signaturePlaceholderData.getPlaceholderName(), img);
 					xobjectsDictionary.setNeedToBeUpdated(true);
 					page.getResources().getCOSObject().setNeedToBeUpdated(true);
 					logger.info("Placeholder name: " + signaturePlaceholderData.getPlaceholderName());
-
-				}
+				}*/
 
 				if (signatureProfileSettings.isPDFA() || signatureProfileSettings.isPDFA3()) {
-					PDDocumentCatalog root = doc.getDocumentCatalog();
-					COSBase base = root.getCOSObject().getItem(COSName.OUTPUT_INTENTS);
-					if (base == null) {
-						InputStream colorProfile = null;
-						try {
-							colorProfile = PDDocumentCatalog.class
-									.getResourceAsStream("/icm/sRGB Color Space Profile.icm");
+                    PDDocumentCatalog root = doc.getDocumentCatalog();
+                    COSBase base = root.getCOSObject().getItem(COSName.OUTPUT_INTENTS);
 
-							try {
-								PDOutputIntent oi = new PDOutputIntent(doc, colorProfile);
-								oi.setInfo("sRGB IEC61966-2.1");
-								oi.setOutputCondition("sRGB IEC61966-2.1");
-								oi.setOutputConditionIdentifier("sRGB IEC61966-2.1");
-								oi.setRegistryName("http://www.color.org");
+                    InputStream colorProfile;
+                    //colorProfile = this.getClass().getResourceAsStream("/icm/sRGB.icm");
+					colorProfile = this.getClass().getResourceAsStream("/icm/sRGB Color Space Profile.icm");
+                     //Set output intents for PDF/A conformity//
+                            try {
+                                PDOutputIntent intent = new PDOutputIntent(doc, colorProfile);
 
-								root.addOutputIntent(oi);
-								root.getCOSObject().setNeedToBeUpdated(true);
-								logger.info("added Output Intent");
-							} catch (Throwable e) {
-								e.printStackTrace();
-								throw new PdfAsException("Failed to add Output Intent", e);
-							}
-						} finally {
-							IOUtils.closeQuietly(colorProfile);
-						}
-					}
-				}
+                                intent.setInfo("sRGB IEC61966-2.1");
+                                intent.setOutputCondition("sRGB IEC61966-2.1");
+                                intent.setOutputConditionIdentifier("sRGB IEC61966-2.1");
+                                intent.setRegistryName("http://www.color.org");
+                                List<PDOutputIntent> oi = new ArrayList<>();
+                                oi.add(intent);
+                                root.setOutputIntents(oi);
+                                root.getCOSObject().setNeedToBeUpdated(true);
 
-				options.setPage(positioningInstruction.getPage());
-
-				options.setVisualSignature(properties.getVisibleSignature());
-			}
+                                logger.info("added Output Intent");
+                            } catch (Throwable e) {
+                                throw new PdfAsException("Failed to add Output Intent", e);
+                            }
+                         finally {
+                            IOUtils.closeQuietly(colorProfile);
+                        }
+                    }
+                options.setPage(positioningInstruction.getPage()-1);
+                options.setVisualSignature(properties.getVisibleSignature());
+            }
 
 			visualSignatureDocumentGuard = options.getVisualSignature();
 
 			doc.addSignature(signature, signer, options);
 
-			String sigFieldName = signatureProfileSettings.getSignFieldValue();
-
-			if (sigFieldName == null) {
-				sigFieldName = "PDF-AS Signatur";
-			}
-
+			String sigFieldName = StringUtils.defaultIfBlank(signatureProfileSettings.getSignFieldValue(), "PDF-AS Signatur");
 			int count = PdfBoxUtils.countSignatures(doc, sigFieldName);
-
 			sigFieldName = sigFieldName + count;
 
 			PDAcroForm acroFormm = doc.getDocumentCatalog().getAcroForm();
-
-			// PDStructureTreeRoot pdstRoot =
-			// doc.getDocumentCatalog().getStructureTreeRoot();
-			// COSDictionary dic =
-			// doc.getDocumentCatalog().getCOSDictionary();
-			// PDStructureElement el = new PDStructureElement("Widget",
-			// pdstRoot);
 
 			PDSignatureField signatureField = null;
 			if (acroFormm != null) {
@@ -480,16 +490,17 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 						}
 					}
-
+					
 					PDStructureElement sigBlock = new PDStructureElement("Form", docElement);
 
 					// create object dictionary and add as child element
 					COSDictionary objectDic = new COSDictionary();
 					objectDic.setName("Type", "OBJR");
+										
 					objectDic.setItem("Pg", signatureField.getWidget().getPage());
 					objectDic.setItem("Obj", signatureField.getWidget());
 
-					List<Object> l = new ArrayList<Object>();
+					List<Object> l = new ArrayList<>();
 					l.add(objectDic);
 					sigBlock.setKids(l);
 					sigBlock.setPage(signatureField.getWidget().getPage());
@@ -501,7 +512,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					// Create and add Attribute dictionary to mitigate PAC
 					// warning
-					COSDictionary sigBlockDic = (COSDictionary) sigBlock.getCOSObject();
+					COSDictionary sigBlockDic = sigBlock.getCOSObject();
 					COSDictionary sub = new COSDictionary();
 
 					sub.setName("O", "Layout");
@@ -511,7 +522,6 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					// Modify number tree
 					PDNumberTreeNode ntn = structureTreeRoot.getParentTree();
-					int parentTreeNextKey = structureTreeRoot.getParentTreeNextKey();
 					if (ntn == null) {
 						ntn = new PDNumberTreeNode(objectDic, null);
 						logger.info("No number-tree-node found!");
@@ -519,9 +529,10 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 					COSArray ntnKids = (COSArray) ntn.getCOSObject().getDictionaryObject(COSName.KIDS);
 					COSArray ntnNumbers = (COSArray) ntn.getCOSObject().getDictionaryObject(COSName.NUMS);
-
-					if(ntnNumbers == null && ntnKids != null){//no number array, so continue with the kids array
-
+					
+					int parentTreeNextKey = getParentTreeNextKey(structureTreeRoot);
+					
+					if(ntnNumbers == null && ntnKids != null){//no number array, so continue with the kids array																								
 						//create dictionary with limits and nums array
 						COSDictionary pTreeEntry = new COSDictionary();
 						COSArray limitsArray = new COSArray();
@@ -578,13 +589,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 							signatureField.setAlternateFieldName(sigFieldName);
 					}
 
-
 					ntn.getCOSObject().setNeedToBeUpdated(true);
 					sigBlock.getCOSObject().setNeedToBeUpdated(true);
 					structureTreeRoot.getCOSObject().setNeedToBeUpdated(true);
 					objectDic.setNeedToBeUpdated(true);
 					docElement.getCOSObject().setNeedToBeUpdated(true);
-
 				}
 			} catch (Throwable e) {
 				if (signatureProfileSettings.isPDFUA() == true) {
@@ -593,6 +602,12 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				} else {
 					logger.info("Could not create PDF-UA conform signature");
 				}
+			}
+
+			try {
+				applyFilter(doc, requestedSignature);
+			} catch (PDFASError e) {
+				throw new PdfAsErrorCarrier(e);
 			}
 
 			/**
@@ -611,16 +626,11 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				synchronized (doc) {
 					doc.saveIncremental(bos);
 					byte[] outputDocument = bos.toByteArray();
-
-					/*
-					Check if resulting pdf is PDF-A conform
-					 */
-					//if (signatureProfileSettings.isPDFA()) {
-					//	// TODO: run preflight parser
-					//	runPDFAPreflight(outputDocument);
-					//}
-
 					pdfObject.setSignedDocument(outputDocument);
+                    if (signatureProfileSettings.isPDFA() && signatureProfileSettings.isRunPreflightAfterPDFASignature()) {
+                        runPDFAPreflight(new ByteArrayDataSource(pdfObject.getSignedDocument()));
+                    }
+
 				}
 
 			} finally {
@@ -631,229 +641,351 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 				}
 			}
 
-
-			System.gc();
-		} catch (IOException e) {
-			logger.warn(MessageResolver.resolveMessage("error.pdf.sig.01"), e);
-			throw new PdfAsException("error.pdf.sig.01", e);
+        } catch (IOException e) {
+        	logger.info(MessageResolver.resolveMessage("error.pdf.sig.01") + ": {}", e.toString());
+            throw new PdfAsException("error.pdf.sig.01", e);
 		} finally {
-			if (doc != null) {
-				try {
-					doc.close();
-				} catch (IOException e) {
-					logger.debug("Failed to close COS Doc!", e);
-					// Ignore
-				}
-			}
-
+            if (doc != null) {
+                try {
+                    doc.close();
+					//SignaturePlaceholderExtractor.getPlaceholders().clear();
+                } catch (IOException e) {
+                    logger.debug("Failed to close COS Doc!", e);
+                    // Ignore
+                }
+            }
 			logger.debug("Signature done!");
-
 		}
 	}
 
-	private void runPDFAPreflight(final byte[] signedDocument) throws PdfAsException {
-		runPDFAPreflight(new ByteArrayDataSource(signedDocument));
+    private int getParentTreeNextKey(PDStructureTreeRoot structureTreeRoot) throws IOException {
+    	int nextKey = structureTreeRoot.getParentTreeNextKey();
+    	if (nextKey < 0) {
+    		Map<Integer, COSObjectable> destNumberTreeAsMap = getNumberTreeAsMap(structureTreeRoot.getParentTree());
+    		if (destNumberTreeAsMap.isEmpty()) {
+    			nextKey = 0;
+                
+            } else {
+            	nextKey = Collections.max(destNumberTreeAsMap.keySet()) + 1;
+            	
+            }    		
+    	} 
+    	    	
+		return nextKey;
 	}
 
-	private void runPDFAPreflight(final DataSource signedDocument) throws PdfAsException {
-		PreflightDocument document = null;
-		ValidationResult result = null;
-		try {
-			PreflightParser parser = new PreflightParser(signedDocument);
-			parser.parse(Format.PDF_A1B);
-			parser.parse();
-			document = parser.getPreflightDocument();
-			document.validate();
+	/**
+     * Check via PreFlightParser if PDF-Document is a valid PDFA1
+     * @param signedDocument: signed Document
+     * @throws PdfAsException
+     */
+    private void runPDFAPreflight(final DataSource signedDocument) throws PdfAsException {
+        PreflightDocument document = null;
+        ValidationResult result = null;
+        try {
+            PreflightParser parser = new PreflightParser(signedDocument);
+            //
+            // parser.parse(Format.PDF_A1B);
+            parser.parse();
+            document = parser.getPreflightDocument();
+            document.validate();
 
-			document.close();
-			result = document.getResult();
+            document.close();
+            result = document.getResult();
+            logger.info("PDF-A Validation Result: " + result.isValid());
 
-			if(result.getErrorsList().size() > 0) {
-				logger.error("The following validation errors occured for PDF-A validation");
-			}
+            if (result.getErrorsList().size() > 0) {
+                logger.error("The following validation errors occured for PDF-A validation");
+            }
 
-			for (ValidationResult.ValidationError ve : result.getErrorsList())
-			{
-				logger.error("\t" + ve.getErrorCode() + ": " + ve.getDetails());
-			}
+            for (ValidationResult.ValidationError ve : result.getErrorsList()) {
+                logger.error("\t" + ve.getErrorCode() + ": " + ve.getDetails());
+            }
 
-			if(!result.isValid()) {
-				throw new PdfAsException("The file is not a valid PDF-A document");
-			}
+            if (!result.isValid()) {
+                logger.info("The file is not a valid PDF-A document");
+            }
 
-		} catch (SyntaxValidationException e) {
-			logger.error("The file is syntactically invalid.", e);
-			throw new PdfAsException("Resulting PDF Document is syntactically invalid.");
-		} catch (ValidationException e) {
-			logger.error("The file is not a valid PDF-A document.", e);
-			throw new PdfAsException("The file is not a valid PDF-A document");
-		}  catch (IOException e) {
-			logger.error("An IOException (" + e.getMessage()
-					+ ") occurred, while validating the PDF-A conformance", e);
-			throw new PdfAsException("Failed validating PDF Document IOException.");
-		} catch (RuntimeException e) {
-			logger.debug("An RuntimeException (" + e.getMessage()
-					+ ") occurred, while validating the PDF-A conformance", e);
-			throw new PdfAsException("Failed validating PDF Document RuntimeException.");
-		} finally {
-			if (document != null) {
-				IOUtils.closeQuietly((Closeable)document);
-			}
-		}
-	}
+        } catch (SyntaxValidationException e) {
+            logger.error("The file is syntactically invalid.", e);
+            throw new PdfAsException("Resulting PDF Document is syntactically invalid.");
+        } catch (ValidationException e) {
+            logger.error("The file is not a valid PDF-A document.", e);
+        } catch (IOException e) {
+            logger.error("An IOException (" + e.getMessage()
+                    + ") occurred, while validating the PDF-A conformance", e);
+            throw new PdfAsException("Failed validating PDF Document IOException.");
+        } catch (RuntimeException e) {
+            logger.debug("An RuntimeException (" + e.getMessage()
+                    + ") occurred, while validating the PDF-A conformance", e);
+            throw new PdfAsException("Failed validating PDF Document RuntimeException.");
+        } finally {
+            if (document != null) {
+                IOUtils.closeQuietly(document);
+            }
+        }
+    }
 
-	@Override
-	public PDFObject buildPDFObject(OperationStatus operationStatus) {
-		return new PDFBOXObject(operationStatus);
-	}
+    @Override
+    public PDFObject buildPDFObject(OperationStatus operationStatus) {
+        return new PDFBOXObject(operationStatus);
+    }
 
-	@Override
-	public PDFASSignatureInterface buildSignaturInterface(IPlainSigner signer, SignParameter parameters,
-			RequestedSignature requestedSignature) {
-		return new PdfboxSignerWrapper(signer, parameters, requestedSignature);
-	}
+    @Override
+    public PDFASSignatureInterface buildSignaturInterface(IPlainSigner signer, SignParameter parameters,
+                                                          RequestedSignature requestedSignature) {
+        return new PdfboxSignerWrapper(signer, parameters, requestedSignature);
+    }
 
-	@Override
-	public PDFASSignatureExtractor buildBlindSignaturInterface(X509Certificate certificate, String filter,
-			String subfilter, Calendar date) {
-		return new SignatureDataExtractor(certificate, filter, subfilter, date);
-	}
+    @Override
+    public PDFASSignatureExtractor buildBlindSignaturInterface(X509Certificate certificate, String filter, String subfilter, Calendar date) {
+        return new SignatureDataExtractor(certificate, filter, subfilter, date);
+    }
 
-	@Override
-	public void checkPDFPermissions(PDFObject genericPdfObject) throws PdfAsException {
-		if (!(genericPdfObject instanceof PDFBOXObject)) {
-			// tODO:
-			throw new PdfAsException();
-		}
+    @Override
+    public void checkPDFPermissions(PDFObject genericPdfObject) throws PdfAsException {
+        if (!(genericPdfObject instanceof PDFBOXObject)) {
+            // tODO:
+            throw new PdfAsException();
+        }
 
-		PDFBOXObject pdfObject = (PDFBOXObject) genericPdfObject;
-		PdfBoxUtils.checkPDFPermissions(pdfObject.getDocument());
-	}
+        PDFBOXObject pdfObject = (PDFBOXObject) genericPdfObject;
+        PdfBoxUtils.checkPDFPermissions(pdfObject.getDocument());
+    }
 
-	@Override
-	public byte[] rewritePlainSignature(byte[] plainSignature) {
-		String signature = new COSString(plainSignature).toHexString();
-		byte[] pdfSignature = signature.getBytes();
-		return pdfSignature;
-	}
+    @Override
+    public byte[] rewritePlainSignature(byte[] plainSignature) {
+        String signature = new COSString(plainSignature).toHexString();
+        byte[] pdfSignature = signature.getBytes();
+        return pdfSignature;
+    }
 
-	@Override
-	public Image generateVisibleSignaturePreview(SignParameter parameter, java.security.cert.X509Certificate cert,
-			int resolution, OperationStatus status, RequestedSignature requestedSignature) throws PDFASError {
-		try {
-			PDFBOXObject pdfObject = (PDFBOXObject) status.getPdfObject();
+    @Override
+    public Image generateVisibleSignaturePreview(SignParameter parameter, java.security.cert.X509Certificate cert,
+                                                 int resolution, OperationStatus status, RequestedSignature requestedSignature) throws PDFASError {
+        try {
 
-			PDDocument origDoc = new PDDocument();
-			origDoc.addPage(new PDPage(PDRectangle.A4));
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			origDoc.save(baos);
-			baos.close();
+            PDFBOXObject pdfObject = (PDFBOXObject) status.getPdfObject();
+            PDDocument origDoc = new PDDocument();
 
-			pdfObject.setOriginalDocument(new ByteArrayDataSource(baos.toByteArray()));
+            origDoc.addPage(new PDPage(PDRectangle.A4));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            origDoc.save(baos);
+            baos.close();
 
-			SignatureProfileSettings signatureProfileSettings = TableFactory
-					.createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
+            pdfObject.setOriginalDocument(new ByteArrayDataSource(baos.toByteArray()));
 
-			// create Table describtion
-			Table main = TableFactory.createSigTable(signatureProfileSettings, MAIN, pdfObject.getStatus(),
-					requestedSignature);
+            SignatureProfileSettings signatureProfileSettings = TableFactory
+                    .createProfile(requestedSignature.getSignatureProfileID(), pdfObject.getStatus().getSettings());
 
-			IPDFStamper stamper = StamperFactory.createDefaultStamper(pdfObject.getStatus().getSettings() );
+            // create Table describtion
+            Table main = TableFactory.createSigTable(signatureProfileSettings, MAIN, pdfObject.getStatus(),
+                    requestedSignature);
 
-			IPDFVisualObject visualObject = stamper.createVisualPDFObject(pdfObject, main);
+            IPDFStamper stamper = StamperFactory.createDefaultStamper(pdfObject.getStatus().getSettings());
 
-			SignatureProfileConfiguration signatureProfileConfiguration = pdfObject.getStatus()
-					.getSignatureProfileConfiguration(requestedSignature.getSignatureProfileID());
+            IPDFVisualObject visualObject = stamper.createVisualPDFObject(pdfObject, main);
 
-			String signaturePosString = signatureProfileConfiguration.getDefaultPositioning();
-			PositioningInstruction positioningInstruction = null;
-			if (signaturePosString != null) {
-				positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
-						origDoc, visualObject, pdfObject.getStatus().getSettings());
-			} else {
-				positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
-						visualObject, pdfObject.getStatus().getSettings());
-			}
+            SignatureProfileConfiguration signatureProfileConfiguration = pdfObject.getStatus()
+                    .getSignatureProfileConfiguration(requestedSignature.getSignatureProfileID());
 
-			origDoc.close();
+            String signaturePosString = signatureProfileConfiguration.getDefaultPositioning();
+            PositioningInstruction positioningInstruction;
+            if (signaturePosString != null) {
+                positioningInstruction = Positioning.determineTablePositioning(new TablePos(signaturePosString), "",
+                        origDoc, visualObject, pdfObject.getStatus().getSettings());
+            } else {
+                positioningInstruction = Positioning.determineTablePositioning(new TablePos(), "", origDoc,
+                        visualObject, pdfObject.getStatus().getSettings());
+            }
 
-			SignaturePositionImpl position = new SignaturePositionImpl();
-			position.setX(positioningInstruction.getX());
-			position.setY(positioningInstruction.getY());
-			position.setPage(positioningInstruction.getPage());
-			position.setHeight(visualObject.getHeight());
-			position.setWidth(visualObject.getWidth());
+            origDoc.close();
 
-			requestedSignature.setSignaturePosition(position);
+            SignaturePositionImpl position = new SignaturePositionImpl();
+            position.setX(positioningInstruction.getX());
+            position.setY(positioningInstruction.getY());
+            position.setPage(positioningInstruction.getPage());
+            position.setHeight(visualObject.getHeight());
+            position.setWidth(visualObject.getWidth());
 
-			PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
-					pdfObject.getStatus().getSettings(), pdfObject, (PdfBoxVisualObject) visualObject,
-					positioningInstruction, signatureProfileSettings);
+            requestedSignature.setSignaturePosition(position);
 
-			properties.buildSignature();
-			PDDocument visualDoc;
-			synchronized (PDDocument.class) {
-				visualDoc = PDDocument.load(properties.getVisibleSignature());
-			}
-			// PDPageable pageable = new PDPageable(visualDoc);
+            PDFAsVisualSignatureProperties properties = new PDFAsVisualSignatureProperties(
+                    pdfObject.getStatus().getSettings(), pdfObject, (PdfBoxVisualObject) visualObject,
+                    positioningInstruction, signatureProfileSettings);
 
-			PDPage firstPage = visualDoc.getDocumentCatalog().getPages().get(0);
+            properties.buildSignature();
+            PDDocument visualDoc;
+            synchronized (PDDocument.class) {
+                visualDoc = PDDocument.load(properties.getVisibleSignature());
+            }
+            // PDPageable pageable = new PDPageable(visualDoc);
 
-			float stdRes = 72;
-			float targetRes = resolution;
-			float factor = targetRes / stdRes;
+            PDPage firstPage = visualDoc.getDocumentCatalog().getPages().get(0);
+
+            float stdRes = 72;
+            float targetRes = resolution;
+            float factor = targetRes / stdRes;
 
 
-			int targetPageNumber = 0;//TODO: is this always the case
-			PDFRenderer pdfRenderer = new PDFRenderer(visualDoc);
-			BufferedImage outputImage = pdfRenderer.renderImageWithDPI(targetPageNumber, targetRes, ImageType.ARGB);
+            int targetPageNumber = 0;//TODO: is this always the case
+            PDFRenderer pdfRenderer = new PDFRenderer(visualDoc);
+            BufferedImage outputImage = pdfRenderer.renderImageWithDPI(targetPageNumber, targetRes, ImageType.ARGB);
 
-			//BufferedImage outputImage = firstPage.convertToImage(BufferedImage.TYPE_4BYTE_ABGR, (int) targetRes);
+            //BufferedImage outputImage = firstPage.convertToImage(BufferedImage.TYPE_4BYTE_ABGR, (int) targetRes);
 
-			BufferedImage cutOut = new BufferedImage((int) (position.getWidth() * factor),
-					(int) (position.getHeight() * factor), BufferedImage.TYPE_4BYTE_ABGR);
+            BufferedImage cutOut = new BufferedImage((int) (position.getWidth() * factor),
+                    (int) (position.getHeight() * factor), BufferedImage.TYPE_4BYTE_ABGR);
 
-			Graphics2D graphics = (Graphics2D) cutOut.getGraphics();
+            Graphics2D graphics = (Graphics2D) cutOut.getGraphics();
 
-			graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut.getHeight(), (int) (1 * factor),
-					(int) (outputImage.getHeight() - ((position.getHeight() + 1) * factor)),
-					(int) ((1 + position.getWidth()) * factor), (int) (outputImage.getHeight()
-							- ((position.getHeight() + 1) * factor) + (position.getHeight() * factor)),
-							null);
-			return cutOut;
-		} catch (PdfAsException e) {
-			logger.warn("PDF-AS  Exception", e);
-			throw ErrorExtractor.searchPdfAsError(e, status);
-		} catch (Throwable e) {
-			logger.warn("Unexpected Throwable  Exception", e);
-			throw ErrorExtractor.searchPdfAsError(e, status);
-		}
-	}
+            graphics.drawImage(outputImage, 0, 0, cutOut.getWidth(), cutOut.getHeight(), (int) (1 * factor),
+                    (int) (outputImage.getHeight() - ((position.getHeight() + 1) * factor)),
+                    (int) ((1 + position.getWidth()) * factor), (int) (outputImage.getHeight()
+                            - ((position.getHeight() + 1) * factor) + (position.getHeight() * factor)),
+                    null);
+            return cutOut;
+        } catch (PdfAsException e) {
+            logger.warn("PDF-AS  Exception", e);
+            throw ErrorExtractor.searchPdfAsError(e, status);
+        } catch (Throwable e) {
+            logger.warn("Unexpected Throwable  Exception", e);
+            throw ErrorExtractor.searchPdfAsError(e, status);
+        }
+    }
 
-	private String getPDFAVersion(PDDocument doc) {
+    private String getPDFAVersion(PDDocument doc) {
         try {
             PDDocumentCatalog cat = doc.getDocumentCatalog();
             PDMetadata metadata = cat.getMetadata();
 
-            if(metadata != null) {
+            if (metadata != null) {
                 DomXmpParser xmpParser = new DomXmpParser();
                 XMPMetadata xmpMetadata = xmpParser.parse(metadata.exportXMPMetadata());
-                if(xmpMetadata != null) {
+                if (xmpMetadata != null) {
                     PDFAIdentificationSchema pdfaIdentificationSchema = xmpMetadata.getPDFIdentificationSchema();
                     if (pdfaIdentificationSchema != null) {
                         Integer pdfaversion = pdfaIdentificationSchema.getPart();
                         String conformance = pdfaIdentificationSchema.getConformance();
                         logger.info("Detected PDF/A Version: {} - {}", pdfaversion, conformance);
 
-                        if(pdfaversion != null) {
+                        if (pdfaversion != null) {
                             return String.valueOf(pdfaversion);
                         }
                     }
                 }
             }
-        } catch (Throwable e) {
-            logger.warn("Failed to determine PDF/A Version!", e);
+        } catch (Exception e) {
+            logger.info("Failed to determine PDF/A Version!: {}", String.valueOf(e));
         }
         return null;
     }
+
+	private List<String> existingSignatureLocations(PDDocument doc) {
+		List<String> existingLocations = new ArrayList<>();
+		try {
+			List <PDSignature> pdSignatureList =  doc.getSignatureDictionaries();
+			if(pdSignatureList.size() != 0) {
+				for(PDSignature sig : pdSignatureList) {
+					existingLocations.add(sig.getLocation());
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return existingLocations;
+	}
+
+	//find first placeholder_id
+	public SignaturePlaceholderData checkAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
+		SignaturePlaceholderData result = null;
+
+		if(placeholders!=null) {
+		for(int i = 0; i < placeholders.size(); ++i) {
+			//take smallest id
+			if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
+				SignaturePlaceholderData spd = placeholders.get(i);
+				if (spd.getId() != null) {
+					if(result == null) {
+						result = spd;
+					} else {
+						try{
+							int currentID = Integer.parseInt(result.getId());
+							int testID = Integer.parseInt(spd.getId());
+							if(testID < currentID) {
+								result = spd;
+							}
+						}catch(Exception e){
+							//fallback to string compare
+							String currentID = result.getId();
+							String testID = spd.getId();
+							if(testID.compareToIgnoreCase(currentID) < 0) {
+								result = spd;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+		return result;
+	}
+
+
+	//find first placeholder_id
+	public List<SignaturePlaceholderData>  listAvailablePlaceholders(List<SignaturePlaceholderData> placeholders, List<String> existingPlaceholders) {
+		List<SignaturePlaceholderData> result = new ArrayList<>();
+
+		if(placeholders!=null) {
+			for(int i = 0; i < placeholders.size(); ++i) {
+				//take smallest id
+				if(!existingPlaceholders.contains(placeholders.get(i).getPlaceholderName())) {
+					result.add(placeholders.get(i));
+				}
+			}
+		}
+		return result;
+	}
+	
+	static Map<Integer, COSObjectable> getNumberTreeAsMap(PDNumberTreeNode tree)
+            throws IOException
+    {
+        Map<Integer, COSObjectable> numbers = tree.getNumbers();
+        if (numbers == null)
+        {
+            numbers = new LinkedHashMap<>();
+        }
+        else
+        {
+            // must copy because the map is read only
+            numbers = new LinkedHashMap<>(numbers);
+        }
+        List<PDNumberTreeNode> kids = tree.getKids();
+        if (kids != null)
+        {
+            for (PDNumberTreeNode kid : kids)
+            {
+                numbers.putAll(getNumberTreeAsMap(kid));
+            }
+        }
+        return numbers;
+    }
+	
+	/**
+	 * Allows to apply modifications to the pdf document in the course of this signature related incremental update.
+	 * <p>
+	 * Can be overwritten in order to add filtering.
+	 * </p>
+	 *
+	 * @param pdDocument
+	 *            The pdf document (required; must not be {@code null} and must be opened).
+	 * @param requestedSignature
+	 *            The requested signature data (required; must not be {@code null}).
+	 * @throws PDFASError
+	 *             In case of error.
+	 */
+	public void applyFilter(PDDocument pdDocument, RequestedSignature requestedSignature) throws PDFASError {
+		// this method is intended to be overwritten in order to add certain filtering
+	}
+
 }

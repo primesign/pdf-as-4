@@ -21,6 +21,7 @@
  * The "NOTICE" text file is part of the distribution. Any derivative works
  * that you distribute must include a readable copy of the "NOTICE" text file.
  ******************************************************************************/
+
 package at.gv.egiz.pdfas.lib.impl.configuration;
 
 import at.gv.egiz.pdfas.common.settings.ISettings;
@@ -39,5 +40,5 @@ public class GlobalConfiguration extends SpecificBaseConfiguration
 		}
 		return null;
 	}
-	
+
 }

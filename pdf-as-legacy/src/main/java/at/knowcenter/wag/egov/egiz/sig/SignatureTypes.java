@@ -102,7 +102,7 @@ public class SignatureTypes {
 
 		private String[] keyWords;
 
-		private State(String... keyWords) {
+		State(String... keyWords) {
 			this.keyWords = keyWords;
 		}
 
@@ -175,7 +175,7 @@ public class SignatureTypes {
 	}
 	
 	/**
-	   * Standard key get/set the singature name
+	   * Standard key get/set the signature name
 	   */
 	  public static final String SIG_NAME = "SIG_NAME";
 

@@ -26,11 +26,17 @@ package at.gv.egiz.pdfas.common.utils;
 import java.io.UnsupportedEncodingException;
 import java.util.Formatter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created with IntelliJ IDEA. User: afitzek Date: 8/28/13 Time: 12:42 PM To
  * change this template use File | Settings | File Templates.
  */
 public class StringUtils {
+	
+	private static final Logger logger = LoggerFactory
+			.getLogger(StringUtils.class);
 
 	public static String bytesToHexString(byte[] bytes) {
 		StringBuilder sb = new StringBuilder(bytes.length * 2);

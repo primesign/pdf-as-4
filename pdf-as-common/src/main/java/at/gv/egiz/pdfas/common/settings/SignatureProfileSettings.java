@@ -23,19 +23,23 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.common.settings;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.*;
 
 public class SignatureProfileSettings implements IProfileConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(SignatureProfileSettings.class);
 
-	private Map<String, SignatureProfileEntry> profileInformations = new HashMap<String, SignatureProfileEntry>();
+	private Map<String, SignatureProfileEntry> profileInformations = new HashMap<>();
 
-	private Map<String, String> profileSettings = new HashMap<String, String>();
+	private Map<String, String> profileSettings = new HashMap<>();
 
 	private String profileID;
 
@@ -57,8 +61,7 @@ public class SignatureProfileSettings implements IProfileConstants {
 		logger.debug("Table Prefix: " + tablePrefix);
 
 		Map<String, String> keys = configuration.getValuesPrefix(keysPrefix);
-		Map<String, String> values = configuration
-				.getValuesPrefix(valuesPrefix);
+		Map<String, String> values = configuration.getValuesPrefix(valuesPrefix);
 
 		if (keys != null) {
 			Iterator<String> keyIterator = keys.keySet().iterator();
@@ -239,6 +242,16 @@ public class SignatureProfileSettings implements IProfileConstants {
 		return false;
 	}
 
+
+	public boolean isLatin1Encoding() {
+		SignatureProfileEntry entry = profileInformations.get(LATIN1_ENCODING);
+		if (entry != null) {
+			String value = entry.getCaption();
+			return "true".equals(value);
+		}
+		return false;
+	}
+
 	public boolean isPDFA3() {
 		if(this.pdfAVersion != null) {
 			return "3".equals(this.pdfAVersion);
@@ -270,6 +283,15 @@ public class SignatureProfileSettings implements IProfileConstants {
 	 */
 	public String getProfileTransformPattern(String profileValueIdentifier) {
 		return getValue(PROFILE_TRANSFORM_PATTERN + "-" + Objects.requireNonNull(profileValueIdentifier));
+	}
+	
+	/**
+	 * Tells if a PDF/A-1b preflight check should be executed after signature is performed.
+	 * 
+	 * @return {@code true} in order to perform preflight, {@code false} otherwise.
+	 */
+	public boolean isRunPreflightAfterPDFASignature() {
+		return BooleanUtils.toBoolean(getValue(SIG_PDFA1B_PREFLIGHT_AFTER_SIGNATURE));
 	}
 
 }

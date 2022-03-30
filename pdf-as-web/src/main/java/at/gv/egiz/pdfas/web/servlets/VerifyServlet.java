@@ -304,7 +304,7 @@ public class VerifyServlet extends HttpServlet {
 		
 		logger.debug("Format: " + format);
 		
-		List<VerifyResult> results = PdfAsHelper.synchornousVerify(pdfData, -1, lvl, 
+		List<VerifyResult> results = PdfAsHelper.synchronousVerify(pdfData, -1, lvl,
 				PdfAsParameterExtractor.getPreProcessorMap(request));
 
 		PdfAsHelper.setVerificationResult(request, results);

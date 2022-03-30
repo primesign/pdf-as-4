@@ -110,6 +110,7 @@ public class TableFactory implements IProfileConstants {
         // ".value.";
         // ArrayList table_def_keys = settings_.getKeys(table_key);
         Vector<String> table_defs = configuration.getFirstLevelKeys(table_key);
+
         if (table_defs == null)
         {
             return null;
@@ -151,7 +152,7 @@ public class TableFactory implements IProfileConstants {
             {
                 // analyse the row definition
                 String[] elems = table_def_string.split("\\|");
-                ArrayList<Entry> row = new ArrayList<Entry>();
+                ArrayList<Entry> row = new ArrayList<>();
                 for (int elem_idx = 0; elem_idx < elems.length; elem_idx++)
                 {
                     String elem = elems[elem_idx];
@@ -223,7 +224,8 @@ public class TableFactory implements IProfileConstants {
                             row.add(entry);
                         }
                     }
-                    if ((TYPE_VALUE + TYPE_CAPTION).equals(type) || (TYPE_CAPTION + TYPE_VALUE).equals(type))
+                    
+                    if ((TYPE_VALUE + TYPE_CAPTION).equals(type) || (TYPE_CAPTION + TYPE_VALUE).equals(type) || "req".equals(type))
                     {
                         // add a caption value pair
                         String caption = profile.getCaption(key);

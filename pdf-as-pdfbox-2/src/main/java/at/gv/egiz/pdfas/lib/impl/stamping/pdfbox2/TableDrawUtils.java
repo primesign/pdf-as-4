@@ -88,7 +88,7 @@ public class TableDrawUtils {
 		for (int i = 0; i < abstractTable.getRowCount(); i++) {
 			ArrayList<Entry> row = abstractTable.getRow(i);
 			for (int j = 0; j < row.size(); j++) {
-				Entry cell = (Entry) row.get(j);
+				Entry cell = row.get(j);
 
 				// Cell only contains default values so table style is the primary style
 				Style inherit_style = Style.doInherit(abstractTable.style, cell.getStyle());
@@ -363,29 +363,21 @@ public class TableDrawUtils {
 
 		logger.debug("Drawing Caption @ X: {} Y: {}", contentx, contenty);
 
-		try {
-			float fontSize = PDFBoxFont.defaultFontSize;
-			PDFont textFont = PDFBoxFont.defaultFont;
+		PDFont textFont = abstractTable.getFont().getFont();
+		float fontSize = abstractTable.getFont().getFontSize();
 
-			textFont = abstractTable.getFont().getFont();//doc);
-			fontSize = abstractTable.getFont().getFontSize();
+		// get the cell Text
+		String text = (String) cell.getValue();
+		String[] tlines = text.split("\n");
+		float textHeight = fontSize * tlines.length;
 
-			// get the cell Text
-			String text = (String) cell.getValue();
-			String[] tlines = text.split("\n");
-			float textHeight = fontSize * tlines.length;
-
-			Style cellStyle = cell.getStyle();
-			String valign = cellStyle.getVAlign();
-			String halign = cellStyle.getHAlign();
-			
-			drawString(page, contentStream, contentx, contenty, width, height,
-					padding, abstractTable, doc, cell, fontSize, textHeight,
-					valign, halign, tlines, textFont, formResources, settings);
-		} catch (IOException e) {
-			logger.warn("IO Exception", e);
-			throw new PdfAsException("Error", e);
-		}
+		Style cellStyle = cell.getStyle();
+		String valign = cellStyle.getVAlign();
+		String halign = cellStyle.getHAlign();
+		
+		drawString(page, contentStream, contentx, contenty, width, height,
+				padding, abstractTable, doc, cell, fontSize, textHeight,
+				valign, halign, tlines, textFont, formResources, settings);
 	}
 
 	public static void drawValue(PDPage page,
@@ -397,29 +389,21 @@ public class TableDrawUtils {
 
 		logger.debug("Drawing Value @ X: {} Y: {}", contentx, contenty);
 
-		try {
-			float fontSize = PDFBoxFont.defaultFontSize;
-			PDFont textFont = PDFBoxFont.defaultFont;
+		PDFont textFont = abstractTable.getValueFont().getFont();
+		float fontSize = abstractTable.getValueFont().getFontSize();
 
-			textFont = abstractTable.getValueFont().getFont();//doc);
-			fontSize = abstractTable.getValueFont().getFontSize();
+		// get the cell Text
+		String text = (String) cell.getValue();
+		String[] tlines = text.split("\n");
+		float textHeight = fontSize * tlines.length;
 
-			// get the cell Text
-			String text = (String) cell.getValue();
-			String[] tlines = text.split("\n");
-			float textHeight = fontSize * tlines.length;
+		Style cellStyle = cell.getStyle();
+		String valign = cellStyle.getValueVAlign();
+		String halign = cellStyle.getValueHAlign();
 
-			Style cellStyle = cell.getStyle();
-			String valign = cellStyle.getValueVAlign();
-			String halign = cellStyle.getValueHAlign();
-
-			drawString(page, contentStream, contentx, contenty, width, height,
-					padding, abstractTable, doc, cell, fontSize, textHeight,
-					valign, halign, tlines, textFont, formResources, settings);
-		} catch (IOException e) {
-			logger.warn("IO Exception", e);
-			throw new PdfAsException("Error", e);
-		}
+		drawString(page, contentStream, contentx, contenty, width, height,
+				padding, abstractTable, doc, cell, fontSize, textHeight,
+				valign, halign, tlines, textFont, formResources, settings);
 	}
 
 	public static void drawImage(PDPage page,
@@ -442,30 +426,27 @@ public class TableDrawUtils {
 
 
 			float imgx = contentx;
-			float hoffset = innerWidth - image.getWidth();
-			if (cell.getStyle().getImageHAlign() != null
-					&& cell.getStyle().getImageHAlign().equals(Style.LEFT)) {
-				hoffset = hoffset / 2.0f;
-				imgx += hoffset;
-			} else if (cell.getStyle().getImageHAlign() != null
-					&& cell.getStyle().getImageHAlign().equals(Style.RIGHT)) {
-				imgx += hoffset;
+			float remainingCanvasWidth = innerWidth - image.getWidth();
+			if (Style.LEFT.equals(cell.getStyle().getImageHAlign())) {
+				// do nothing
+			} else if (Style.RIGHT.equals(cell.getStyle().getImageHAlign())) {
+				imgx += remainingCanvasWidth;
 			} else {
-				hoffset = hoffset / 2.0f;
-				imgx += hoffset;
+				// CENTER or not set
+				imgx += (remainingCanvasWidth / 2.0f);
 			}
 
 			float imgy = contenty;
-			float voffset = innerHeight - image.getHeight();
-			if (cell.getStyle().getImageVAlign() != null
-					&& cell.getStyle().getImageVAlign().equals(Style.MIDDLE)) {
-				voffset = voffset / 2.0f;
-				imgy -= voffset;
-			} else if (cell.getStyle().getImageVAlign() != null
-					&& cell.getStyle().getImageVAlign().equals(Style.BOTTOM)) {
-				imgy -= voffset;
+			float remainingCanvasHeight = innerHeight - image.getHeight();
+			
+			if (Style.MIDDLE.equals(cell.getStyle().getImageVAlign())) {
+				imgy -= (remainingCanvasHeight / 2.0f);
+			} else if (Style.BOTTOM.equals(cell.getStyle().getImageVAlign())) {
+				imgy -= remainingCanvasHeight;
+			} else {
+				// TOP or not set
 			}
-
+			
 			drawDebugLine(contentStream, imgx, imgy, image.getWidth(),
 					image.getHeight(), settings);
 
@@ -540,7 +521,6 @@ public class TableDrawUtils {
 				float x_from = x;
 				float x_to = x + width;
 				float y_from = y + height;
-				float y_to = y + height;
 
 				// draw first line
 				logger.debug("ROW LINE: {} {} {} {}", x_from, y_from, x_to,
@@ -560,7 +540,7 @@ public class TableDrawUtils {
 
 				// reset y for "line feed"
 				y_from = y + height;
-				y_to = y_from - abstractTable.getRowHeights()[0];
+				float y_to = y_from - abstractTable.getRowHeights()[0];
 
 				// Draw all column borders
 				for (int i = 0; i < rows; i++) {
@@ -576,7 +556,7 @@ public class TableDrawUtils {
 					contentStream.drawLine(x_from, y_from, x_from, y_to);
 
 					for (int j = 0; j < row.size(); j++) {
-						Entry cell = (Entry) row.get(j);
+						Entry cell = row.get(j);
 
 						for (int k = 0; k < cell.getColSpan(); k++) {
 							if (k + j < colsSizes.length) {
