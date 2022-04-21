@@ -333,9 +333,9 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			SignerInfo signer1 = new SignerInfo(issuer, algorithms[1],
 					algorithms[0], privKey);
 
-			SignedData si = new SignedData(input, SignedData.EXPLICIT);
-			si.setSecurityProvider(getSecurityProvider());
-			si.addCertificates(new Certificate[] { cert });
+			SignedData signedData = new SignedData(input, SignedData.EXPLICIT);
+			signedData.setSecurityProvider(getSecurityProvider());
+			signedData.addCertificates(new Certificate[] { cert });
 
 
 			//Check PAdES Flag
@@ -357,15 +357,15 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 				setAttributes("application/pdf", cert, new Date(), signer1);
 			}
 
-			si.addSignerInfo(signer1);
-			InputStream dataIs = si.getInputStream();
+			signedData.addSignerInfo(signer1);
+			InputStream dataIs = signedData.getInputStream();
 			byte[] buf = new byte[1024];
 			@SuppressWarnings("unused")
 			int r;
 			while ((r = dataIs.read(buf)) > 0)
 				; // skip data
-			ContentInfo ci = new ContentInfo(si);
-			byte[] signature = ci.getEncoded();
+			ContentInfo contentInfo = new ContentInfo(signedData);
+			byte[] signature = contentInfo.getEncoded();
 
 			VerifyResult verifyResult = SignatureUtils.verifySignature(
 					signature, input);
