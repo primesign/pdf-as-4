@@ -23,16 +23,14 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
-import iaik.x509.X509Certificate;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.SignatureException;
 import java.util.Calendar;
 
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
+import iaik.x509.X509Certificate;
 
 public class SignatureDataExtractor implements PDFASPDFBOXExtractorInterface {
 

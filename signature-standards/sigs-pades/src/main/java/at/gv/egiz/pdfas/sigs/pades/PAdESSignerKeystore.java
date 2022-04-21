@@ -24,8 +24,6 @@
 package at.gv.egiz.pdfas.sigs.pades;
 
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.PasswordProtection;
@@ -51,7 +49,6 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
@@ -358,30 +355,14 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			}
 
 			signedData.addSignerInfo(signer1);
-			InputStream dataIs = signedData.getInputStream();
-			byte[] buf = new byte[1024];
-			@SuppressWarnings("unused")
-			int r;
-			while ((r = dataIs.read(buf)) > 0)
-				; // skip data
 			ContentInfo contentInfo = new ContentInfo(signedData);
 			byte[] signature = contentInfo.getEncoded();
 
-			VerifyResult verifyResult = SignatureUtils.verifySignature(
-					signature, input);
+			SignatureUtils.verifySignature(signature, input);
 
 			return signature;
-		} catch (NoSuchAlgorithmException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (iaik.cms.CMSException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (IOException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (CertificateException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (CodingException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (PDFASError e) {
+			
+		} catch (NoSuchAlgorithmException | iaik.cms.CMSException | CertificateException | CodingException | PDFASError e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		}
 	}
