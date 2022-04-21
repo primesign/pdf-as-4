@@ -334,7 +334,6 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			signedData.setSecurityProvider(getSecurityProvider());
 			signedData.addCertificates(new Certificate[] { cert });
 
-
 			//Check PAdES Flag
 			if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))
 			{
@@ -344,14 +343,12 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 				}
 				else
 				{
-					// FIXME: We must set the very same date and must not create a new date, e.g. use requestedSignature.getStatus().getSigningDate()
-					setAttributes("application/pdf", cert, new Date(), signer1);
+					setAttributes("application/pdf", cert,  requestedSignature.getStatus().getSigningDate().getTime(), signer1);
 				}
 			}
 			else
 			{
-				// FIXME: We must set the very same date and must not create a new date, e.g. use requestedSignature.getStatus().getSigningDate()
-				setAttributes("application/pdf", cert, new Date(), signer1);
+				setAttributes("application/pdf", cert,  requestedSignature.getStatus().getSigningDate().getTime(), signer1);
 			}
 
 			signedData.addSignerInfo(signer1);
