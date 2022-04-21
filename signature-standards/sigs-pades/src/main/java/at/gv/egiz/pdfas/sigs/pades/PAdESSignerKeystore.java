@@ -335,19 +335,9 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			signedData.addCertificates(new Certificate[] { cert });
 
 			//Check PAdES Flag
-			if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))
-			{
-				if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG)))
-				{
-					setAttributes(cert, signer1);
-				}
-				else
-				{
-					setAttributes("application/pdf", cert,  requestedSignature.getStatus().getSigningDate().getTime(), signer1);
-				}
-			}
-			else
-			{
+			if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))) {
+				setAttributes(cert, signer1);
+			} else {
 				setAttributes("application/pdf", cert,  requestedSignature.getStatus().getSigningDate().getTime(), signer1);
 			}
 
