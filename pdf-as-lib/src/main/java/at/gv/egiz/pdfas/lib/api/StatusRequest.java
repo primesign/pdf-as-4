@@ -38,7 +38,7 @@ public interface StatusRequest {
 	 * Retrieve the signing certificate and set it via setCertificate
 	 * @return
 	 */
-	public boolean needCertificate();
+	boolean needCertificate();
 	
 	/**
 	 * If true PDF-AS requires a the CAdES signature
@@ -48,39 +48,39 @@ public interface StatusRequest {
 	 * 
 	 * @return
 	 */
-	public boolean needSignature();
+	boolean needSignature();
 	
 	/**
 	 * If true finishSign in PdfAs can be called to retrieve the signed pdf
 	 * @return
 	 */
-	public boolean isReady();
+	boolean isReady();
 	
 	/**
 	 * Gets the data to be signed
 	 * @return
 	 */
-	public byte[] getSignatureData();
+	byte[] getSignatureData();
 	
 	/**
 	 * Gets the byte range of the data to be signed
 	 * @return
 	 */
-	public int[] getSignatureDataByteRange();
+	int[] getSignatureDataByteRange();
 	
 	/**
 	 * Sets the signing certificate
 	 * @param encodedCertificate
 	 * @throws CertificateException
 	 */
-	public void setCertificate(byte[] encodedCertificate) throws CertificateException;
+	void setCertificate(byte[] encodedCertificate) throws CertificateException;
 	
 	/**
 	 * Sets the signature
 	 * @param signatureValue
 	 */
-	public void setSigature(byte[] signatureValue) ;
+	void setSigature(byte[] signatureValue) ;
 
-	public SignParameter getSignParameter();
+	SignParameter getSignParameter();
 	
 }
