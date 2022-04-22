@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.lib.api;
 
 import java.security.cert.CertificateException;
 
+import javax.annotation.Nullable;
+
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
 /**
@@ -76,11 +78,22 @@ public interface StatusRequest {
 	void setCertificate(byte[] encodedCertificate) throws CertificateException;
 	
 	/**
-	 * Sets the signature
-	 * @param signatureValue
+	 * Sets the encoded signature.
+	 * 
+	 * @param encodedSignature The encoded signature.
+	 * @deprecated Use {@link #setEncodedSignature(byte[])} instead.
 	 */
-	void setSigature(byte[] signatureValue) ;
-
+	void setSigature(byte[] encodedSignature) ;
+	
 	SignParameter getSignParameter();
+	
+	/**
+	 * Sets the encoded signature.
+	 * 
+	 * @param encodedSignature The encoded signature. (optional; may be {@code null})
+	 */
+	default void setEncodedSignature(@Nullable byte[] encodedSignature) {
+		setSigature(encodedSignature);
+	}
 	
 }
