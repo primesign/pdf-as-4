@@ -23,11 +23,11 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api.sign;
 
-import iaik.x509.X509Certificate;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
+import iaik.x509.X509Certificate;
 
 /**
  * Signer interface
@@ -42,7 +42,7 @@ public interface IPlainSigner {
 	 * @return
 	 * @throws PdfAsException
 	 */
-	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException;
+	X509Certificate getCertificate(SignParameter parameter) throws PdfAsException;
 	
 	/**
 	 * Sign the document
@@ -51,19 +51,19 @@ public interface IPlainSigner {
 	 * @return
 	 * @throws PdfAsException
 	 */
-    public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException;
+    byte[] sign(byte[] input, int[] byteRange, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException;
     
     /**
      * Gets the PDF Subfilter for this signer
      * @return
      */
-    public String getPDFSubFilter();
+    String getPDFSubFilter();
     
     /**
      * Gets the PDF Filter for this signer
      * @return
      */
-    public String getPDFFilter();
+    String getPDFFilter();
     
 	/**
 	 * Retrieves certificate validation data (chains, OCSP responses, CRL...) required to support long term validation

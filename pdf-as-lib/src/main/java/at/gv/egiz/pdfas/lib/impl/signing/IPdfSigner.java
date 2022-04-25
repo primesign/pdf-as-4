@@ -23,8 +23,6 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.signing;
 
-import iaik.x509.X509Certificate;
-
 import java.awt.Image;
 import java.util.Calendar;
 
@@ -35,6 +33,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import iaik.x509.X509Certificate;
 
 public interface IPdfSigner {
 
@@ -54,7 +53,9 @@ public interface IPdfSigner {
 	
 	byte[] rewritePlainSignature(byte[] plainSignature);
 	
-	public Image generateVisibleSignaturePreview(SignParameter parameter,
+	Image generateVisibleSignaturePreview(SignParameter parameter,
 			java.security.cert.X509Certificate cert, int resolution, OperationStatus status, 
 			RequestedSignature requestedSignature) throws PDFASError;
+
+	
 }
