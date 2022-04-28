@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api.sign;
 
+import javax.annotation.Nonnull;
+
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
@@ -77,5 +79,18 @@ public interface IPlainSigner {
 	 * @throws IllegalStateException May be thrown in case {@code requestedSignature} does not provide a certificate.
 	 */
     CertificateVerificationData getCertificateVerificationData(RequestedSignature requestedSignature) throws PDFASError;
+	
+    // TODO[PDFAS-114]: Add javadoc
+    
+    @Nonnull
+	default DigestInfo calculateDigest(byte[] dataToBeSigned, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+		throw new UnsupportedOperationException("Providing digest is not supported by this plain signer.");
+	}
+	
+	// TODO[PDFAS-114]: Pass ASN.1 value of SignedData instead of rebuilding SignedData
+    @Nonnull
+	default byte[] encodeExternalSignatureValue(byte[] externalSignatureValue, byte[] dataToBeSigned, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+		throw new UnsupportedOperationException("Processing signature value is not supported by this plain signer.");
+	}
 
 }
