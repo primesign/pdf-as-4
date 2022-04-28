@@ -31,7 +31,7 @@ import at.gv.egiz.sl.util.ISLConnector;
 import at.gv.egiz.sl.util.ISignatureConnector;
 import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
 
-public class PAdESSigner extends LTVAwarePAdESSignerBase implements PAdESConstants {
+public class PAdESSigner extends PAdESSignerBase implements PAdESConstants {
 	
 	private ISignatureConnector plainSigner;
 	

@@ -69,7 +69,7 @@ import iaik.smime.ess.ESSCertID;
 import iaik.smime.ess.ESSCertIDv2;
 import iaik.x509.X509Certificate;
 
-public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdESConstants {
+public class PAdESSignerKeystore extends PAdESSignerBase implements PAdESConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESSignerKeystore.class);

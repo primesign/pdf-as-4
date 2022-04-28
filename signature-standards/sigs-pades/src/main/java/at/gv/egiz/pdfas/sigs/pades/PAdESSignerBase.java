@@ -68,9 +68,9 @@ import iaik.smime.ess.ESSCertID;
 import iaik.smime.ess.ESSCertIDv2;
 import iaik.x509.X509Certificate;
 
-public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
+public abstract class PAdESSignerBase implements IPlainSigner {
 
-	private Logger log = LoggerFactory.getLogger(LTVAwarePAdESSignerBase.class);
+	private Logger log = LoggerFactory.getLogger(PAdESSignerBase.class);
 
 	@Override
 	public CertificateVerificationData getCertificateVerificationData(RequestedSignature requestedSignature) throws PDFASError {
