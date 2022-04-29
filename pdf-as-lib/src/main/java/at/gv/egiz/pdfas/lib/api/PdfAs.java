@@ -23,9 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api;
 
-import java.security.cert.X509Certificate;
-
 import java.awt.Image;
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
@@ -42,7 +41,7 @@ public interface PdfAs {
 	 * @param parameter
 	 * @return
 	 */
-	public SignResult sign(SignParameter parameter) throws PDFASError;
+	SignResult sign(SignParameter parameter) throws PDFASError;
 	
 	/**
 	 * Verifies a document with (potentially multiple) PDF-AS signatures.
@@ -50,7 +49,7 @@ public interface PdfAs {
 	 * @param parameter The verification parameter
 	 * @return A list of verification Results
 	 */
-	public List<VerifyResult> verify(VerifyParameter parameter) throws PDFASError;
+	List<VerifyResult> verify(VerifyParameter parameter) throws PDFASError;
 	
 	/**
 	 * Gets a copy of the PDF-AS configuration, to allow the application to 
@@ -58,7 +57,7 @@ public interface PdfAs {
 	 * 
 	 * @return A private copy of the pdf as configuration
 	 */
-	public Configuration getConfiguration();
+	Configuration getConfiguration();
 	
 	/**
 	 * Starts a signature process
@@ -69,7 +68,7 @@ public interface PdfAs {
 	 * @return A status request
 	 * @throws PdfAsException
 	 */
-	public StatusRequest startSign(SignParameter parameter) throws PDFASError;
+	StatusRequest startSign(SignParameter parameter) throws PDFASError;
 	
 	/**
 	 * Continues an ongoing signature process 
@@ -78,7 +77,7 @@ public interface PdfAs {
 	 * @return A status request
 	 * @throws PdfAsException
 	 */
-	public StatusRequest process(StatusRequest statusRequest) throws PDFASError;
+	StatusRequest process(StatusRequest statusRequest) throws PDFASError;
 	
 	/**
 	 * Finishes a signature process
@@ -87,7 +86,7 @@ public interface PdfAs {
 	 * @return A signature result
 	 * @throws PdfAsException
 	 */
-	public SignResult    finishSign(StatusRequest statusRequest) throws PDFASError;
+	SignResult    finishSign(StatusRequest statusRequest) throws PDFASError;
 	
 	/**
 	 * Generates a Image of the visual signatur block as Preview
@@ -98,5 +97,6 @@ public interface PdfAs {
 	 * @return
 	 * @throws PdfAsException
 	 */
-	public Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution) throws PDFASError;
+	Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution) throws PDFASError;
+	
 }
