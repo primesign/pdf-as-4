@@ -4,7 +4,6 @@ import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 import javax.activation.DataSource;
 import javax.annotation.Nonnull;
@@ -14,8 +13,6 @@ import iaik.asn1.structures.AlgorithmID;
 //TODO[PDFAS-114]: Add javadoc
 
 public class ExternalSignatureContext {
-
-	private String contextId = UUID.randomUUID().toString();
 
 	private DigestInfo digestInfo;
 	private AlgorithmID signingAlgorithm;
