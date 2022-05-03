@@ -89,9 +89,8 @@ public interface IPlainSigner {
 		throw new UnsupportedOperationException("Providing digest is not supported by this plain signer.");
 	}
 	
-	// TODO[PDFAS-114]: Pass ASN.1 value of SignedData instead of rebuilding SignedData
     @Nonnull
-	default byte[] encodeExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nonnull byte[] dataToBeSigned, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
+	default byte[] encodeExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nonnull byte[] signatureData) throws PdfAsException {
 		throw new UnsupportedOperationException("Processing signature value is not supported by this plain signer.");
 	}
 

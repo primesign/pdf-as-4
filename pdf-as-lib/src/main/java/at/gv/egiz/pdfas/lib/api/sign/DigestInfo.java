@@ -13,5 +13,8 @@ public interface DigestInfo {
 
 	@Nonnull
 	byte[] getValue();
+	
+	@Nonnull
+	byte[] getContextData();
 
 }

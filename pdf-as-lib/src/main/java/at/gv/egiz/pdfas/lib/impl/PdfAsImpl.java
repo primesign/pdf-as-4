@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.cert.CertificateException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
@@ -684,12 +683,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				dataToBeSigned = IOUtils.toByteArray(in);
 			}
 			
-			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
 			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
 			
-			Date signingTime = GregorianCalendar.from(ctx.getSigningTime()).getTime();
+			DigestInfo digestInfo = ctx.getDigestInfo().orElseThrow(() -> new IllegalStateException("'digestInfo' expected to be provided by external signature context."));
 			
-			byte[] encodedSignatureValue = plainSigner.encodeExternalSignatureValue(signatureValue, dataToBeSigned, iaikSigningCertificate, signingTime, enforceETSIPAdES);
+			byte[] encodedSignatureValue = plainSigner.encodeExternalSignatureValue(signatureValue, digestInfo.getContextData());
 
 			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
 			// TODO[PDFAS-114]: Backend check for null name or null backend
