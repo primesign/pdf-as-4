@@ -26,10 +26,18 @@ package at.gv.egiz.pdfas.lib.impl;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.cert.CertificateException;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.activation.DataSource;
+
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,11 +48,14 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
 import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
+import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.preprocessor.PreProcessor;
+import at.gv.egiz.pdfas.lib.api.sign.DigestInfo;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureContext;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
@@ -583,4 +594,142 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		}
 
 	}
+
+	@Override
+	public void startExternalSignature(SignParameter signParameter, java.security.cert.X509Certificate signingCertificate, ExternalSignatureContext ctx) throws PDFASError {
+		
+		verifySignParameter(signParameter);
+		
+		try {
+			
+			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
+			// TODO[PDFAS-114]: Backend check for null name or null backend
+			
+			// skip signPreprocessing uses by original startSign
+			// ...
+			
+			IPdfSigner signer = pdfasBackend.getPdfSigner();
+			
+			OperationStatus operationStatus = new OperationStatus(settings, signParameter, pdfasBackend);
+			PDFObject pdfObject = signer.buildPDFObject(operationStatus);
+			operationStatus.setPdfObject(pdfObject);
+			pdfObject.setOriginalDocument(signParameter.getDataSource());
+			
+			ctx.setSigningCertificate(signingCertificate);
+			
+			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
+			
+			RequestedSignature requestedSignature = new RequestedSignature(operationStatus);
+			requestedSignature.setCertificate(iaikSigningCertificate);
+			operationStatus.setRequestedSignature(requestedSignature);
+			
+			IPlainSigner plainSigner = signParameter.getPlainSigner();
+			
+			String pdfFilter = plainSigner.getPDFFilter();
+			String pdfSubFilter = plainSigner.getPDFSubFilter();
+			Calendar signingTime = GregorianCalendar.from(ctx.getSigningTime());
+			
+			PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
+			
+			// simulate signature in order to extract data to be signed
+			signer.signPDF(pdfObject, requestedSignature, signatureDataExtractor);
+
+			// ** digest input data
+			byte[] digestInputData = signatureDataExtractor.getSignatureData();
+			// store digest input data in context (use provided DataSource or InMemory DataSource as fallback)
+			// Note that caller may provide a readable and writeable datasource which can be used here.
+			if (ctx.getDigestInputData().isPresent()) {
+				try (OutputStream out = ctx.getDigestInputData().get().getOutputStream()) {
+					IOUtils.write(digestInputData, out);
+				}
+			} else {
+				ctx.setDigestInputData(new ByteArrayDataSource(digestInputData));
+			}
+			
+			// ** prepared signed document (without signature yet)
+			byte[] preparedSignedDocument = pdfObject.getSignedDocument();
+			// store prepared signed document in context (use provided DataSource or InMemory DataSource as fallback)
+			// Note that caller may provide a readable and writeable datasource which can be used here.
+			if (ctx.getPreparedSignedDocument().isPresent()) {
+				try (OutputStream out = ctx.getPreparedSignedDocument().get().getOutputStream()) {
+					IOUtils.write(preparedSignedDocument, out);
+				}
+			} else {
+				ctx.setPreparedSignedDocument(new ByteArrayDataSource(preparedSignedDocument));
+			}
+			
+			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
+			DigestInfo digestInfo = plainSigner.calculateDigestToBeSigned(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
+			
+			ctx.setDigestInfo(digestInfo);
+			
+		} catch (PdfAsException | IOException | CertificateException e) {
+			// TODO[PDFAS-114]: Replace with more specific exception
+			throw new PDFASError(ERROR_GENERIC, e);
+		}
+		
+	}
+
+	@Override
+	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {
+		
+		try {
+
+			java.security.cert.X509Certificate signingCertificate = ctx.getSigningCertificate().orElseThrow(() -> new IllegalStateException("'signingCertificate' expected to be provided by external signature context."));
+			
+			IPlainSigner plainSigner = signParameter.getPlainSigner();
+			DataSource dataToBeSignedDataSource = ctx.getDigestInputData().orElseThrow(() -> new IllegalStateException("'dataToBeSigned' expected to be provided by external signature context."));
+			byte[] dataToBeSigned;
+			try (InputStream in = dataToBeSignedDataSource.getInputStream()) {
+				dataToBeSigned = IOUtils.toByteArray(in);
+			}
+			
+			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
+			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
+			
+			Date signingTime = GregorianCalendar.from(ctx.getSigningTime()).getTime();
+			
+			byte[] encodedSignatureValue = plainSigner.encodeExternalSignatureValue(signatureValue, dataToBeSigned, iaikSigningCertificate, signingTime, enforceETSIPAdES);
+
+			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
+			// TODO[PDFAS-114]: Backend check for null name or null backend
+
+			byte[] pdfSignature = pdfasBackend.getPdfSigner().rewritePlainSignature(encodedSignatureValue);
+
+			VerifyResult verifyResult = SignatureUtils.verifySignature(encodedSignatureValue, dataToBeSigned);
+
+			if (!StreamUtils.dataCompare(iaikSigningCertificate.getFingerprintSHA(), ((X509Certificate) verifyResult.getSignerCertificate()).getFingerprintSHA())) {
+				throw new PDFASError(ERROR_SIG_CERTIFICATE_MISSMATCH);
+			}
+
+			DataSource preparedSignedDocument = ctx.getPreparedSignedDocument().orElseThrow(() -> new IllegalStateException("'preparedSignedDocument' expected to be provided by external signature context."));
+			
+			byte[] preparedSignedDocumentData;
+			try (InputStream in = preparedSignedDocument.getInputStream()) {
+				preparedSignedDocumentData = IOUtils.toByteArray(in);
+			}
+			
+			// insert encoded signature into destination document
+			int[] byteRange = PDFUtils.extractSignatureByteRange(dataToBeSigned);
+			int offset = byteRange[1] + 1;
+			for (int i = 0; i < pdfSignature.length; i++) {
+				preparedSignedDocumentData[offset + i] = pdfSignature[i];
+			}
+			
+			// write result to provided output stream
+			IOUtils.write(preparedSignedDocumentData, signParameter.getSignatureResult());
+
+			SignResultImpl signResultImpl = new SignResultImpl();
+			// TODO[PDFAS-114]: Add signing certificate to SignResult
+			// TODO[PDFAS-114]: Add signature position to SignResult
+			// TODO[PDFAS-114]: Add processInformations(sic!) to SignResult
+			return signResultImpl;
+		
+		} catch (IOException | CertificateException | PdfAsException e) {
+			// TODO[PDFAS-114]: Replace with more specific exception
+			throw new PDFASError(ERROR_GENERIC, e);
+		}
+	
+	}
+
 }

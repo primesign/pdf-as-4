@@ -23,6 +23,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.api.sign;
 
+import java.util.Date;
+
 import javax.annotation.Nonnull;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
@@ -83,13 +85,13 @@ public interface IPlainSigner {
     // TODO[PDFAS-114]: Add javadoc
     
     @Nonnull
-	default DigestInfo calculateDigest(byte[] dataToBeSigned, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+	default DigestInfo calculateDigestToBeSigned(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		throw new UnsupportedOperationException("Providing digest is not supported by this plain signer.");
 	}
 	
 	// TODO[PDFAS-114]: Pass ASN.1 value of SignedData instead of rebuilding SignedData
     @Nonnull
-	default byte[] encodeExternalSignatureValue(byte[] externalSignatureValue, byte[] dataToBeSigned, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+	default byte[] encodeExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nonnull byte[] dataToBeSigned, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		throw new UnsupportedOperationException("Processing signature value is not supported by this plain signer.");
 	}
 

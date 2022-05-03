@@ -41,10 +41,8 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.sign.DigestInfo;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
-import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.CertificateVerificationDataService;
@@ -121,14 +119,14 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	}
 
 	@Override
-	public DigestInfo calculateDigest(byte[] dataToBeSigned, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+	public DigestInfo calculateDigestToBeSigned(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
 		try {
 			
 			DigestInfoImpl digestInfo = new DigestInfoImpl();
 			
 			SignedData signedData = new SignedData(dataToBeSigned, EXPLICIT);
-			signedData.addCertificates(new Certificate[] { requestedSignature.getCertificate() });
+			signedData.addCertificates(new Certificate[] { signingCertificate });
 			
 			signedData.setSecurityProvider(new SecurityProvider() {
 
@@ -156,7 +154,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 
 			});
 
-			SignerInfo signerInfo = createSignerInfo(parameter, requestedSignature);
+			SignerInfo signerInfo = createSignerInfo(signingCertificate, signingTime, enforceETSIPAdES);
 			
 			// triggers both digest calculation (of signed attributes) and signature (provide empty signature value)
 			signedData.addSignerInfo(signerInfo);
@@ -215,9 +213,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 		
 	}
 	
-	private SignerInfo createSignerInfo(SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
-		
-		X509Certificate signingCertificate = requestedSignature.getCertificate();
+	private SignerInfo createSignerInfo(X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
 		IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(signingCertificate);
 		
@@ -229,10 +225,10 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			SignerInfo signerInfo = new SignerInfo(issuer, algorithms[1], algorithms[0], null);
 			
 			// consider PAdESCompatibility flag from configuration
-			if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))) {
+			if (enforceETSIPAdES) {
 				setAttributes(signerInfo, signingCertificate);
 			} else {
-				setAttributes(signerInfo, "application/pdf", signingCertificate, requestedSignature.getStatus().getSigningDate().getTime());
+				setAttributes(signerInfo, "application/pdf", signingCertificate, signingTime);
 			}
 			
 			return signerInfo;
@@ -298,17 +294,17 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	}
 
 	@Override
-	public byte[] encodeExternalSignatureValue(byte[] signatureValue, byte[] dataToBeSigned, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException {
+	public byte[] encodeExternalSignatureValue(byte[] signatureValue, byte[] digestInputData, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
 		try {
+
+			// TODO[PDFAS-114]: Keep and store the SignedData object from calculdateDigest step instead of rebuilding the structure.
 			
-			SignedData signedData = new SignedData(dataToBeSigned, EXPLICIT);
-			signedData.addCertificates(new Certificate[] { requestedSignature.getCertificate() });
+			SignedData signedData = new SignedData(digestInputData, EXPLICIT);
+			signedData.addCertificates(new Certificate[] { signingCertificate });
 			
 			signedData.setSecurityProvider(new SecurityProvider() {
 
-				// we do not care about signatures at this stage, we want the digest to be calculated
-				
 				@Override
 				public byte[] calculateSignatureFromHash(AlgorithmID signatureAlgorithm, AlgorithmID digestAlgorithm, PrivateKey privateKey,
 						byte[] digest) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -324,7 +320,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 
 			});
 
-			SignerInfo signerInfo = createSignerInfo(parameter, requestedSignature);
+			SignerInfo signerInfo = createSignerInfo(signingCertificate, signingTime, enforceETSIPAdES);
 			
 			// triggers both digest calculation (of signed attributes) and signature (provide empty signature value)
 			signedData.addSignerInfo(signerInfo);

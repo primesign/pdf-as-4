@@ -27,8 +27,11 @@ import java.awt.Image;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureContext;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
@@ -98,5 +101,11 @@ public interface PdfAs {
 	 * @throws PdfAsException
 	 */
 	Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution) throws PDFASError;
+	
+	// TODO[PDFAS-114]: Add javadoc
+
+	void startExternalSignature(@Nonnull SignParameter signParameter, @Nonnull X509Certificate signingCertificate, @Nonnull ExternalSignatureContext ctx) throws PDFASError;
+	
+	SignResult finishExternalSignature(@Nonnull SignParameter signParameter, @Nonnull byte[] signatureValue, @Nonnull ExternalSignatureContext ctx) throws PDFASError;
 	
 }
