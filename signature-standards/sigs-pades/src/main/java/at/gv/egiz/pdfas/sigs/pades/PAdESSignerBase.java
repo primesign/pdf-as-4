@@ -221,8 +221,11 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			
 			AlgorithmID[] algorithms = CertificateUtils.getAlgorithmIDs(signingCertificate);
 			
+			AlgorithmID signatureAlgorith = algorithms[0];
+			AlgorithmID digestAlgorithm = algorithms[1];
+			
 			// there is no private key since we do not intend to conduct any signatures at this stage
-			SignerInfo signerInfo = new SignerInfo(issuer, algorithms[1], algorithms[0], null);
+			SignerInfo signerInfo = new SignerInfo(issuer, digestAlgorithm, signatureAlgorith, null);
 			
 			// consider PAdESCompatibility flag from configuration
 			if (enforceETSIPAdES) {
