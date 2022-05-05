@@ -6,15 +6,18 @@ import iaik.asn1.structures.AlgorithmID;
 
 // TODO[PDFAS-114]: Add javadoc
 
-public interface DigestInfo {
+public interface ExternalSignatureInfo {
 
 	@Nonnull
-	AlgorithmID getAlgorithm();
-
-	@Nonnull
-	byte[] getValue();
+	AlgorithmID getDigestAlgorithm();
 	
 	@Nonnull
-	byte[] getContextData();
+	AlgorithmID getSignatureAlgorithm();
+
+	@Nonnull
+	byte[] getDigestValue();
+	
+	@Nonnull
+	byte[] getSignatureData();
 
 }

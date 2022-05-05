@@ -2,61 +2,115 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.Base64;
 
 import javax.activation.DataSource;
-import javax.annotation.Nonnull;
-
-import iaik.asn1.structures.AlgorithmID;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNullableByDefault;
 
 //TODO[PDFAS-114]: Add javadoc
 
+@ParametersAreNullableByDefault
 public class ExternalSignatureContext {
 
-	private DigestInfo digestInfo;
-	private AlgorithmID signingAlgorithm;
-	private ZonedDateTime signingTime = ZonedDateTime.now();
+	private String digestAlgorithmOid;
+	private byte[] digestValue;
+
+	private String signatureAlgorithmOid;
+	private byte[] signatureData;
+
+	private ZonedDateTime signingTime;
 	private X509Certificate signingCertificate;
+
 	private DataSource digestInputData;
 	private DataSource preparedSignedDocument;
 
-	@Nonnull
+	@Nullable
+	public String getDigestAlgorithmOid() {
+		return digestAlgorithmOid;
+	}
+
+	@Nullable
+	public byte[] getDigestValue() {
+		return digestValue;
+	}
+
+	@Nullable
+	public String getSignatureAlgorithmOid() {
+		return signatureAlgorithmOid;
+	}
+
+	@Nullable
+	public byte[] getSignatureData() {
+		return signatureData;
+	}
+
+	@Nullable
 	public ZonedDateTime getSigningTime() {
 		return signingTime;
 	}
 
-	public Optional<DigestInfo> getDigestInfo() {
-		return Optional.ofNullable(digestInfo);
+	@Nullable
+	public X509Certificate getSigningCertificate() {
+		return signingCertificate;
 	}
 
-	public void setDigestInfo(@Nonnull DigestInfo digestInfo) {
-		this.digestInfo = Objects.requireNonNull(digestInfo, "'digestInfo' must not be null.");
+	@Nullable
+	public DataSource getDigestInputData() {
+		return digestInputData;
 	}
 
-	public Optional<DataSource> getDigestInputData() {
-		return Optional.ofNullable(digestInputData);
+	@Nullable
+	public DataSource getPreparedSignedDocument() {
+		return preparedSignedDocument;
+	}
+
+	public void setDigestAlgorithmOid(String digestAlgorithmOid) {
+		this.digestAlgorithmOid = digestAlgorithmOid;
+	}
+
+	public void setDigestValue(byte[] digestValue) {
+		this.digestValue = digestValue;
+	}
+
+	public void setSignatureAlgorithmOid(String signatureAlgorithmOid) {
+		this.signatureAlgorithmOid = signatureAlgorithmOid;
+	}
+
+	public void setSignatureData(byte[] signatureData) {
+		this.signatureData = signatureData;
+	}
+
+	public void setSigningTime(ZonedDateTime signingTime) {
+		this.signingTime = signingTime;
+	}
+
+	public void setSigningCertificate(X509Certificate signingCertificate) {
+		this.signingCertificate = signingCertificate;
+	}
+
+	public void setDigestInputData(DataSource digestInputData) {
+		this.digestInputData = digestInputData;
+	}
+
+	public void setPreparedSignedDocument(DataSource preparedSignedDocument) {
+		this.preparedSignedDocument = preparedSignedDocument;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ExternalSignatureContext [");
+		builder.append("digestAlgorithmOid=").append(digestAlgorithmOid);
+		builder.append(", digestValue=").append(digestValue != null ? Base64.getEncoder().encodeToString(digestValue) : null);
+		builder.append(", signatureAlgorithmOid=").append(signatureAlgorithmOid);
+		builder.append(", signatureData=").append(signatureData != null ? "<set>" : null);
+		builder.append(", signingTime=").append(signingTime);
+		builder.append(", signingCertificate=").append(signingCertificate != null ? "<set>" : null);
+		builder.append(", digestInputData=").append(digestInputData);
+		builder.append(", preparedSignedDocument=").append(preparedSignedDocument);
+		builder.append("]");
+		return builder.toString();
 	}
 	
-	public void setDigestInputData(@Nonnull DataSource digestInputData) {
-		this.digestInputData = Objects.requireNonNull(digestInputData, "'digestInputData' must not be null.");
-	}
-	
-	public Optional<DataSource> getPreparedSignedDocument() {
-		return Optional.ofNullable(preparedSignedDocument);
-	}
-
-	public void setPreparedSignedDocument(@Nonnull DataSource preparedSignedDocument) {
-		this.preparedSignedDocument = Objects.requireNonNull(preparedSignedDocument, "'preparedSignedDocument' must not be null.");
-	}
-
-	public Optional<X509Certificate> getSigningCertificate() {
-		return Optional.ofNullable(signingCertificate);
-	}
-
-	public void setSigningCertificate(@Nonnull X509Certificate signingCertificate) {
-		this.signingCertificate = Objects.requireNonNull(signingCertificate, "'signingCertificate' is required.");
-	}
-	
-
 }

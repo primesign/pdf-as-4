@@ -29,12 +29,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.cert.CertificateException;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
-import javax.activation.DataSource;
+import javax.annotation.Nonnull;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -53,8 +55,8 @@ import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.preprocessor.PreProcessor;
-import at.gv.egiz.pdfas.lib.api.sign.DigestInfo;
 import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureContext;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureInfo;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
@@ -593,7 +595,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		}
 
 	}
-
+	
 	@Override
 	public void startExternalSignature(SignParameter signParameter, java.security.cert.X509Certificate signingCertificate, ExternalSignatureContext ctx) throws PDFASError {
 		
@@ -614,8 +616,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			operationStatus.setPdfObject(pdfObject);
 			pdfObject.setOriginalDocument(signParameter.getDataSource());
 			
-			ctx.setSigningCertificate(signingCertificate);
-			
 			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
 			
 			RequestedSignature requestedSignature = new RequestedSignature(operationStatus);
@@ -626,6 +626,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			String pdfFilter = plainSigner.getPDFFilter();
 			String pdfSubFilter = plainSigner.getPDFSubFilter();
+			if (ctx.getSigningTime() == null) {
+				ctx.setSigningTime(ZonedDateTime.now());
+			}
 			Calendar signingTime = GregorianCalendar.from(ctx.getSigningTime());
 			
 			PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
@@ -637,8 +640,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			byte[] digestInputData = signatureDataExtractor.getSignatureData();
 			// store digest input data in context (use provided DataSource or InMemory DataSource as fallback)
 			// Note that caller may provide a readable and writeable datasource which can be used here.
-			if (ctx.getDigestInputData().isPresent()) {
-				try (OutputStream out = ctx.getDigestInputData().get().getOutputStream()) {
+			if (ctx.getDigestInputData() != null) {
+				try (OutputStream out = ctx.getDigestInputData().getOutputStream()) {
 					IOUtils.write(digestInputData, out);
 				}
 			} else {
@@ -649,8 +652,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			byte[] preparedSignedDocument = pdfObject.getSignedDocument();
 			// store prepared signed document in context (use provided DataSource or InMemory DataSource as fallback)
 			// Note that caller may provide a readable and writeable datasource which can be used here.
-			if (ctx.getPreparedSignedDocument().isPresent()) {
-				try (OutputStream out = ctx.getPreparedSignedDocument().get().getOutputStream()) {
+			if (ctx.getPreparedSignedDocument() != null) {
+				try (OutputStream out = ctx.getPreparedSignedDocument().getOutputStream()) {
 					IOUtils.write(preparedSignedDocument, out);
 				}
 			} else {
@@ -658,9 +661,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			}
 			
 			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
-			DigestInfo digestInfo = plainSigner.calculateDigestToBeSigned(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
+			ExternalSignatureInfo externalSignatureInfo = plainSigner.prepareExternalSignature(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
 			
-			ctx.setDigestInfo(digestInfo);
+			ctx.setDigestAlgorithmOid(externalSignatureInfo.getDigestAlgorithm().getAlgorithm().getID());
+			ctx.setDigestValue(externalSignatureInfo.getDigestValue());
+			ctx.setSignatureAlgorithmOid(externalSignatureInfo.getSignatureAlgorithm().getAlgorithm().getID());
+			ctx.setSignatureData(externalSignatureInfo.getSignatureData());
+			ctx.setSigningCertificate(signingCertificate);
 			
 		} catch (PdfAsException | IOException | CertificateException e) {
 			// TODO[PDFAS-114]: Replace with more specific exception
@@ -668,60 +675,96 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		}
 		
 	}
+	
+	// TODO[PDFAS-114]: Add javadoc
+	
+	private void validate(@Nonnull ExternalSignatureContext ctx) {
+		
+		Objects.requireNonNull(ctx, "Provided external signature context must not be null.");
+		
+		if (ctx.getDigestAlgorithmOid() == null) {
+			throw new IllegalStateException("'digestAlgorithmOid' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getDigestInputData() == null) {
+			throw new IllegalStateException("'digestInputData' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getDigestValue() == null) {
+			throw new IllegalStateException("'digestValue' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getPreparedSignedDocument() == null) {
+			throw new IllegalStateException("'preparedSignedDocument' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSignatureAlgorithmOid() == null) {
+			throw new IllegalStateException("'signatureAlgorithmOid' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSignatureData() == null) {
+			throw new IllegalStateException("'signatureData' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSigningCertificate() == null) {
+			throw new IllegalStateException("'signingCertificate' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSigningTime() == null) {
+			throw new IllegalStateException("'signingTime' expected to be provided by external signature context.");
+		}
+
+	}
+
 
 	@Override
 	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {
 		
+		validate(ctx);
+		
 		try {
 
-			java.security.cert.X509Certificate signingCertificate = ctx.getSigningCertificate().orElseThrow(() -> new IllegalStateException("'signingCertificate' expected to be provided by external signature context."));
+			// ** prepare signature
 			
-			IPlainSigner plainSigner = signParameter.getPlainSigner();
-			DataSource dataToBeSignedDataSource = ctx.getDigestInputData().orElseThrow(() -> new IllegalStateException("'dataToBeSigned' expected to be provided by external signature context."));
-			byte[] dataToBeSigned;
-			try (InputStream in = dataToBeSignedDataSource.getInputStream()) {
-				dataToBeSigned = IOUtils.toByteArray(in);
-			}
-			
-			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
-			
-			DigestInfo digestInfo = ctx.getDigestInfo().orElseThrow(() -> new IllegalStateException("'digestInfo' expected to be provided by external signature context."));
-			
-			byte[] encodedSignatureValue = plainSigner.encodeExternalSignatureValue(signatureValue, digestInfo.getContextData());
+			byte[] encodedSignatureValue = signParameter.getPlainSigner().processExternalSignature(signatureValue, ctx.getSignatureData());
 
 			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
 			// TODO[PDFAS-114]: Backend check for null name or null backend
 
 			byte[] pdfSignature = pdfasBackend.getPdfSigner().rewritePlainSignature(encodedSignatureValue);
 
+			// ** validate signature
+			
+			byte[] dataToBeSigned;
+			try (InputStream in = ctx.getDigestInputData().getInputStream()) {
+				dataToBeSigned = IOUtils.toByteArray(in);
+			}
 			VerifyResult verifyResult = SignatureUtils.verifySignature(encodedSignatureValue, dataToBeSigned);
-
+			X509Certificate iaikSigningCertificate = new X509Certificate(ctx.getSigningCertificate().getEncoded());
 			if (!StreamUtils.dataCompare(iaikSigningCertificate.getFingerprintSHA(), ((X509Certificate) verifyResult.getSignerCertificate()).getFingerprintSHA())) {
 				throw new PDFASError(ERROR_SIG_CERTIFICATE_MISSMATCH);
 			}
-
-			DataSource preparedSignedDocument = ctx.getPreparedSignedDocument().orElseThrow(() -> new IllegalStateException("'preparedSignedDocument' expected to be provided by external signature context."));
 			
+			// ** insert signature into document
+
 			byte[] preparedSignedDocumentData;
-			try (InputStream in = preparedSignedDocument.getInputStream()) {
+			try (InputStream in = ctx.getPreparedSignedDocument().getInputStream()) {
 				preparedSignedDocumentData = IOUtils.toByteArray(in);
 			}
-			
-			// insert encoded signature into destination document
 			int[] byteRange = PDFUtils.extractSignatureByteRange(dataToBeSigned);
 			int offset = byteRange[1] + 1;
 			for (int i = 0; i < pdfSignature.length; i++) {
 				preparedSignedDocumentData[offset + i] = pdfSignature[i];
 			}
 			
-			// write result to provided output stream
+			// ** write result to provided output stream
 			IOUtils.write(preparedSignedDocumentData, signParameter.getSignatureResult());
 
-			SignResultImpl signResultImpl = new SignResultImpl();
-			// TODO[PDFAS-114]: Add signing certificate to SignResult
+			SignResultImpl signResult = new SignResultImpl();
+			signResult.setSignerCertificate(iaikSigningCertificate);
 			// TODO[PDFAS-114]: Add signature position to SignResult
 			// TODO[PDFAS-114]: Add processInformations(sic!) to SignResult
-			return signResultImpl;
+			return signResult;
 		
 		} catch (IOException | CertificateException | PdfAsException e) {
 			// TODO[PDFAS-114]: Replace with more specific exception

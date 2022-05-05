@@ -85,13 +85,13 @@ public interface IPlainSigner {
     // TODO[PDFAS-114]: Add javadoc
     
     @Nonnull
-	default DigestInfo calculateDigestToBeSigned(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
-		throw new UnsupportedOperationException("Providing digest is not supported by this plain signer.");
+	default ExternalSignatureInfo prepareExternalSignature(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
+		throw new UnsupportedOperationException("Preparing external signature by this plain signer.");
 	}
 	
     @Nonnull
-	default byte[] encodeExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nonnull byte[] signatureData) throws PdfAsException {
-		throw new UnsupportedOperationException("Processing signature value is not supported by this plain signer.");
+	default byte[] processExternalSignature(@Nonnull byte[] externalSignature, @Nonnull byte[] signatureData) throws PdfAsException {
+		throw new UnsupportedOperationException("Processing external signature is not supported by this plain signer.");
 	}
 
 }

@@ -29,7 +29,6 @@ import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -43,7 +42,7 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.sign.DigestInfo;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureInfo;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
@@ -122,11 +121,11 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	}
 
 	@Override
-	public DigestInfo calculateDigestToBeSigned(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
+	public ExternalSignatureInfo prepareExternalSignature(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
 		try {
 			
-			DigestInfoImpl digestInfo = new DigestInfoImpl();
+			ExternalSignatureInfoImpl externalSignatureInfo = new ExternalSignatureInfoImpl();
 			
 			SignedData signedData = new SignedData(dataToBeSigned, EXPLICIT);
 			signedData.addCertificates(new Certificate[] { signingCertificate });
@@ -139,8 +138,9 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 				public byte[] calculateSignatureFromHash(AlgorithmID signatureAlgorithm, AlgorithmID digestAlgorithm, PrivateKey privateKey,
 						byte[] digest) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 					
-					digestInfo.setAlgorithm(digestAlgorithm);
-					digestInfo.setValue(digest);
+					externalSignatureInfo.setDigestAlgorithm(digestAlgorithm);
+					externalSignatureInfo.setDigestValue(digest);
+					externalSignatureInfo.setSignatureAlgorithm(signatureAlgorithm);
 					
 					return new byte[] { 0 };
 				}
@@ -149,8 +149,9 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 				public byte[] calculateSignatureFromSignedAttributes(AlgorithmID signatureAlgorithm, AlgorithmID digestAlgorithm, PrivateKey privateKey,
 						byte[] asn1EncodedAttributes) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 				
-					digestInfo.setAlgorithm(digestAlgorithm);
-					digestInfo.setValue(getHash(digestAlgorithm, asn1EncodedAttributes));
+					externalSignatureInfo.setDigestAlgorithm(digestAlgorithm);
+					externalSignatureInfo.setDigestValue(getHash(digestAlgorithm, asn1EncodedAttributes));
+					externalSignatureInfo.setSignatureAlgorithm(signatureAlgorithm);
 					
 					return new byte[] { 0 };
 				}
@@ -162,11 +163,11 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			// triggers both digest calculation (of signed attributes) and signature (provide empty signature value)
 			signedData.addSignerInfo(signerInfo);
 			
-			digestInfo.setContextData(signedData.getEncoded());
+			externalSignatureInfo.setSignatureData(signedData.getEncoded());
 			
-			digestInfo.validate();
+			externalSignatureInfo.validate();
 			
-			return digestInfo;
+			return externalSignatureInfo;
 
 		} catch (NoSuchAlgorithmException | CMSException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
@@ -174,71 +175,64 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 		
 	}
 	
-	private class DigestInfoImpl implements DigestInfo {
+	private class ExternalSignatureInfoImpl implements ExternalSignatureInfo {
 		
-		private AlgorithmID algorithm;
-		private byte[] value;
-		private byte[] contextData;
-		
-		private void setAlgorithm(AlgorithmID algorithm) {
-			this.algorithm = algorithm;
-		}
+		private AlgorithmID digestAlgorithm;
+		private AlgorithmID signatureAlgorithm;
+		private byte[] digestValue;
+		private byte[] signatureData;
 
-		private void setValue(byte[] value) {
-			this.value = value;
+		@Override
+		public AlgorithmID getDigestAlgorithm() {
+			return digestAlgorithm;
 		}
 
 		@Override
-		public AlgorithmID getAlgorithm() {
-			return algorithm;
+		public AlgorithmID getSignatureAlgorithm() {
+			return signatureAlgorithm;
 		}
 
 		@Override
-		public byte[] getValue() {
-			return value;
+		public byte[] getDigestValue() {
+			return digestValue;
 		}
-		
+
 		@Override
-		public byte[] getContextData() {
-			return contextData;
+		public byte[] getSignatureData() {
+			return signatureData;
 		}
-		
-		void setContextData(byte[] contextData) {
-			this.contextData = contextData;
+
+		private void setDigestAlgorithm(AlgorithmID digestAlgorithm) {
+			this.digestAlgorithm = digestAlgorithm;
+		}
+
+		private void setSignatureAlgorithm(AlgorithmID signatureAlgorithm) {
+			this.signatureAlgorithm = signatureAlgorithm;
+		}
+
+		private void setDigestValue(byte[] digestValue) {
+			this.digestValue = digestValue;
+		}
+
+		private void setSignatureData(byte[] signatureData) {
+			this.signatureData = signatureData;
 		}
 
 		void validate() {
-			if (algorithm == null) {
+			if (digestAlgorithm == null) {
 				throw new IllegalStateException("Digest algorithm required.");
 			}
-			if (value == null) {
+			if (digestValue == null) {
 				throw new IllegalStateException("Digest value required.");
 			}
-			if (contextData == null) {
-				throw new IllegalStateException("'Digest context data required.");
+			if (signatureAlgorithm == null) {
+				throw new IllegalStateException("Signature algorithm required.");
+			}
+			if (signatureData == null) {
+				throw new IllegalStateException("'Signature context data required.");
 			}
 		}
 
-		@Override
-		public String toString() {
-			StringBuilder builder = new StringBuilder();
-			builder.append("DigestInfo [algorithm=");
-			builder.append(algorithm);
-			if (value != null) {
-				// TODO[PDFAS-114]: Do not show both value representations
-				builder.append(", value (base64)=");
-				builder.append(Base64.getEncoder().encodeToString(value));
-				builder.append(", value (base64Url)=");
-				builder.append(Base64.getUrlEncoder().encodeToString(value));
-			} else {
-				builder.append(", value=null");
-			}
-			builder.append(", contextData=").append(contextData != null ? "<set>" : null);
-			builder.append("]");
-			return builder.toString();
-		}
-		
-		
 	}
 	
 	private SignerInfo createSignerInfo(X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
@@ -325,7 +319,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	}
 
 	@Override
-	public byte[] encodeExternalSignatureValue(byte[] externalSignatureValue, @Nonnull byte[] signatureData) throws PdfAsException {
+	public byte[] processExternalSignature(byte[] externalSignature, @Nonnull byte[] signatureData) throws PdfAsException {
 
 		try {
 			
@@ -333,7 +327,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			ASN1Object asn1Object = asn1.toASN1Object();
 			SignedData signedData = new SignedData(asn1Object);
 			SignerInfo signerInfo = signedData.getSignerInfos()[0];
-			signerInfo.setSignatureValue(externalSignatureValue);
+			signerInfo.setSignatureValue(externalSignature);
 			
 			// return encoded cms signature
 			return new ContentInfo(signedData).getEncoded();
