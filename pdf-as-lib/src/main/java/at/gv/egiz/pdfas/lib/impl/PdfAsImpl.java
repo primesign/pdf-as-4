@@ -75,6 +75,7 @@ import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 import at.gv.egiz.pdfas.lib.settings.Settings;
+import at.gv.egiz.pdfas.lib.util.ByteRangeInputStream;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.util.BKUHeader;
 import iaik.x509.X509Certificate;
@@ -638,15 +639,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			// ** digest input data
 			byte[] digestInputData = signatureDataExtractor.getSignatureData();
-			// store digest input data in context (use provided DataSource or InMemory DataSource as fallback)
-			// Note that caller may provide a readable and writeable datasource which can be used here.
-			if (ctx.getDigestInputData() != null) {
-				try (OutputStream out = ctx.getDigestInputData().getOutputStream()) {
-					IOUtils.write(digestInputData, out);
-				}
-			} else {
-				ctx.setDigestInputData(new ByteArrayDataSource(digestInputData));
-			}
+			int[] byteRange = PDFUtils.extractSignatureByteRange(digestInputData);
+			ctx.setSignatureByteRange(byteRange);
 			
 			// ** prepared signed document (without signature yet)
 			byte[] preparedSignedDocument = pdfObject.getSignedDocument();
@@ -686,8 +680,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			throw new IllegalStateException("'digestAlgorithmOid' expected to be provided by external signature context.");
 		}
 		
-		if (ctx.getDigestInputData() == null) {
-			throw new IllegalStateException("'digestInputData' expected to be provided by external signature context.");
+		if (ctx.getSignatureByteRange() == null) {
+			throw new IllegalStateException("'signatureByteRange' expected to be provided by external signature context.");
+		}
+		if (ctx.getSignatureByteRange().length < 2) {
+			throw new IllegalStateException("Non empty 'signatureByteRangeexpected to be provided by external signature context.");
 		}
 		
 		if (ctx.getDigestValue() == null) {
@@ -716,7 +713,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 	}
 
-
 	@Override
 	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {
 		
@@ -735,11 +731,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			// ** validate signature
 			
-			byte[] dataToBeSigned;
-			try (InputStream in = ctx.getDigestInputData().getInputStream()) {
-				dataToBeSigned = IOUtils.toByteArray(in);
+			byte[] digestInputData;
+			try (InputStream in = new ByteRangeInputStream(ctx.getPreparedSignedDocument().getInputStream(), ctx.getSignatureByteRange())) {
+				digestInputData = IOUtils.toByteArray(in);
 			}
-			VerifyResult verifyResult = SignatureUtils.verifySignature(encodedSignatureValue, dataToBeSigned);
+			VerifyResult verifyResult = SignatureUtils.verifySignature(encodedSignatureValue, digestInputData);
 			X509Certificate iaikSigningCertificate = new X509Certificate(ctx.getSigningCertificate().getEncoded());
 			if (!StreamUtils.dataCompare(iaikSigningCertificate.getFingerprintSHA(), ((X509Certificate) verifyResult.getSignerCertificate()).getFingerprintSHA())) {
 				throw new PDFASError(ERROR_SIG_CERTIFICATE_MISSMATCH);
@@ -751,7 +747,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			try (InputStream in = ctx.getPreparedSignedDocument().getInputStream()) {
 				preparedSignedDocumentData = IOUtils.toByteArray(in);
 			}
-			int[] byteRange = PDFUtils.extractSignatureByteRange(dataToBeSigned);
+			int[] byteRange = ctx.getSignatureByteRange();
 			int offset = byteRange[1] + 1;
 			for (int i = 0; i < pdfSignature.length; i++) {
 				preparedSignedDocumentData[offset + i] = pdfSignature[i];

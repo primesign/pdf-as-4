@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Base64;
 
 import javax.activation.DataSource;
@@ -18,11 +19,11 @@ public class ExternalSignatureContext {
 
 	private String signatureAlgorithmOid;
 	private byte[] signatureData;
+	private int[] signatureByteRange;
 
 	private ZonedDateTime signingTime;
 	private X509Certificate signingCertificate;
 
-	private DataSource digestInputData;
 	private DataSource preparedSignedDocument;
 
 	@Nullable
@@ -56,11 +57,6 @@ public class ExternalSignatureContext {
 	}
 
 	@Nullable
-	public DataSource getDigestInputData() {
-		return digestInputData;
-	}
-
-	@Nullable
 	public DataSource getPreparedSignedDocument() {
 		return preparedSignedDocument;
 	}
@@ -89,12 +85,16 @@ public class ExternalSignatureContext {
 		this.signingCertificate = signingCertificate;
 	}
 
-	public void setDigestInputData(DataSource digestInputData) {
-		this.digestInputData = digestInputData;
-	}
-
 	public void setPreparedSignedDocument(DataSource preparedSignedDocument) {
 		this.preparedSignedDocument = preparedSignedDocument;
+	}
+	
+	public int[] getSignatureByteRange() {
+		return signatureByteRange;
+	}
+
+	public void setSignatureByteRange(int[] signatureByteRange) {
+		this.signatureByteRange = signatureByteRange;
 	}
 
 	@Override
@@ -105,9 +105,9 @@ public class ExternalSignatureContext {
 		builder.append(", digestValue=").append(digestValue != null ? Base64.getEncoder().encodeToString(digestValue) : null);
 		builder.append(", signatureAlgorithmOid=").append(signatureAlgorithmOid);
 		builder.append(", signatureData=").append(signatureData != null ? "<set>" : null);
+		builder.append(", signatureByteRange=").append(signatureByteRange != null ? Arrays.toString(signatureByteRange) : null);
 		builder.append(", signingTime=").append(signingTime);
 		builder.append(", signingCertificate=").append(signingCertificate != null ? "<set>" : null);
-		builder.append(", digestInputData=").append(digestInputData);
 		builder.append(", preparedSignedDocument=").append(preparedSignedDocument);
 		builder.append("]");
 		return builder.toString();
