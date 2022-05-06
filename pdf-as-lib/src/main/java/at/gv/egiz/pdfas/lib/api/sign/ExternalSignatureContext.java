@@ -109,12 +109,6 @@ public class ExternalSignatureContext {
 			}
 			builder.append("signatureAlgorithmOid=").append(signatureAlgorithmOid);
 		}
-		if (signatureData != null) {
-			if (builder.length() > 0) {
-				builder.append(", ");
-			}
-			builder.append("signatureData=").append(StringUtils.abbreviate(Hex.encodeHexString(signatureData), 20));
-		}
 		if (signatureByteRange != null) {
 			if (builder.length() > 0) {
 				builder.append(", ");
@@ -131,6 +125,12 @@ public class ExternalSignatureContext {
 				// should never occur
 				throw new RuntimeException("Unable to encode certificate.", e);
 			}
+		}
+		if (signatureData != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("signatureData=").append(StringUtils.abbreviate(Hex.encodeHexString(signatureData), 20));
 		}
 		if (preparedDocument != null) {
 			if (builder.length() > 0) {
