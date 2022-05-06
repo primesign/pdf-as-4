@@ -604,6 +604,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		
 		verifySignParameter(signParameter);
 		
+		logger.info("Starting external signature: {}", ctx);
+		
 		try {
 			
 			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
@@ -724,6 +726,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 	@Override
 	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {
+		
+		logger.info("Finishing external signature: {}", ctx);
 		
 		validate(ctx);
 		
