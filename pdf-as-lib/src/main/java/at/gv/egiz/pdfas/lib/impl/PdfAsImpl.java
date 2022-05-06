@@ -673,8 +673,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			ctx.setSigningCertificate(signingCertificate);
 			
 		} catch (PdfAsException | IOException | CertificateException e) {
-			// TODO[PDFAS-114]: Replace with more specific exception
-			throw new PDFASError(ERROR_GENERIC, e);
+			throw new PDFASError(ERROR_SIG_EXTERNAL_FAILED_START, e);
 		}
 		
 	}
@@ -778,8 +777,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			return signResult;
 		
 		} catch (IOException | CertificateException | PdfAsException e) {
-			// TODO[PDFAS-114]: Replace with more specific exception
-			throw new PDFASError(ERROR_GENERIC, e);
+			throw new PDFASError(ERROR_SIG_EXTERNAL_FAILED_FINISH, e);
 		}
 	
 	}

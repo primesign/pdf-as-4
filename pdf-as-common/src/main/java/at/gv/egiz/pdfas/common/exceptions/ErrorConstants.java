@@ -46,6 +46,16 @@ public interface ErrorConstants {
 	 * The state of at least one of the signer certificate's chain certificates is not valid (e.g. revoked).
 	 */
 	long ERROR_SIG_PADESLTV_CERT_STATUS_NOT_VALID = 11104;
+	
+	/**
+	 * Indicates that the preparations for external signature failed.
+	 */
+	long ERROR_SIG_EXTERNAL_FAILED_START = 11105;
+	
+	/**
+	 * Indicates that an external signature could not be processed.
+	 */
+	long ERROR_SIG_EXTERNAL_FAILED_FINISH = 11106;
 
 	// Verification Errors
 

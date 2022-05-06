@@ -172,7 +172,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			return externalSignatureInfo;
 
 		} catch (NoSuchAlgorithmException | CMSException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
+			throw new PdfAsSignatureException("error.pdf.sig.19", e);
 		}
 		
 	}
@@ -344,8 +344,8 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			// return encoded cms signature
 			return contentInfo.getEncoded();
 
-		} catch (CMSException | CodingException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
+		} catch (CMSException | CodingException | IllegalArgumentException e) {
+			throw new PdfAsSignatureException("error.pdf.sig.20", e);
 		}
 		
 	}
