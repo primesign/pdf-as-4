@@ -160,32 +160,28 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			placeholders =PlaceholderFilter.checkPlaceholderSignatureLocationList(pdfObject.getStatus(),
 							pdfObject.getStatus().getSettings(), placeholder_id);
 
+			if (placeholders != null) {
+				
 //            placeholders = SignaturePlaceholderExtractor.getPlaceholders();
-            availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
-
-
-			if(placeholder_id.equalsIgnoreCase("")){
-				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
-				{
-					placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+				availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
+				
+				if(placeholder_id.equalsIgnoreCase("")){
+					if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
+					{
+						placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+					}
 				}
-			}
-
-			if(availablePlaceholders!=null) {
+				
 				signaturePlaceholderData = PlaceholderFilter
 						.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
+				
 			}
-
-
-
 
 			TablePos tablePos = null;
 
-			if(signaturePlaceholderData!=null)
-			signature.setLocation(signaturePlaceholderData.getPlaceholderName());
-
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
+				signature.setLocation(signaturePlaceholderData.getPlaceholderName());
                 placeholders.clear();
                 logger.info("Placeholder data found.");
 				if (signaturePlaceholderData.getProfile() != null) {
