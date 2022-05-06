@@ -597,6 +597,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 	}
 	
+	// TODO[PDFAS-114]: Add tests for startExternalSignature
+
 	@Override
 	public void startExternalSignature(SignParameter signParameter, java.security.cert.X509Certificate signingCertificate, ExternalSignatureContext ctx) throws PDFASError {
 		
@@ -633,6 +635,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				ctx.setSigningTime(ZonedDateTime.now());
 			}
 			Calendar signingTime = GregorianCalendar.from(ctx.getSigningTime());
+			
+			// TODO[PDFAS-114]: Add LTV data
+			// TODO[PDFAS-114]: Invoke SignatureObserver
 			
 			PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
 			
@@ -714,6 +719,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		}
 
 	}
+	
+	// TODO[PDFAS-114]: Add tests for finishExternalSignature
 
 	@Override
 	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {
