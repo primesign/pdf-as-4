@@ -605,7 +605,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		try {
 			
 			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
-			// TODO[PDFAS-114]: Backend check for null name or null backend
+			if (pdfasBackend == null) {
+				throw new PDFASError(ERROR_NO_BACKEND);
+			}
 			
 			// skip signPreprocessing uses by original startSign
 			// ...
@@ -725,7 +727,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			byte[] encodedSignatureValue = signParameter.getPlainSigner().processExternalSignature(signatureValue, ctx.getSignatureData());
 
 			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
-			// TODO[PDFAS-114]: Backend check for null name or null backend
+			if (pdfasBackend == null) {
+				throw new PDFASError(ERROR_NO_BACKEND);
+			}
 
 			byte[] pdfSignature = pdfasBackend.getPdfSigner().rewritePlainSignature(encodedSignatureValue);
 
