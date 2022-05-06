@@ -165,7 +165,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			// triggers both digest calculation (of signed attributes) and signature (provide empty signature value)
 			signedData.addSignerInfo(signerInfo);
 			
-			externalSignatureInfo.setSignatureData(signedData.getEncoded());
+			externalSignatureInfo.setSignatureData(new ContentInfo(signedData).getEncoded());
 			
 			externalSignatureInfo.validate();
 			
@@ -329,12 +329,20 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			
 			ASN1 asn1 = new ASN1(signatureData);
 			ASN1Object asn1Object = asn1.toASN1Object();
-			SignedData signedData = new SignedData(asn1Object);
-			SignerInfo signerInfo = signedData.getSignerInfos()[0];
+			ContentInfo contentInfo = new ContentInfo(asn1Object);
+			if (!ObjectID.cms_signedData.equals(contentInfo.getContentType())) {
+				throw new IllegalArgumentException("Expected that 'signatureData' reflects cms ContentInfo with SignedData content.");
+			}
+			SignedData signedData = (SignedData) contentInfo.getContent();
+			SignerInfo[] signerInfos = signedData.getSignerInfos();
+			if (signerInfos == null || signerInfos.length != 1) {
+				throw new IllegalArgumentException("Expected that 'signatureData' reflects cms ContentInfo with SignedData content with exactly one single SignerInfo.");
+			}
+			SignerInfo signerInfo = signerInfos[0];
 			signerInfo.setSignatureValue(externalSignature);
 			
 			// return encoded cms signature
-			return new ContentInfo(signedData).getEncoded();
+			return contentInfo.getEncoded();
 
 		} catch (CMSException | CodingException e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
