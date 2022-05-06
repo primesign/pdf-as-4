@@ -2,7 +2,6 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Base64;
 
@@ -26,7 +25,6 @@ public class ExternalSignatureContext {
 	private byte[] signatureData;
 	private int[] signatureByteRange;
 
-	private ZonedDateTime signingTime;
 	private X509Certificate signingCertificate;
 
 	private DataSource preparedDocument;
@@ -49,11 +47,6 @@ public class ExternalSignatureContext {
 	@Nullable
 	public byte[] getSignatureData() {
 		return signatureData;
-	}
-
-	@Nullable
-	public ZonedDateTime getSigningTime() {
-		return signingTime;
 	}
 
 	@Nullable
@@ -80,10 +73,6 @@ public class ExternalSignatureContext {
 
 	public void setSignatureData(byte[] signatureData) {
 		this.signatureData = signatureData;
-	}
-
-	public void setSigningTime(ZonedDateTime signingTime) {
-		this.signingTime = signingTime;
 	}
 
 	public void setSigningCertificate(X509Certificate signingCertificate) {
@@ -131,12 +120,6 @@ public class ExternalSignatureContext {
 				builder.append(", ");
 			}
 			builder.append("signatureByteRange=").append(Arrays.toString(signatureByteRange));
-		}
-		if (signingTime != null) {
-			if (builder.length() > 0) {
-				builder.append(", ");
-			}
-			builder.append("signingTime=").append(signingTime);
 		}
 		if (signingCertificate != null) {
 			if (builder.length() > 0) {

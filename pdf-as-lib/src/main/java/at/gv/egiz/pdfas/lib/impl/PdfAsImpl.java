@@ -29,9 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.cert.CertificateException;
-import java.time.ZonedDateTime;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -633,10 +631,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			String pdfFilter = plainSigner.getPDFFilter();
 			String pdfSubFilter = plainSigner.getPDFSubFilter();
-			if (ctx.getSigningTime() == null) {
-				ctx.setSigningTime(ZonedDateTime.now());
-			}
-			Calendar signingTime = GregorianCalendar.from(ctx.getSigningTime());
+			final Calendar signingTime = Calendar.getInstance();
 			
 			// TODO[PDFAS-114]: Add LTV data
 			// TODO[PDFAS-114]: Invoke SignatureObserver
@@ -715,10 +710,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			throw new IllegalStateException("'signingCertificate' expected to be provided by external signature context.");
 		}
 		
-		if (ctx.getSigningTime() == null) {
-			throw new IllegalStateException("'signingTime' expected to be provided by external signature context.");
-		}
-
 	}
 	
 	// TODO[PDFAS-114]: Add tests for finishExternalSignature
