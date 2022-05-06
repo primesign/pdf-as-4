@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.lib.api.sign;
 
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -8,6 +9,10 @@ import java.util.Base64;
 import javax.activation.DataSource;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNullableByDefault;
+
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 
 //TODO[PDFAS-114]: Add javadoc
 
@@ -100,15 +105,57 @@ public class ExternalSignatureContext {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ExternalSignatureContext [");
-		builder.append("digestAlgorithmOid=").append(digestAlgorithmOid);
-		builder.append(", digestValue=").append(digestValue != null ? Base64.getEncoder().encodeToString(digestValue) : null);
-		builder.append(", signatureAlgorithmOid=").append(signatureAlgorithmOid);
-		builder.append(", signatureData=").append(signatureData != null ? "<set>" : null);
-		builder.append(", signatureByteRange=").append(signatureByteRange != null ? Arrays.toString(signatureByteRange) : null);
-		builder.append(", signingTime=").append(signingTime);
-		builder.append(", signingCertificate=").append(signingCertificate != null ? "<set>" : null);
-		builder.append(", preparedSignedDocument=").append(preparedSignedDocument);
+		if (digestAlgorithmOid != null) {
+			builder.append("digestAlgorithmOid=").append(digestAlgorithmOid);
+		}
+		if (digestValue != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("digestValue=").append(Base64.getEncoder().encodeToString(digestValue));
+		}
+		if (signatureAlgorithmOid != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("signatureAlgorithmOid=").append(signatureAlgorithmOid);
+		}
+		if (signatureData != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("signatureData=").append(StringUtils.abbreviate(Hex.encodeHexString(signatureData), 20));
+		}
+		if (signatureByteRange != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("signatureByteRange=").append(Arrays.toString(signatureByteRange));
+		}
+		if (signingTime != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("signingTime=").append(signingTime);
+		}
+		if (signingCertificate != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			try {
+				builder.append("signingCertificate=").append(DigestUtils.sha1Hex(signingCertificate.getEncoded()));
+			} catch (CertificateEncodingException e) {
+				// should never occur
+				throw new RuntimeException("Unable to encode certificate.", e);
+			}
+		}
+		if (preparedSignedDocument != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("preparedSignedDocument=").append(preparedSignedDocument);
+		}
+		builder.insert(0,  "ExternalSignatureContext [");
 		builder.append("]");
 		return builder.toString();
 	}
