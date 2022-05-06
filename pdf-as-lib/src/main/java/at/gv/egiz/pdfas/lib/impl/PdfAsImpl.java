@@ -652,15 +652,15 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			ctx.setSignatureByteRange(byteRange);
 			
 			// ** prepared signed document (without signature yet)
-			byte[] preparedSignedDocument = pdfObject.getSignedDocument();
+			byte[] preparedDocument = pdfObject.getSignedDocument();
 			// store prepared signed document in context (use provided DataSource or InMemory DataSource as fallback)
 			// Note that caller may provide a readable and writeable datasource which can be used here.
-			if (ctx.getPreparedSignedDocument() != null) {
-				try (OutputStream out = ctx.getPreparedSignedDocument().getOutputStream()) {
-					IOUtils.write(preparedSignedDocument, out);
+			if (ctx.getPreparedDocument() != null) {
+				try (OutputStream out = ctx.getPreparedDocument().getOutputStream()) {
+					IOUtils.write(preparedDocument, out);
 				}
 			} else {
-				ctx.setPreparedSignedDocument(new ByteArrayDataSource(preparedSignedDocument));
+				ctx.setPreparedDocument(new ByteArrayDataSource(preparedDocument));
 			}
 			
 			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
@@ -699,8 +699,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			throw new IllegalStateException("'digestValue' expected to be provided by external signature context.");
 		}
 		
-		if (ctx.getPreparedSignedDocument() == null) {
-			throw new IllegalStateException("'preparedSignedDocument' expected to be provided by external signature context.");
+		if (ctx.getPreparedDocument() == null) {
+			throw new IllegalStateException("'preparedDocument' expected to be provided by external signature context.");
 		}
 		
 		if (ctx.getSignatureAlgorithmOid() == null) {
@@ -746,7 +746,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			// ** validate signature
 			
 			byte[] digestInputData;
-			try (InputStream in = new ByteRangeInputStream(ctx.getPreparedSignedDocument().getInputStream(), ctx.getSignatureByteRange())) {
+			try (InputStream in = new ByteRangeInputStream(ctx.getPreparedDocument().getInputStream(), ctx.getSignatureByteRange())) {
 				digestInputData = IOUtils.toByteArray(in);
 			}
 			VerifyResult verifyResult = SignatureUtils.verifySignature(encodedSignatureValue, digestInputData);
@@ -757,18 +757,18 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			// ** insert signature into document
 
-			byte[] preparedSignedDocumentData;
-			try (InputStream in = ctx.getPreparedSignedDocument().getInputStream()) {
-				preparedSignedDocumentData = IOUtils.toByteArray(in);
+			byte[] preparedDocumentData;
+			try (InputStream in = ctx.getPreparedDocument().getInputStream()) {
+				preparedDocumentData = IOUtils.toByteArray(in);
 			}
 			int[] byteRange = ctx.getSignatureByteRange();
 			int offset = byteRange[1] + 1;
 			for (int i = 0; i < pdfSignature.length; i++) {
-				preparedSignedDocumentData[offset + i] = pdfSignature[i];
+				preparedDocumentData[offset + i] = pdfSignature[i];
 			}
 			
 			// ** write result to provided output stream
-			IOUtils.write(preparedSignedDocumentData, signParameter.getSignatureResult());
+			IOUtils.write(preparedDocumentData, signParameter.getSignatureResult());
 
 			SignResultImpl signResult = new SignResultImpl();
 			signResult.setSignerCertificate(iaikSigningCertificate);

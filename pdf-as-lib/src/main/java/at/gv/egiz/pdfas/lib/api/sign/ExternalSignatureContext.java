@@ -29,7 +29,7 @@ public class ExternalSignatureContext {
 	private ZonedDateTime signingTime;
 	private X509Certificate signingCertificate;
 
-	private DataSource preparedSignedDocument;
+	private DataSource preparedDocument;
 
 	@Nullable
 	public String getDigestAlgorithmOid() {
@@ -62,8 +62,8 @@ public class ExternalSignatureContext {
 	}
 
 	@Nullable
-	public DataSource getPreparedSignedDocument() {
-		return preparedSignedDocument;
+	public DataSource getPreparedDocument() {
+		return preparedDocument;
 	}
 
 	public void setDigestAlgorithmOid(String digestAlgorithmOid) {
@@ -90,8 +90,8 @@ public class ExternalSignatureContext {
 		this.signingCertificate = signingCertificate;
 	}
 
-	public void setPreparedSignedDocument(DataSource preparedSignedDocument) {
-		this.preparedSignedDocument = preparedSignedDocument;
+	public void setPreparedDocument(DataSource preparedDocument) {
+		this.preparedDocument = preparedDocument;
 	}
 	
 	public int[] getSignatureByteRange() {
@@ -149,11 +149,11 @@ public class ExternalSignatureContext {
 				throw new RuntimeException("Unable to encode certificate.", e);
 			}
 		}
-		if (preparedSignedDocument != null) {
+		if (preparedDocument != null) {
 			if (builder.length() > 0) {
 				builder.append(", ");
 			}
-			builder.append("preparedSignedDocument=").append(preparedSignedDocument);
+			builder.append("preparedDocument=").append(preparedDocument);
 		}
 		builder.insert(0,  "ExternalSignatureContext [");
 		builder.append("]");
