@@ -596,6 +596,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 	}
 	
 	// TODO[PDFAS-114]: Add tests for startExternalSignature
+	// TODO[PDFAS-114]: Add note about which fields are relevant from signParameter to javadoc for startExternalSignature
 
 	@Override
 	public void startExternalSignature(SignParameter signParameter, java.security.cert.X509Certificate signingCertificate, ExternalSignatureContext ctx) throws PDFASError {
@@ -713,6 +714,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 	}
 	
 	// TODO[PDFAS-114]: Add tests for finishExternalSignature
+	// TODO[PDFAS-114]: Add note about which fields are relevant from signParameter to javadoc for finishExternalSignature
 
 	@Override
 	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {

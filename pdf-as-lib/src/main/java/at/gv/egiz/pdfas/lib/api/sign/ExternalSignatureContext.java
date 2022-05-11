@@ -25,6 +25,7 @@ public class ExternalSignatureContext {
 	private byte[] signatureData;
 	private int[] signatureByteRange;
 
+	// TODO[PDFAS-114]: Support passing and embedding the full chain into the CMS object
 	private X509Certificate signingCertificate;
 
 	private DataSource preparedDocument;
