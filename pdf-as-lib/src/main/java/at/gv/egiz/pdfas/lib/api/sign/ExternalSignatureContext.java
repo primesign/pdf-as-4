@@ -1,5 +1,7 @@
 package at.gv.egiz.pdfas.lib.api.sign;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -16,7 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 //TODO[PDFAS-114]: Add javadoc
 
 @ParametersAreNullableByDefault
-public class ExternalSignatureContext {
+public class ExternalSignatureContext implements Closeable {
 
 	private String digestAlgorithmOid;
 	private byte[] digestValue;
@@ -142,6 +144,17 @@ public class ExternalSignatureContext {
 		builder.insert(0,  "ExternalSignatureContext [");
 		builder.append("]");
 		return builder.toString();
+	}
+
+	@Override
+	public void close() throws IOException {
+		if (preparedDocument instanceof Closeable) {
+			try {
+				((Closeable) preparedDocument).close();
+			} finally {
+				preparedDocument = null;
+			}
+		}
 	}
 	
 }
