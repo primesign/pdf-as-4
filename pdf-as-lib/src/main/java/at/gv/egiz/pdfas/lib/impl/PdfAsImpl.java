@@ -634,8 +634,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			String pdfSubFilter = plainSigner.getPDFSubFilter();
 			final Calendar signingTime = Calendar.getInstance();
 			
-			// TODO[PDFAS-114]: Add LTV data
-			// TODO[PDFAS-114]: Invoke SignatureObserver
+			// TODO[PDFAS-114/PRIMESIGN-2991]: Add LTV
+			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
 			
 			PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
 			
