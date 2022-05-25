@@ -225,6 +225,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				PDFASSignatureInterface signaturInterface = pdfSigner.buildSignaturInterface(plainSigner, parameter, requestedSignature);
 
+				// TODO[PDFAS-115]: Use 'time source' interface (PDFASSignatureInterface) for determining signing time.
+				
 				pdfSigner.signPDF(pdfObject, requestedSignature, signaturInterface);
 
 			} finally {
@@ -367,8 +369,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				// stampPdf(status);
 				request.setNeedCertificate(false);
 
-				status.setSigningDate(Calendar.getInstance());
-
 				// GET Signature DATA
 				String pdfFilter = status.getSignParamter().getPlainSigner()
 						.getPDFFilter();
@@ -377,6 +377,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				IPdfSigner signer = status.getBackend().getPdfSigner();
 
+				// TODO[PDFAS-115]: Use 'producedAt' from OCSP response instead of local date.
+				status.setSigningDate(Calendar.getInstance());
+				
 				PDFASSignatureExtractor signatureDataExtractor = signer
 						.buildBlindSignaturInterface(request.getCertificate(),
 								pdfFilter, pdfSubFilter,

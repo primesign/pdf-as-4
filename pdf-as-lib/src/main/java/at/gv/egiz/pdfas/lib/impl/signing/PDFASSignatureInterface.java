@@ -26,7 +26,10 @@ package at.gv.egiz.pdfas.lib.impl.signing;
 import java.util.Calendar;
 
 public interface PDFASSignatureInterface  {
-	public String getPDFSubFilter();
-    public String getPDFFilter();
-    public Calendar getSigningDate();
+	String getPDFSubFilter();
+    String getPDFFilter();
+    Calendar getSigningDate();
+    
+    // TODO[PDFAS-115]: Add some kind of "time source" interface.
+
 }
