@@ -23,19 +23,27 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.util;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECParameterSpec;
+import java.util.Optional;
+
+import javax.annotation.Nonnull;
+
+import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import iaik.asn1.structures.AlgorithmID;
 import iaik.x509.X509Certificate;
 import iaik.x509.X509ExtensionInitException;
 import iaik.x509.extensions.AuthorityKeyIdentifier;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.ECParameterSpec;
-
-import org.apache.commons.codec.binary.Hex;
-
 public class CertificateUtils {
+	
+	private static final Logger log = LoggerFactory.getLogger(CertificateUtils.class);
+	
 	public static AlgorithmID[] getAlgorithmIDs(X509Certificate signingCertificate)
 			throws NoSuchAlgorithmException {
 		PublicKey publicKey = signingCertificate.getPublicKey();
@@ -82,24 +90,33 @@ public class CertificateUtils {
 	/**
 	 * Returns the signing certificate's authority key identifier entry (if any).
 	 * 
-	 * @param signingCertificate
-	 *            The signing certificate (required; must not be {@code null}).
-	 * @return A hex string (lowercase) representing the authority key identifier (or {@code null} in case the
+	 * @param signingCertificate The signing certificate (required; must not be {@code null}).
+	 * @return A hex string (lowercase) representing the authority key identifier (or an empty {@link Optional} in case the
 	 *         certificate does not have this extension or the extension could not be initialized).
 	 */
-	public static String getAuthorityKeyIdentifierHexString(X509Certificate signingCertificate) {
+	public static Optional<String> getAuthorityKeyIdentifierHexString(@Nonnull X509Certificate signingCertificate) {
+		return getAuthorityKeyIdentifier(signingCertificate).map(Hex::encodeHexString);
+	}
+	
+	/**
+	 * Returns the signing certificate's authority key identifier entry (if any).
+	 * 
+	 * @param signingCertificate The signing certificate (required; must not be {@code null}).
+	 * @return The authority key identifier (or an empty {@link Optional} in case the certificate does not have this
+	 *         extension or the extension could not be initialized).
+	 */
+	public static Optional<byte[]> getAuthorityKeyIdentifier(@Nonnull X509Certificate signingCertificate) {
 		
-		AuthorityKeyIdentifier aki;
 		try {
-			aki = (AuthorityKeyIdentifier) signingCertificate.getExtension(AuthorityKeyIdentifier.oid);
+			AuthorityKeyIdentifier aki = (AuthorityKeyIdentifier) signingCertificate.getExtension(AuthorityKeyIdentifier.oid);
+			if (aki != null) {
+				return Optional.ofNullable(aki.getKeyIdentifier());
+			}
 		} catch (X509ExtensionInitException e) {
 			// go a defensive way, do not throw exception
-			return null;
+			log.debug("Unable to retrieve authority key identifier from certificate: {}", signingCertificate, e);
 		}
-		if (aki != null) {
-			return Hex.encodeHexString(aki.getKeyIdentifier());
-		}
-		return null;
+		return Optional.empty();
 	}
 
 }
