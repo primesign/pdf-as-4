@@ -378,7 +378,7 @@ public class OCSPClient implements AutoCloseable {
 				singleResponse = basicOCSPResponse.getSingleResponse(reqCert);
 			} catch (OCSPException e) {
 				try {
-					singleResponse = basicOCSPResponse.getSingleResponse(issuerCertificate, eeCertificate, null);
+					singleResponse = basicOCSPResponse.getSingleResponse(eeCertificate, issuerCertificate, null);
 				} catch (OCSPException e1) {
 					throw new OCSPClientException("Unable to process received OCSP response for the provided certificate (SHA-1 fingerprint): " + Hex.encodeHexString(eeCertificate.getFingerprintSHA()), e1);
 				}
