@@ -25,8 +25,9 @@ package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.SignatureException;
 import java.util.Calendar;
+
+import javax.annotation.Nonnull;
 
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 import org.slf4j.Logger;
@@ -52,9 +53,9 @@ public class PdfboxSignerWrapper implements PDFASPDFBOXSignatureInterface {
 	private SignParameter parameters;
 	private RequestedSignature requestedSignature;
 
-	public PdfboxSignerWrapper(IPlainSigner signer, SignParameter parameters, RequestedSignature requestedSignature) {
+	PdfboxSignerWrapper(IPlainSigner signer, SignParameter parameters, RequestedSignature requestedSignature, @Nonnull Calendar signingTime) {
 		this.signer = signer;
-		this.date = Calendar.getInstance();
+		this.date = signingTime;
 		this.parameters = parameters;
 		this.requestedSignature = requestedSignature;
 	}

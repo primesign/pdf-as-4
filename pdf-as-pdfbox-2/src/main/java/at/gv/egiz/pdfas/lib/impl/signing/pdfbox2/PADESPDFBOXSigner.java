@@ -30,15 +30,18 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.activation.DataSource;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.cos.COSArray;
@@ -109,10 +112,13 @@ import at.gv.egiz.pdfas.lib.impl.stamping.pdfbox2.StamperFactory;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.lib.pki.impl.OCSPClient;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
 import iaik.x509.X509Certificate;
+import iaik.x509.ocsp.BasicOCSPResponse;
+import iaik.x509.ocsp.OCSPResponse;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	
@@ -734,7 +740,65 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
     @Override
     public PDFASSignatureInterface buildSignaturInterface(IPlainSigner signer, SignParameter parameters,
                                                           RequestedSignature requestedSignature) {
-        return new PdfboxSignerWrapper(signer, parameters, requestedSignature);
+    	
+    	Calendar signingDate = requestedSignature.getStatus().getSigningDate();
+    	if (signingDate == null) {
+    		signingDate = Calendar.getInstance();
+    	}
+    	
+    	// TODO[PDFAS-115]: Move code to PrimeSign (e.g. moving kind of 'time source' implementation to PrimeSign).
+    	
+    	X509Certificate certificate = requestedSignature.getCertificate();
+    	if (certificate != null && OCSPClient.Util.hasOcspResponder(certificate)) {
+
+    		if (logger.isInfoEnabled()) {
+    			logger.info("Fetching ocsp status for signer certificate (sha1-fingerprint: {}) in order to use CA time as signing time.", Hex.encodeHexString(certificate.getFingerprintSHA()));
+    		}
+    		
+    		// TODO[PDFAS-115]: Add configuration for connection timeout and read timeout
+        	// TODO[PDFAS-115]: Add feature flag enabling/disabling ocsp/ca signing time (disabled by default when in pdfas, enabled when in primesign)
+    		
+    		// @formatter:off
+    		OCSPClient ocspClient = OCSPClient.builder()
+    			.setConnectTimeOutMillis(5000)
+    			.setSocketTimeOutMillis(5000)
+    			.build();
+			// @formatter:on
+    		
+    		try {
+    			
+    			OCSPResponse ocspResponse = ocspClient.getOcspResponse(null, certificate);
+    			BasicOCSPResponse basicOCSPResponse = (BasicOCSPResponse) ocspResponse.getResponse();
+    			Date producedAt = basicOCSPResponse.getProducedAt();
+    			
+    			// TODO[PDFAS-115]: Should we (signature) validate the ocsp response ?
+    			// TODO[PDFAS-115]: Should we honour the ocsp status ?
+    			
+    			Calendar signingDateFromCA = Calendar.getInstance();
+    			signingDateFromCA.setTime(producedAt);
+    			
+    			if (logger.isInfoEnabled()) {
+    				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+    				String formattedSigningDate = formatter.format(signingDate.getTime());
+    				String formattedSigningDateFromCA = formatter.format(signingDateFromCA.getTime());
+    				if (formattedSigningDate.equals(formattedSigningDateFromCA)) {
+    					logger.info("Using current time from CA as signing time: {}", formattedSigningDateFromCA);
+    				} else {
+    					logger.info("Overriding local signing time with current time from CA: {} -> {}", formattedSigningDate, formattedSigningDateFromCA);
+    				}
+    						
+    			}
+    			
+    			signingDate = signingDateFromCA;
+    			requestedSignature.getStatus().setSigningDate(signingDateFromCA);
+    			
+    		} catch (Exception e) {
+    			logger.warn("Unable to process ocsp status for signer certificate (sha1-fingerprint: {}).", Hex.encodeHexString(certificate.getFingerprintSHA()), e);
+    		}
+    		
+    	}
+    	
+        return new PdfboxSignerWrapper(signer, parameters, requestedSignature, signingDate);
     }
 
     @Override
