@@ -25,8 +25,12 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +57,7 @@ import iaik.asn1.CodingException;
 import iaik.asn1.ObjectID;
 import iaik.asn1.structures.AccessDescription;
 import iaik.asn1.structures.AlgorithmID;
+import iaik.asn1.structures.Name;
 import iaik.x509.X509Certificate;
 import iaik.x509.X509ExtensionInitException;
 import iaik.x509.extensions.AuthorityInfoAccess;
@@ -244,10 +249,15 @@ public class OCSPClient implements AutoCloseable {
 	}
 	
 	/**
-	 * Retrieves an OCSP response for a certain certificate ({@code eeCertificate}) of a certain CA
-	 * ({@code issuerCertificate}).
+	 * Retrieves an OCSP response for a certain certificate ({@code eeCertificate}) of a certain CA.
+	 * <p>
+	 * Note that {@code issuerCertificate} is optional, but nevertheless recommended. Is omitted, data required to create
+	 * the {@code OCSPRequest} (issuer public key hash, issuer name hash) is derived from the provided
+	 * {@code eeCertificate}. In case the OCSP responder returns multiple results selecting a suitable one may be done using
+	 * the {@code issuerCertificate} if provided.
+	 * </p>
 	 * 
-	 * @param issuerCertificate The issuer certificate (required; must not be {@code null}).
+	 * @param issuerCertificate The issuer certificate (optional; may be {@code null}).
 	 * @param eeCertificate     The end entity certificate (required; must not be {@code null}).
 	 * @return The OCSP response (never {@code null}) with guaranteed response status "successful" and with <strong>any
 	 *         revocation state</strong>.
@@ -255,18 +265,17 @@ public class OCSPClient implements AutoCloseable {
 	 * @throws OCSPClientException      In case the client could not process the response (e.g. non-successful response
 	 *                                  state like malformedRequest, internalError... or an unknown/unsupported response
 	 *                                  type).
-	 * @throws IllegalArgumentException In case the provided {@code eeCertificate} does not provide an OCSP responder
-	 *                                  url (use {@link Util#hasOcspResponder(X509Certificate)} in order to determine if
-	 *                                  it is safe to call this method) or the provided certificates could not be used
-	 *                                  for OCSP request creation.
-	 * @implNote This implementation just returns OCSP responses (<strong>of any revocation status</strong>) as they
-	 *           were retrieved from the OCSP responder (provided the response status indicates a successful response)
-	 *           without performing further checks like OCSP signature verification or OCSP responder certificate
-	 *           validation.
+	 * @throws IllegalArgumentException In case the provided {@code eeCertificate} does not provide an OCSP responder url
+	 *                                  (use {@link Util#hasOcspResponder(X509Certificate)} in order to determine if it is
+	 *                                  safe to call this method) or the provided certificates could not be used for OCSP
+	 *                                  request creation. <strong>Or in case the {@code issuerCertificate} was omitted and
+	 *                                  {@code eeCertificate} does not provide authority key identifier extension.</strong>
+	 * @implNote This implementation just returns OCSP responses (<strong>of any revocation status</strong>) as they were
+	 *           retrieved from the OCSP responder (provided the response status indicates a successful response) without
+	 *           performing further checks like OCSP signature verification or OCSP responder certificate validation.
 	 */
-	public OCSPResponse getOcspResponse(X509Certificate issuerCertificate, X509Certificate eeCertificate) throws IOException, OCSPClientException {
-		
-		Objects.requireNonNull(issuerCertificate, "Issuer certificate required... must not be null.");
+	public OCSPResponse getOcspResponse(@Nullable X509Certificate issuerCertificate, @Nonnull X509Certificate eeCertificate) throws IOException, OCSPClientException {
+	
 		Objects.requireNonNull(eeCertificate, "End-entity certificate required... must not be null.");
 		
 		StopWatch sw = new StopWatch();
@@ -285,10 +294,19 @@ public class OCSPClient implements AutoCloseable {
 		
 		// create request
 		byte[] ocspRequestEncoded;
-		ReqCert reqCert;
+		final ReqCert reqCert;
 		try {
 
-			CertID certID = new CertID(AlgorithmID.sha1, issuerCertificate, eeCertificate);
+			final CertID certID;
+			if (issuerCertificate != null) {
+				certID = new CertID(AlgorithmID.sha1, issuerCertificate, eeCertificate);
+			} else {
+				Name issuerName = (Name) eeCertificate.getIssuerDN();
+				byte[] issuerNameHash = MessageDigest.getInstance("SHA-1").digest(issuerName.getEncoded());
+				byte[] issuerKeyHash = CertificateUtils.getAuthorityKeyIdentifier(eeCertificate)
+						.orElseThrow(() -> new IllegalArgumentException("Unable to encode ocsp request with the provided end-entity certificate which does not provide authority key identifier."));
+				certID = new CertID(AlgorithmID.sha1, issuerNameHash, issuerKeyHash, eeCertificate.getSerialNumber());
+			}
 			reqCert = new ReqCert(ReqCert.certID, certID);
 			Request request = new Request(reqCert);
 			OCSPRequest ocspRequest = new OCSPRequest();
