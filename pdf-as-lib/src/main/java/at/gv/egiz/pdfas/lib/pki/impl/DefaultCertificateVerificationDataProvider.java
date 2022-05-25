@@ -37,6 +37,7 @@ import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,13 +51,13 @@ import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData.CertificateAndRevocationStatus;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData.RevocationStatus;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationDataProviderSpi;
+import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import iaik.asn1.structures.DistributionPoint;
 import iaik.utils.Util;
 import iaik.x509.RevokedCertificate;
 import iaik.x509.X509CRL;
 import iaik.x509.X509Certificate;
 import iaik.x509.X509ExtensionInitException;
-import iaik.x509.extensions.AuthorityKeyIdentifier;
 import iaik.x509.extensions.CRLDistributionPoints;
 import iaik.x509.ocsp.BasicOCSPResponse;
 import iaik.x509.ocsp.CertStatus;
@@ -311,30 +312,6 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 	}
 
 	/**
-	 * Returns the signing certificate's authority key identifier entry (if any).
-	 * 
-	 * @param signingCertificate
-	 *            The signing certificate (required; must not be {@code null}).
-	 * @return A hex string (lowercase) representing the authority key identifier (or {@code null} in case the
-	 *         certificate does not have this extension or the extension could not be initialized).
-	 */
-	private String getAuthorityKeyIdentifierHexString(X509Certificate signingCertificate) {
-		
-		AuthorityKeyIdentifier aki;
-		try {
-			aki = (AuthorityKeyIdentifier) signingCertificate.getExtension(AuthorityKeyIdentifier.oid);
-		} catch (X509ExtensionInitException e) {
-			// go a defensive way, do not throw exception
-			log.warn("Unable to initialize X.509 authority key identifier extension.", e);
-			return null;
-		}
-		if (aki != null) {
-			return Hex.encodeHexString(aki.getKeyIdentifier());
-		}
-		return null;
-	}
-	
-	/**
 	 * Looks for an certificate chain from configuration folder chain suitable for the provided certificate.
 	 * 
 	 * @param certificate
@@ -344,14 +321,14 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 	 * @return A readable URL reflecting the a PKCS7 resource or {@code null}.
 	 */
 	private File findChainFile(X509Certificate certificate, ISettings settings) {
-		final String issuerSkiHex = getAuthorityKeyIdentifierHexString(certificate);
+		Optional<String> issuerSkiHex = CertificateUtils.getAuthorityKeyIdentifierHexString(certificate);
 		final String subjectFingerprintHex = Hex.encodeHexString(certificate.getFingerprintSHA());
 				
-		if (issuerSkiHex != null) {
-			log.debug("Looking for certificate chain file for certificate with SHA-1 fingerprint {} (issuer subject key identifier {}).", subjectFingerprintHex, issuerSkiHex);
+		if (issuerSkiHex.isPresent()) {
+			log.debug("Looking for certificate chain file for certificate with SHA-1 fingerprint {} (issuer subject key identifier {}).", subjectFingerprintHex, issuerSkiHex.get());
 			File certChainDirectory = new File(settings.getWorkingDirectory(), DEFAULT_CHAINSTORE_FOLDER_NAME);
 			if (certChainDirectory.exists() && certChainDirectory.isDirectory()) {
-				File certChainFile = new File(certChainDirectory, "certchain-ski" + issuerSkiHex + ".p7b");
+				File certChainFile = new File(certChainDirectory, "certchain-ski" + issuerSkiHex.get() + ".p7b");
 				if (certChainFile.exists()) {
 					if (certChainFile.canRead()) {
 						log.debug("Found chain file for certificate (SHA-1 fingerprint {}): {}", subjectFingerprintHex, certChainFile.getAbsolutePath());

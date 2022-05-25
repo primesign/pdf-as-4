@@ -48,6 +48,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import iaik.asn1.CodingException;
 import iaik.asn1.ObjectID;
 import iaik.asn1.structures.AccessDescription;
