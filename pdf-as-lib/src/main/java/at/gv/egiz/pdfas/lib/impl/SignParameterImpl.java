@@ -25,7 +25,9 @@ package at.gv.egiz.pdfas.lib.impl;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 import javax.activation.DataSource;
 
@@ -33,6 +35,7 @@ import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignatureObserver;
+import at.gv.egiz.pdfas.lib.api.sign.SigningTimeSource;
 import at.gv.egiz.sl.util.BKUHeader;
 
 public class SignParameterImpl extends PdfAsParameterImpl implements SignParameter, BKUHeaderHolder {
@@ -52,6 +55,8 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	protected int signatureCertificationLevel = SignParameter.NOT_CERTIFIED;
 
 	private LTVMode ltvMode = LTVMode.NONE;
+	
+	private SigningTimeSource signingTimeSource = (requestedSignature -> Calendar.getInstance());
 
 	public SignParameterImpl(Configuration configuration,
 			DataSource dataSource, OutputStream outputStream) {
@@ -122,6 +127,16 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	@Override
 	public SignatureObserver getSignatureObserver() {
 		return signatureObserver;
+	}
+
+	@Override
+	public void setSigningTimeSource(SigningTimeSource signingTimeSource) {
+		this.signingTimeSource = Objects.requireNonNull(signingTimeSource, "'signingTimeSource' must not be null.");
+	}
+
+	@Override
+	public SigningTimeSource getSigningTimeSource() {
+		return signingTimeSource;
 	}
 
 }

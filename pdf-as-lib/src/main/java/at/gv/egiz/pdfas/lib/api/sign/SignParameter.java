@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.io.OutputStream;
 
+import javax.annotation.Nonnull;
+
 import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 
 public interface SignParameter extends PdfAsParameter {
@@ -168,5 +170,12 @@ public interface SignParameter extends PdfAsParameter {
 	 * @return The signature observer (may be {@code null}).
 	 */
 	SignatureObserver getSignatureObserver();
+	
+	// TODO[PDFAS-115]: Add javadoc
+	void setSigningTimeSource(@Nonnull SigningTimeSource signingTimeSource);
+	
+	// TODO[PDFAS-115]: Add javadoc
+	@Nonnull
+	SigningTimeSource getSigningTimeSource();
 
 }
