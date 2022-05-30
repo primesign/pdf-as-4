@@ -344,14 +344,14 @@ public class OCSPClient implements AutoCloseable {
 			}
 			
 			request = new HttpGet(ocspResponderUri);
-			log.debug("Sending OCSP request using HTTP GET to: {}", ocspUrl);
+			log.info("Sending OCSP request using HTTP GET to: {}", ocspUrl);
 			
 		} else {
 			// spec proposes POST request
 			HttpPost httpPost = new HttpPost(ocspUrl);
 			httpPost.setEntity(new ByteArrayEntity(ocspRequestEncoded, ContentType.create("application/ocsp-request")));
 			request = httpPost;
-			log.debug("Sending OCSP request using HTTP POST to: {}", ocspUrl);
+			log.info("Sending OCSP request using HTTP POST to: {}", ocspUrl);
 		}
 		
 		request.setConfig(requestConfig);
