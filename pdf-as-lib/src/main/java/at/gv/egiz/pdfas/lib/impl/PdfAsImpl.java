@@ -171,6 +171,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				X509Certificate certificate = plainSigner.getCertificate(parameter);
 				requestedSignature.setCertificate(certificate);
+				
+				// determine (claimed) signing time
+		    	Calendar signingDate = parameter.getSigningTimeSource().getSigningTime(requestedSignature);
+		    	requestedSignature.getStatus().setSigningDate(signingDate);
 
 				// LTV mode controls if and how retrieval/embedding LTV data will be done
 				LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
@@ -222,11 +226,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			try {
 
 				PDFObject pdfObject = status.getPdfObject();
-
 				PDFASSignatureInterface signaturInterface = pdfSigner.buildSignaturInterface(plainSigner, parameter, requestedSignature);
-
-				// TODO[PDFAS-115]: Use 'time source' interface (PDFASSignatureInterface) for determining signing time.
-				
 				pdfSigner.signPDF(pdfObject, requestedSignature, signaturInterface);
 
 			} finally {
@@ -377,8 +377,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				IPdfSigner signer = status.getBackend().getPdfSigner();
 
-				// TODO[PDFAS-115]: Use 'producedAt' from OCSP response instead of local date.
-				status.setSigningDate(Calendar.getInstance());
+				status.setSigningDate(status.getSignParamter().getSigningTimeSource().getSigningTime(status.getRequestedSignature()));
 				
 				PDFASSignatureExtractor signatureDataExtractor = signer
 						.buildBlindSignaturInterface(request.getCertificate(),
