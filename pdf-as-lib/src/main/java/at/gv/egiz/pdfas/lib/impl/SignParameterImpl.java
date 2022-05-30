@@ -41,7 +41,7 @@ public class SignParameterImpl extends PdfAsParameterImpl implements SignParamet
 	protected DataSource output = null;
 	protected IPlainSigner signer = null;
 	protected OutputStream outputStream = null;
-	protected List<BKUHeader> processInfo = new ArrayList<BKUHeader>();
+	protected List<BKUHeader> processInfo = new ArrayList<>();
 
 	/**
 	 * A signature observer allows tracking certain states of a signature process.
