@@ -2,11 +2,16 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.util.Calendar;
 
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
+
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
 //TODO[PDFAS-115]: Add javadoc
 //TODO[PDFAS-115]: Add test
 
+@Immutable
+@ThreadSafe
 public class LocalSigningTimeSource implements SigningTimeSource {
 
 	@Override

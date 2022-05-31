@@ -33,6 +33,8 @@ import java.util.Objects;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.Immutable;
+import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
@@ -82,6 +84,8 @@ import iaik.x509.ocsp.UnknownResponseException;
  * @see <a href="https://tools.ietf.org/html/rfc6960#appendix-A">PKIX OCSP - OCSP over HTTP</a>
  * @implNote This class is immutable and thread-safe.
  */
+@ThreadSafe
+@Immutable
 public class OCSPClient implements AutoCloseable {
 	
 	private Logger log = LoggerFactory.getLogger(OCSPClient.class);
