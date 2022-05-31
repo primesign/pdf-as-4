@@ -256,9 +256,38 @@ public class OCSPClient implements AutoCloseable {
 	}
 	
 	/**
+	 * Retrieves an OCSP response for a certain certificate ({@code eeCertificate}).
+	 * <p>
+	 * Note that Data required to create the {@code OCSPRequest} (issuer public key hash, issuer name hash) is derived from
+	 * the provided {@code eeCertificate}. In case the OCSP responder returns multiple results selecting a suitable one may
+	 * not be possible. Therefore use of {@link #getOcspResponse(X509Certificate, X509Certificate)} is recommended.
+	 * </p>
+	 * 
+	 * @param eeCertificate The end entity certificate (required; must not be {@code null}).
+	 * @return The OCSP response (never {@code null}) with guaranteed response status "successful" and with <strong>any
+	 *         revocation state</strong>.
+	 * @throws IOException              Thrown in case of error communicating with OCSP responder.
+	 * @throws OCSPClientException      In case the client could not process the response (e.g. non-successful response
+	 *                                  state like malformedRequest, internalError... or an unknown/unsupported response
+	 *                                  type).
+	 * @throws IllegalArgumentException In case the provided {@code eeCertificate} does not provide an OCSP responder url
+	 *                                  (use {@link Util#hasOcspResponder(X509Certificate)} in order to determine if it is
+	 *                                  safe to call this method) or the provided certificates could not be used for OCSP
+	 *                                  request creation. <strong>Or in case the {@code eeCertificate} does not provide
+	 *                                  authority key identifier extension.</strong>
+	 * @implNote This implementation just returns OCSP responses (<strong>of any revocation status</strong>) as they were
+	 *           retrieved from the OCSP responder (provided the response status indicates a successful response) without
+	 *           performing further checks like OCSP signature verification or OCSP responder certificate validation.
+	 * @see #getOcspResponse(X509Certificate, X509Certificate)
+	 */
+	public OCSPResponse getOcspResponse(@Nonnull X509Certificate eeCertificate) throws IOException, OCSPClientException {
+		return getOcspResponse(null, eeCertificate);
+	}
+	
+	/**
 	 * Retrieves an OCSP response for a certain certificate ({@code eeCertificate}) of a certain CA.
 	 * <p>
-	 * Note that {@code issuerCertificate} is optional, but nevertheless recommended. Is omitted, data required to create
+	 * Note that {@code issuerCertificate} is optional, but nevertheless recommended. If omitted, data required to create
 	 * the {@code OCSPRequest} (issuer public key hash, issuer name hash) is derived from the provided
 	 * {@code eeCertificate}. In case the OCSP responder returns multiple results selecting a suitable one may be done using
 	 * the {@code issuerCertificate} if provided.
