@@ -35,7 +35,7 @@ public interface SignResult {
 	 * 
 	 * @return Returns the certificate of the signer.
 	 */
-	public X509Certificate getSignerCertificate();
+	X509Certificate getSignerCertificate();
 
 	/**
 	 * Returns the position where the signature is finally placed.
@@ -52,7 +52,8 @@ public interface SignResult {
 	 * @return Returns the position where the signature is finally placed. May
 	 *         return null if no position information is available.
 	 */
-	public SignaturePosition getSignaturePosition();
+	SignaturePosition getSignaturePosition();
 	
-	public Map<String, String> getProcessInformations();
+	Map<String, String> getProcessInformations();
+	
 }
