@@ -34,7 +34,7 @@ public class SignResultImpl implements SignResult {
 
 	protected X509Certificate certificate;
 	protected SignaturePosition position;
-	protected Map<String, String> processInfo = new HashMap<String, String>();
+	protected Map<String, String> processInfo = new HashMap<>();
 	
 	public SignResultImpl() {
 	}
