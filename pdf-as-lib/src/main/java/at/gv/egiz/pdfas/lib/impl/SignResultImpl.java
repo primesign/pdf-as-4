@@ -69,6 +69,11 @@ public class SignResultImpl implements SignResult {
 		return signingDate;
 	}
 
+	/**
+	 * Sets the final signing date used for the signature.
+	 * 
+	 * @param signingDate The signing date. (optional; may be {@code null})
+	 */
 	public void setSigningDate(@Nullable Calendar signingDate) {
 		this.signingDate = signingDate;
 	}

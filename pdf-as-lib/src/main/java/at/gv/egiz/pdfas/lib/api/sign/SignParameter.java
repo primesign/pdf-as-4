@@ -171,10 +171,18 @@ public interface SignParameter extends PdfAsParameter {
 	 */
 	SignatureObserver getSignatureObserver();
 	
-	// TODO[PDFAS-115]: Add javadoc
+	/**
+	 * Allows the api user to set an external signing time source.
+	 * 
+	 * @param signingTimeSource The signing time source. (required; must not be {@code null})
+	 */
 	void setSigningTimeSource(@Nonnull SigningTimeSource signingTimeSource);
-	
-	// TODO[PDFAS-115]: Add javadoc
+
+	/**
+	 * Returns the current external signing time source.
+	 * 
+	 * @return The signing time source. (never {@code null})
+	 */
 	@Nonnull
 	SigningTimeSource getSigningTimeSource();
 

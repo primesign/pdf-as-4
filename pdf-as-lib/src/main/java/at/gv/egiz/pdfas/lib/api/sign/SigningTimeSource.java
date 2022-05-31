@@ -6,12 +6,23 @@ import javax.annotation.Nonnull;
 
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
-// TODO[PDFAS-115]: Add javadoc
 // TODO[PDFAS-115]: Add test
 
+/**
+ * Reflects the concept of an externally provided pdf signing time.
+ * 
+ * @author Thomas Knall, PrimeSign GmbH
+ *
+ */
 @FunctionalInterface
 public interface SigningTimeSource {
-	
+
+	/**
+	 * Returns a signing time to be used as time of signature.
+	 * 
+	 * @param requestedSignature The signature context. (required; must not be {@code null})
+	 * @return The signing time. (never {@code null})
+	 */
 	@Nonnull
 	Calendar getSigningTime(@Nonnull RequestedSignature requestedSignature);
 
