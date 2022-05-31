@@ -27,6 +27,8 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -59,6 +61,7 @@ import iaik.asn1.structures.AccessDescription;
 import iaik.asn1.structures.AlgorithmID;
 import iaik.asn1.structures.Name;
 import iaik.x509.X509Certificate;
+import iaik.x509.X509ExtensionException;
 import iaik.x509.X509ExtensionInitException;
 import iaik.x509.extensions.AuthorityInfoAccess;
 import iaik.x509.ocsp.BasicOCSPResponse;
@@ -295,6 +298,7 @@ public class OCSPClient implements AutoCloseable {
 		// create request
 		byte[] ocspRequestEncoded;
 		final ReqCert reqCert;
+		byte[] nonce = new byte[32];
 		try {
 
 			final CertID certID;
@@ -310,6 +314,16 @@ public class OCSPClient implements AutoCloseable {
 			reqCert = new ReqCert(ReqCert.certID, certID);
 			Request request = new Request(reqCert);
 			OCSPRequest ocspRequest = new OCSPRequest();
+			try {
+				new SecureRandom().nextBytes(nonce);
+				ocspRequest.setNonce(nonce);
+				if (log.isDebugEnabled()) {
+					log.debug("Setting random nonce for ocsp request: {}", Hex.encodeHexString(nonce));
+				}
+			} catch (X509ExtensionException e) {
+				nonce = null;
+				log.info("Unable to set random nonce for ocsp request: {}", String.valueOf(e));
+			}
 			ocspRequest.setRequestList(new Request[] { request });
 			ocspRequestEncoded = ocspRequest.getEncoded();
 			
@@ -387,7 +401,21 @@ public class OCSPClient implements AutoCloseable {
 			// get the basic ocsp response (which is the only type currently supported, otherwise an
 			// UnknownResponseException would have been thrown during parsing the response)
 			BasicOCSPResponse basicOCSPResponse = (BasicOCSPResponse) ocspResponse.getResponse();
-			
+
+			// consider nonce
+			if (nonce != null) {
+				log.trace("Validating nonce of ocsp response.");
+				try {
+					byte[] responseNonce = basicOCSPResponse.getNonce();
+					if (!Arrays.equals(nonce, responseNonce)) {
+						throw new IllegalStateException("Nonce of request (" + Hex.encodeHexString(nonce) + ") does not match nonce of response (" + Hex.encodeHexString(responseNonce) + ").");
+					}
+					log.trace("Matching request & response nonse.");
+				} catch (X509ExtensionInitException e) {
+					throw new IllegalStateException("Unable to get nonce from response although used for request.", e);
+				}
+			}
+
 			// for future improvement: verify ocsp response, responder certificate...
 			
 			SingleResponse singleResponse;
