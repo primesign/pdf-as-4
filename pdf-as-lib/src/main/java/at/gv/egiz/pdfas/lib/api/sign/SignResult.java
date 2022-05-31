@@ -24,7 +24,10 @@
 package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 
@@ -55,5 +58,11 @@ public interface SignResult {
 	SignaturePosition getSignaturePosition();
 	
 	Map<String, String> getProcessInformations();
+	
+	// TODO[PDFAS-115]: Add javadoc
+	// TODO[PDFAS-115]: Add tests
+	
+	@Nullable
+	Calendar getSigningDate();
 	
 }

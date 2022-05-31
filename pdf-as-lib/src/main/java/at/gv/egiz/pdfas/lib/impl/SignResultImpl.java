@@ -24,8 +24,11 @@
 package at.gv.egiz.pdfas.lib.impl;
 
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
@@ -35,6 +38,7 @@ public class SignResultImpl implements SignResult {
 	protected X509Certificate certificate;
 	protected SignaturePosition position;
 	protected Map<String, String> processInfo = new HashMap<>();
+	private Calendar signingDate;
 	
 	public SignResultImpl() {
 	}
@@ -58,6 +62,15 @@ public class SignResultImpl implements SignResult {
 	@Override
 	public Map<String, String> getProcessInformations() {
 		return processInfo;
+	}
+
+	@Override
+	public Calendar getSigningDate() {
+		return signingDate;
+	}
+
+	public void setSigningDate(@Nullable Calendar signingDate) {
+		this.signingDate = signingDate;
 	}
 
 }

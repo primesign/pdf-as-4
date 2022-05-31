@@ -533,6 +533,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		result.setSignaturePosition(status.getRequestedSignature()
 				.getSignaturePosition());
 		result.getProcessInformations().putAll(status.getMetaInformations());
+		result.setSigningDate(status.getSigningDate());
 		return result;
 	}
 
