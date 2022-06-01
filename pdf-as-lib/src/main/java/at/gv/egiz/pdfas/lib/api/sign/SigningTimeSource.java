@@ -6,8 +6,6 @@ import javax.annotation.Nonnull;
 
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 
-// TODO[PDFAS-115]: Add test
-
 /**
  * Reflects the concept of an externally provided pdf signing time.
  * 

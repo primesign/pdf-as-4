@@ -59,8 +59,6 @@ public interface SignResult {
 	
 	Map<String, String> getProcessInformations();
 	
-	// TODO[PDFAS-115]: Add tests
-	
 	/**
 	 * Returns the final signing date used for the signature.
 	 * 

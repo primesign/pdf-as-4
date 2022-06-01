@@ -39,6 +39,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -326,10 +327,9 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 		try {
 			logger.info("Creating PAdES signature.");
 
-			requestedSignature.getStatus().getMetaInformations()
-			.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
-			requestedSignature.getStatus().getMetaInformations()
-			.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION, PdfAsFactory.getVersion());
+			Map<String, String> metaInformation = requestedSignature.getStatus().getMetaInformations();
+			metaInformation.put(ErrorConstants.STATUS_INFO_SIGDEVICE, SIGNATURE_DEVICE);
+			metaInformation.put(ErrorConstants.STATUS_INFO_SIGDEVICEVERSION, PdfAsFactory.getVersion());
 
 			IssuerAndSerialNumber issuer = new IssuerAndSerialNumber(cert);
 
