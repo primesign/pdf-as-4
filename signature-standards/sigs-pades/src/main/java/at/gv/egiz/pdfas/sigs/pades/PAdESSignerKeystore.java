@@ -23,24 +23,6 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.sigs.pades;
 
-import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
-import iaik.asn1.ASN1Object;
-import iaik.asn1.CodingException;
-import iaik.asn1.ObjectID;
-import iaik.asn1.SEQUENCE;
-import iaik.asn1.UTF8String;
-import iaik.asn1.structures.AlgorithmID;
-import iaik.asn1.structures.Attribute;
-import iaik.asn1.structures.ChoiceOfTime;
-import iaik.cms.ContentInfo;
-import iaik.cms.IssuerAndSerialNumber;
-import iaik.cms.SecurityProvider;
-import iaik.cms.SignedData;
-import iaik.cms.SignerInfo;
-import iaik.smime.ess.ESSCertID;
-import iaik.smime.ess.ESSCertIDv2;
-import iaik.x509.X509Certificate;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,12 +47,29 @@ import at.gv.egiz.pdfas.common.exceptions.ErrorConstants;
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
+import iaik.asn1.ASN1Object;
+import iaik.asn1.CodingException;
+import iaik.asn1.ObjectID;
+import iaik.asn1.SEQUENCE;
+import iaik.asn1.UTF8String;
+import iaik.asn1.structures.AlgorithmID;
+import iaik.asn1.structures.Attribute;
+import iaik.asn1.structures.ChoiceOfTime;
+import iaik.cms.ContentInfo;
+import iaik.cms.IssuerAndSerialNumber;
+import iaik.cms.SecurityProvider;
+import iaik.cms.SignedData;
+import iaik.cms.SignerInfo;
+import iaik.smime.ess.ESSCertID;
+import iaik.smime.ess.ESSCertIDv2;
+import iaik.x509.X509Certificate;
 
 public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdESConstants {
 
@@ -271,7 +270,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			X509Certificate signingCertificate, Date signingTime,
 			SignerInfo signerInfo) throws CertificateException,
 			NoSuchAlgorithmException, CodingException {
-		List<Attribute> attributes = new ArrayList<Attribute>();
+		List<Attribute> attributes = new ArrayList<>();
 
 		setMimeTypeAttrib(attributes, mimeType);
 		setContentTypeAttrib(attributes);
@@ -284,7 +283,7 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 
 	private void setAttributes(X509Certificate signingCertificate, SignerInfo signerInfo) throws CertificateException,
 			NoSuchAlgorithmException, CodingException {
-		List<Attribute> attributes = new ArrayList<Attribute>();
+		List<Attribute> attributes = new ArrayList<>();
 
 		setContentTypeAttrib(attributes);
 		setSigningCertificateAttrib(attributes, signingCertificate);
