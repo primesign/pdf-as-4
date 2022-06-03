@@ -24,7 +24,10 @@
 package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 
@@ -35,7 +38,7 @@ public interface SignResult {
 	 * 
 	 * @return Returns the certificate of the signer.
 	 */
-	public X509Certificate getSignerCertificate();
+	X509Certificate getSignerCertificate();
 
 	/**
 	 * Returns the position where the signature is finally placed.
@@ -52,7 +55,16 @@ public interface SignResult {
 	 * @return Returns the position where the signature is finally placed. May
 	 *         return null if no position information is available.
 	 */
-	public SignaturePosition getSignaturePosition();
+	SignaturePosition getSignaturePosition();
 	
-	public Map<String, String> getProcessInformations();
+	Map<String, String> getProcessInformations();
+	
+	/**
+	 * Returns the final signing date used for the signature.
+	 * 
+	 * @return The signing date. (may be {@code null})
+	 */
+	@Nullable
+	Calendar getSigningDate();
+	
 }

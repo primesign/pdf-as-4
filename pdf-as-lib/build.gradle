@@ -88,6 +88,8 @@ dependencies {
 	ws group: 'org.apache.cxf', name: 'cxf-tools', version: cxfVersion
 	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-databinding-jaxb', version: cxfVersion
 	ws group: 'org.apache.cxf', name: 'cxf-tools-wsdlto-frontend-jaxws', version: cxfVersion
+	
+	implementation group: 'com.google.code.findbugs', name: 'jsr305', version: jsr305Version
 }
 
 task wsdl2Java() {

@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.lib.api.sign;
 
 import java.io.OutputStream;
 
+import javax.annotation.Nonnull;
+
 import at.gv.egiz.pdfas.lib.api.PdfAsParameter;
 
 public interface SignParameter extends PdfAsParameter {
@@ -32,41 +34,41 @@ public interface SignParameter extends PdfAsParameter {
 	// certification levels
 
 	/** Approval signature */
-	public static final int NOT_CERTIFIED = 0;
+	int NOT_CERTIFIED = 0;
 
 	/** Author signature, no changes allowed */
-	public static final int CERTIFIED_NO_CHANGES_ALLOWED = 1;
+	int CERTIFIED_NO_CHANGES_ALLOWED = 1;
 
 	/** Author signature, form filling allowed */
-	public static final int CERTIFIED_FORM_FILLING = 2;
+	int CERTIFIED_FORM_FILLING = 2;
 
 	/** Author signature, form filling and annotations allowed */
-	public static final int CERTIFIED_FORM_FILLING_AND_ANNOTATIONS = 3;
+	int CERTIFIED_FORM_FILLING_AND_ANNOTATIONS = 3;
 
 	/**
 	 * Gets the signature profile to use
 	 * @return
 	 */
-	public String getSignatureProfileId();
+	String getSignatureProfileId();
 
 	/**
 	 * Sets the signature profile to use
 	 *
 	 * @param signatureProfileId The signature profile
 	 */
-	public void setSignatureProfileId(String signatureProfileId);
+	void setSignatureProfileId(String signatureProfileId);
 
 	/**
 	 * Gets the signature position
 	 * @return
 	 */
-	public String getSignaturePosition();
+	String getSignaturePosition();
 
 	/**
 	 * Sets the signature position
 	 * @param signaturePosition The signature position string
 	 */
-	public void setSignaturePosition(String signaturePosition);
+	void setSignaturePosition(String signaturePosition);
 
 	/**
 	 * Sets the signer to use
@@ -74,19 +76,19 @@ public interface SignParameter extends PdfAsParameter {
 	 *
 	 * @param signer
 	 */
-	public void setPlainSigner(IPlainSigner signer);
+	void setPlainSigner(IPlainSigner signer);
 
 	/**
 	 * Gets the signer to use.
 	 * @return
 	 */
-	public IPlainSigner getPlainSigner();
+	IPlainSigner getPlainSigner();
 
 	/**
 	 * Gets the outputstream, where the signed document will be written to
 	 * @return
 	 */
-	public OutputStream getSignatureResult();
+	OutputStream getSignatureResult();
 
 	/**
 	 * Gets the signature certification level.
@@ -168,5 +170,20 @@ public interface SignParameter extends PdfAsParameter {
 	 * @return The signature observer (may be {@code null}).
 	 */
 	SignatureObserver getSignatureObserver();
+	
+	/**
+	 * Allows the api user to set an external signing time source.
+	 * 
+	 * @param signingTimeSource The signing time source. (required; must not be {@code null})
+	 */
+	void setSigningTimeSource(@Nonnull SigningTimeSource signingTimeSource);
+
+	/**
+	 * Returns the current external signing time source.
+	 * 
+	 * @return The signing time source. (never {@code null})
+	 */
+	@Nonnull
+	SigningTimeSource getSigningTimeSource();
 
 }

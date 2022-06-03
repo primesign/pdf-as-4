@@ -171,6 +171,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				X509Certificate certificate = plainSigner.getCertificate(parameter);
 				requestedSignature.setCertificate(certificate);
+				
+				// determine (claimed) signing time
+		    	Calendar signingDate = parameter.getSigningTimeSource().getSigningTime(requestedSignature);
+		    	requestedSignature.getStatus().setSigningDate(signingDate);
 
 				// LTV mode controls if and how retrieval/embedding LTV data will be done
 				LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
@@ -222,9 +226,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			try {
 
 				PDFObject pdfObject = status.getPdfObject();
-
 				PDFASSignatureInterface signaturInterface = pdfSigner.buildSignaturInterface(plainSigner, parameter, requestedSignature);
-
 				pdfSigner.signPDF(pdfObject, requestedSignature, signaturInterface);
 
 			} finally {
@@ -367,8 +369,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				// stampPdf(status);
 				request.setNeedCertificate(false);
 
-				status.setSigningDate(Calendar.getInstance());
-
 				// GET Signature DATA
 				String pdfFilter = status.getSignParamter().getPlainSigner()
 						.getPDFFilter();
@@ -377,6 +377,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				IPdfSigner signer = status.getBackend().getPdfSigner();
 
+				status.setSigningDate(status.getSignParamter().getSigningTimeSource().getSigningTime(status.getRequestedSignature()));
+				
 				PDFASSignatureExtractor signatureDataExtractor = signer
 						.buildBlindSignaturInterface(request.getCertificate(),
 								pdfFilter, pdfSubFilter,
@@ -531,6 +533,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		result.setSignaturePosition(status.getRequestedSignature()
 				.getSignaturePosition());
 		result.getProcessInformations().putAll(status.getMetaInformations());
+		result.setSigningDate(status.getSigningDate());
 		return result;
 	}
 

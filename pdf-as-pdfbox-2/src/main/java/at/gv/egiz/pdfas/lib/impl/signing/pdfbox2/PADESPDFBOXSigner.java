@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -228,20 +229,18 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 
 			signature.setName(signerName);
 
-			// take signing time from provided signer...
-			signature.setSignDate(signer.getSigningDate());
-			// ...and update operation status in order to use exactly this date for the complete signing process
-			requestedSignature.getStatus().setSigningDate(signer.getSigningDate());
+			// set claimed signing date
+			signature.setSignDate(requestedSignature.getStatus().getSigningDate());
+			if (logger.isDebugEnabled()) {
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+				logger.debug("Signing @ {}", formatter.format(requestedSignature.getStatus().getSigningDate().getTime()));
+			}
 
 			String reason = StringUtils.trimToNull(signatureProfileSettings.getSigningReason());
 			if (reason != null) {
 				signature.setReason(reason);
 				logger.debug("Signing reason: {}", reason);
 			}
-
-			logger.debug("Signing @ " + signer.getSigningDate().getTime().toString());
-			// the signing date, needed for valid signature
-			// signature.setSignDate(signer.getSigningDate());
 
 			signer.setPDSignature(signature);
 
@@ -734,7 +733,7 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
     @Override
     public PDFASSignatureInterface buildSignaturInterface(IPlainSigner signer, SignParameter parameters,
                                                           RequestedSignature requestedSignature) {
-        return new PdfboxSignerWrapper(signer, parameters, requestedSignature);
+    	return new PdfboxSignerWrapper(signer, parameters, requestedSignature);
     }
 
     @Override
