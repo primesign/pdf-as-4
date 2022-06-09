@@ -55,8 +55,10 @@ import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData.CertificateAndRe
  *
  * @author Thomas Knall, PrimeSign GmbH
  * @see <a href=
- *      "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
- *      ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>
+ *      "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS
+ *      102 778-4 v1.1.2, Annex A, "LTV extensions"</a>
+ * @see <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS
+ *      103 172 V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
  *
  */
 public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
@@ -64,18 +66,14 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	private Logger log = LoggerFactory.getLogger(LTVEnabledPADESPDFBOXSigner.class);
 
 	/**
-	 * Adds previously collected LTV verification data to the provided pdf document.
+	 * Adds previously collected LTV verification data to the provided pdf document and updates pdf version and extensions
+	 * dictionary if needed.
 	 *
-	 * @param pdDocument
-	 *            The pdf document (required; must not be {@code null}).
-	 * @param ltvVerificationInfo
-	 *            The certificate verification info data (required; must not be {@code null}).
-	 * @throws CertificateEncodingException
-	 *             In case of an error with certificate encoding.
-	 * @throws CRLException
-	 *             In case there was an error encoding CRL data.
-	 * @throws IOException
-	 *             In case there was an error adding a pdf stream to the document.
+	 * @param pdDocument          The pdf document (required; must not be {@code null}).
+	 * @param ltvVerificationInfo The certificate verification info data (required; must not be {@code null}).
+	 * @throws CertificateEncodingException In case of an error with certificate encoding.
+	 * @throws CRLException                 In case there was an error encoding CRL data.
+	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 */
 	private void addLTVInfo(PDDocument pdDocument, CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, CRLException, IOException {
 		
@@ -106,20 +104,17 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	}
 
 	/**
-	 * Adds the DSS dictionary as specified in <a href=
-	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
-	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
+	 * Adds the DSS dictionary as specified by <a href=
+	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
+	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
+	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
+	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
-	 * @param pdDocument
-	 *            The pdf document (required; must not be {@code null}).
-	 * @param ltvVerificationInfo
-	 *            The certificate verification info data (required; must not be {@code null}).
-	 * @throws CertificateEncodingException
-	 *             In case of an error encoding certificates.
-	 * @throws IOException
-	 *             In case there was an error adding a pdf stream to the document.
-	 * @throws CRLException
-	 *             In case there was an error encoding CRL data.
+	 * @param pdDocument          The pdf document (required; must not be {@code null}).
+	 * @param ltvVerificationInfo The certificate verification info data (required; must not be {@code null}).
+	 * @throws CertificateEncodingException In case of an error encoding certificates.
+	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
+	 * @throws CRLException                 In case there was an error encoding CRL data.
 	 */
 	private void addDSS(PDDocument pdDocument, CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
 		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
@@ -208,19 +203,16 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 
 	/**
 	 * Adds the "Certs" dictionary to DSS dictionary as specified in <a href=
-	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
-	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
+	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
+	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
+	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
+	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
-	 * @param pdDocument
-	 *            The pdf document (required; must not be {@code null}).
-	 * @param dssDictionary
-	 *            The DSS dictionary (required; must not be {@code null}).
-	 * @param certificates
-	 *            The certificates (required; must not be {@code null}).
-	 * @throws IOException
-	 *             In case there was an error adding a pdf stream to the document.
-	 * @throws CertificateEncodingException
-	 *             In case of an error encoding certificates.
+	 * @param pdDocument    The pdf document (required; must not be {@code null}).
+	 * @param dssDictionary The DSS dictionary (required; must not be {@code null}).
+	 * @param certificates  The certificates (required; must not be {@code null}).
+	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
+	 * @throws CertificateEncodingException In case of an error encoding certificates.
 	 */
 	private void addDSSCerts(PDDocument pdDocument, COSDictionary dssDictionary, Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
 		final COSName COSNAME_CERTS = COSName.getPDFName("Certs");
@@ -248,17 +240,15 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 
 	/**
 	 * Adds the "OCSPs" dictionary to DSS dictionary as specified in <a href=
-	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
-	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
+	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
+	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
+	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
+	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
-	 * @param pdDocument
-	 *            The pdf document (required; must not be {@code null}).
-	 * @param dssDictionary
-	 *            The DSS dictionary (required; must not be {@code null}).
-	 * @param encodedOcspResponses
-	 *            The encoded OCSP responses (required; must not be {@code null}).
-	 * @throws IOException
-	 *             In case there was an error adding a pdf stream to the document.
+	 * @param pdDocument           The pdf document (required; must not be {@code null}).
+	 * @param dssDictionary        The DSS dictionary (required; must not be {@code null}).
+	 * @param encodedOcspResponses The encoded OCSP responses (required; must not be {@code null}).
+	 * @throws IOException In case there was an error adding a pdf stream to the document.
 	 */
 	private void addDSSOCSPs(PDDocument pdDocument, COSDictionary dssDictionary, Iterable<byte[]> encodedOcspResponses) throws IOException {
 		final COSName COSNAME_OCSPS = COSName.getPDFName("OCSPs");
@@ -283,19 +273,16 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 
 	/**
 	 * Adds the "CRLs" dictionary to DSS dictionary as specified in <a href=
-	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">PAdES
-	 * ETSI TS 102 778-4 v1.1.2, Annex A, "LTV extensions"</a>.
+	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
+	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
+	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
+	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
-	 * @param pdDocument
-	 *            The pdf document (required; must not be {@code null}).
-	 * @param dssDictionary
-	 *            The DSS dictionary (required; must not be {@code null}).
-	 * @param crls
-	 *            The CRLs (required; must not be {@code null}).
-	 * @throws IOException
-	 *             In case there was an error adding a pdf stream to the document.
-	 * @throws CRLException
-	 *             In case there was an error encoding CRL data.
+	 * @param pdDocument    The pdf document (required; must not be {@code null}).
+	 * @param dssDictionary The DSS dictionary (required; must not be {@code null}).
+	 * @param crls          The CRLs (required; must not be {@code null}).
+	 * @throws IOException  In case there was an error adding a pdf stream to the document.
+	 * @throws CRLException In case there was an error encoding CRL data.
 	 */
 	private void addDSSCRLs(PDDocument pdDocument, COSDictionary dssDictionary, Iterable<X509CRL> crls) throws IOException, CRLException {
 		final COSName COSNAME_CRLS = COSName.getPDFName("CRLs");
