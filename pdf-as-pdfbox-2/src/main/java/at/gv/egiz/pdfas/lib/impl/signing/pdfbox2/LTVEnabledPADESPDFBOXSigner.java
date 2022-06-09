@@ -84,6 +84,15 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 		}
 		log.debug("Adding LTV info to document.");
 		addDSS(Objects.requireNonNull(pdDocument), ltvVerificationInfo);
+		
+		// DSS reflects an extension to ISO 32000-1:2008 (PDF-1.7), so the document should be labeled as 1.7+ document
+		if (pdDocument.getVersion() < 1.7f) {
+			if (log.isDebugEnabled()) {
+				log.debug("Updating pdf version: {} -> 1.7", pdDocument.getVersion());
+			}
+			pdDocument.setVersion(1.7f);
+		}
+		
 		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs()) || CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
 			log.info("LTV data (certchain and revocation info) added to document.");
 		} else {
