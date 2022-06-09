@@ -78,10 +78,12 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 *             In case there was an error adding a pdf stream to the document.
 	 */
 	private void addLTVInfo(PDDocument pdDocument, CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, CRLException, IOException {
+		
 		// expect at least the certificate(s)
 		if (CollectionUtils.isEmpty(Objects.requireNonNull(ltvVerificationInfo).getChainCerts())) {
 			throw new IllegalStateException("LTV data has not been retrieved yet. At least the signer certificate's chain is must be provided.");
 		}
+		
 		log.debug("Adding LTV info to document.");
 		addDSS(Objects.requireNonNull(pdDocument), ltvVerificationInfo);
 		
@@ -92,6 +94,9 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			}
 			pdDocument.setVersion(1.7f);
 		}
+		
+		// announce that an extension to PDF-1.7 has been added
+		addOrUpdateExtensions(pdDocument);
 		
 		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs()) || CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
 			log.info("LTV data (certchain and revocation info) added to document.");
@@ -141,7 +146,64 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs())) {
 			addDSSCRLs(pdDocument, dssDictionary, ltvVerificationInfo.getCRLs());
 		}
+	}
+	
+	/**
+	 * Adds an /Extensions dictionary (if not already present) and adds the Adobe extension (/ADBE) announcing use of DSS
+	 * dictionary.
+	 * 
+	 * @param pdDocument The pdf document. (required; must not be {@code null}).
+	 */
+	private void addOrUpdateExtensions(PDDocument pdDocument) {
+		
+		final COSName COSNAME_EXTENSIONS = COSName.getPDFName("Extensions");
+		PDDocumentCatalog root = Objects.requireNonNull(pdDocument).getDocumentCatalog();
+		
+		COSDictionary extDictionary = (COSDictionary) root.getCOSObject().getDictionaryObject(COSNAME_EXTENSIONS);
+		if (extDictionary == null) {
+			log.trace("Adding new Extensions dictionary.");
+			// add new Extensions dictionary
+			extDictionary = new COSDictionary();
+			extDictionary.setDirect(true);
+			root.getCOSObject().setItem(COSNAME_EXTENSIONS, extDictionary);
+			root.getCOSObject().setNeedToBeUpdated(true);
+		}
+		
+		addADBEExtension(extDictionary);
+	}
 
+	/**
+	 * Adds the /ADBE dictionary to the provided extensions dictionary (if not already present) in order to announce
+	 * DSS extension to ISO32000-1:2008.
+	 * 
+	 * @param extDictionary The extension dictionary. (required; must not be {@code null})
+	 */
+	private void addADBEExtension(COSDictionary extDictionary) {
+		
+		final COSName COSNAME_ADBE = COSName.getPDFName("ADBE");
+		
+		COSDictionary adbeDictionary = (COSDictionary) Objects.requireNonNull(extDictionary).getDictionaryObject(COSNAME_ADBE);
+		if (adbeDictionary == null) {
+			log.trace("Adding new ADBE extensions dictionary.");
+			// add new ADBE dictionary
+			adbeDictionary = new COSDictionary();
+			adbeDictionary.setDirect(true);
+			extDictionary.setItem(COSNAME_ADBE, adbeDictionary);
+			extDictionary.setNeedToBeUpdated(true);
+		}
+		
+		final COSName VERSION_1_7 = COSName.getPDFName("1.7");
+		// only set entry if not already set
+		if (!VERSION_1_7.equals(adbeDictionary.getItem("BaseVersion"))) {
+			adbeDictionary.setItem("BaseVersion", VERSION_1_7);
+			adbeDictionary.setNeedToBeUpdated(true);
+		}
+		// only set if not already set
+		if (adbeDictionary.getInt("ExtensionLevel") != 5) {
+			adbeDictionary.setInt("ExtensionLevel", 5);
+			adbeDictionary.setNeedToBeUpdated(true);
+		}
+		
 	}
 
 	/**
