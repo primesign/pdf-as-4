@@ -196,7 +196,7 @@ public class LTVSupportImpl implements LTVSupport {
 		// add BER-encoded X.509 certificates
 		log.trace("Adding certificates to DSS/Certs dictionary.");
 		for (X509Certificate certificate : certificates) {
-			log.trace("Adding certificate for subject: {}", certificate.getSubjectDN());
+			log.trace("Adding certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
 			try (InputStream in = new ByteArrayInputStream(certificate.getEncoded())) {
 				PDStream pdStream = new PDStream(pdDocument, in);
 				pdStream.addCompression();
