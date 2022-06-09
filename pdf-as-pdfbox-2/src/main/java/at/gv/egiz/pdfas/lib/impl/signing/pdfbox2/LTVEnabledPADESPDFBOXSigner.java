@@ -32,6 +32,8 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.pdfbox.cos.COSArray;
@@ -75,7 +77,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @throws CRLException                 In case there was an error encoding CRL data.
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 */
-	private void addLTVInfo(PDDocument pdDocument, CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, CRLException, IOException {
+	private void addLTVInfo(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, CRLException, IOException {
 		
 		// expect at least the certificate(s)
 		if (CollectionUtils.isEmpty(Objects.requireNonNull(ltvVerificationInfo).getChainCerts())) {
@@ -116,7 +118,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 * @throws CRLException                 In case there was an error encoding CRL data.
 	 */
-	private void addDSS(PDDocument pdDocument, CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
+	private void addDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
 		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
 		PDDocumentCatalog root = Objects.requireNonNull(pdDocument).getDocumentCatalog();
 		COSDictionary dssDictionary = (COSDictionary) root.getCOSObject().getDictionaryObject(COSNAME_DSS);
@@ -149,7 +151,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * 
 	 * @param pdDocument The pdf document. (required; must not be {@code null}).
 	 */
-	private void addOrUpdateExtensions(PDDocument pdDocument) {
+	private void addOrUpdateExtensions(@Nonnull PDDocument pdDocument) {
 		
 		final COSName COSNAME_EXTENSIONS = COSName.getPDFName("Extensions");
 		PDDocumentCatalog root = Objects.requireNonNull(pdDocument).getDocumentCatalog();
@@ -173,7 +175,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * 
 	 * @param extDictionary The extension dictionary. (required; must not be {@code null})
 	 */
-	private void addADBEExtension(COSDictionary extDictionary) {
+	private void addADBEExtension(@Nonnull COSDictionary extDictionary) {
 		
 		final COSName COSNAME_ADBE = COSName.getPDFName("ADBE");
 		
@@ -214,7 +216,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 * @throws CertificateEncodingException In case of an error encoding certificates.
 	 */
-	private void addDSSCerts(PDDocument pdDocument, COSDictionary dssDictionary, Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
+	private void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
 		final COSName COSNAME_CERTS = COSName.getPDFName("Certs");
 		COSArray certsArray = (COSArray) Objects.requireNonNull(dssDictionary).getDictionaryObject(COSNAME_CERTS);
 		if (certsArray == null) {
@@ -250,7 +252,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @param encodedOcspResponses The encoded OCSP responses (required; must not be {@code null}).
 	 * @throws IOException In case there was an error adding a pdf stream to the document.
 	 */
-	private void addDSSOCSPs(PDDocument pdDocument, COSDictionary dssDictionary, Iterable<byte[]> encodedOcspResponses) throws IOException {
+	private void addDSSOCSPs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<byte[]> encodedOcspResponses) throws IOException {
 		final COSName COSNAME_OCSPS = COSName.getPDFName("OCSPs");
 		COSArray ocspssArray = (COSArray) Objects.requireNonNull(dssDictionary).getDictionaryObject(COSNAME_OCSPS);
 		if (ocspssArray == null) {
@@ -284,7 +286,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @throws IOException  In case there was an error adding a pdf stream to the document.
 	 * @throws CRLException In case there was an error encoding CRL data.
 	 */
-	private void addDSSCRLs(PDDocument pdDocument, COSDictionary dssDictionary, Iterable<X509CRL> crls) throws IOException, CRLException {
+	private void addDSSCRLs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509CRL> crls) throws IOException, CRLException {
 		final COSName COSNAME_CRLS = COSName.getPDFName("CRLs");
 		COSArray crlsArray = (COSArray) Objects.requireNonNull(dssDictionary).getDictionaryObject(COSNAME_CRLS);
 		if (crlsArray == null) {
@@ -364,7 +366,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @implNote In case of log level DEBUG the certificate's subject dn is shown, otherwise the certificate's fingerprint
 	 *           is logged.
 	 */
-	private void logTrustStatusCheckResults(Collection<CertificateAndRevocationStatus> chainCertsWithRevocationStatus) {
+	private void logTrustStatusCheckResults(@Nonnull Collection<CertificateAndRevocationStatus> chainCertsWithRevocationStatus) {
 		chainCertsWithRevocationStatus.forEach(certWithRevStatus -> {
 			if (log.isDebugEnabled()) {
 				log.debug("Revocation status of certificate with subject dn '{}': {}", certWithRevStatus.getCertificate().getSubjectX500Principal(), certWithRevStatus.getRevocationStatus());
@@ -387,7 +389,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @param ltvMode                     The LTV mode (required; must not be {@code null}).
 	 * @throws PDFASError Throws an appropriate error in case the revocation status is not accepted.
 	 */
-	private void assessCertificateVerificationData(CertificateVerificationData certificateVerificationData, LTVMode ltvMode) throws PDFASError {
+	private void assessCertificateVerificationData(@Nonnull CertificateVerificationData certificateVerificationData, @Nonnull LTVMode ltvMode) throws PDFASError {
 		for (CertificateAndRevocationStatus certAndRevStatus : certificateVerificationData.getChainCertsWithRevocationStatus()) {
 			assess(certAndRevStatus, ltvMode);
 		}
@@ -400,7 +402,7 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 	 * @param ltvMode          The LTV mode (required; must not be {@code null}).
 	 * @throws PDFASError Throws an appropriate error in case the revocation status is not accepted.
 	 */
-	private void assess(CertificateAndRevocationStatus certAndRevStatus, LTVMode ltvMode) throws PDFASError {
+	private void assess(@Nonnull CertificateAndRevocationStatus certAndRevStatus, @Nonnull LTVMode ltvMode) throws PDFASError {
 		switch (certAndRevStatus.getRevocationStatus()) {
 		case GOOD:
 		case NOT_CHECKED:
