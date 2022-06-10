@@ -53,6 +53,28 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		log.debug("Adding LTV info to document.");
 		addOrUpdateDSS(pdDocument, ltvVerificationInfo);
+
+		// set appropriate pdf version
+		ensurePdf17(pdDocument);
+		
+		// announce that an extension to PDF-1.7 has been added
+		addOrUpdateExtensions(pdDocument);
+		
+		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs()) || CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
+			log.info("LTV data (certchain and revocation info) added to document.");
+		} else {
+			log.info("LTV data (certchain but no revocation info) added to document.");
+		}
+		
+	}
+	
+	/**
+	 * Sets the pdf version to 1.7 is the current version is lower than 1.7.
+	 * 
+	 * @param pdDocument The underlying document. (required; must not be {@code null})
+	 * @implNote Marks the document root catalog dirty if the version is modified.
+	 */
+	void ensurePdf17(@Nonnull PDDocument pdDocument) {
 		
 		// DSS reflects an extension to ISO 32000-1:2008 (PDF-1.7), so the document should be labeled as 1.7+ document
 		if (pdDocument.getVersion() < 1.7f) {
@@ -62,15 +84,6 @@ public class LTVSupportImpl implements LTVSupport {
 			pdDocument.setVersion(1.7f);
 			// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
 			pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
-		}
-		
-		// announce that an extension to PDF-1.7 has been added
-		addOrUpdateExtensions(pdDocument);
-		
-		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs()) || CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
-			log.info("LTV data (certchain and revocation info) added to document.");
-		} else {
-			log.info("LTV data (certchain but no revocation info) added to document.");
 		}
 		
 	}
