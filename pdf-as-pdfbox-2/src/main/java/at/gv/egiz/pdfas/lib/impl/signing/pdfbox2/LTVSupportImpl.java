@@ -53,7 +53,7 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		
 		log.debug("Adding LTV info to document.");
-		addDSS(pdDocument, ltvVerificationInfo);
+		addOrUpdateDSS(pdDocument, ltvVerificationInfo);
 		
 		// DSS reflects an extension to ISO 32000-1:2008 (PDF-1.7), so the document should be labeled as 1.7+ document
 		if (pdDocument.getVersion() < 1.7f) {
@@ -77,7 +77,7 @@ public class LTVSupportImpl implements LTVSupport {
 	}
 
 	/**
-	 * Adds the DSS dictionary as specified by <a href=
+	 * Adds (or updates) the DSS dictionary as specified by <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
 	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
 	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
@@ -90,7 +90,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @throws CRLException                 In case there was an error encoding CRL data.
 	 * @implNote Marks the document root catalog and the dss dictionary dirty.
 	 */
-	void addDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
+	void addOrUpdateDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
 		
 		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
 		PDDocumentCatalog root = pdDocument.getDocumentCatalog();
@@ -143,17 +143,17 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		root.getCOSObject().setNeedToBeUpdated(true);
 		
-		addADBEExtension(extDictionary);
+		addOrUpdateADBEExtension(extDictionary);
 	}
 
 	/**
-	 * Adds the /ADBE dictionary to the provided extensions dictionary (if not already present) in order to announce
-	 * DSS extension to ISO32000-1:2008.
+	 * Adds (or updates) the /ADBE dictionary to the provided extensions dictionary (if not already present) in order to
+	 * announce DSS extension to ISO32000-1:2008.
 	 * 
 	 * @param extDictionary The extension dictionary. (required; must not be {@code null})
 	 * @implNote Marks the provided Extensions dictionary and the nested ADBE dictionary dirty, if modified.
 	 */
-	void addADBEExtension(@Nonnull COSDictionary extDictionary) {
+	void addOrUpdateADBEExtension(@Nonnull COSDictionary extDictionary) {
 		
 		final COSName COSNAME_ADBE = COSName.getPDFName("ADBE");
 		
@@ -210,7 +210,7 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		dssDictionary.setNeedToBeUpdated(true);
 		certsArray.setNeedToBeUpdated(true);
-
+		
 		// add BER-encoded X.509 certificates
 		log.trace("Adding certificates to DSS/Certs dictionary.");
 		for (X509Certificate certificate : certificates) {
