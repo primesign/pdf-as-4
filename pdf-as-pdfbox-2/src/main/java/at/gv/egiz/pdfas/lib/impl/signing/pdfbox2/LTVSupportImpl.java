@@ -18,7 +18,6 @@ import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,17 +91,16 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addOrUpdateDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
 		
-		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
-		PDDocumentCatalog root = pdDocument.getDocumentCatalog();
-		COSDictionary dssDictionary = (COSDictionary) root.getCOSObject().getDictionaryObject(COSNAME_DSS);
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
+		COSDictionary dssDictionary = (COSDictionary) rootDictionary.getDictionaryObject("DSS");
 		if (dssDictionary == null) {
 			log.trace("Adding new DSS dictionary.");
 			// add new DSS dictionary
 			dssDictionary = new COSDictionary();
-			root.getCOSObject().setItem(COSNAME_DSS, dssDictionary);
+			rootDictionary.setItem("DSS", dssDictionary);
 		}
 		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
-		root.getCOSObject().setNeedToBeUpdated(true);
+		rootDictionary.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
 
 		// DSS/Certs
@@ -129,19 +127,17 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addOrUpdateExtensions(@Nonnull PDDocument pdDocument) {
 		
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
 
-		final COSName COSNAME_EXTENSIONS = COSName.getPDFName("Extensions");
-		PDDocumentCatalog root = pdDocument.getDocumentCatalog();
-		
-		COSDictionary extDictionary = (COSDictionary) root.getCOSObject().getDictionaryObject(COSNAME_EXTENSIONS);
+		COSDictionary extDictionary = (COSDictionary) rootDictionary.getDictionaryObject("Extensions");
 		if (extDictionary == null) {
 			log.trace("Adding new Extensions dictionary.");
 			// add new Extensions dictionary
 			extDictionary = new COSDictionary();
 			extDictionary.setDirect(true);
-			root.getCOSObject().setItem(COSNAME_EXTENSIONS, extDictionary);
+			rootDictionary.setItem("Extensions", extDictionary);
 		}
-		root.getCOSObject().setNeedToBeUpdated(true);
+		rootDictionary.setNeedToBeUpdated(true);
 		
 		addOrUpdateADBEExtension(extDictionary);
 	}
@@ -155,15 +151,13 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addOrUpdateADBEExtension(@Nonnull COSDictionary extDictionary) {
 		
-		final COSName COSNAME_ADBE = COSName.getPDFName("ADBE");
-		
-		COSDictionary adbeDictionary = (COSDictionary) extDictionary.getDictionaryObject(COSNAME_ADBE);
+		COSDictionary adbeDictionary = (COSDictionary) extDictionary.getDictionaryObject("ADBE");
 		if (adbeDictionary == null) {
 			log.trace("Adding new ADBE extensions dictionary.");
 			// add new ADBE dictionary
 			adbeDictionary = new COSDictionary();
 			adbeDictionary.setDirect(true);
-			extDictionary.setItem(COSNAME_ADBE, adbeDictionary);
+			extDictionary.setItem("ADBE", adbeDictionary);
 			extDictionary.setNeedToBeUpdated(true);
 		}
 		
