@@ -58,6 +58,8 @@ public class LTVSupportImpl implements LTVSupport {
 				log.debug("Updating pdf version: {} -> 1.7", pdDocument.getVersion());
 			}
 			pdDocument.setVersion(1.7f);
+			// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+			pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
 		}
 		
 		// announce that an extension to PDF-1.7 has been added
@@ -82,6 +84,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @throws CertificateEncodingException In case of an error encoding certificates.
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 * @throws CRLException                 In case there was an error encoding CRL data.
+	 * @implNote Marks the document root catalog and the dss dictionary dirty.
 	 */
 	void addDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
 		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
@@ -92,8 +95,9 @@ public class LTVSupportImpl implements LTVSupport {
 			// add new DSS dictionary
 			dssDictionary = new COSDictionary();
 			root.getCOSObject().setItem(COSNAME_DSS, dssDictionary);
-			root.getCOSObject().setNeedToBeUpdated(true);
 		}
+		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+		root.getCOSObject().setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
 
 		// DSS/Certs
@@ -115,6 +119,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * dictionary.
 	 * 
 	 * @param pdDocument The pdf document. (required; must not be {@code null}).
+	 * @implNote Marks the document root catalog dirty.
 	 */
 	void addOrUpdateExtensions(@Nonnull PDDocument pdDocument) {
 		
@@ -128,8 +133,8 @@ public class LTVSupportImpl implements LTVSupport {
 			extDictionary = new COSDictionary();
 			extDictionary.setDirect(true);
 			root.getCOSObject().setItem(COSNAME_EXTENSIONS, extDictionary);
-			root.getCOSObject().setNeedToBeUpdated(true);
 		}
+		root.getCOSObject().setNeedToBeUpdated(true);
 		
 		addADBEExtension(extDictionary);
 	}
@@ -139,6 +144,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * DSS extension to ISO32000-1:2008.
 	 * 
 	 * @param extDictionary The extension dictionary. (required; must not be {@code null})
+	 * @implNote Marks the provided Extensions dictionary and the nested ADBE dictionary dirty, if modified.
 	 */
 	void addADBEExtension(@Nonnull COSDictionary extDictionary) {
 		
@@ -159,11 +165,13 @@ public class LTVSupportImpl implements LTVSupport {
 		if (!VERSION_1_7.equals(adbeDictionary.getItem("BaseVersion"))) {
 			adbeDictionary.setItem("BaseVersion", VERSION_1_7);
 			adbeDictionary.setNeedToBeUpdated(true);
+			extDictionary.setNeedToBeUpdated(true);
 		}
 		// only set if not already set
 		if (adbeDictionary.getInt("ExtensionLevel") != 5) {
 			adbeDictionary.setInt("ExtensionLevel", 5);
 			adbeDictionary.setNeedToBeUpdated(true);
+			extDictionary.setNeedToBeUpdated(true);
 		}
 		
 	}
@@ -180,6 +188,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @param certificates  The certificates (required; must not be {@code null}).
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 * @throws CertificateEncodingException In case of an error encoding certificates.
+	 * @implNote Marks the provided DSS dictionary dirty.
 	 */
 	void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
 		final COSName COSNAME_CERTS = COSName.getPDFName("Certs");
@@ -191,6 +200,7 @@ public class LTVSupportImpl implements LTVSupport {
 			certsArray = new COSArray();
 			dssDictionary.setItem(COSNAME_CERTS, certsArray);
 		}
+		dssDictionary.setNeedToBeUpdated(true);
 		certsArray.setNeedToBeUpdated(true);
 
 		// add BER-encoded X.509 certificates
@@ -216,6 +226,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @param dssDictionary        The DSS dictionary (required; must not be {@code null}).
 	 * @param encodedOcspResponses The encoded OCSP responses (required; must not be {@code null}).
 	 * @throws IOException In case there was an error adding a pdf stream to the document.
+	 * @implNote Marks the provided DSS dictionary dirty.
 	 */
 	void addDSSOCSPs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<byte[]> encodedOcspResponses) throws IOException {
 		final COSName COSNAME_OCSPS = COSName.getPDFName("OCSPs");
@@ -228,6 +239,7 @@ public class LTVSupportImpl implements LTVSupport {
 			dssDictionary.setItem(COSNAME_OCSPS, ocspssArray);
 		}
 		ocspssArray.setNeedToBeUpdated(true);
+		dssDictionary.setNeedToBeUpdated(true);
 
 		for (byte[] encodedOcspResponse : encodedOcspResponses) {
 			try (InputStream in = new ByteArrayInputStream(encodedOcspResponse)) {
@@ -250,6 +262,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @param crls          The CRLs (required; must not be {@code null}).
 	 * @throws IOException  In case there was an error adding a pdf stream to the document.
 	 * @throws CRLException In case there was an error encoding CRL data.
+	 * @implNote Marks the provided DSS dictionary dirty.
 	 */
 	void addDSSCRLs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509CRL> crls) throws IOException, CRLException {
 		final COSName COSNAME_CRLS = COSName.getPDFName("CRLs");
@@ -262,6 +275,7 @@ public class LTVSupportImpl implements LTVSupport {
 			dssDictionary.setItem(COSNAME_CRLS, crlsArray);
 		}
 		crlsArray.setNeedToBeUpdated(true);
+		dssDictionary.setNeedToBeUpdated(true);
 
 		for (X509CRL crl : crls) {
 			try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
