@@ -216,9 +216,7 @@ public class LTVSupportImpl implements LTVSupport {
 		for (X509Certificate certificate : certificates) {
 			log.trace("Adding certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
 			try (InputStream in = new ByteArrayInputStream(certificate.getEncoded())) {
-				PDStream pdStream = new PDStream(pdDocument, in);
-				pdStream.addCompression();
-				certsArray.add(pdStream);
+				certsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
 			}
 		}
 		
@@ -253,9 +251,7 @@ public class LTVSupportImpl implements LTVSupport {
 
 		for (byte[] encodedOcspResponse : encodedOcspResponses) {
 			try (InputStream in = new ByteArrayInputStream(encodedOcspResponse)) {
-				PDStream pdStream = new PDStream(pdDocument, in);
-				pdStream.addCompression();
-				ocspssArray.add(pdStream);
+				ocspssArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
 			}
 		}
 		
@@ -291,9 +287,7 @@ public class LTVSupportImpl implements LTVSupport {
 
 		for (X509CRL crl : crls) {
 			try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
-				PDStream pdStream = new PDStream(pdDocument, in);
-				pdStream.addCompression();
-				crlsArray.add(pdStream);
+				crlsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
 			}
 		}
 	}
