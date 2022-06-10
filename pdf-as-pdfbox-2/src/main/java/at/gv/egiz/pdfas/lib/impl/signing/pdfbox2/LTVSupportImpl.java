@@ -220,6 +220,7 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		// add BER-encoded X.509 certificates
 		log.trace("Adding certificates to DSS/Certs dictionary.");
+		// TODO[PDFAS-116]: Avoid adding duplicate Certificates
 		for (X509Certificate certificate : certificates) {
 			log.trace("Adding certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
 			try (InputStream in = new ByteArrayInputStream(certificate.getEncoded())) {
@@ -292,6 +293,7 @@ public class LTVSupportImpl implements LTVSupport {
 		crlsArray.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
 
+		// TODO[PDFAS-116]: Avoid adding duplicate CRLs
 		for (X509CRL crl : crls) {
 			try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
 				crlsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
