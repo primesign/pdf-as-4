@@ -44,13 +44,16 @@ public class LTVSupportImpl implements LTVSupport {
 	@Override
 	public void addLTVInfo(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, CRLException, IOException {
 		
+		Objects.requireNonNull(pdDocument, "'pdDocument' must not be null.");
+		Objects.requireNonNull(ltvVerificationInfo, "'ltvVerificationInfo' must not be null.");
+		
 		// expect at least the certificate(s)
-		if (CollectionUtils.isEmpty(Objects.requireNonNull(ltvVerificationInfo).getChainCerts())) {
+		if (CollectionUtils.isEmpty(ltvVerificationInfo.getChainCerts())) {
 			throw new IllegalStateException("LTV data has not been retrieved yet. At least the signer certificate's chain is must be provided.");
 		}
 		
 		log.debug("Adding LTV info to document.");
-		addDSS(Objects.requireNonNull(pdDocument), ltvVerificationInfo);
+		addDSS(pdDocument, ltvVerificationInfo);
 		
 		// DSS reflects an extension to ISO 32000-1:2008 (PDF-1.7), so the document should be labeled as 1.7+ document
 		if (pdDocument.getVersion() < 1.7f) {
@@ -70,6 +73,7 @@ public class LTVSupportImpl implements LTVSupport {
 		} else {
 			log.info("LTV data (certchain but no revocation info) added to document.");
 		}
+		
 	}
 
 	/**
@@ -87,8 +91,9 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @implNote Marks the document root catalog and the dss dictionary dirty.
 	 */
 	void addDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
+		
 		final COSName COSNAME_DSS = COSName.getPDFName("DSS");
-		PDDocumentCatalog root = Objects.requireNonNull(pdDocument).getDocumentCatalog();
+		PDDocumentCatalog root = pdDocument.getDocumentCatalog();
 		COSDictionary dssDictionary = (COSDictionary) root.getCOSObject().getDictionaryObject(COSNAME_DSS);
 		if (dssDictionary == null) {
 			log.trace("Adding new DSS dictionary.");
@@ -112,6 +117,7 @@ public class LTVSupportImpl implements LTVSupport {
 		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs())) {
 			addDSSCRLs(pdDocument, dssDictionary, ltvVerificationInfo.getCRLs());
 		}
+		
 	}
 	
 	/**
@@ -123,8 +129,9 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addOrUpdateExtensions(@Nonnull PDDocument pdDocument) {
 		
+
 		final COSName COSNAME_EXTENSIONS = COSName.getPDFName("Extensions");
-		PDDocumentCatalog root = Objects.requireNonNull(pdDocument).getDocumentCatalog();
+		PDDocumentCatalog root = pdDocument.getDocumentCatalog();
 		
 		COSDictionary extDictionary = (COSDictionary) root.getCOSObject().getDictionaryObject(COSNAME_EXTENSIONS);
 		if (extDictionary == null) {
@@ -150,7 +157,7 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		final COSName COSNAME_ADBE = COSName.getPDFName("ADBE");
 		
-		COSDictionary adbeDictionary = (COSDictionary) Objects.requireNonNull(extDictionary).getDictionaryObject(COSNAME_ADBE);
+		COSDictionary adbeDictionary = (COSDictionary) extDictionary.getDictionaryObject(COSNAME_ADBE);
 		if (adbeDictionary == null) {
 			log.trace("Adding new ADBE extensions dictionary.");
 			// add new ADBE dictionary
@@ -191,8 +198,9 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @implNote Marks the provided DSS dictionary dirty.
 	 */
 	void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
+		
 		final COSName COSNAME_CERTS = COSName.getPDFName("Certs");
-		COSArray certsArray = (COSArray) Objects.requireNonNull(dssDictionary).getDictionaryObject(COSNAME_CERTS);
+		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject(COSNAME_CERTS);
 		if (certsArray == null) {
 			// add new "Certs" array
 			log.trace("Adding new DSS/Certs dictionary.");
@@ -213,6 +221,7 @@ public class LTVSupportImpl implements LTVSupport {
 				certsArray.add(pdStream);
 			}
 		}
+		
 	}
 
 	/**
@@ -229,8 +238,9 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @implNote Marks the provided DSS dictionary dirty.
 	 */
 	void addDSSOCSPs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<byte[]> encodedOcspResponses) throws IOException {
+		
 		final COSName COSNAME_OCSPS = COSName.getPDFName("OCSPs");
-		COSArray ocspssArray = (COSArray) Objects.requireNonNull(dssDictionary).getDictionaryObject(COSNAME_OCSPS);
+		COSArray ocspssArray = (COSArray) dssDictionary.getDictionaryObject(COSNAME_OCSPS);
 		if (ocspssArray == null) {
 			log.trace("Adding new DSS/OCSPs dictionary.");
 			// add "OCSPs" array
@@ -248,6 +258,7 @@ public class LTVSupportImpl implements LTVSupport {
 				ocspssArray.add(pdStream);
 			}
 		}
+		
 	}
 
 	/**
@@ -265,8 +276,9 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @implNote Marks the provided DSS dictionary dirty.
 	 */
 	void addDSSCRLs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509CRL> crls) throws IOException, CRLException {
+
 		final COSName COSNAME_CRLS = COSName.getPDFName("CRLs");
-		COSArray crlsArray = (COSArray) Objects.requireNonNull(dssDictionary).getDictionaryObject(COSNAME_CRLS);
+		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject(COSNAME_CRLS);
 		if (crlsArray == null) {
 			log.trace("Adding new DSS/CRLs dictionary.");
 			// add "CRLs" array
