@@ -2,7 +2,6 @@ package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createControl;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.newCapture;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,8 +20,8 @@ import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.Nonnull;
 
@@ -346,7 +345,7 @@ public class LTVSupportImplTest {
 		ctrl.reset();
 		
 		CertificateVerificationData certificateVerificationData = ctrl.createMock(CertificateVerificationData.class);
-		expect(certificateVerificationData.getChainCerts()).andReturn(Lists.newArrayList(ctrl.createMock(X509Certificate.class)));
+		expect(certificateVerificationData.getChainCerts()).andReturn(Lists.list(ctrl.createMock(X509Certificate.class)));
 		cut.addOrUpdateDSS(pdDocument, certificateVerificationData);
 		cut.ensurePdf17(pdDocument);
 		cut.addOrUpdateExtensions(pdDocument);
@@ -424,12 +423,53 @@ public class LTVSupportImplTest {
 	}
 	
 	@Test
-	public void test_addOrUpdateDSS_noExistingDSS() throws CertificateEncodingException, CRLException, IOException {
+	public void test_ensureDSSDictionary_dssDoesNotExist() {
+		
+		PDDocument pdDocument = emptyDocument();
+		
+		COSDictionary dssDictionary = cut.ensureDSSDictionary(pdDocument);
+		
+		// make sure dss dictionary has been created
+		assertNotNull(dssDictionary);
+		
+		// and has been added to the provided document
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
+		COSDictionary dssDictionaryFromDocument = (COSDictionary) rootDictionary.getDictionaryObject("DSS");
+		assertSame(dssDictionary, dssDictionaryFromDocument);
+		
+		// assert that both root dictionary and dss dictionary are marked dirty
+		assertTrue(rootDictionary.isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		
+	}
+	
+	@Test
+	public void test_ensureDSSDictionary_dssAlreadyExist() {
+		
+		PDDocument pdDocument = emptyDocument();
+		COSDictionary dssDictionaryFromDocument = new COSDictionary();
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
+		rootDictionary.setItem("DSS", dssDictionaryFromDocument);
+		
+		COSDictionary dssDictionary = cut.ensureDSSDictionary(pdDocument);
+		assertNotNull(dssDictionary);
+		
+		// make sure we get the existing dictionary
+		assertSame(dssDictionary, dssDictionaryFromDocument);
+		
+		// assert that both root dictionary and dss dictionary are not marked
+		assertFalse(rootDictionary.isNeedToBeUpdated());
+		assertFalse(dssDictionary.isNeedToBeUpdated());
+
+	}
+	
+	@Test
+	public void test_addOrUpdateDSS() throws CertificateEncodingException, CRLException, IOException {
 		
 		// test only aspect of addOrUpdateDSS, skip tests for
-		//    addDSSCerts(PDDocument, COSDictionary, Iterable<X509Certificate>)
-		//    addDSSOCSPs(PDDocument, COSDictionary, Iterable<byte[]>)
-		//    addDSSCRLs(PDDocument, COSDictionary, Iterable<X509CRL>)
+		//    addDSSCerts(PDDocument, Iterable<X509Certificate>)
+		//    addDSSOCSPs(PDDocument, Iterable<byte[]>)
+		//    addDSSCRLs(PDDocument, Iterable<X509CRL>)
 		// just make sure methods get called
 		
 		IMocksControl ctrl = createControl();
@@ -438,9 +478,9 @@ public class LTVSupportImplTest {
 		// @formatter:off
 		IMockBuilder<LTVSupportImpl> mockBuilder = EasyMock.partialMockBuilder(LTVSupportImpl.class)
 				.withConstructor()
-				.addMockedMethod("addDSSCerts", PDDocument.class, COSDictionary.class, Iterable.class)
-				.addMockedMethod("addDSSOCSPs", PDDocument.class, COSDictionary.class, Iterable.class)
-				.addMockedMethod("addDSSCRLs", PDDocument.class, COSDictionary.class, Iterable.class);
+				.addMockedMethod("addDSSCerts", PDDocument.class, Iterable.class)
+				.addMockedMethod("addDSSOCSPs", PDDocument.class, Iterable.class)
+				.addMockedMethod("addDSSCRLs", PDDocument.class, Iterable.class);
 		// @formatter:on
 		
 		LTVSupportImpl cut = mockBuilder.createMock(ctrl);
@@ -453,26 +493,23 @@ public class LTVSupportImplTest {
 
 		// chaincerts
 		
-		ArrayList<X509Certificate> chainCerts = Lists.newArrayList(ctrl.createMock(X509Certificate.class));
+		List<X509Certificate> chainCerts = Lists.list(ctrl.createMock(X509Certificate.class));
 		expect(certificateVerificationData.getChainCerts()).andReturn(chainCerts);
 
-		Capture<COSDictionary> dssDictionary1 = newCapture();
-		cut.addDSSCerts(eq(pdDocument), capture(dssDictionary1), eq(chainCerts));
+		cut.addDSSCerts(pdDocument, chainCerts);
 		
 		// ocsp responses
 		
-		ArrayList<byte[]> encodedOCSPResponses = Lists.newArrayList(new byte[] { 1, 2, 3 });
+		List<byte[]> encodedOCSPResponses = Lists.list(new byte[] { 1, 2, 3 });
 		expect(certificateVerificationData.getEncodedOCSPResponses()).andReturn(encodedOCSPResponses).atLeastOnce();
 		
-		Capture<COSDictionary> dssDictionary2 = newCapture();
-		cut.addDSSOCSPs(eq(pdDocument), capture(dssDictionary2), eq(encodedOCSPResponses));
+		cut.addDSSOCSPs(pdDocument, encodedOCSPResponses);
 		
 		// clrs
-		ArrayList<X509CRL> crls = Lists.newArrayList(ctrl.createMock(X509CRL.class));
+		List<X509CRL> crls = Lists.list(ctrl.createMock(X509CRL.class));
 		expect(certificateVerificationData.getCRLs()).andReturn(crls).atLeastOnce();
 		
-		Capture<COSDictionary> dssDictionary3 = newCapture();
-		cut.addDSSCRLs(eq(pdDocument), capture(dssDictionary3), eq(crls));
+		cut.addDSSCRLs(pdDocument, crls);
 		
 		ctrl.replay();
 		
@@ -480,28 +517,16 @@ public class LTVSupportImplTest {
 		
 		ctrl.verify();
 		
-		// expect that dss dictionary has been created
-		COSDictionary dssDictionaryFromDocument = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
-		assertNotNull(dssDictionaryFromDocument);
-		
-		assertSame(dssDictionaryFromDocument, dssDictionary1.getValue());
-		assertSame(dssDictionaryFromDocument, dssDictionary2.getValue());
-		assertSame(dssDictionaryFromDocument, dssDictionary3.getValue());
-		
-		// expect that path from dss up to the root is dirty
-		assertTrue(dssDictionaryFromDocument.isNeedToBeUpdated());
-		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
-		
 	}
 	
 	@Test
-	public void test_addOrUpdateDSS_existingDSS() throws CertificateEncodingException, CRLException, IOException {
+	public void test_addOrUpdateDSS_noOCSPs() throws CertificateEncodingException, CRLException, IOException {
 		
 		// test only aspect of addOrUpdateDSS, skip tests for
-		//    addDSSCerts(PDDocument, COSDictionary, Iterable<X509Certificate>)
-		//    addDSSOCSPs(PDDocument, COSDictionary, Iterable<byte[]>)
-		//    addDSSCRLs(PDDocument, COSDictionary, Iterable<X509CRL>)
-		// just make sure methods get called
+		//    addDSSCerts(PDDocument, Iterable<X509Certificate>)
+		//    addDSSOCSPs(PDDocument, Iterable<byte[]>)
+		//    addDSSCRLs(PDDocument, Iterable<X509CRL>)
+		// just make sure respective methods get called and others gets not called
 		
 		IMocksControl ctrl = createControl();
 		
@@ -509,104 +534,37 @@ public class LTVSupportImplTest {
 		// @formatter:off
 		IMockBuilder<LTVSupportImpl> mockBuilder = EasyMock.partialMockBuilder(LTVSupportImpl.class)
 				.withConstructor()
-				.addMockedMethod("addDSSCerts", PDDocument.class, COSDictionary.class, Iterable.class)
-				.addMockedMethod("addDSSOCSPs", PDDocument.class, COSDictionary.class, Iterable.class)
-				.addMockedMethod("addDSSCRLs", PDDocument.class, COSDictionary.class, Iterable.class);
+				.addMockedMethod("addDSSCerts", PDDocument.class, Iterable.class)
+				.addMockedMethod("addDSSOCSPs", PDDocument.class, Iterable.class)
+				.addMockedMethod("addDSSCRLs", PDDocument.class, Iterable.class);
 		// @formatter:on
 		
 		LTVSupportImpl cut = mockBuilder.createMock(ctrl);
-
+		
 		PDDocument pdDocument = emptyDocument();
-		COSDictionary existingDssDictionary = new COSDictionary();
-		pdDocument.getDocumentCatalog().getCOSObject().setItem("DSS", existingDssDictionary);
 		
 		ctrl.reset();
 		
 		CertificateVerificationData certificateVerificationData = ctrl.createMock(CertificateVerificationData.class);
-
+		
 		// chaincerts
 		
-		ArrayList<X509Certificate> chainCerts = Lists.newArrayList(ctrl.createMock(X509Certificate.class));
+		List<X509Certificate> chainCerts = Lists.list(ctrl.createMock(X509Certificate.class));
 		expect(certificateVerificationData.getChainCerts()).andReturn(chainCerts);
-
-		cut.addDSSCerts(pdDocument, existingDssDictionary, chainCerts);
 		
-		// ocsp responses
-		
-		ArrayList<byte[]> encodedOCSPResponses = Lists.newArrayList(new byte[] { 1, 2, 3 });
-		expect(certificateVerificationData.getEncodedOCSPResponses()).andReturn(encodedOCSPResponses).atLeastOnce();
-		
-		cut.addDSSOCSPs(pdDocument, existingDssDictionary, encodedOCSPResponses);
-		
-		// clrs
-		ArrayList<X509CRL> crls = Lists.newArrayList(ctrl.createMock(X509CRL.class));
-		expect(certificateVerificationData.getCRLs()).andReturn(crls).atLeastOnce();
-		
-		cut.addDSSCRLs(pdDocument, existingDssDictionary, crls);
-		
-		ctrl.replay();
-		
-		cut.addOrUpdateDSS(pdDocument, certificateVerificationData);
-		
-		ctrl.verify();
-		
-		// expect that existing dss dictionary has been used
-		COSDictionary dssDictionaryFromDocument = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
-		assertNotNull(dssDictionaryFromDocument);
-		
-		assertSame(existingDssDictionary, dssDictionaryFromDocument);
-		
-		// expect that path from dss up to the root is dirty
-		assertTrue(existingDssDictionary.isNeedToBeUpdated());
-		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
-		
-	}
-	
-	@Test
-	public void test_addOrUpdateDSS_noOCSP_noCRL_existingDSS() throws CertificateEncodingException, CRLException, IOException {
-		
-		// test only aspect of addOrUpdateDSS, skip tests for
-		//    addDSSCerts(PDDocument, COSDictionary, Iterable<X509Certificate>)
-		//    addDSSOCSPs(PDDocument, COSDictionary, Iterable<byte[]>)
-		//    addDSSCRLs(PDDocument, COSDictionary, Iterable<X509CRL>)
-		// just make sure methods get called
-		
-		IMocksControl ctrl = createControl();
-		
-		// mock only abstract method
-		// @formatter:off
-		IMockBuilder<LTVSupportImpl> mockBuilder = EasyMock.partialMockBuilder(LTVSupportImpl.class)
-				.withConstructor()
-				.addMockedMethod("addDSSCerts", PDDocument.class, COSDictionary.class, Iterable.class)
-				.addMockedMethod("addDSSOCSPs", PDDocument.class, COSDictionary.class, Iterable.class)
-				.addMockedMethod("addDSSCRLs", PDDocument.class, COSDictionary.class, Iterable.class);
-		// @formatter:on
-		
-		LTVSupportImpl cut = mockBuilder.createMock(ctrl);
-
-		PDDocument pdDocument = emptyDocument();
-		COSDictionary existingDssDictionary = new COSDictionary();
-		pdDocument.getDocumentCatalog().getCOSObject().setItem("DSS", existingDssDictionary);
-		
-		ctrl.reset();
-		
-		CertificateVerificationData certificateVerificationData = ctrl.createMock(CertificateVerificationData.class);
-
-		// chaincerts
-		
-		ArrayList<X509Certificate> chainCerts = Lists.newArrayList(ctrl.createMock(X509Certificate.class));
-		expect(certificateVerificationData.getChainCerts()).andReturn(chainCerts);
-
-		cut.addDSSCerts(pdDocument, existingDssDictionary, chainCerts);
+		cut.addDSSCerts(pdDocument, chainCerts);
 		
 		// ocsp responses
 		
 		expect(certificateVerificationData.getEncodedOCSPResponses()).andReturn(Collections.emptyList()).atLeastOnce();
-		// expect that cut.addDSSOCSPs(...) not being invoked
+		
+		// expect that cut.addDSSOCSPs is not called
 		
 		// clrs
-		expect(certificateVerificationData.getCRLs()).andReturn(Collections.emptyList()).atLeastOnce();
-		// expect cut.addDSSCRLs(...) not being invoked
+		List<X509CRL> crls = Lists.list(ctrl.createMock(X509CRL.class));
+		expect(certificateVerificationData.getCRLs()).andReturn(crls).atLeastOnce();
+		
+		cut.addDSSCRLs(pdDocument, crls);
 		
 		ctrl.replay();
 		
@@ -614,15 +572,59 @@ public class LTVSupportImplTest {
 		
 		ctrl.verify();
 		
-		// expect that existing dss dictionary has been used
-		COSDictionary dssDictionaryFromDocument = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
-		assertNotNull(dssDictionaryFromDocument);
+	}
+	
+	@Test
+	public void test_addOrUpdateDSS_noCRLs() throws CertificateEncodingException, CRLException, IOException {
 		
-		assertSame(existingDssDictionary, dssDictionaryFromDocument);
+		// test only aspect of addOrUpdateDSS, skip tests for
+		//    addDSSCerts(PDDocument, Iterable<X509Certificate>)
+		//    addDSSOCSPs(PDDocument, Iterable<byte[]>)
+		//    addDSSCRLs(PDDocument, Iterable<X509CRL>)
+		// just make sure respective methods get called and others gets not called
 		
-		// expect that path from dss up to the root is dirty
-		assertTrue(existingDssDictionary.isNeedToBeUpdated());
-		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		IMocksControl ctrl = createControl();
+		
+		// mock only abstract method
+		// @formatter:off
+		IMockBuilder<LTVSupportImpl> mockBuilder = EasyMock.partialMockBuilder(LTVSupportImpl.class)
+				.withConstructor()
+				.addMockedMethod("addDSSCerts", PDDocument.class, Iterable.class)
+				.addMockedMethod("addDSSOCSPs", PDDocument.class, Iterable.class)
+				.addMockedMethod("addDSSCRLs", PDDocument.class, Iterable.class);
+		// @formatter:on
+		
+		LTVSupportImpl cut = mockBuilder.createMock(ctrl);
+
+		PDDocument pdDocument = emptyDocument();
+		
+		ctrl.reset();
+		
+		CertificateVerificationData certificateVerificationData = ctrl.createMock(CertificateVerificationData.class);
+
+		// chaincerts
+		
+		List<X509Certificate> chainCerts = Lists.list(ctrl.createMock(X509Certificate.class));
+		expect(certificateVerificationData.getChainCerts()).andReturn(chainCerts);
+
+		cut.addDSSCerts(pdDocument, chainCerts);
+		
+		// ocsp responses
+		
+		List<byte[]> encodedOCSPResponses = Lists.list(new byte[] { 1, 2, 3 });
+		expect(certificateVerificationData.getEncodedOCSPResponses()).andReturn(encodedOCSPResponses).atLeastOnce();
+
+		cut.addDSSOCSPs(pdDocument, encodedOCSPResponses);
+
+		// clrs
+		expect(certificateVerificationData.getCRLs()).andReturn(Collections.emptyList()).atLeastOnce();
+		// expect that cut.addDSSCRLs is not called
+		
+		ctrl.replay();
+		
+		cut.addOrUpdateDSS(pdDocument, certificateVerificationData);
+		
+		ctrl.verify();
 		
 	}
 

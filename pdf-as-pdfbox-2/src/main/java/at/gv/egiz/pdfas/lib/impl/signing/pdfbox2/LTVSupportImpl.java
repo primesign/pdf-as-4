@@ -89,7 +89,7 @@ public class LTVSupportImpl implements LTVSupport {
 	}
 
 	/**
-	 * Adds (or updates) the DSS dictionary as specified by <a href=
+	 * Adds (or updates) the DSS dictionary of the provided document as specified by <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
 	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
 	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
@@ -100,9 +100,36 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @throws CertificateEncodingException In case of an error encoding certificates.
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 * @throws CRLException                 In case there was an error encoding CRL data.
+	 * @implNote Creates a new DSS dictionary if not already exists.
 	 * @implNote Marks the document root catalog and the dss dictionary dirty.
 	 */
 	void addOrUpdateDSS(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, IOException, CRLException {
+		
+		// DSS/Certs
+		addDSSCerts(pdDocument, ltvVerificationInfo.getChainCerts());
+
+		// DSS/OCSPs
+		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
+			addDSSOCSPs(pdDocument, ltvVerificationInfo.getEncodedOCSPResponses());
+		}
+
+		// DSS/CRLs
+		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs())) {
+			addDSSCRLs(pdDocument, ltvVerificationInfo.getCRLs());
+		}
+		
+	}
+	
+	/**
+	 * Makes sure the provided document contains a DSS dictionary. Either creates a new dictionary or returns the existing
+	 * dictionary.
+	 * 
+	 * @param pdDocument The underlying document. (required; must not be {@code null})
+	 * @return The document's DSS dictionary. (never {@code null}).
+	 * @implNote In case the dss dictionary is newly created, both the document and the dss dictionary are marked dirty.
+	 */
+	@Nonnull
+	COSDictionary ensureDSSDictionary(@Nonnull PDDocument pdDocument) {
 		
 		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
 		COSDictionary dssDictionary = (COSDictionary) rootDictionary.getDictionaryObject("DSS");
@@ -111,23 +138,11 @@ public class LTVSupportImpl implements LTVSupport {
 			// add new DSS dictionary
 			dssDictionary = new COSDictionary();
 			rootDictionary.setItem("DSS", dssDictionary);
+			// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+			rootDictionary.setNeedToBeUpdated(true);
+			dssDictionary.setNeedToBeUpdated(true);
 		}
-		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
-		rootDictionary.setNeedToBeUpdated(true);
-		dssDictionary.setNeedToBeUpdated(true);
-
-		// DSS/Certs
-		addDSSCerts(pdDocument, dssDictionary, ltvVerificationInfo.getChainCerts());
-
-		// DSS/OCSPs
-		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getEncodedOCSPResponses())) {
-			addDSSOCSPs(pdDocument, dssDictionary, ltvVerificationInfo.getEncodedOCSPResponses());
-		}
-
-		// DSS/CRLs
-		if (CollectionUtils.isNotEmpty(ltvVerificationInfo.getCRLs())) {
-			addDSSCRLs(pdDocument, dssDictionary, ltvVerificationInfo.getCRLs());
-		}
+		return dssDictionary;
 		
 	}
 	
@@ -191,20 +206,22 @@ public class LTVSupportImpl implements LTVSupport {
 	}
 
 	/**
-	 * Adds the "Certs" dictionary to DSS dictionary as specified in <a href=
+	 * Adds the "Certs" dictionary to DSS dictionary of the provided document as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
 	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
 	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
 	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
 	 * @param pdDocument    The pdf document (required; must not be {@code null}).
-	 * @param dssDictionary The DSS dictionary (required; must not be {@code null}).
 	 * @param certificates  The certificates (required; must not be {@code null}).
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
 	 * @throws CertificateEncodingException In case of an error encoding certificates.
 	 * @implNote Marks the provided DSS dictionary dirty.
+	 * @implNote Creates a new DSS dictionary if not already exists.
 	 */
-	void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
+	void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
+		
+		final COSDictionary dssDictionary = ensureDSSDictionary(pdDocument);
 		
 		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
 		if (certsArray == null) {
@@ -216,6 +233,8 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		dssDictionary.setNeedToBeUpdated(true);
 		certsArray.setNeedToBeUpdated(true);
+		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+		pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
 		
 		// add BER-encoded X.509 certificates
 		log.trace("Adding certificates to DSS/Certs dictionary.");
@@ -230,20 +249,21 @@ public class LTVSupportImpl implements LTVSupport {
 	}
 
 	/**
-	 * Adds the "OCSPs" dictionary to DSS dictionary as specified in <a href=
+	 * Adds the "OCSPs" dictionary to DSS dictionary of the provided document as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
 	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
 	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
 	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
 	 * @param pdDocument           The pdf document (required; must not be {@code null}).
-	 * @param dssDictionary        The DSS dictionary (required; must not be {@code null}).
 	 * @param encodedOcspResponses The encoded OCSP responses (required; must not be {@code null}).
 	 * @throws IOException In case there was an error adding a pdf stream to the document.
-	 * @implNote Marks the provided DSS dictionary dirty.
+	 * @implNote Creates a new DSS dictionary if not already exists. Dictionary will be marked dirty.
 	 */
-	void addDSSOCSPs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<byte[]> encodedOcspResponses) throws IOException {
+	void addDSSOCSPs(@Nonnull PDDocument pdDocument, @Nonnull Iterable<byte[]> encodedOcspResponses) throws IOException {
 		
+		final COSDictionary dssDictionary = ensureDSSDictionary(pdDocument);
+
 		COSArray ocspssArray = (COSArray) dssDictionary.getDictionaryObject("OCSPs");
 		if (ocspssArray == null) {
 			log.trace("Adding new DSS/OCSPs dictionary.");
@@ -254,6 +274,8 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		ocspssArray.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
+		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+		pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
 
 		for (byte[] encodedOcspResponse : encodedOcspResponses) {
 			try (InputStream in = new ByteArrayInputStream(encodedOcspResponse)) {
@@ -264,20 +286,21 @@ public class LTVSupportImpl implements LTVSupport {
 	}
 
 	/**
-	 * Adds the "CRLs" dictionary to DSS dictionary as specified in <a href=
+	 * Adds the "CRLs" dictionary to DSS dictionary of the provided document as specified in <a href=
 	 * "http://www.etsi.org/deliver/etsi_ts%5C102700_102799%5C10277804%5C01.01.02_60%5Cts_10277804v010102p.pdf">ETSI TS 102
 	 * 778-4 v1.1.2, Annex A, "LTV extensions"</a> and
 	 * <a href="https://www.etsi.org/deliver/etsi_ts/103100_103199/103172/02.02.02_60/ts_103172v020202p.pdf">ETSI TS 103 172
 	 * V2.2.2 (2013-04), Profile of ISO 32000-1 LTV Extensions</a>
 	 *
 	 * @param pdDocument    The pdf document (required; must not be {@code null}).
-	 * @param dssDictionary The DSS dictionary (required; must not be {@code null}).
 	 * @param crls          The CRLs (required; must not be {@code null}).
 	 * @throws IOException  In case there was an error adding a pdf stream to the document.
 	 * @throws CRLException In case there was an error encoding CRL data.
-	 * @implNote Marks the provided DSS dictionary dirty.
+	 * @implNote Creates a new DSS dictionary if not already exists. Dictionary will be marked dirty.
 	 */
-	void addDSSCRLs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509CRL> crls) throws IOException, CRLException {
+	void addDSSCRLs(@Nonnull PDDocument pdDocument, @Nonnull Iterable<X509CRL> crls) throws IOException, CRLException {
+
+		final COSDictionary dssDictionary = ensureDSSDictionary(pdDocument);
 
 		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject("CRLs");
 		if (crlsArray == null) {
@@ -289,6 +312,8 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		crlsArray.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
+		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+		pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
 
 		// TODO[PDFAS-116]: Avoid adding duplicate CRLs
 		for (X509CRL crl : crls) {
