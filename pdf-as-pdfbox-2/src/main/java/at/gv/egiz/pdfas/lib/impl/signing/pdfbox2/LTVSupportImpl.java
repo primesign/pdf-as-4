@@ -206,14 +206,13 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
 		
-		final COSName COSNAME_CERTS = COSName.getPDFName("Certs");
-		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject(COSNAME_CERTS);
+		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
 		if (certsArray == null) {
 			// add new "Certs" array
 			log.trace("Adding new DSS/Certs dictionary.");
 			// "An array of (indirect references to) streams, each containing one BER-encoded X.509 certificate (see RFC 5280 [7])"
 			certsArray = new COSArray();
-			dssDictionary.setItem(COSNAME_CERTS, certsArray);
+			dssDictionary.setItem("Certs", certsArray);
 		}
 		dssDictionary.setNeedToBeUpdated(true);
 		certsArray.setNeedToBeUpdated(true);
@@ -245,14 +244,13 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addDSSOCSPs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<byte[]> encodedOcspResponses) throws IOException {
 		
-		final COSName COSNAME_OCSPS = COSName.getPDFName("OCSPs");
-		COSArray ocspssArray = (COSArray) dssDictionary.getDictionaryObject(COSNAME_OCSPS);
+		COSArray ocspssArray = (COSArray) dssDictionary.getDictionaryObject("OCSPs");
 		if (ocspssArray == null) {
 			log.trace("Adding new DSS/OCSPs dictionary.");
 			// add "OCSPs" array
 			// "An array of (indirect references to) streams, each containing a BER-encoded Online Certificate Status Protocol (OCSP) response (see RFC 2560 [8])."
 			ocspssArray = new COSArray();
-			dssDictionary.setItem(COSNAME_OCSPS, ocspssArray);
+			dssDictionary.setItem("OCSPs", ocspssArray);
 		}
 		ocspssArray.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
@@ -281,14 +279,13 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addDSSCRLs(@Nonnull PDDocument pdDocument, @Nonnull COSDictionary dssDictionary, @Nonnull Iterable<X509CRL> crls) throws IOException, CRLException {
 
-		final COSName COSNAME_CRLS = COSName.getPDFName("CRLs");
-		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject(COSNAME_CRLS);
+		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject("CRLs");
 		if (crlsArray == null) {
 			log.trace("Adding new DSS/CRLs dictionary.");
 			// add "CRLs" array
 			// "An array of (indirect references to) streams, each containing a BER-encoded Certificate Revocation List (CRL) (see RFC 5280 [7])."
 			crlsArray = new COSArray();
-			dssDictionary.setItem(COSNAME_CRLS, crlsArray);
+			dssDictionary.setItem("CRLs", crlsArray);
 		}
 		crlsArray.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
