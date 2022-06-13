@@ -982,6 +982,84 @@ public class LTVSupportImplTest {
 		}
 	}
 	
+	@Test
+	public void testAddDSSOCSPs_noDssSoFar() throws IOException, CertificateException {
+		
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		cut.addDSSOCSPs(pdDocument, Lists.list(new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 }));
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray ocspsArray = (COSArray) dssDictionary.getDictionaryObject("OCSPs");
+		assertThat(ocspsArray.size(), is(2));
+		
+		// make sure that ocsp response 1 has been added to dss
+		try (InputStream in = ((COSStream) ocspsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(new byte[] { 1, 2, 3 }));
+		}
+		// make sure that ocsp response 2 has been added to dss
+		try (InputStream in = ((COSStream) ocspsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(new byte[] { 4, 5, 6 }));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(ocspsArray.isNeedToBeUpdated());
+		
+	}
+
+	@Test
+	public void testAddDSSOCSPs_dssAlreadyExists() throws IOException, CertificateException {
+		
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		cut.addDSSOCSPs(pdDocument, Lists.list(new byte[] { 1, 2, 3 }, new byte[] { 4, 5, 6 }));
+		
+		// document now contains DSS with two ocsp responses
+		
+		cut.addDSSOCSPs(pdDocument, Lists.list(new byte[] { 7, 8, 9 }, new byte[] { 4, 2, 0 }));
+		
+		// expect that document now contains all four ocsp responses
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray ocspsArray = (COSArray) dssDictionary.getDictionaryObject("OCSPs");
+		assertThat(ocspsArray.size(), is(4));
+		
+		// make sure that ocsp response 1 has been added to dss
+		try (InputStream in = ((COSStream) ocspsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(new byte[] { 1, 2, 3 }));
+		}
+		// make sure that ocsp response 2 has been added to dss
+		try (InputStream in = ((COSStream) ocspsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(new byte[] { 4, 5, 6 }));
+		}
+		// make sure that ocsp response 3 has been added to dss
+		try (InputStream in = ((COSStream) ocspsArray.get(2)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(new byte[] { 7, 8, 9 }));
+		}
+		// make sure that ocsp response 4 has been added to dss
+		try (InputStream in = ((COSStream) ocspsArray.get(3)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(new byte[] { 4, 2, 0 }));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(ocspsArray.isNeedToBeUpdated());
+		
+	}
+
 	@Nonnull
 	private PDDocument emptyDocument() {
 		PDDocument pdDocument = new PDDocument();
