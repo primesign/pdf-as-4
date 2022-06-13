@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
@@ -17,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.slf4j.Logger;
@@ -218,6 +223,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @throws CertificateEncodingException In case of an error encoding certificates.
 	 * @implNote Marks the provided DSS dictionary dirty.
 	 * @implNote Creates a new DSS dictionary if not already exists.
+	 * @implNote Certificates already present within the DSS are not added.
 	 */
 	void addDSSCerts(@Nonnull PDDocument pdDocument, @Nonnull Iterable<X509Certificate> certificates) throws IOException, CertificateEncodingException {
 		
@@ -226,23 +232,34 @@ public class LTVSupportImpl implements LTVSupport {
 		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
 		if (certsArray == null) {
 			// add new "Certs" array
-			log.trace("Adding new DSS/Certs dictionary.");
+			log.trace("Adding new Certs dictionary.");
 			// "An array of (indirect references to) streams, each containing one BER-encoded X.509 certificate (see RFC 5280 [7])"
 			certsArray = new COSArray();
 			dssDictionary.setItem("Certs", certsArray);
 		}
-		dssDictionary.setNeedToBeUpdated(true);
-		certsArray.setNeedToBeUpdated(true);
-		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
-		pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
+		
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
+		
+		Set<X509Certificate> alreadyPresent = new HashSet<>();
+		certsArray.forEach(s -> toX509Certificate((COSStream) s).ifPresent(alreadyPresent::add));
 		
 		// add BER-encoded X.509 certificates
 		log.trace("Adding certificates to DSS/Certs dictionary.");
-		// TODO[PDFAS-116]: Avoid adding duplicate Certificates
 		for (X509Certificate certificate : certificates) {
-			log.trace("Adding certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
-			try (InputStream in = new ByteArrayInputStream(certificate.getEncoded())) {
-				certsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
+			if (!alreadyPresent.contains(certificate))  {
+				log.trace("Adding certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
+				try (InputStream in = new ByteArrayInputStream(certificate.getEncoded())) {
+					certsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
+				}
+				
+				dssDictionary.setNeedToBeUpdated(true);
+				certsArray.setNeedToBeUpdated(true);
+				// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+				rootDictionary.setNeedToBeUpdated(true);
+				
+				alreadyPresent.add(certificate);
+			} else {
+				log.trace("Do not add already existing certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
 			}
 		}
 		
@@ -321,6 +338,28 @@ public class LTVSupportImpl implements LTVSupport {
 				crlsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
 			}
 		}
+	}
+	
+	/**
+	 * Parses a X509Certificate from a given COSStream.
+	 * 
+	 * @param cosStream The cos stream. (required; must not be {@code null})
+	 * @return The parsed certificate wrapped in Optional.
+	 * @implNote Optional is empty, in case of any error.
+	 */
+	Optional<X509Certificate> toX509Certificate(@Nonnull COSStream cosStream) {
+		
+		X509Certificate x509Certificate = null;
+		try (InputStream in = cosStream.createInputStream()) {
+			
+			x509Certificate = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(in);
+			
+		} catch (Exception e) {
+			log.info("Unable to decode certificate from existing DSS dictionary: {}", String.valueOf(e));
+		}
+		
+		return Optional.ofNullable(x509Certificate);
+		
 	}
 
 }

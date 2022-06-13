@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
@@ -16,17 +17,25 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.assertj.core.util.Lists;
@@ -627,7 +636,179 @@ public class LTVSupportImplTest {
 		ctrl.verify();
 		
 	}
+	
+	@Test
+	public void testAddDSSCerts_noDssSoFar() throws IOException, CertificateException {
+		
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		X509Certificate cert1 = resourceToCertificate("Max_Mustermann.20210224-20260224.SerNo7C174E16.crt");
+		X509Certificate cert2 = resourceToCertificate("Max_Mustermann.20210907-20260907.SerNo34731014.crt");
+		
+		cut.addDSSCerts(pdDocument, Lists.list(cert1, cert2));
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
+		assertThat(certsArray.size(), is(2));
+		
+		// make sure that cert1 has been added to dss
+		try (InputStream in = ((COSStream) certsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert1.getEncoded()));
+		}
+		// make sure that cert2 has been added to dss
+		try (InputStream in = ((COSStream) certsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert2.getEncoded()));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(certsArray.isNeedToBeUpdated());
+		
+	}
+	
+	@Test
+	public void testAddDSSCerts_dssAlreadyExists() throws IOException, CertificateException {
+		
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		X509Certificate cert1 = resourceToCertificate("Max_Mustermann.20210224-20260224.SerNo7C174E16.crt");
+		X509Certificate cert2 = resourceToCertificate("Max_Mustermann.20210907-20260907.SerNo34731014.crt");
+		
+		cut.addDSSCerts(pdDocument, Lists.list(cert1, cert2));
+		
+		// document now contains DSS with two certs
+		
+		X509Certificate cert3 = resourceToCertificate("Max_Mustermann.20220223-20270223.SerNo38EF60B6.crt");
+		X509Certificate cert4 = resourceToCertificate("Max_Mustermann.20220502-20270502.SerNo35C40B8B.crt");
+		
+		cut.addDSSCerts(pdDocument, Lists.list(cert3, cert4));
+		
+		// expect that document now contains all four certs
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
+		assertThat(certsArray.size(), is(4));
+		
+		// make sure that dss still contains cert1
+		try (InputStream in = ((COSStream) certsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert1.getEncoded()));
+		}
+		// make sure that dss still contains cert2
+		try (InputStream in = ((COSStream) certsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert2.getEncoded()));
+		}
+		
+		// make sure that cert3 has been added to dss
+		try (InputStream in = ((COSStream) certsArray.get(2)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert3.getEncoded()));
+		}
+		// make sure that cert4 has been added to dss
+		try (InputStream in = ((COSStream) certsArray.get(3)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert4.getEncoded()));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(certsArray.isNeedToBeUpdated());
+		
+	}
 
+	@Test
+	public void testAddDSSCerts_avoidDuplicateCerts() throws IOException, CertificateException {
+
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		X509Certificate cert1 = resourceToCertificate("Max_Mustermann.20210224-20260224.SerNo7C174E16.crt");
+		X509Certificate cert2 = resourceToCertificate("Max_Mustermann.20210907-20260907.SerNo34731014.crt");
+		
+		// #1, #2
+		cut.addDSSCerts(pdDocument, Lists.list(cert1, cert2));
+		
+		// document now contains DSS with two certs
+		
+		X509Certificate cert3 = resourceToCertificate("Max_Mustermann.20220223-20270223.SerNo38EF60B6.crt");
+		
+		// #2, #3
+		cut.addDSSCerts(pdDocument, Lists.list(cert2, cert3));
+		
+		// expect that document now contains cert1, cert2, cert3, each of them only once
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
+		assertThat(certsArray.size(), is(3));
+		
+		// make sure that dss still contains cert1
+		try (InputStream in = ((COSStream) certsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert1.getEncoded()));
+		}
+		// make sure that dss still contains cert2
+		try (InputStream in = ((COSStream) certsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert2.getEncoded()));
+		}
+		
+		// make sure that cert3 has been added to dss
+		try (InputStream in = ((COSStream) certsArray.get(2)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(cert3.getEncoded()));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(certsArray.isNeedToBeUpdated());
+
+	}
+	
+	@Test
+	public void test_toX509Certificate() throws IOException, CertificateException {
+		
+		COSStream cosStream = new COSStream();
+		try (InputStream in = LTVSupportImplTest.class.getResourceAsStream("Max_Mustermann.20210224-20260224.SerNo7C174E16.crt");
+				OutputStream out = cosStream.createOutputStream()) {
+			IOUtils.copy(in, out);
+		}
+		
+		Optional<X509Certificate> x509Certificate = cut.toX509Certificate(cosStream);
+		assertThat(x509Certificate).contains(resourceToCertificate("Max_Mustermann.20210224-20260224.SerNo7C174E16.crt"));
+		
+	}
+	
+	@Test
+	public void test_toX509Certificate_errorParsingCertificate() throws IOException, CertificateException {
+		
+		COSStream cosStream = new COSStream();
+		try (OutputStream out = cosStream.createOutputStream()) {
+			IOUtils.write(new byte[] { 1, 2, 3 }, out);
+		}
+		
+		Optional<X509Certificate> x509Certificate = cut.toX509Certificate(cosStream);
+		assertThat(x509Certificate).isEmpty();
+		
+	}
+	
+	@Nonnull
+	private X509Certificate resourceToCertificate(@Nonnull String resourceUri) throws IOException, CertificateException {
+		try (InputStream in = LTVSupportImplTest.class.getResourceAsStream(resourceUri)) {
+			return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(in);
+		}
+	}
+	
 	@Nonnull
 	private PDDocument emptyDocument() {
 		PDDocument pdDocument = new PDDocument();
