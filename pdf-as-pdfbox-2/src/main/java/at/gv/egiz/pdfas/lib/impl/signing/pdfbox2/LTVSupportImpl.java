@@ -189,7 +189,7 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		COSDictionary adbeDictionary = (COSDictionary) extDictionary.getDictionaryObject("ADBE");
 		if (adbeDictionary == null) {
-			log.trace("Adding new ADBE extensions dictionary.");
+			log.trace("Adding new Extensions/ADBE dictionary.");
 			// add new ADBE dictionary
 			adbeDictionary = new COSDictionary();
 			adbeDictionary.setDirect(true);
@@ -235,7 +235,7 @@ public class LTVSupportImpl implements LTVSupport {
 		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
 		if (certsArray == null) {
 			// add new "Certs" array
-			log.trace("Adding new Certs dictionary.");
+			log.trace("Adding new DSS/Certs dictionary.");
 			// "An array of (indirect references to) streams, each containing one BER-encoded X.509 certificate (see RFC 5280 [7])"
 			certsArray = new COSArray();
 			dssDictionary.setItem("Certs", certsArray);
@@ -250,7 +250,7 @@ public class LTVSupportImpl implements LTVSupport {
 		log.trace("Adding certificates to DSS/Certs dictionary.");
 		for (X509Certificate certificate : certificates) {
 			if (!alreadyPresent.contains(certificate))  {
-				log.trace("Adding certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
+				log.trace("Adding certificate to DSS/Certs: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
 				try (InputStream in = new ByteArrayInputStream(certificate.getEncoded())) {
 					certsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
 				}
@@ -262,7 +262,7 @@ public class LTVSupportImpl implements LTVSupport {
 				
 				alreadyPresent.add(certificate);
 			} else {
-				log.trace("Do not add already existing certificate to DSS: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
+				log.trace("Do not add already existing certificate to DSS/Certs: subject='{}' (issuer='{}', serial={})", certificate.getSubjectDN(), certificate.getIssuerDN(), certificate.getSerialNumber());
 			}
 		}
 		
@@ -339,7 +339,7 @@ public class LTVSupportImpl implements LTVSupport {
 		for (X509CRL crl : crls) {
 			if (!alreadyPresent.contains(crl))  {
 				if (log.isTraceEnabled()) {
-					log.trace("Adding crl to DSS: issuer='{}', thisUpdate={}, nextUpdate={}", crl.getIssuerDN(), format(crl.getThisUpdate()), format(crl.getNextUpdate()));
+					log.trace("Adding CRL to DSS/CRLs: issuer='{}', thisUpdate={}, nextUpdate={}", crl.getIssuerDN(), format(crl.getThisUpdate()), format(crl.getNextUpdate()));
 				}
 				try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
 					crlsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
@@ -352,7 +352,7 @@ public class LTVSupportImpl implements LTVSupport {
 				alreadyPresent.add(crl);
 			} else {
 				if (log.isTraceEnabled()) {
-					log.trace("Do not all already existing crl to DSS: issuer='{}', thisUpdate={}, nextUpdate={}", crl.getIssuerDN(), format(crl.getThisUpdate()), format(crl.getNextUpdate()));
+					log.trace("Do not add already existing CRL to DSS/CRLs: issuer='{}', thisUpdate={}, nextUpdate={}", crl.getIssuerDN(), format(crl.getThisUpdate()), format(crl.getNextUpdate()));
 				}
 			}
 		}
