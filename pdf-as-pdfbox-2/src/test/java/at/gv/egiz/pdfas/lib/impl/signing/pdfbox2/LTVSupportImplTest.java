@@ -802,10 +802,183 @@ public class LTVSupportImplTest {
 		
 	}
 	
+	@Test
+	public void test_toX509CRL() throws IOException, CertificateException, CRLException {
+		
+		COSStream cosStream = new COSStream();
+		try (InputStream in = LTVSupportImplTest.class.getResourceAsStream("A-Trust-Root-05.crl");
+				OutputStream out = cosStream.createOutputStream()) {
+			IOUtils.copy(in, out);
+		}
+		
+		Optional<X509CRL> x509CRL = cut.toX509CRL(cosStream);
+		assertThat(x509CRL).contains(resourceToCRL("A-Trust-Root-05.crl"));
+		
+	}
+	
+	@Test
+	public void test_toX509CRL_errorParsingCRL() throws IOException, CertificateException {
+		
+		COSStream cosStream = new COSStream();
+		try (OutputStream out = cosStream.createOutputStream()) {
+			IOUtils.write(new byte[] { 1, 2, 3 }, out);
+		}
+		
+		Optional<X509CRL> x509CRL = cut.toX509CRL(cosStream);
+		assertThat(x509CRL).isEmpty();
+		
+	}
+	
+	@Test
+	public void testAddDSSCRLs_noDssSoFar() throws IOException, CertificateException, CRLException {
+		
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		X509CRL crl1 = resourceToCRL("A-Trust-Root-05.crl");
+		X509CRL crl2 = resourceToCRL("A-Trust-Root-06.crl");
+		
+		cut.addDSSCRLs(pdDocument, Lists.list(crl1, crl2));
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject("CRLs");
+		assertThat(crlsArray.size(), is(2));
+		
+		// make sure that clr1 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl1.getEncoded()));
+		}
+		// make sure that clr2 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl2.getEncoded()));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(crlsArray.isNeedToBeUpdated());
+		
+	}
+	
+	@Test
+	public void testAddDSSCRLs_dssAlreadyExists() throws IOException, CertificateException, CRLException {
+		
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		X509CRL crl1 = resourceToCRL("A-Trust-Root-05.crl");
+		X509CRL crl2 = resourceToCRL("A-Trust-Root-06.crl");
+		
+		cut.addDSSCRLs(pdDocument, Lists.list(crl1, crl2));
+		
+		// document now contains DSS with two certs
+		
+		X509CRL crl3 = resourceToCRL("A-Trust-Root-07.crl");
+		X509CRL crl4 = resourceToCRL("a-sign-light-07.crl");
+		
+		cut.addDSSCRLs(pdDocument, Lists.list(crl3, crl4));
+		
+		// expect that document now contains all four crls
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that certificates have been added
+		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject("CRLs");
+		assertThat(crlsArray.size(), is(4));
+		
+		// make sure that clr1 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl1.getEncoded()));
+		}
+		// make sure that clr2 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl2.getEncoded()));
+		}
+		// make sure that clr3 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(2)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl3.getEncoded()));
+		}
+		// make sure that clr4 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(3)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl4.getEncoded()));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(crlsArray.isNeedToBeUpdated());
+		
+	}
+	
+
+	@Test
+	public void testAddDSSCRLs_avoidDuplicateCRLs() throws IOException, CertificateException, CRLException {
+
+		PDDocument pdDocument = emptyDocument();
+		// document contains no DSS yet
+		
+		X509CRL crl1 = resourceToCRL("A-Trust-Root-05.crl");
+		X509CRL crl2 = resourceToCRL("A-Trust-Root-06.crl");
+		
+		// #1, #2
+		cut.addDSSCRLs(pdDocument, Lists.list(crl1, crl2));
+		
+		// document now contains DSS with two crls
+		
+		X509CRL crl3 = resourceToCRL("A-Trust-Root-07.crl");
+		
+		// #2, #3
+		cut.addDSSCRLs(pdDocument, Lists.list(crl2, crl3));
+		
+		// expect that document now contains crl1, crl2, crl3, each of them only once
+		
+		COSDictionary dssDictionary = (COSDictionary) pdDocument.getDocumentCatalog().getCOSObject().getDictionaryObject("DSS");
+		// expect that dss has been created
+		assertNotNull(dssDictionary);
+		
+		// expect that crls have been added
+		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject("CRLs");
+		assertThat(crlsArray.size(), is(3));
+		
+		// make sure that dss still contains crl1
+		try (InputStream in = ((COSStream) crlsArray.get(0)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl1.getEncoded()));
+		}
+		// make sure that dss still contains crl2
+		try (InputStream in = ((COSStream) crlsArray.get(1)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl2.getEncoded()));
+		}
+		
+		// make sure that crl3 has been added to dss
+		try (InputStream in = ((COSStream) crlsArray.get(2)).createInputStream()) {
+			assertThat(IOUtils.toByteArray(in), is(crl3.getEncoded()));
+		}
+		
+		// make sure objects being modified are marked dirty
+		assertTrue(pdDocument.getDocumentCatalog().getCOSObject().isNeedToBeUpdated());
+		assertTrue(dssDictionary.isNeedToBeUpdated());
+		assertTrue(crlsArray.isNeedToBeUpdated());
+
+	}
+
+	
 	@Nonnull
 	private X509Certificate resourceToCertificate(@Nonnull String resourceUri) throws IOException, CertificateException {
 		try (InputStream in = LTVSupportImplTest.class.getResourceAsStream(resourceUri)) {
 			return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(in);
+		}
+	}
+	
+	@Nonnull
+	private X509CRL resourceToCRL(@Nonnull String resourceUri) throws IOException, CRLException, CertificateException {
+		try (InputStream in = LTVSupportImplTest.class.getResourceAsStream(resourceUri)) {
+			return (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(in);
 		}
 	}
 	

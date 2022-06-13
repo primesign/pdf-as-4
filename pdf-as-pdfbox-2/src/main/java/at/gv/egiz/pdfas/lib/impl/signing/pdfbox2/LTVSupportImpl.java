@@ -8,16 +8,19 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.pdfbox.cos.COSArray;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -327,17 +330,40 @@ public class LTVSupportImpl implements LTVSupport {
 			crlsArray = new COSArray();
 			dssDictionary.setItem("CRLs", crlsArray);
 		}
-		crlsArray.setNeedToBeUpdated(true);
-		dssDictionary.setNeedToBeUpdated(true);
-		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
-		pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
+		
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
+		
+		Set<X509CRL> alreadyPresent = new HashSet<>();
+		crlsArray.forEach(s -> toX509CRL((COSStream) s).ifPresent(alreadyPresent::add));
 
-		// TODO[PDFAS-116]: Avoid adding duplicate CRLs
 		for (X509CRL crl : crls) {
-			try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
-				crlsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
+			if (!alreadyPresent.contains(crl))  {
+				if (log.isTraceEnabled()) {
+					log.trace("Adding crl to DSS: issuer='{}', thisUpdate={}, nextUpdate={}", crl.getIssuerDN(), format(crl.getThisUpdate()), format(crl.getNextUpdate()));
+				}
+				try (InputStream in = new ByteArrayInputStream(crl.getEncoded())) {
+					crlsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
+				}
+				crlsArray.setNeedToBeUpdated(true);
+				dssDictionary.setNeedToBeUpdated(true);
+				// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
+				rootDictionary.setNeedToBeUpdated(true);
+				
+				alreadyPresent.add(crl);
+			} else {
+				if (log.isTraceEnabled()) {
+					log.trace("Do not all already existing crl to DSS: issuer='{}', thisUpdate={}, nextUpdate={}", crl.getIssuerDN(), format(crl.getThisUpdate()), format(crl.getNextUpdate()));
+				}
 			}
 		}
+	}
+	
+	@Nullable
+	private static String format(@Nullable Date date) {
+		if (date != null) {
+			return DateFormatUtils.ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT.format(date);
+		}
+		return null;
 	}
 	
 	/**
@@ -359,6 +385,28 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		
 		return Optional.ofNullable(x509Certificate);
+		
+	}
+
+	/**
+	 * Parses a X509CRL from a given COSStream.
+	 * 
+	 * @param cosStream The cos stream. (required; must not be {@code null})
+	 * @return The parsed crl wrapped in Optional.
+	 * @implNote Optional is empty, in case of any error.
+	 */
+	Optional<X509CRL> toX509CRL(@Nonnull COSStream cosStream) {
+		
+		X509CRL X509CRL = null;
+		try (InputStream in = cosStream.createInputStream()) {
+			
+			X509CRL = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(in);
+			
+		} catch (Exception e) {
+			log.info("Unable to decode crl from existing DSS dictionary: {}", String.valueOf(e));
+		}
+		
+		return Optional.ofNullable(X509CRL);
 		
 	}
 
