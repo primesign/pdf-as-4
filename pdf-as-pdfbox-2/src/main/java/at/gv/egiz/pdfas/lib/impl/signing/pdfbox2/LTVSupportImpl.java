@@ -49,6 +49,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @throws CertificateEncodingException In case of an error with certificate encoding.
 	 * @throws CRLException                 In case there was an error encoding CRL data.
 	 * @throws IOException                  In case there was an error adding a pdf stream to the document.
+	 * @apiNote {@code ltvVerificationInfo} must at least contain the signing certificate.
 	 */
 	@Override
 	public void addLTVInfo(@Nonnull PDDocument pdDocument, @Nonnull CertificateVerificationData ltvVerificationInfo) throws CertificateEncodingException, CRLException, IOException {
