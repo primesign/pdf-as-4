@@ -159,6 +159,10 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 			
 			ltvSupport.addLTVInfo(pdDocument, ltvVerificationInfo);
 			
+		} catch (IOException e) {
+			// we do not supress I/O errors (regardless of LTV mode)
+			throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
+			
 		} catch (CertificateEncodingException | CRLException e) {
 			// error embedding LTV data, LTV mode controls how errors are handled
 			final String message = "Unable to encode LTV related data to be added to the document.";
@@ -166,9 +170,14 @@ public class LTVEnabledPADESPDFBOXSigner extends PADESPDFBOXSigner {
 				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_INTERNAL_ADDING_DATA_TO_PDF, message, e);
 			}
 			log.warn(message, e);
-		} catch (IOException e) {
-			// we do not supress I/O errors (regardless of LTV mode)
-			throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_IO_ADDING_DATA_TO_PDF, "I/O error adding LTV data to pdf document.", e);
+			
+		} catch (Exception e) {
+			// catch all other errors
+			final String message = "Unable to add LTV related data to the document.";
+			if (ltvMode == LTVMode.REQUIRED) {
+				throw new PDFASError(ErrorConstants.ERROR_SIG_PADESLTV_INTERNAL_ADDING_DATA_TO_PDF, message, e);
+			}
+			log.warn(message, e);
 		}
 
 	}
