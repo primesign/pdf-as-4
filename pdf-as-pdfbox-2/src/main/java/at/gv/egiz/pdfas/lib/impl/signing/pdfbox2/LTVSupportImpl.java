@@ -59,7 +59,7 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		// expect at least the certificate(s)
 		if (CollectionUtils.isEmpty(ltvVerificationInfo.getChainCerts())) {
-			throw new IllegalStateException("LTV data has not been retrieved yet. At least the signer certificate's chain is must be provided.");
+			throw new IllegalStateException("LTV data has not been retrieved yet. At least the signer certificate's chain must be provided.");
 		}
 		
 		log.debug("Adding LTV info to document.");
@@ -80,7 +80,7 @@ public class LTVSupportImpl implements LTVSupport {
 	}
 	
 	/**
-	 * Sets the pdf version to 1.7 is the current version is lower than 1.7.
+	 * Sets the pdf version to 1.7 in case the current version is lower than 1.7.
 	 * 
 	 * @param pdDocument The underlying document. (required; must not be {@code null})
 	 * @implNote Marks the document root catalog dirty if the version is modified.
