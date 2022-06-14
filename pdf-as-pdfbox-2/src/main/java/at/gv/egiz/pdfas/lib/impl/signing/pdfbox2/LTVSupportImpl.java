@@ -408,7 +408,7 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @return The parsed certificate wrapped in Optional.
 	 * @implNote Optional is empty, in case of any error.
 	 */
-	Optional<X509Certificate> toX509Certificate(@Nonnull COSStream cosStream) {
+	static Optional<X509Certificate> toX509Certificate(@Nonnull COSStream cosStream) {
 		
 		X509Certificate x509Certificate = null;
 		try (InputStream in = cosStream.createInputStream()) {
@@ -430,18 +430,18 @@ public class LTVSupportImpl implements LTVSupport {
 	 * @return The parsed crl wrapped in Optional.
 	 * @implNote Optional is empty, in case of any error.
 	 */
-	Optional<X509CRL> toX509CRL(@Nonnull COSStream cosStream) {
+	static Optional<X509CRL> toX509CRL(@Nonnull COSStream cosStream) {
 		
-		X509CRL X509CRL = null;
+		X509CRL crl = null;
 		try (InputStream in = cosStream.createInputStream()) {
 			
-			X509CRL = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(in);
+			crl = (X509CRL) CertificateFactory.getInstance("X.509").generateCRL(in);
 			
 		} catch (Exception e) {
 			log.info("Unable to decode crl from existing DSS dictionary: {}", String.valueOf(e));
 		}
 		
-		return Optional.ofNullable(X509CRL);
+		return Optional.ofNullable(crl);
 		
 	}
 

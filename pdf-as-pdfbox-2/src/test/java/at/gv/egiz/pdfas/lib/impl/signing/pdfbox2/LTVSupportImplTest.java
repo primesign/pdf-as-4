@@ -1,5 +1,8 @@
 package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
+import static at.gv.egiz.pdfas.lib.impl.signing.pdfbox2.LTVSupportImpl.toCOSStream;
+import static at.gv.egiz.pdfas.lib.impl.signing.pdfbox2.LTVSupportImpl.toX509CRL;
+import static at.gv.egiz.pdfas.lib.impl.signing.pdfbox2.LTVSupportImpl.toX509Certificate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createControl;
@@ -784,7 +787,7 @@ public class LTVSupportImplTest {
 			IOUtils.copy(in, out);
 		}
 		
-		Optional<X509Certificate> x509Certificate = cut.toX509Certificate(cosStream);
+		Optional<X509Certificate> x509Certificate = toX509Certificate(cosStream);
 		assertThat(x509Certificate).contains(resourceToCertificate("Max_Mustermann.20210224-20260224.SerNo7C174E16.crt"));
 		
 	}
@@ -797,7 +800,7 @@ public class LTVSupportImplTest {
 			IOUtils.write(new byte[] { 1, 2, 3 }, out);
 		}
 		
-		Optional<X509Certificate> x509Certificate = cut.toX509Certificate(cosStream);
+		Optional<X509Certificate> x509Certificate = toX509Certificate(cosStream);
 		assertThat(x509Certificate).isEmpty();
 		
 	}
@@ -811,7 +814,7 @@ public class LTVSupportImplTest {
 			IOUtils.copy(in, out);
 		}
 		
-		Optional<X509CRL> x509CRL = cut.toX509CRL(cosStream);
+		Optional<X509CRL> x509CRL = toX509CRL(cosStream);
 		assertThat(x509CRL).contains(resourceToCRL("A-Trust-Root-05.crl"));
 		
 	}
@@ -824,7 +827,7 @@ public class LTVSupportImplTest {
 			IOUtils.write(new byte[] { 1, 2, 3 }, out);
 		}
 		
-		Optional<X509CRL> x509CRL = cut.toX509CRL(cosStream);
+		Optional<X509CRL> x509CRL = toX509CRL(cosStream);
 		assertThat(x509CRL).isEmpty();
 		
 	}
@@ -893,19 +896,19 @@ public class LTVSupportImplTest {
 		assertThat(crlsArray.size(), is(4));
 		
 		// make sure that clr1 has been added to dss
-		try (InputStream in = ((COSStream) crlsArray.get(0)).createInputStream()) {
+		try (InputStream in = toCOSStream(crlsArray.get(0)).get().createInputStream()) {
 			assertThat(IOUtils.toByteArray(in), is(crl1.getEncoded()));
 		}
 		// make sure that clr2 has been added to dss
-		try (InputStream in = ((COSStream) crlsArray.get(1)).createInputStream()) {
+		try (InputStream in = toCOSStream(crlsArray.get(1)).get().createInputStream()) {
 			assertThat(IOUtils.toByteArray(in), is(crl2.getEncoded()));
 		}
 		// make sure that clr3 has been added to dss
-		try (InputStream in = ((COSStream) crlsArray.get(2)).createInputStream()) {
+		try (InputStream in = toCOSStream(crlsArray.get(2)).get().createInputStream()) {
 			assertThat(IOUtils.toByteArray(in), is(crl3.getEncoded()));
 		}
 		// make sure that clr4 has been added to dss
-		try (InputStream in = ((COSStream) crlsArray.get(3)).createInputStream()) {
+		try (InputStream in = toCOSStream(crlsArray.get(3)).get().createInputStream()) {
 			assertThat(IOUtils.toByteArray(in), is(crl4.getEncoded()));
 		}
 		
