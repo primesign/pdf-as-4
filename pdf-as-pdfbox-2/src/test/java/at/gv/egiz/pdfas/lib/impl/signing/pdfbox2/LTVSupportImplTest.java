@@ -642,7 +642,7 @@ public class LTVSupportImplTest {
 	}
 	
 	@Test
-	public void testAddDSSCerts_noDssSoFar() throws IOException, CertificateException {
+	public void test_addDSSCerts_noDssSoFar() throws IOException, CertificateException {
 		
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -677,7 +677,7 @@ public class LTVSupportImplTest {
 	}
 	
 	@Test
-	public void testAddDSSCerts_dssAlreadyExists() throws IOException, CertificateException {
+	public void test_addDSSCerts_dssAlreadyExists() throws IOException, CertificateException {
 		
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -730,7 +730,7 @@ public class LTVSupportImplTest {
 	}
 
 	@Test
-	public void testAddDSSCerts_avoidDuplicateCerts() throws IOException, CertificateException {
+	public void test_addDSSCerts_avoidDuplicateCerts() throws IOException, CertificateException {
 
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -834,7 +834,7 @@ public class LTVSupportImplTest {
 	}
 	
 	@Test
-	public void testAddDSSCRLs_noDssSoFar() throws IOException, CertificateException, CRLException {
+	public void test_addDSSCRLs_noDssSoFar() throws IOException, CertificateException, CRLException {
 		
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -869,7 +869,7 @@ public class LTVSupportImplTest {
 	}
 	
 	@Test
-	public void testAddDSSCRLs_dssAlreadyExists() throws IOException, CertificateException, CRLException {
+	public void test_addDSSCRLs_dssAlreadyExists() throws IOException, CertificateException, CRLException {
 		
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -941,7 +941,7 @@ public class LTVSupportImplTest {
 	}
 
 	@Test
-	public void testAddDSSCRLs_avoidDuplicateCRLs() throws IOException, CertificateException, CRLException {
+	public void test_addDSSCRLs_avoidDuplicateCRLs() throws IOException, CertificateException, CRLException {
 
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -1006,7 +1006,7 @@ public class LTVSupportImplTest {
 	}
 	
 	@Test
-	public void testAddDSSOCSPs_noDssSoFar() throws IOException, CertificateException {
+	public void test_addDSSOCSPs_noDssSoFar() throws IOException, CertificateException {
 		
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
@@ -1038,7 +1038,7 @@ public class LTVSupportImplTest {
 	}
 
 	@Test
-	public void testAddDSSOCSPs_dssAlreadyExists() throws IOException, CertificateException {
+	public void test_addDSSOCSPs_dssAlreadyExists() throws IOException, CertificateException {
 		
 		PDDocument pdDocument = emptyDocument();
 		// document contains no DSS yet
