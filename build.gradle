@@ -89,6 +89,7 @@ subprojects {
 		slf4jVersion = '1.7.30'
 		cxfVersion = '3.0.1'
 		jsr305Version = '1.3.9'
+		pdfboxVersion = '2.0.26'
 	  }
 	
 	jar { manifest.attributes provider: 'EGIZ', 'Specification-Version': getCheckedOutGitCommitHash(), 'Implementation-Version': project.version  }

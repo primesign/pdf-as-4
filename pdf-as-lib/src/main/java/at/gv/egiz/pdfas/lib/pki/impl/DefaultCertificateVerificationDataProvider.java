@@ -159,7 +159,7 @@ public class DefaultCertificateVerificationDataProvider implements CertificateVe
 						certAndRevStatus.setRevocationStatus(RevocationStatus.CHECK_FAILED);
 					}
 					
-					// add ocsp signer certificate to certs
+					// keep ocsp response
 					ocsps.add(ocspResponse.getEncoded());
 					
 					X509Certificate ocspSignerCertificate = basicOCSPResponse.getSignerCertificate();
