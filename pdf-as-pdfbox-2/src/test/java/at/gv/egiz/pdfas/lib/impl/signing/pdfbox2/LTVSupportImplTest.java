@@ -9,6 +9,7 @@ import static org.easymock.EasyMock.createControl;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.newCapture;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -919,6 +920,25 @@ public class LTVSupportImplTest {
 		
 	}
 	
+	@Test
+	public void test_toCOSStream() throws IOException {
+
+		PDDocument pdDocument;
+		
+		try (InputStream in = LTVSupportImplTest.class.getResourceAsStream("Max_Mustermann.pdf")) {
+			pdDocument = PDDocument.load(in);
+		}
+
+		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
+		COSDictionary dssDictionary = (COSDictionary) rootDictionary.getDictionaryObject("DSS");
+		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
+		// just to make sure we test a document with DSS/Certs
+		assertThat(certsArray.size(), is(greaterThan(0)));
+
+		// Do we get a COS Stream ?
+		certsArray.forEach(cosBase -> assertThat(toCOSStream(cosBase)).isNotEmpty());
+		
+	}
 
 	@Test
 	public void testAddDSSCRLs_avoidDuplicateCRLs() throws IOException, CertificateException, CRLException {
