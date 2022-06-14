@@ -22,8 +22,10 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
+import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDStream;
@@ -36,7 +38,7 @@ import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 @ThreadSafe
 public class LTVSupportImpl implements LTVSupport {
 
-	private Logger log = LoggerFactory.getLogger(LTVSupportImpl.class);
+	private static Logger log = LoggerFactory.getLogger(LTVSupportImpl.class);
 
 	/**
 	 * Adds previously collected LTV verification data to the provided pdf document and updates pdf version and extensions
@@ -243,8 +245,14 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
 		
+		// build set of certificates already present within DSS
 		Set<X509Certificate> alreadyPresent = new HashSet<>();
-		certsArray.forEach(s -> toX509Certificate((COSStream) s).ifPresent(alreadyPresent::add));
+		// @formatter:off
+		certsArray.forEach(
+			cosBase -> toCOSStream(cosBase)                             // COSBase -> COSStream
+				.ifPresent(cosStream -> toX509Certificate(cosStream)    // COSStream -> X509Certificate
+					.ifPresent(alreadyPresent::add)));
+		// @formatter:on
 		
 		// add BER-encoded X.509 certificates
 		log.trace("Adding certificates to DSS/Certs dictionary.");
@@ -304,6 +312,27 @@ public class LTVSupportImpl implements LTVSupport {
 		}
 		
 	}
+	
+	/**
+	 * Tries to retrieve a COSStream from a provided COSBase object.
+	 * 
+	 * @param cosBase The COSBase object. (optional; may be {@code null})
+	 * @return A resulting COSStream object wrapped by an Optional.
+	 */
+	static Optional<COSStream> toCOSStream(@Nullable COSBase cosBase) {
+		
+		// if cosBase is a reference dereference it
+		if (cosBase instanceof COSObject) {
+			cosBase = ((COSObject) cosBase).getObject();
+		}
+		
+		if (cosBase instanceof COSStream) {
+			return Optional.ofNullable((COSStream) cosBase);
+		}
+		
+		log.trace("Unable to convert provided COSBase to COSStream.");
+		return Optional.empty();
+	}
 
 	/**
 	 * Adds the "CRLs" dictionary to DSS dictionary of the provided document as specified in <a href=
@@ -333,8 +362,14 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
 		
+		// build set of clrs already present within DSS
 		Set<X509CRL> alreadyPresent = new HashSet<>();
-		crlsArray.forEach(s -> toX509CRL((COSStream) s).ifPresent(alreadyPresent::add));
+		// @formatter:off
+		crlsArray.forEach(
+			cosBase -> toCOSStream(cosBase)                     // COSBase -> COSStream
+				.ifPresent(cosStream -> toX509CRL(cosStream)    // COSStream -> X509CRL
+					.ifPresent(alreadyPresent::add)));
+		// @formatter:on
 
 		for (X509CRL crl : crls) {
 			if (!alreadyPresent.contains(crl))  {
