@@ -142,7 +142,12 @@ public class LTVSupportImpl implements LTVSupport {
 	COSDictionary ensureDSSDictionary(@Nonnull PDDocument pdDocument) {
 		
 		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
-		COSDictionary dssDictionary = (COSDictionary) rootDictionary.getDictionaryObject("DSS");
+		COSBase dictionaryObject = rootDictionary.getDictionaryObject("DSS");
+		if (dictionaryObject != null && !(dictionaryObject instanceof COSDictionary)) {
+			throw new IllegalArgumentException("DSS entry of the provided document is not a dictionary. The document violates ETSI TS 102 778-4 V1.1.2 (2009-12), section A.1.");
+		}
+		
+		COSDictionary dssDictionary = (COSDictionary) dictionaryObject;
 		if (dssDictionary == null) {
 			log.trace("Adding new DSS dictionary.");
 			// add new DSS dictionary
@@ -167,7 +172,12 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		COSDictionary rootDictionary = pdDocument.getDocumentCatalog().getCOSObject();
 
-		COSDictionary extDictionary = (COSDictionary) rootDictionary.getDictionaryObject("Extensions");
+		COSBase dictionaryObject = rootDictionary.getDictionaryObject("Extensions");
+		if (dictionaryObject != null && !(dictionaryObject instanceof COSDictionary)) {
+			throw new IllegalArgumentException("Extensions entry of the provided document is not a dictionary. The document violates ISO 32000-1:2008, section 7.12.");
+		}
+		
+		COSDictionary extDictionary = (COSDictionary) dictionaryObject;
 		if (extDictionary == null) {
 			log.trace("Adding new Extensions dictionary.");
 			// add new Extensions dictionary
@@ -189,7 +199,12 @@ public class LTVSupportImpl implements LTVSupport {
 	 */
 	void addOrUpdateADBEExtension(@Nonnull COSDictionary extDictionary) {
 		
-		COSDictionary adbeDictionary = (COSDictionary) extDictionary.getDictionaryObject("ADBE");
+		COSBase dictionaryObject = extDictionary.getDictionaryObject("ADBE");
+		if (dictionaryObject != null && !(dictionaryObject instanceof COSDictionary)) {
+			throw new IllegalArgumentException("ADBE extension entry of the provided document is not a dictionary. The document violates ISO 32000-1:2008, section 7.12.1.");
+		}
+		
+		COSDictionary adbeDictionary = (COSDictionary) dictionaryObject;
 		if (adbeDictionary == null) {
 			log.trace("Adding new Extensions/ADBE dictionary.");
 			// add new ADBE dictionary
@@ -234,7 +249,12 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		final COSDictionary dssDictionary = ensureDSSDictionary(pdDocument);
 		
-		COSArray certsArray = (COSArray) dssDictionary.getDictionaryObject("Certs");
+		COSBase dictionaryObject = dssDictionary.getDictionaryObject("Certs");
+		if (dictionaryObject != null && !(dictionaryObject instanceof COSArray)) {
+			throw new IllegalArgumentException("Certs entry of DSS dictionary of the provided document is not an Array. The document violates ETSI TS 102 778-4 V1.1.2 (2009-12), section A.1.");
+		}
+		
+		COSArray certsArray = (COSArray) dictionaryObject;
 		if (certsArray == null) {
 			// add new "Certs" array
 			log.trace("Adding new DSS/Certs dictionary.");
@@ -292,22 +312,27 @@ public class LTVSupportImpl implements LTVSupport {
 		
 		final COSDictionary dssDictionary = ensureDSSDictionary(pdDocument);
 
-		COSArray ocspssArray = (COSArray) dssDictionary.getDictionaryObject("OCSPs");
-		if (ocspssArray == null) {
+		COSBase dictionaryObject = dssDictionary.getDictionaryObject("OCSPs");
+		if (dictionaryObject != null && !(dictionaryObject instanceof COSArray)) {
+			throw new IllegalArgumentException("OCSPs entry of DSS dictionary of the provided document is not an Array. The document violates ETSI TS 102 778-4 V1.1.2 (2009-12), section A.1.");
+		}
+		
+		COSArray ocspsArray = (COSArray) dictionaryObject;
+		if (ocspsArray == null) {
 			log.trace("Adding new DSS/OCSPs dictionary.");
 			// add "OCSPs" array
 			// "An array of (indirect references to) streams, each containing a BER-encoded Online Certificate Status Protocol (OCSP) response (see RFC 2560 [8])."
-			ocspssArray = new COSArray();
-			dssDictionary.setItem("OCSPs", ocspssArray);
+			ocspsArray = new COSArray();
+			dssDictionary.setItem("OCSPs", ocspsArray);
 		}
-		ocspssArray.setNeedToBeUpdated(true);
+		ocspsArray.setNeedToBeUpdated(true);
 		dssDictionary.setNeedToBeUpdated(true);
 		// There must be a path of objects that have {@link COSUpdateInfo#isNeedToBeUpdated()} set, starting from the document catalog.
 		pdDocument.getDocumentCatalog().getCOSObject().setNeedToBeUpdated(true);
 
 		for (byte[] encodedOcspResponse : encodedOcspResponses) {
 			try (InputStream in = new ByteArrayInputStream(encodedOcspResponse)) {
-				ocspssArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
+				ocspsArray.add(new PDStream(pdDocument, in, COSName.FLATE_DECODE));
 			}
 		}
 		
@@ -351,7 +376,12 @@ public class LTVSupportImpl implements LTVSupport {
 
 		final COSDictionary dssDictionary = ensureDSSDictionary(pdDocument);
 
-		COSArray crlsArray = (COSArray) dssDictionary.getDictionaryObject("CRLs");
+		COSBase dictionaryObject = dssDictionary.getDictionaryObject("CRLs");
+		if (dictionaryObject != null && !(dictionaryObject instanceof COSArray)) {
+			throw new IllegalArgumentException("CRLs entry of DSS dictionary of the provided document is not an Array. The document violates ETSI TS 102 778-4 V1.1.2 (2009-12), section A.1.");
+		}
+		
+		COSArray crlsArray = (COSArray) dictionaryObject;
 		if (crlsArray == null) {
 			log.trace("Adding new DSS/CRLs dictionary.");
 			// add "CRLs" array
