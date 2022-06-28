@@ -620,6 +620,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			OperationStatus operationStatus = new OperationStatus(settings, signParameter, pdfasBackend);
 			PDFObject pdfObject = signer.buildPDFObject(operationStatus);
 			operationStatus.setPdfObject(pdfObject);
+			operationStatus.setSigningDate(ctx.getSigningTime());
 			pdfObject.setOriginalDocument(signParameter.getDataSource());
 			
 			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
@@ -632,7 +633,13 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			String pdfFilter = plainSigner.getPDFFilter();
 			String pdfSubFilter = plainSigner.getPDFSubFilter();
-			final Calendar signingTime = Calendar.getInstance();
+			
+			final Calendar signingTime = signParameter.getSigningTimeSource().getSigningTime(requestedSignature);
+			// update signing time in case (external) signing time source provides a deviating date
+			if (!signingTime.equals(ctx.getSigningTime())) {
+				ctx.setSigningTime(signingTime);
+				operationStatus.setSigningDate(signingTime);
+			}
 			
 			// TODO[PDFAS-114/PRIMESIGN-2991]: Add LTV
 			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
@@ -765,6 +772,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			SignResultImpl signResult = new SignResultImpl();
 			signResult.setSignerCertificate(iaikSigningCertificate);
+			signResult.setSigningDate(ctx.getSigningTime());
 			// TODO[PDFAS-114]: Add signature position to SignResult
 			// TODO[PDFAS-114]: Add processInformations(sic!) to SignResult
 			return signResult;

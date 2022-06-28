@@ -4,8 +4,10 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Calendar;
 
 import javax.activation.DataSource;
 import javax.annotation.Nullable;
@@ -31,6 +33,8 @@ public class ExternalSignatureContext implements Closeable {
 	private X509Certificate signingCertificate;
 
 	private DataSource preparedDocument;
+	
+	private Calendar signingTime;
 
 	@Nullable
 	public String getDigestAlgorithmOid() {
@@ -94,6 +98,15 @@ public class ExternalSignatureContext implements Closeable {
 		this.signatureByteRange = signatureByteRange;
 	}
 
+	@Nullable
+	public Calendar getSigningTime() {
+		return signingTime;
+	}
+
+	public void setSigningTime(@Nullable Calendar signingTime) {
+		this.signingTime = signingTime;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -117,6 +130,12 @@ public class ExternalSignatureContext implements Closeable {
 				builder.append(", ");
 			}
 			builder.append("signatureByteRange=").append(Arrays.toString(signatureByteRange));
+		}
+		if (signingTime != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append("signingTime=").append(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingTime));
 		}
 		if (signingCertificate != null) {
 			if (builder.length() > 0) {
