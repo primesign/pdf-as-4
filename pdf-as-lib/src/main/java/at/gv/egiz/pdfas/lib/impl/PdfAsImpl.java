@@ -617,6 +617,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			IPdfSigner signer = pdfasBackend.getPdfSigner();
 			
+			final ISettings settings = (ISettings) signParameter.getConfiguration();
 			OperationStatus operationStatus = new OperationStatus(settings, signParameter, pdfasBackend);
 			PDFObject pdfObject = signer.buildPDFObject(operationStatus);
 			operationStatus.setPdfObject(pdfObject);
