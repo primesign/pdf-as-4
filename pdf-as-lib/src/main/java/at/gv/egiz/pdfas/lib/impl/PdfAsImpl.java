@@ -642,7 +642,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				operationStatus.setSigningDate(signingTime);
 			}
 			
-			// TODO[PDFAS-114/PRIMESIGN-2991]: Add LTV
+			// LTV mode controls if and how retrieval/embedding LTV data will be done
+			LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
+			logger.trace("LTV mode: {}", ltvMode);
+			if (ltvMode != LTVMode.NONE) {
+				CertificateVerificationData certificateVerificationData = plainSigner.getCertificateVerificationData(requestedSignature);
+				requestedSignature.setCertificateVerificationData(certificateVerificationData);
+			}
+			
 			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
 			
 			PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
