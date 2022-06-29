@@ -102,7 +102,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 				return ltvVerificationInfoService.getCertificateVerificationData(eeCertificate, settings);
 				
 			} else {
-				log.info("Unable to handle LTV retrieval for signer certificate with issuer (ski: {}): {}", CertificateUtils.getAuthorityKeyIdentifierHexString(eeCertificate), eeCertificate.getIssuerDN());
+				log.info("Unable to handle LTV retrieval for signer certificate with issuer (ski: {}): {}", CertificateUtils.getAuthorityKeyIdentifierHexString(eeCertificate).orElseGet(() -> null), eeCertificate.getIssuerDN());
 			}
 
 		} catch (Exception e) {
