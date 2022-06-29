@@ -103,7 +103,7 @@ public interface PdfAs {
 	Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution) throws PDFASError;
 	
 	// TODO[PDFAS-114]: Add javadoc
-
+	// ctx will be updated in terms of: digestAlgorithmOid, digestValue, preparedDocument, signatureAlgorithmOid, signatureByteRange, signatureData, signingTime
 	void startExternalSignature(@Nonnull SignParameter signParameter, @Nonnull X509Certificate signingCertificate, @Nonnull ExternalSignatureContext ctx) throws PDFASError;
 	
 	SignResult finishExternalSignature(@Nonnull SignParameter signParameter, @Nonnull byte[] signatureValue, @Nonnull ExternalSignatureContext ctx) throws PDFASError;
