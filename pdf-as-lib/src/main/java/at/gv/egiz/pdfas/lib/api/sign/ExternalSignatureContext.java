@@ -135,7 +135,7 @@ public class ExternalSignatureContext implements Closeable {
 			if (builder.length() > 0) {
 				builder.append(", ");
 			}
-			builder.append("signingTime=").append(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingTime));
+			builder.append("signingTime=").append(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingTime.getTime()));
 		}
 		if (signingCertificate != null) {
 			if (builder.length() > 0) {
