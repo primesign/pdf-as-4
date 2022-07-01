@@ -612,7 +612,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				throw new PDFASError(ERROR_NO_BACKEND);
 			}
 			
-			// skip signPreprocessing uses by original startSign
+			// skip signPreprocessing performed by original startSign
 			// ...
 			
 			IPdfSigner signer = pdfasBackend.getPdfSigner();
