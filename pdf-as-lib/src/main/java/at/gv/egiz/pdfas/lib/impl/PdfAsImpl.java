@@ -615,18 +615,19 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			// skip signPreprocessing performed by original startSign
 			// ...
 			
-			IPdfSigner signer = pdfasBackend.getPdfSigner();
-			
+			IPdfSigner pdfSigner = pdfasBackend.getPdfSigner();
+
+			// create internal operation status...
 			final ISettings settings = (ISettings) signParameter.getConfiguration();
 			OperationStatus operationStatus = new OperationStatus(settings, signParameter, pdfasBackend);
-			PDFObject pdfObject = signer.buildPDFObject(operationStatus);
+			PDFObject pdfObject = pdfSigner.buildPDFObject(operationStatus);
+			pdfObject.setOriginalDocument(signParameter.getDataSource());
 			operationStatus.setPdfObject(pdfObject);
 			operationStatus.setSigningDate(ctx.getSigningTime());
-			pdfObject.setOriginalDocument(signParameter.getDataSource());
 			
-			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
-			
+			// and link it with requested signature
 			RequestedSignature requestedSignature = new RequestedSignature(operationStatus);
+			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
 			requestedSignature.setCertificate(iaikSigningCertificate);
 			operationStatus.setRequestedSignature(requestedSignature);
 			
@@ -652,10 +653,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
 			
-			PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
+			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
 			
 			// simulate signature in order to extract data to be signed
-			signer.signPDF(pdfObject, requestedSignature, signatureDataExtractor);
+			pdfSigner.signPDF(pdfObject, requestedSignature, signatureDataExtractor);
 
 			// ** digest input data
 			byte[] digestInputData = signatureDataExtractor.getSignatureData();
