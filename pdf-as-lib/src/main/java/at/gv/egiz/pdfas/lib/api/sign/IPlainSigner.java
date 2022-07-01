@@ -52,7 +52,7 @@ public interface IPlainSigner {
 	 * Sign the document
 	 * @param input
 	 * @param byteRange
-	 * @return
+	 * @return The CMS signature (in the form of encoded CMS ContentInfo). (never {@code null}) 
 	 * @throws PdfAsException
 	 */
     byte[] sign(byte[] input, int[] byteRange, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException;
