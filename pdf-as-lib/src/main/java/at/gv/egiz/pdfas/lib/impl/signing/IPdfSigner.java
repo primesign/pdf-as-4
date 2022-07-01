@@ -24,7 +24,6 @@
 package at.gv.egiz.pdfas.lib.impl.signing;
 
 import java.awt.Image;
-import java.util.Calendar;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -33,16 +32,13 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
-import iaik.x509.X509Certificate;
 
 public interface IPdfSigner {
 
 	PDFASSignatureInterface buildSignaturInterface(IPlainSigner signer,
 			SignParameter parameters, RequestedSignature requestedSignature);
 
-	PDFASSignatureExtractor buildBlindSignaturInterface(
-			X509Certificate certificate, String filter, String subfilter,
-			Calendar date);
+	PDFASSignatureExtractor buildBlindSignaturInterface(String filter, String subfilter);
 
 	PDFObject buildPDFObject(OperationStatus operationStatus);
 

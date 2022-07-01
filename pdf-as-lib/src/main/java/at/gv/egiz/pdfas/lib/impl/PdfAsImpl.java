@@ -45,7 +45,6 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
@@ -390,24 +389,19 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 				status.setSigningDate(status.getSignParamter().getSigningTimeSource().getSigningTime(status.getRequestedSignature()));
 				
-				PDFASSignatureExtractor signatureDataExtractor = signer
-						.buildBlindSignaturInterface(request.getCertificate(),
-								pdfFilter, pdfSubFilter,
-								status.getSigningDate());
+				PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(pdfFilter, pdfSubFilter);
 
-				signer.signPDF(status.getPdfObject(),
-						status.getRequestedSignature(), signatureDataExtractor);
+				signer.signPDF(status.getPdfObject(), status.getRequestedSignature(), signatureDataExtractor);
 
-				StringBuilder sb = new StringBuilder();
+				int[] byteRange = signatureDataExtractor.getByteRange();
 
-				int[] byteRange = PDFUtils
-						.extractSignatureByteRange(signatureDataExtractor
-								.getSignatureData());
-
-				for (int i = 0; i < byteRange.length; i++) {
-					sb.append(" " + byteRange[i]);
+				if (logger.isDebugEnabled()) {
+					StringBuilder sb = new StringBuilder();
+					for (int i = 0; i < byteRange.length; i++) {
+						sb.append(" " + byteRange[i]);
+					}
+					logger.debug("ByteRange: " + sb.toString());
 				}
-				logger.debug("ByteRange: " + sb.toString());
 
 				request.setSignatureData(signatureDataExtractor
 						.getSignatureData());
@@ -653,14 +647,14 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
 			
-			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(iaikSigningCertificate, pdfFilter, pdfSubFilter, signingTime);
+			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(pdfFilter, pdfSubFilter);
 			
 			// simulate signature in order to extract data to be signed
 			pdfSigner.signPDF(pdfObject, requestedSignature, signatureDataExtractor);
 
 			// ** digest input data
 			byte[] digestInputData = signatureDataExtractor.getSignatureData();
-			int[] byteRange = PDFUtils.extractSignatureByteRange(digestInputData);
+			int[] byteRange = signatureDataExtractor.getByteRange();
 			ctx.setSignatureByteRange(byteRange);
 			
 			// ** prepared signed document (without signature yet)

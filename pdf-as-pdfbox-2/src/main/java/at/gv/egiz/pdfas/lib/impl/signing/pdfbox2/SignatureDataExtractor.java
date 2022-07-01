@@ -25,66 +25,55 @@ package at.gv.egiz.pdfas.lib.impl.signing.pdfbox2;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
 
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
 
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
-import iaik.x509.X509Certificate;
 
 public class SignatureDataExtractor implements PDFASPDFBOXExtractorInterface {
 
-	protected X509Certificate certificate;
-	protected byte[] signatureData;
+	private byte[] signatureData;
 	
-	protected String pdfSubFilter;
-	protected String pdfFilter;
-	protected PDSignature signature;
-	protected int[] byteRange;
-	protected Calendar date;
+	private String pdfSubFilter;
+	private String pdfFilter;
+	private PDSignature signature;
+	private int[] byteRange;
 	
-	public SignatureDataExtractor(X509Certificate certificate, 
-			String filter, String subfilter, Calendar date) {
-		this.certificate = certificate;
+	public SignatureDataExtractor(String filter, String subfilter) {
 		this.pdfFilter = filter;
 		this.pdfSubFilter = subfilter;
-		this.date = date;
 	}
 	
-	public X509Certificate getCertificate() {
-		return certificate;
-	}
-
+	@Override
 	public String getPDFSubFilter() {
 		return this.pdfSubFilter;
 	}
 
+	@Override
 	public String getPDFFilter() {
 		return this.pdfFilter;
 	}
 
+	@Override
 	public byte[] getSignatureData() {
 		return this.signatureData;
 	}
 
+	@Override
 	public byte[] sign(InputStream content) throws IOException {
 		signatureData = StreamUtils.inputStreamToByteArray(content);
 		byteRange = this.signature.getByteRange();
 		return new byte[] { 0 };
 	}
 
+	@Override
 	public void setPDSignature(PDSignature signature) {
 		this.signature = signature;
 	}
 
+	@Override
 	public int[] getByteRange() {
 		return byteRange;
 	}
-
-	public Calendar getSigningDate() {
-		return this.date;
-	}
-	
-	
 	
 }
