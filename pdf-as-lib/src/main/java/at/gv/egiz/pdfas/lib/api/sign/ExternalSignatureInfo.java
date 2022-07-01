@@ -18,6 +18,6 @@ public interface ExternalSignatureInfo {
 	byte[] getDigestValue();
 	
 	@Nonnull
-	byte[] getSignatureData();
+	byte[] getSignatureObject();
 
 }

@@ -624,18 +624,16 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
 			requestedSignature.setCertificate(iaikSigningCertificate);
 			operationStatus.setRequestedSignature(requestedSignature);
-			
-			IPlainSigner plainSigner = signParameter.getPlainSigner();
-			
-			String pdfFilter = plainSigner.getPDFFilter();
-			String pdfSubFilter = plainSigner.getPDFSubFilter();
-			
+
+			// manage signing time
 			final Calendar signingTime = signParameter.getSigningTimeSource().getSigningTime(requestedSignature);
 			// update signing time in case (external) signing time source provides a deviating date
 			if (!signingTime.equals(ctx.getSigningTime())) {
 				ctx.setSigningTime(signingTime);
 				operationStatus.setSigningDate(signingTime);
 			}
+			
+			IPlainSigner plainSigner = signParameter.getPlainSigner();
 			
 			// LTV mode controls if and how retrieval/embedding LTV data will be done
 			LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
@@ -647,13 +645,15 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
 			
-			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(pdfFilter, pdfSubFilter);
+			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(plainSigner.getPDFFilter(), plainSigner.getPDFSubFilter());
 			
-			// simulate signature in order to extract data to be signed
+			// simulate signature in order to extract data to be signed and byte range
 			pdfSigner.signPDF(pdfObject, requestedSignature, signatureDataExtractor);
 
 			// ** digest input data
 			byte[] digestInputData = signatureDataExtractor.getSignatureData();
+			
+			// ** byte range
 			int[] byteRange = signatureDataExtractor.getByteRange();
 			ctx.setSignatureByteRange(byteRange);
 			
@@ -670,12 +670,12 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			}
 			
 			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
-			ExternalSignatureInfo externalSignatureInfo = plainSigner.prepareExternalSignature(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
+			ExternalSignatureInfo externalSignatureInfo = plainSigner.prepareExternalSignatureInfo(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
 			
 			ctx.setDigestAlgorithmOid(externalSignatureInfo.getDigestAlgorithm().getAlgorithm().getID());
 			ctx.setDigestValue(externalSignatureInfo.getDigestValue());
 			ctx.setSignatureAlgorithmOid(externalSignatureInfo.getSignatureAlgorithm().getAlgorithm().getID());
-			ctx.setSignatureData(externalSignatureInfo.getSignatureData());
+			ctx.setSignatureObject(externalSignatureInfo.getSignatureObject());
 			ctx.setSigningCertificate(signingCertificate);
 			
 		} catch (PdfAsException | IOException | CertificateException e) {
@@ -713,8 +713,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			throw new IllegalStateException("'signatureAlgorithmOid' expected to be provided by external signature context.");
 		}
 		
-		if (ctx.getSignatureData() == null) {
-			throw new IllegalStateException("'signatureData' expected to be provided by external signature context.");
+		if (ctx.getSignatureObject() == null) {
+			throw new IllegalStateException("'signatureObject' expected to be provided by external signature context.");
 		}
 		
 		if (ctx.getSigningCertificate() == null) {
@@ -737,7 +737,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 			// ** prepare signature
 			
-			byte[] encodedSignatureValue = signParameter.getPlainSigner().processExternalSignature(signatureValue, ctx.getSignatureData());
+			byte[] encodedSignatureValue = signParameter.getPlainSigner().applyPlainExternalSignatureValue(signatureValue, ctx.getSignatureObject());
 
 			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
 			if (pdfasBackend == null) {

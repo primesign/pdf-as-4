@@ -26,7 +26,7 @@ public class ExternalSignatureContext implements Closeable {
 	private byte[] digestValue;
 
 	private String signatureAlgorithmOid;
-	private byte[] signatureData;
+	private byte[] signatureObject;
 	private int[] signatureByteRange;
 
 	// TODO[PDFAS-114]: Improvement: Support passing and embedding the full chain into the CMS object
@@ -52,8 +52,8 @@ public class ExternalSignatureContext implements Closeable {
 	}
 
 	@Nullable
-	public byte[] getSignatureData() {
-		return signatureData;
+	public byte[] getSignatureObject() {
+		return signatureObject;
 	}
 
 	@Nullable
@@ -78,8 +78,8 @@ public class ExternalSignatureContext implements Closeable {
 		this.signatureAlgorithmOid = signatureAlgorithmOid;
 	}
 
-	public void setSignatureData(byte[] signatureData) {
-		this.signatureData = signatureData;
+	public void setSignatureObject(byte[] signatureObject) {
+		this.signatureObject = signatureObject;
 	}
 
 	public void setSigningCertificate(X509Certificate signingCertificate) {
@@ -148,11 +148,11 @@ public class ExternalSignatureContext implements Closeable {
 				throw new RuntimeException("Unable to encode certificate.", e);
 			}
 		}
-		if (signatureData != null) {
+		if (signatureObject != null) {
 			if (builder.length() > 0) {
 				builder.append(", ");
 			}
-			builder.append("signatureData=").append(StringUtils.abbreviate(Hex.encodeHexString(signatureData), 20));
+			builder.append("signatureObject=").append(StringUtils.abbreviate(Hex.encodeHexString(signatureObject), 20));
 		}
 		if (preparedDocument != null) {
 			if (builder.length() > 0) {

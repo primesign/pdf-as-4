@@ -123,7 +123,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	// TODO[PDFAS-114]: Add tests for prepareExternalSignature
 
 	@Override
-	public ExternalSignatureInfo prepareExternalSignature(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
+	public ExternalSignatureInfo prepareExternalSignatureInfo(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
 		try {
 			
@@ -165,7 +165,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			// triggers both digest calculation (of signed attributes) and signature (provide empty signature value)
 			signedData.addSignerInfo(signerInfo);
 			
-			externalSignatureInfo.setSignatureData(new ContentInfo(signedData).getEncoded());
+			externalSignatureInfo.setSignatureObject(new ContentInfo(signedData).getEncoded());
 			
 			externalSignatureInfo.validate();
 			
@@ -182,7 +182,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 		private AlgorithmID digestAlgorithm;
 		private AlgorithmID signatureAlgorithm;
 		private byte[] digestValue;
-		private byte[] signatureData;
+		private byte[] signatureObject;
 
 		@Override
 		public AlgorithmID getDigestAlgorithm() {
@@ -200,8 +200,8 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 		}
 
 		@Override
-		public byte[] getSignatureData() {
-			return signatureData;
+		public byte[] getSignatureObject() {
+			return signatureObject;
 		}
 
 		private void setDigestAlgorithm(AlgorithmID digestAlgorithm) {
@@ -216,8 +216,8 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			this.digestValue = digestValue;
 		}
 
-		private void setSignatureData(byte[] signatureData) {
-			this.signatureData = signatureData;
+		private void setSignatureObject(byte[] signatureObject) {
+			this.signatureObject = signatureObject;
 		}
 
 		void validate() {
@@ -230,8 +230,8 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			if (signatureAlgorithm == null) {
 				throw new IllegalStateException("Signature algorithm required.");
 			}
-			if (signatureData == null) {
-				throw new IllegalStateException("'Signature context data required.");
+			if (signatureObject == null) {
+				throw new IllegalStateException("'Signature object required.");
 			}
 		}
 
@@ -322,24 +322,27 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 
 	// TODO[PDFAS-114]: Add tests for processExternalSignature
 
+	/**
+	 * Inserts the provided (plain) externalSignatureValue to the provided signature object.
+	 */
 	@Override
-	public byte[] processExternalSignature(byte[] externalSignature, @Nonnull byte[] signatureData) throws PdfAsException {
+	public byte[] applyPlainExternalSignatureValue(byte[] externalSignatureValue, @Nonnull byte[] signatureObject) throws PdfAsException {
 
 		try {
 			
-			ASN1 asn1 = new ASN1(signatureData);
+			ASN1 asn1 = new ASN1(signatureObject);
 			ASN1Object asn1Object = asn1.toASN1Object();
 			ContentInfo contentInfo = new ContentInfo(asn1Object);
 			if (!ObjectID.cms_signedData.equals(contentInfo.getContentType())) {
-				throw new IllegalArgumentException("Expected that 'signatureData' reflects cms ContentInfo with SignedData content.");
+				throw new IllegalArgumentException("Expected that 'signatureObject' reflects cms ContentInfo with SignedData content.");
 			}
 			SignedData signedData = (SignedData) contentInfo.getContent();
 			SignerInfo[] signerInfos = signedData.getSignerInfos();
 			if (signerInfos == null || signerInfos.length != 1) {
-				throw new IllegalArgumentException("Expected that 'signatureData' reflects cms ContentInfo with SignedData content with exactly one single SignerInfo.");
+				throw new IllegalArgumentException("Expected that 'signatureObject' reflects cms ContentInfo with SignedData content with exactly one single SignerInfo.");
 			}
 			SignerInfo signerInfo = signerInfos[0];
-			signerInfo.setSignatureValue(externalSignature);
+			signerInfo.setSignatureValue(externalSignatureValue);
 			
 			// return encoded cms signature
 			return contentInfo.getEncoded();
