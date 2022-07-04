@@ -17,8 +17,15 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
-//TODO[PDFAS-114]: Add javadoc
-
+/**
+ * Data structure for storing and passing signature related data supporting external signatures. An external signature
+ * creation device is able to take the digest value and to apply the signature.
+ * 
+ * @author Thomas Knall, PrimeSign GmbH
+ *
+ * @implNote {@link Closeable Closing} the signature context {@link Closeable#close() closes} the
+ *           {@link #getPreparedDocument() prepared document}.
+ */
 @ParametersAreNullableByDefault
 public class ExternalSignatureContext implements Closeable {
 
@@ -29,80 +36,166 @@ public class ExternalSignatureContext implements Closeable {
 	private byte[] signatureObject;
 	private int[] signatureByteRange;
 
-	// TODO[PDFAS-114]: Improvement: Support passing and embedding the full chain into the CMS object
+	// Note for further improvement: Instead of the signing certificate the complete chain may be stored, allowing to embedd
+	// the full chain into the signature.
 	private X509Certificate signingCertificate;
 
 	private DataSource preparedDocument;
-	
+
 	private Calendar signingTime;
 
+	/**
+	 * Returns the digest algorithm object identifier as String.
+	 * 
+	 * @return The digest algorithm object identifier. (may be {@code null})
+	 */
 	@Nullable
 	public String getDigestAlgorithmOid() {
 		return digestAlgorithmOid;
 	}
 
+	/**
+	 * Returns the digest value.
+	 * 
+	 * @return The digest value. (may be {@code null})
+	 */
 	@Nullable
 	public byte[] getDigestValue() {
 		return digestValue;
 	}
 
+	/**
+	 * Returns the signature algorithm object identifier as String.
+	 * 
+	 * @return The signature algorithm object identifier. (may be {@code null})
+	 */
 	@Nullable
 	public String getSignatureAlgorithmOid() {
 		return signatureAlgorithmOid;
 	}
 
+	/**
+	 * Returns the abstract signature object (e.g. the ASN.1 object of the encoded CMS ContentInfo).
+	 * 
+	 * @return The signature object. (may be {@code null})
+	 */
 	@Nullable
 	public byte[] getSignatureObject() {
 		return signatureObject;
 	}
 
+	/**
+	 * Returns the signing certificate.
+	 * 
+	 * @return The signing certificate (may be {@code null}).
+	 */
 	@Nullable
 	public X509Certificate getSigningCertificate() {
 		return signingCertificate;
 	}
 
+	/**
+	 * Returns the DataSource that has been used to prepare the document to be signed.
+	 * 
+	 * @return The data souce. (optional; may be {@code null})
+	 */
 	@Nullable
 	public DataSource getPreparedDocument() {
 		return preparedDocument;
 	}
 
-	public void setDigestAlgorithmOid(String digestAlgorithmOid) {
-		this.digestAlgorithmOid = digestAlgorithmOid;
-	}
-
-	public void setDigestValue(byte[] digestValue) {
-		this.digestValue = digestValue;
-	}
-
-	public void setSignatureAlgorithmOid(String signatureAlgorithmOid) {
-		this.signatureAlgorithmOid = signatureAlgorithmOid;
-	}
-
-	public void setSignatureObject(byte[] signatureObject) {
-		this.signatureObject = signatureObject;
-	}
-
-	public void setSigningCertificate(X509Certificate signingCertificate) {
-		this.signingCertificate = signingCertificate;
-	}
-
-	public void setPreparedDocument(DataSource preparedDocument) {
-		this.preparedDocument = preparedDocument;
-	}
-	
-	public int[] getSignatureByteRange() {
-		return signatureByteRange;
-	}
-
-	public void setSignatureByteRange(int[] signatureByteRange) {
-		this.signatureByteRange = signatureByteRange;
-	}
-
+	/**
+	 * Returns the respective signing time.
+	 * 
+	 * @return The signing time. (optional; may be {@code null})
+	 */
 	@Nullable
 	public Calendar getSigningTime() {
 		return signingTime;
 	}
 
+	/**
+	 * Sets the Object Identifier (as String) of the assumed digest algorithm.
+	 * 
+	 * @param digestAlgorithmOid The object identifier as String. (optional; may be {@code null})
+	 * @see #setDigestValue(byte[])
+	 */
+	public void setDigestAlgorithmOid(String digestAlgorithmOid) {
+		this.digestAlgorithmOid = digestAlgorithmOid;
+	}
+
+	/**
+	 * Sets the digest value corresponding to the {@#getDigestAlgorithmOid() digest algorithm oid}.
+	 * 
+	 * @param digestValue The digest value. (optional; may be {@code null})
+	 * @see #setDigestAlgorithmOid(String)
+	 */
+	public void setDigestValue(byte[] digestValue) {
+		this.digestValue = digestValue;
+	}
+
+	/**
+	 * Sets the Object Identifier (as String) of the assumed signature algorithm.
+	 * 
+	 * @param signatureAlgorithmOid The object identifier as String. (optional; may be {@code null})
+	 */
+	public void setSignatureAlgorithmOid(String signatureAlgorithmOid) {
+		this.signatureAlgorithmOid = signatureAlgorithmOid;
+	}
+
+	/**
+	 * Sets the abstract signature data object, e.g. the ASN.1 object of the encoded CMS ContentInfo.
+	 * 
+	 * @param signatureObject The signature object. (optional; may be {@code null})
+	 */
+	public void setSignatureObject(byte[] signatureObject) {
+		this.signatureObject = signatureObject;
+	}
+
+	/**
+	 * Sets the signing certificate.
+	 * 
+	 * @param signingCertificate The signing certificate. (optional; may be {@code null})
+	 */
+	public void setSigningCertificate(X509Certificate signingCertificate) {
+		this.signingCertificate = signingCertificate;
+	}
+
+	/**
+	 * Sets the DataSource to be used for holding the prepared (modified) document (document with signature data but without
+	 * signature value yet).
+	 * 
+	 * @param preparedDocument The DataSource for the prepared document. (optional; may be {@code null})
+	 */
+	public void setPreparedDocument(DataSource preparedDocument) {
+		this.preparedDocument = preparedDocument;
+	}
+
+	/**
+	 * Returns the signature byte range.
+	 * 
+	 * @return The signature byte range in the form of tuples (offset, length). (may be {@code null}).
+	 */
+	@Nullable
+	public int[] getSignatureByteRange() {
+		return signatureByteRange;
+	}
+
+	/**
+	 * Sets the signature byte range.
+	 * 
+	 * @param signatureByteRange The signature byte range in the form of tuples (offset, length). (optional; may be
+	 *                           {@code null})
+	 */
+	public void setSignatureByteRange(@Nullable int[] signatureByteRange) {
+		this.signatureByteRange = signatureByteRange;
+	}
+
+	/**
+	 * Sets the signing time.
+	 * 
+	 * @param signingTime The signing time. (optional; may be {@code null})
+	 */
 	public void setSigningTime(@Nullable Calendar signingTime) {
 		this.signingTime = signingTime;
 	}
@@ -160,11 +253,14 @@ public class ExternalSignatureContext implements Closeable {
 			}
 			builder.append("preparedDocument=").append(preparedDocument);
 		}
-		builder.insert(0,  "ExternalSignatureContext [");
+		builder.insert(0, "ExternalSignatureContext [");
 		builder.append("]");
 		return builder.toString();
 	}
 
+	/**
+	 * Closes the {@link #getPreparedDocument() prepared document} DataSource releasing resources.
+	 */
 	@Override
 	public void close() throws IOException {
 		if (preparedDocument instanceof Closeable) {
@@ -175,5 +271,5 @@ public class ExternalSignatureContext implements Closeable {
 			}
 		}
 	}
-	
+
 }
