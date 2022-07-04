@@ -653,7 +653,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				requestedSignature.setCertificateVerificationData(certificateVerificationData);
 			}
 			
-			// TODO[PDFAS-114/PRIMESIGN-3009]: Invoke SignatureObserver
+			// TODO[PRIMESIGN-2610/PRIMESIGN-3009]: Invoke SignatureObserver
 			
 			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(plainSigner.getPDFFilter(), plainSigner.getPDFSubFilter());
 			
