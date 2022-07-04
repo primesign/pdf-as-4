@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.cert.CertificateException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
@@ -185,6 +186,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				// determine (claimed) signing time
 		    	Calendar signingDate = parameter.getSigningTimeSource().getSigningTime(requestedSignature);
 		    	requestedSignature.getStatus().setSigningDate(signingDate);
+		    	if (logger.isInfoEnabled()) {
+		    		logger.info("Signing time: {}", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingDate.getTime()));
+		    	}
 
 				// LTV mode controls if and how retrieval/embedding LTV data will be done
 				LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
@@ -388,6 +392,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				IPdfSigner signer = status.getBackend().getPdfSigner();
 
 				status.setSigningDate(status.getSignParamter().getSigningTimeSource().getSigningTime(status.getRequestedSignature()));
+		    	if (logger.isInfoEnabled()) {
+		    		logger.info("Signing time: {}", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(status.getSigningDate().getTime()));
+		    	}
 				
 				PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(pdfFilter, pdfSubFilter);
 
@@ -632,7 +639,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				ctx.setSigningTime(signingTime);
 				operationStatus.setSigningDate(signingTime);
 			}
-			
+			if (logger.isInfoEnabled()) {
+				logger.info("Signing time: {}", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingTime.getTime()));
+			}
+
 			IPlainSigner plainSigner = signParameter.getPlainSigner();
 			
 			// LTV mode controls if and how retrieval/embedding LTV data will be done
