@@ -52,12 +52,4 @@ public class PAdESSigner extends PAdESSignerBase implements PAdESConstants {
 		return this.signatureConnector.sign(input, byteRange, parameter, requestedSignature);
 	}
 
-	public String getPDFSubFilter() {
-		return SUBFILTER_ETSI_CADES_DETACHED;
-	}
-
-	public String getPDFFilter() {
-		return FILTER_ADOBE_PPKLITE;
-	}
-
 }

@@ -20,6 +20,8 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.sigs.pades;
 
+import static at.gv.egiz.pdfas.sigs.pades.PAdESConstants.FILTER_ADOBE_PPKLITE;
+import static at.gv.egiz.pdfas.sigs.pades.PAdESConstants.SUBFILTER_ETSI_CADES_DETACHED;
 import static iaik.cms.SignedDataStream.EXPLICIT;
 
 import java.security.InvalidKeyException;
@@ -355,4 +357,14 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 		
 	}
 	
+	@Override
+	public String getPDFSubFilter() {
+		return SUBFILTER_ETSI_CADES_DETACHED;
+	}
+
+	@Override
+	public String getPDFFilter() {
+		return FILTER_ADOBE_PPKLITE;
+	}
+
 }

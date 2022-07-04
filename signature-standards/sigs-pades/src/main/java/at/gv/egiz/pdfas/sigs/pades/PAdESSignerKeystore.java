@@ -354,12 +354,4 @@ public class PAdESSignerKeystore extends PAdESSignerBase implements PAdESConstan
 		}
 	}
 
-	public String getPDFSubFilter() {
-		return SUBFILTER_ETSI_CADES_DETACHED;
-	}
-
-	public String getPDFFilter() {
-		return FILTER_ADOBE_PPKLITE;
-	}
-
 }
