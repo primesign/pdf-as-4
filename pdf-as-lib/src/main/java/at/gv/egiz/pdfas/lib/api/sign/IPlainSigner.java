@@ -26,6 +26,7 @@ package at.gv.egiz.pdfas.lib.api.sign;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
@@ -52,7 +53,7 @@ public interface IPlainSigner {
 	 * Sign the document
 	 * @param input
 	 * @param byteRange
-	 * @return The CMS signature (in the form of encoded CMS ContentInfo). (never {@code null}) 
+	 * @return The <strong>encoded</strong> signature (e.g. the in the form of encoded CMS ContentInfo). (never {@code null}) 
 	 * @throws PdfAsException
 	 */
     byte[] sign(byte[] input, int[] byteRange, SignParameter parameter, RequestedSignature requestedSignature) throws PdfAsException;
@@ -85,12 +86,12 @@ public interface IPlainSigner {
     // TODO[PDFAS-114]: Add javadoc
     
     @Nonnull
-	default ExternalSignatureInfo prepareExternalSignatureInfo(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
+	default ExternalSignatureInfo determineExternalSignatureInfo(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		throw new UnsupportedOperationException("Preparing external signature by this plain signer.");
 	}
 	
     @Nonnull
-	default byte[] applyPlainExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nonnull byte[] signatureObject) throws PdfAsException {
+	default byte[] applyPlainExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nullable byte[] signatureObject) throws PdfAsException {
 		throw new UnsupportedOperationException("Processing external signature is not supported by this plain signer.");
 	}
 

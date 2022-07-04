@@ -31,8 +31,7 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import javax.annotation.Nonnull;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,7 +122,7 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	// TODO[PDFAS-114]: Add tests for prepareExternalSignature
 
 	@Override
-	public ExternalSignatureInfo prepareExternalSignatureInfo(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
+	public ExternalSignatureInfo determineExternalSignatureInfo(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
 		try {
 			
@@ -326,7 +325,10 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 	 * Inserts the provided (plain) externalSignatureValue to the provided signature object.
 	 */
 	@Override
-	public byte[] applyPlainExternalSignatureValue(byte[] externalSignatureValue, @Nonnull byte[] signatureObject) throws PdfAsException {
+	public byte[] applyPlainExternalSignatureValue(byte[] externalSignatureValue, byte[] signatureObject) throws PdfAsException {
+		
+		// PAdESSignerBase implementation takes existing signatureObject (= ASN.1 data (without signature value)) and inserts externalSignatureValue (= plain signature value).
+		Objects.requireNonNull(signatureObject, "'signatureObject' (ASN.1 signature without signature value) required.");
 
 		try {
 			

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -596,9 +597,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 	}
 	
-	// TODO[PDFAS-114]: Add tests for startExternalSignature
-	// TODO[PDFAS-114]: Add note about which fields are relevant from signParameter to javadoc for startExternalSignature
-
 	@Override
 	public void startExternalSignature(SignParameter signParameter, java.security.cert.X509Certificate signingCertificate, ExternalSignatureContext ctx) throws PDFASError {
 		
@@ -680,7 +678,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			}
 			
 			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
-			ExternalSignatureInfo externalSignatureInfo = plainSigner.prepareExternalSignatureInfo(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
+			ExternalSignatureInfo externalSignatureInfo = plainSigner.determineExternalSignatureInfo(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
 			
 			ctx.setDigestAlgorithmOid(externalSignatureInfo.getDigestAlgorithm().getAlgorithm().getID());
 			ctx.setDigestValue(externalSignatureInfo.getDigestValue());
@@ -733,11 +731,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		
 	}
 	
-	// TODO[PDFAS-114]: Add tests for finishExternalSignature
-	// TODO[PDFAS-114]: Add note about which fields are relevant from signParameter to javadoc for finishExternalSignature
-
 	@Override
-	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, ExternalSignatureContext ctx) throws PDFASError {
+	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, @WillNotClose ExternalSignatureContext ctx) throws PDFASError {
 		
 		logger.info("Finishing external signature: {}", ctx);
 		
