@@ -122,8 +122,6 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 
 	}
 
-	// TODO[PDFAS-114]: Add tests for prepareExternalSignature
-
 	@Override
 	public ExternalSignatureInfo determineExternalSignatureInfo(byte[] dataToBeSigned, X509Certificate signingCertificate, Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		
@@ -337,8 +335,6 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 		Attribute signingTime = new Attribute(ObjectID.signingTime, new ASN1Object[] { new ChoiceOfTime(date).toASN1Object() });
 		attributes.add(signingTime);
 	}
-
-	// TODO[PDFAS-114]: Add tests for processExternalSignature
 
 	/**
 	 * Inserts the provided (plain) externalSignatureValue to the provided signature object.
