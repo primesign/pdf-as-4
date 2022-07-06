@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,6 +171,10 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 			
 			externalSignatureInfo.validate();
 			
+			if (log.isTraceEnabled()) {
+				log.trace("Resulting external signature info: {}", externalSignatureInfo);
+			}
+			
 			return externalSignatureInfo;
 
 		} catch (NoSuchAlgorithmException | CMSException e) {
@@ -232,8 +237,20 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 				throw new IllegalStateException("Signature algorithm required.");
 			}
 			if (signatureObject == null) {
-				throw new IllegalStateException("'Signature object required.");
+				throw new IllegalStateException("Signature object required.");
 			}
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append("ExternalSignatureInfoImpl [");
+			builder.append("digestAlgorithm=").append(digestAlgorithm != null ? digestAlgorithm.getName() : null);
+			builder.append(", digestValue=").append(digestValue != null ? Hex.encodeHexString(digestValue) : null);
+			builder.append(", signatureAlgorithm=").append(signatureAlgorithm != null ? signatureAlgorithm.getName() : null);
+			builder.append(", signatureObject=").append(signatureObject != null ? "<set>" : null);
+			builder.append("]");
+			return builder.toString();
 		}
 
 	}
@@ -346,7 +363,13 @@ public abstract class PAdESSignerBase implements IPlainSigner {
 				throw new IllegalArgumentException("Expected that 'signatureObject' reflects cms ContentInfo with SignedData content with exactly one single SignerInfo.");
 			}
 			SignerInfo signerInfo = signerInfos[0];
+			
+			// insert signature value
 			signerInfo.setSignatureValue(externalSignatureValue);
+			
+			if (log.isTraceEnabled()) {
+				log.trace("Updated ContentInfo with signature value:\n{}", contentInfo.toString(true));
+			}
 			
 			// return encoded cms signature
 			return contentInfo.getEncoded();
