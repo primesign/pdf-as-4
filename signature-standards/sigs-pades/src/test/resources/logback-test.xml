@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="false">
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<Target>System.out</Target>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>[%-5p@%d{dd.MM.yyyy HH:mm:ss}] [%t] %c:%M:%L - %m%n</pattern>
+		</encoder>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>TRACE</level>
+		</filter>
+	</appender>
+	
+	<logger name="at.gv.egiz.pdfas" level="DEBUG"/>
+	<!--
+	<logger name="at.gv.egiz.pdfas.sigs.pades.PAdESSignerBase" level="TRACE"/>
+	-->
+	
+	<!-- root -->
+	<root level="INFO">
+		<appender-ref ref="CONSOLE"/>
+	</root>
+	
+</configuration>
