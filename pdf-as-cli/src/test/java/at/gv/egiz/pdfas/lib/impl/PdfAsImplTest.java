@@ -5,6 +5,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,12 +34,15 @@ import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureContext;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.sign.SigningTimeSource;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
+import at.gv.egiz.pdfas.sigs.pades.PAdESExternalSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
+import iaik.asn1.structures.AlgorithmID;
 
 public class PdfAsImplTest {
 
@@ -194,6 +198,47 @@ public class PdfAsImplTest {
 		
 		assertThat(result.getSigningDate(), is(otherDay));
 
+	}
+	
+	private static Calendar toCalendar(String isoDateString) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(Date.from(Instant.parse(isoDateString)));
+		return calendar;
+	}
+	
+	@Test
+	public void test_startExternalSignature() throws PDFASError {
+		
+		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
+		signParameter.setPlainSigner(new PAdESExternalSigner());
+		signParameter.setDataSource(inputDataSource);
+		
+		ctrl.reset();
+		
+		SigningTimeSource signingTimeSource = ctrl.createMock(SigningTimeSource.class);
+		signParameter.setSigningTimeSource(signingTimeSource);
+		
+		Calendar signingTime = toCalendar("2007-12-03T10:15:30.00Z");
+		
+		expect(signingTimeSource.getSigningTime(anyObject(RequestedSignature.class))).andReturn(signingTime);
+		
+		ctrl.replay();
+		
+		ExternalSignatureContext ctx = new ExternalSignatureContext();
+		
+		pdfas.startExternalSignature(signParameter, signingCertificate, ctx);
+		
+		ctrl.verify();
+		
+		assertThat(ctx.getDigestAlgorithmOid(), is(AlgorithmID.sha256.getAlgorithm().getID())); // "2.16.840.1.101.3.4.2.1"
+		assertNotNull(ctx.getDigestValue());
+		assertNotNull(ctx.getPreparedDocument());
+		assertThat(ctx.getSignatureAlgorithmOid(), is(AlgorithmID.ecdsa_With_SHA256.getAlgorithm().getID())); // "1.2.840.10045.4.3.2"
+		assertNotNull(ctx.getSignatureByteRange());
+		assertNotNull(ctx.getSignatureObject());
+		assertThat(ctx.getSigningCertificate(), is(signingCertificate));
+		assertThat(ctx.getSigningTime(), is(signingTime));
+		
 	}
 	
 }
