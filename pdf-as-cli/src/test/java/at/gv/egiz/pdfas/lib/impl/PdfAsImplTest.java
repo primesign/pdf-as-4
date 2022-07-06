@@ -3,16 +3,23 @@ package at.gv.egiz.pdfas.lib.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -22,6 +29,7 @@ import java.util.HashMap;
 
 import javax.activation.DataSource;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.easymock.EasyMock;
@@ -42,7 +50,9 @@ import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.sigs.pades.PAdESExternalSigner;
 import at.gv.egiz.pdfas.sigs.pades.PAdESSignerKeystore;
+import iaik.asn1.ObjectID;
 import iaik.asn1.structures.AlgorithmID;
+import iaik.cms.InvalidSignatureValueException;
 
 public class PdfAsImplTest {
 
@@ -57,7 +67,9 @@ public class PdfAsImplTest {
 	
 	private final X509Certificate signingCertificate;
 	
-	public PdfAsImplTest() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, PDFASError {
+	private final PrivateKey signingKey;
+	
+	public PdfAsImplTest() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, PDFASError, UnrecoverableKeyException {
 		
 		KeyStore keyStore = KeyStore.getInstance("PKCS12");
 		try (InputStream in = PdfAsImplTest.class.getResourceAsStream("/test.p12")) {
@@ -70,6 +82,7 @@ public class PdfAsImplTest {
 		}
 		
 		signingCertificate = (X509Certificate) keyStore.getCertificate("ecc_test");
+		signingKey = (PrivateKey) keyStore.getKey("ecc_test", "123456".toCharArray());
 		
 	}
 	
@@ -241,4 +254,93 @@ public class PdfAsImplTest {
 		
 	}
 	
+	@Test
+	public void test_finishExternalSignature() throws Exception {
+
+		String signedFileName = getClass().getSimpleName() + "-test_finishExternalSignature-" + System.currentTimeMillis() + ".pdf";
+		File signedFile = new File(FileUtils.getTempDirectory(), signedFileName);
+		
+		try (OutputStream out = new FileOutputStream(signedFile)) {
+			
+			SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, out);
+			signParameter.setPlainSigner(new PAdESExternalSigner());
+			signParameter.setDataSource(inputDataSource);
+			
+			ctrl.reset();
+			
+			SigningTimeSource signingTimeSource = ctrl.createMock(SigningTimeSource.class);
+			signParameter.setSigningTimeSource(signingTimeSource);
+			
+			Calendar signingTime = toCalendar("2007-12-03T10:15:30.00Z");
+			
+			expect(signingTimeSource.getSigningTime(anyObject(RequestedSignature.class))).andReturn(signingTime);
+			
+			ctrl.replay();
+			
+			ExternalSignatureContext ctx = new ExternalSignatureContext();
+			
+			pdfas.startExternalSignature(signParameter, signingCertificate, ctx);
+			
+			// ** create external signature
+			Signature signature = Signature.getInstance("NONEwithECDSA");
+			signature.initSign(signingKey);
+			signature.update(ctx.getDigestValue());
+			byte[] externalSignatureValue = signature.sign();
+			
+			SignResult signResult = pdfas.finishExternalSignature(signParameter, externalSignatureValue, ctx);
+			
+			ctrl.verify();
+			
+			assertNotNull(signResult);
+			assertThat(signResult.getSignerCertificate(), is(signingCertificate));
+			assertThat(signResult.getSigningDate(), is(signingTime));
+			
+			// TODO[PDFAS-114]: Update test once signature position is returned
+			// TODO[PDFAS-114]: Update test once processInformations(sic!) is returned
+
+		} catch (Exception e) {
+			signedFile.delete();
+			throw e;
+		}
+		
+		System.out.println("Signed file: " + signedFile.getAbsolutePath());
+
+	}
+	
+	@Test
+	public void test_finishExternalSignature_invalidSignatureValue() throws Exception {
+
+		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
+		signParameter.setPlainSigner(new PAdESExternalSigner());
+		signParameter.setDataSource(inputDataSource);
+		
+		ctrl.reset();
+		
+		ctrl.replay();
+		
+		ExternalSignatureContext ctx = new ExternalSignatureContext();
+		
+		pdfas.startExternalSignature(signParameter, signingCertificate, ctx);
+		
+		// ** create external signature (from content != inputDataSource)
+		Signature signature = Signature.getInstance("NONEwithECDSA");
+		signature.initSign(signingKey);
+		
+		// deliberately calculate digest from wrong content
+		byte[] digestInputData = "otherContent".getBytes();
+		byte[] digest = new AlgorithmID(new ObjectID(ctx.getDigestAlgorithmOid())).getMessageDigestInstance().digest(digestInputData);
+		
+		signature.update(digest);
+		byte[] externalSignatureValue = signature.sign();
+		
+		// expect that finishSignature detects invalid signature (value)
+		
+		PDFASError ex = assertThrows(PDFASError.class, () -> pdfas.finishExternalSignature(signParameter, externalSignatureValue, ctx));
+		assertThat(ex.getCode(), is(11008L));  // at.gv.egiz.pdfas.common.exceptions.ErrorConstants.ERROR_SIG_INVALID_BKU_SIG
+		assertThat(ex.getCause(), is(instanceOf(InvalidSignatureValueException.class)));
+		
+		ctrl.verify();
+
+	}
+
 }
