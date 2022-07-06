@@ -32,6 +32,7 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
+import iaik.cms.ContentInfo;
 import iaik.x509.X509Certificate;
 
 /**
@@ -83,13 +84,32 @@ public interface IPlainSigner {
 	 */
     CertificateVerificationData getCertificateVerificationData(RequestedSignature requestedSignature) throws PDFASError;
 	
-    // TODO[PDFAS-114]: Add javadoc
-    
+	/**
+	 * Uses individual pieces of information (like digest input data, signing certificate or the signing time), all of which
+	 * go into creating a signature in order to create digest value, digest algorithm, signature algorithm and the
+	 * {@link ExternalSignatureInfo#getSignatureObject() signature object}.
+	 * 
+	 * @param digestInputData    The digest input data (the data to be signed). (required; must not be {@code null}).
+	 * @param signingCertificate The signing certificate. (required; must not be {@code null})
+	 * @param signingTime        The assumed signing time. (required; must not be {@code null})
+	 * @param enforceETSIPAdES   A flag indicating if the signature should enforce strict PAdES or not.
+	 * @return The external signature info. (never {@code null})
+	 * @throws PdfAsException Thrown in case of error.
+	 */
     @Nonnull
 	default ExternalSignatureInfo determineExternalSignatureInfo(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
 		throw new UnsupportedOperationException("Preparing external signature by this plain signer.");
 	}
-	
+
+	/**
+	 * Incorporates a plain signature value created by an external entity into the provided signature object (e.g.
+	 * incorporating the signature value into an encoded ASN.1 {@link ContentInfo}).
+	 * 
+	 * @param externalSignatureValue The signature value. (required; must not be {@code null})
+	 * @param signatureObject        The signature object. (required; must not be {@code null})
+	 * @return The (updated) encoded signature object. (never {@code null})
+	 * @throws PdfAsException Thrown in case of error.
+	 */
     @Nonnull
 	default byte[] applyPlainExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nullable byte[] signatureObject) throws PdfAsException {
 		throw new UnsupportedOperationException("Processing external signature is not supported by this plain signer.");
