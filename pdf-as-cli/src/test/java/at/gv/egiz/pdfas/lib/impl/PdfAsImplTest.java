@@ -12,8 +12,8 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
@@ -51,7 +51,7 @@ public class PdfAsImplTest {
 	
 	private final DataSource inputDataSource;
 	
-	private final Certificate signingCertificate;
+	private final X509Certificate signingCertificate;
 	
 	public PdfAsImplTest() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, PDFASError {
 		
@@ -65,7 +65,7 @@ public class PdfAsImplTest {
 			inputDataSource = new ByteArrayDataSource(IOUtils.toByteArray(in));
 		}
 		
-		signingCertificate = keyStore.getCertificate("ecc_test");
+		signingCertificate = (X509Certificate) keyStore.getCertificate("ecc_test");
 		
 	}
 	
