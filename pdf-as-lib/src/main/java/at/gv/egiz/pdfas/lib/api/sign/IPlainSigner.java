@@ -98,7 +98,7 @@ public interface IPlainSigner {
 	 */
     @Nonnull
 	default ExternalSignatureInfo determineExternalSignatureInfo(@Nonnull byte[] digestInputData, @Nonnull X509Certificate signingCertificate, @Nonnull Date signingTime, boolean enforceETSIPAdES) throws PdfAsException {
-		throw new UnsupportedOperationException("Preparing external signature by this plain signer.");
+		throw new UnsupportedOperationException(IPlainSigner.class.getSimpleName() + " implementation " + getClass().getName() + " does not support external signatures.");
 	}
 
 	/**
@@ -112,7 +112,7 @@ public interface IPlainSigner {
 	 */
     @Nonnull
 	default byte[] applyPlainExternalSignatureValue(@Nonnull byte[] externalSignatureValue, @Nullable byte[] signatureObject) throws PdfAsException {
-		throw new UnsupportedOperationException("Processing external signature is not supported by this plain signer.");
+		throw new UnsupportedOperationException(IPlainSigner.class.getSimpleName() + " implementation " + getClass().getName() + " does not support external signatures.");
 	}
 
 }
