@@ -95,9 +95,9 @@ public class ExternalSignatureContext implements Closeable {
 	}
 
 	/**
-	 * Returns the DataSource that has been used to prepare the document to be signed.
+	 * Returns the DataSource that has been used or will be used to prepare the document to be signed.
 	 * 
-	 * @return The data souce. (optional; may be {@code null})
+	 * @return The data source. (optional; may be {@code null})
 	 */
 	@Nullable
 	public DataSource getPreparedDocument() {
