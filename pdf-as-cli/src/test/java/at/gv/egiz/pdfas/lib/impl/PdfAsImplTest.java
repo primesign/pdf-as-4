@@ -91,7 +91,6 @@ public class PdfAsImplTest {
 		
 		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
 		signParameter.setPlainSigner(signer);
-		signParameter.setDataSource(inputDataSource);
 		
 		ctrl.reset();
 		
@@ -118,7 +117,6 @@ public class PdfAsImplTest {
 		
 		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
 		signParameter.setPlainSigner(signer);
-		signParameter.setDataSource(inputDataSource);
 		
 		SignResult result = pdfas.sign(signParameter);
 		
@@ -131,7 +129,6 @@ public class PdfAsImplTest {
 		
 		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
 		signParameter.setPlainSigner(signer);
-		signParameter.setDataSource(inputDataSource);
 		
 		StatusRequest statusRequest = pdfas.startSign(signParameter);
 		
@@ -167,7 +164,6 @@ public class PdfAsImplTest {
 
 		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
 		signParameter.setPlainSigner(signer);
-		signParameter.setDataSource(inputDataSource);
 		
 		StatusRequest statusRequest = pdfas.startSign(signParameter);
 		
@@ -224,7 +220,6 @@ public class PdfAsImplTest {
 		
 		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
 		signParameter.setPlainSigner(new PAdESExternalSigner());
-		signParameter.setDataSource(inputDataSource);
 		
 		ctrl.reset();
 		
@@ -264,7 +259,6 @@ public class PdfAsImplTest {
 			
 			SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, out);
 			signParameter.setPlainSigner(new PAdESExternalSigner());
-			signParameter.setDataSource(inputDataSource);
 			
 			ctrl.reset();
 			
@@ -312,7 +306,6 @@ public class PdfAsImplTest {
 
 		SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, NullOutputStream.NULL_OUTPUT_STREAM);
 		signParameter.setPlainSigner(new PAdESExternalSigner());
-		signParameter.setDataSource(inputDataSource);
 		
 		ctrl.reset();
 		
