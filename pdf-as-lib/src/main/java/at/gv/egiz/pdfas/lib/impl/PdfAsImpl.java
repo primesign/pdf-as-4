@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.WillNotClose;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -705,12 +706,11 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		if (ctx.getDigestAlgorithmOid() == null) {
 			throw new IllegalStateException("'digestAlgorithmOid' expected to be provided by external signature context.");
 		}
-		
-		if (ctx.getSignatureByteRange() == null) {
-			throw new IllegalStateException("'signatureByteRange' expected to be provided by external signature context.");
+		if (ArrayUtils.isEmpty(ctx.getSignatureByteRange())) {
+			throw new IllegalStateException("Non-empty 'signatureByteRange' expected to be provided by external signature context.");
 		}
-		if (ctx.getSignatureByteRange().length < 2) {
-			throw new IllegalStateException("Non empty 'signatureByteRangeexpected to be provided by external signature context.");
+		if (ctx.getSignatureByteRange().length % 2 != 0) {
+			throw new IllegalStateException("Invalid 'signatureByteRange' provided by external signature context. Tuples of [offset, length] expected.");
 		}
 		
 		if (ctx.getDigestValue() == null) {
