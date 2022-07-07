@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
@@ -801,7 +802,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			signResult.setSignerCertificate(iaikSigningCertificate);
 			signResult.setSigningDate(ctx.getSigningTime());
 			// TODO[PDFAS-114]: Add signature position to SignResult
-			// TODO[PDFAS-114]: Add processInformations(sic!) to SignResult
+			Map<String, String> processInformation = signResult.getProcessInformations();
+			processInformation.put(ErrorConstants.STATUS_INFO_SIGDEVICE, "external signature device");
+
 			return signResult;
 		
 		} catch (PDFASError e) {

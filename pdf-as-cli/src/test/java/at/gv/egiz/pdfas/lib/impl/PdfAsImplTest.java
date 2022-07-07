@@ -6,6 +6,7 @@ import static org.easymock.EasyMock.expect;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
@@ -289,9 +290,9 @@ public class PdfAsImplTest {
 			assertNotNull(signResult);
 			assertThat(signResult.getSignerCertificate(), is(signingCertificate));
 			assertThat(signResult.getSigningDate(), is(signingTime));
+			assertThat(signResult.getProcessInformations(), hasEntry("SigDevice", "external signature device"));
 			
 			// TODO[PDFAS-114]: Update test once signature position is returned
-			// TODO[PDFAS-114]: Update test once processInformations(sic!) is returned
 
 		} catch (Exception e) {
 			signedFile.delete();
