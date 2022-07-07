@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
@@ -334,6 +335,61 @@ public class PdfAsImplTest {
 		
 		ctrl.verify();
 
+	}
+	
+	@Test
+	public void test_validate_externalSignatureContext() throws NoSuchAlgorithmException {
+		
+		ExternalSignatureContext ctx = new ExternalSignatureContext();
+		
+		// set all values -> valid
+		ctx.setDigestAlgorithmOid("2.16.840.1.101.3.4.2.1");
+		ctx.setDigestValue(MessageDigest.getInstance("SHA-256").digest("hello world".getBytes()));
+		ctx.setPreparedDocument(new ByteArrayDataSource(new byte[] { 1, 2, 3 }));
+		ctx.setSignatureAlgorithmOid("1.2.840.10045.4.3.2");
+		ctx.setSignatureByteRange(new int[] { 0, 87875, 96069, 1838 });
+		ctx.setSignatureObject(new byte[] { 1, 2, 3 });
+		ctx.setSigningCertificate(signingCertificate);
+		ctx.setSigningTime(Calendar.getInstance());
+		
+		PdfAsImpl.validate(ctx);
+		
+		ctx.setSigningTime(null);
+		PdfAsImpl.validate(ctx);
+		
+		assertThrows(NullPointerException.class, () -> PdfAsImpl.validate(null));
+		
+		ctx.setDigestAlgorithmOid(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setDigestAlgorithmOid("2.16.840.1.101.3.4.2.1");
+		
+		ctx.setDigestValue(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setDigestValue(MessageDigest.getInstance("SHA-256").digest("hello world".getBytes()));
+		
+		ctx.setPreparedDocument(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setPreparedDocument(new ByteArrayDataSource(new byte[] { 1, 2, 3 }));		
+
+		ctx.setSignatureAlgorithmOid(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setSignatureAlgorithmOid("1.2.840.10045.4.3.2");
+		
+		ctx.setSignatureByteRange(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setSignatureByteRange(new int[] { });
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setSignatureByteRange(new int[] { 1, 2, 3 });
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setSignatureByteRange(new int[] { 0, 87875, 96069, 1838 });
+
+		ctx.setSignatureObject(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		ctx.setSignatureObject(new byte[] { 1, 2, 3 });
+
+		ctx.setSigningCertificate(null);
+		assertThrows(IllegalArgumentException.class, () -> PdfAsImpl.validate(ctx));
+		
 	}
 
 }

@@ -698,40 +698,54 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		
 	}
 	
-	// TODO[PDFAS-114]: Add javadoc
-	
-	private void validate(@Nonnull ExternalSignatureContext ctx) {
+	/**
+	 * Validates the provided externa signature context.
+	 * <p>Makes sure that</p>
+	 * <ul>
+	 * <li>the provided context is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getDigestAlgorithmOid()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSignatureByteRange()} is not empty and that the byte range reflects tuples</li>
+	 * <li>{@link ExternalSignatureContext#getDigestValue()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getPreparedDocument()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSignatureAlgorithmOid()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSignatureObject()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSigningCertificate()} is not {@code null}</li>
+	 * </ul>
+	 * @param ctx The external signature context. (required; must not be {@code null})
+	 * @throws IllegalArgumentException in case ctx is not fully populated (except for {@link ExternalSignatureContext#getSigningTime()}).
+	 */
+	static void validate(@Nonnull ExternalSignatureContext ctx) {
 		
 		Objects.requireNonNull(ctx, "Provided external signature context must not be null.");
 		
 		if (ctx.getDigestAlgorithmOid() == null) {
-			throw new IllegalStateException("'digestAlgorithmOid' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("'digestAlgorithmOid' expected to be provided by external signature context.");
 		}
 		if (ArrayUtils.isEmpty(ctx.getSignatureByteRange())) {
-			throw new IllegalStateException("Non-empty 'signatureByteRange' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("Non-empty 'signatureByteRange' expected to be provided by external signature context.");
 		}
 		if (ctx.getSignatureByteRange().length % 2 != 0) {
-			throw new IllegalStateException("Invalid 'signatureByteRange' provided by external signature context. Tuples of [offset, length] expected.");
+			throw new IllegalArgumentException("Invalid 'signatureByteRange' provided by external signature context. Tuples of [offset, length] expected.");
 		}
 		
 		if (ctx.getDigestValue() == null) {
-			throw new IllegalStateException("'digestValue' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("'digestValue' expected to be provided by external signature context.");
 		}
 		
 		if (ctx.getPreparedDocument() == null) {
-			throw new IllegalStateException("'preparedDocument' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("'preparedDocument' expected to be provided by external signature context.");
 		}
 		
 		if (ctx.getSignatureAlgorithmOid() == null) {
-			throw new IllegalStateException("'signatureAlgorithmOid' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("'signatureAlgorithmOid' expected to be provided by external signature context.");
 		}
 		
 		if (ctx.getSignatureObject() == null) {
-			throw new IllegalStateException("'signatureObject' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("'signatureObject' expected to be provided by external signature context.");
 		}
 		
 		if (ctx.getSigningCertificate() == null) {
-			throw new IllegalStateException("'signingCertificate' expected to be provided by external signature context.");
+			throw new IllegalArgumentException("'signingCertificate' expected to be provided by external signature context.");
 		}
 		
 	}
