@@ -250,7 +250,7 @@ public class PdfAsImplTest {
 	}
 	
 	@Test
-	public void test_finishExternalSignature() throws Exception {
+	public void test_startExternalSignature_finishExternalSignature() throws Exception {
 
 		String signedFileName = getClass().getSimpleName() + "-test_finishExternalSignature-" + System.currentTimeMillis() + ".pdf";
 		File signedFile = new File(FileUtils.getTempDirectory(), signedFileName);
