@@ -754,8 +754,6 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				throw new PDFASError(ERROR_NO_BACKEND);
 			}
 
-			byte[] pdfSignature = pdfasBackend.getPdfSigner().rewritePlainSignature(encodedSignatureValue);
-
 			// ** validate signature
 			
 			byte[] digestInputData;
@@ -770,6 +768,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			
 			// ** insert signature into document
 
+			byte[] pdfSignature = pdfasBackend.getPdfSigner().rewritePlainSignature(encodedSignatureValue);
+			
 			byte[] preparedDocumentData;
 			try (InputStream in = ctx.getPreparedDocument().getInputStream()) {
 				preparedDocumentData = IOUtils.toByteArray(in);
