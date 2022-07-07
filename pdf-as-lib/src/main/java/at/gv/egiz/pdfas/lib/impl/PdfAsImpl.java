@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -691,7 +690,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			ctx.setSignatureObject(externalSignatureInfo.getSignatureObject());
 			ctx.setSigningCertificate(signingCertificate);
 			
-		} catch (PdfAsException | IOException | CertificateException e) {
+		} catch (PDFASError e) {
+			throw e;
+		} catch (Exception e) {
 			throw new PDFASError(ERROR_SIG_EXTERNAL_FAILED_START, e);
 		}
 		
@@ -740,9 +741,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		
 		logger.info("Finishing external signature: {}", ctx);
 		
-		validate(ctx);
-		
 		try {
+			
+			validate(ctx);
 
 			// ** prepare signature
 			
@@ -789,7 +790,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			// TODO[PDFAS-114]: Add processInformations(sic!) to SignResult
 			return signResult;
 		
-		} catch (IOException | CertificateException | PdfAsException e) {
+		} catch (PDFASError e) {
+			throw e;
+		} catch (Exception e) {
 			throw new PDFASError(ERROR_SIG_EXTERNAL_FAILED_FINISH, e);
 		}
 	
