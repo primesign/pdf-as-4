@@ -36,6 +36,7 @@ import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignResult;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyParameter;
 import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
+import iaik.cms.ContentInfo;
 
 public interface PdfAs {	
 	/**
@@ -102,14 +103,233 @@ public interface PdfAs {
 	 */
 	Image generateVisibleSignaturePreview(SignParameter parameter, X509Certificate cert, int resolution) throws PDFASError;
 	
-	// TODO[PDFAS-114]: Add javadoc
-	// TODO[PDFAS-114]: Add note about which fields are relevant from signParameter to javadoc for startExternalSignature
-
-	// ctx will be updated in terms of: digestAlgorithmOid, digestValue, preparedDocument, signatureAlgorithmOid, signatureByteRange, signatureObject, signingTime
+	/**
+	 * <p><strong>Starts an external signature process</strong> (step 1 of 2-steps):</p>
+	 * <ul>
+	 * <li>prepares the document to be signed adding
+	 * <ul>
+	 * <li>(visual) signature appearance</li>
+	 * <li>empty pdf signature</li>
+	 * <li>LTV validation data</li>
+	 * </ul>
+	 * </li>
+	 * <li>populates the provided {@link ExternalSignatureContext} with
+	 * <ul>
+	 * <li>digest value and algorithm</li>
+	 * <li>signature algorithm (derived from the provided signer certificate)</li>
+	 * <li>the prepared - still unsigned - document</li>
+	 * <li>the byte range to be signed</li>
+	 * <li>the signing time</li>
+	 * <li>the signature object (e.g. ASN.1 CMS ContentInfo) without the signature value</li>
+	 * <li>the signing certificate</li>
+	 * </ul>
+	 * </li>
+	 * </ul>
+	 * 
+	 * <p><strong>Requires</strong></p>
+	 * <ul>
+	 * <li>document to be signed</li>
+	 * <li>signer certificate</li>
+	 * <li>(empty) {@link ExternalSignatureContext}<br>
+	 * optional: {@link ExternalSignatureContext} with already populated
+	 * {@link ExternalSignatureContext#getPreparedDocument() datasource for the prepared document} (will be used instead of
+	 * in-memory DataSource)</li>
+	 * </ul>
+	 * <p><strong>Provides</strong></p>
+	 * <ul>
+	 * <li>populated {@link ExternalSignatureContext}</li>
+	 * </ul>
+	 * <p><strong>Sample code for using the API</strong></p>
+	 * 
+	 * <pre>
+	 * File pdfasConfigFolder = ...
+	 * PdfAs pdfasApi = PdfAsFactory.createPdfAs(pdfasConfigFolder)
+	 * 
+	 * File signedDocumentFile = ...
+	 * DataSource unsignedDocumentDataSource = ...
+	 * 
+	 * X509Certificate signingCertificate = ...
+	 * PrivateKey signingKey = ...
+	 * 
+	 * SignResult signResult;
+	 * try (OutputStream out = new FileOutputStream(signedDocumentFile)) {
+	 * 
+	 *    SignParameter signParameter = PdfAsFactory.createSignParameter(pdfasApi.getConfiguration(), unsignedDocumentDataSource, out);
+	 *    signParameter.setPlainSigner(new PAdESExternalSigner());
+	 *    // optionally with further settings like signature profile, external SigningTimeSource, LTV etc.
+	 *    signParameter.setFoo(...)
+	 * 
+	 *    ExternalSignatureContext ctx = new ExternalSignatureContext();
+	 * 
+	 *    pdfasApi.startExternalSignature(signParameter, signingCertificate, ctx);
+	 *    
+	 *    // ** create external signature (sample code snippet for ECDSA) **
+	 *       // assuming ECDSA (production code should evaluate ctx.getSignatureAlgorithmOid())
+	 *       Signature signature = Signature.getInstance("NONEwithECDSA");
+	 *       signature.initSign(signingKey);
+	 *       signature.update(ctx.getDigestValue());
+	 *       byte[] externalSignatureValue = signature.sign();
+	 * 
+	 *    signResult = pdfasApi.finishExternalSignature(signParameter, externalSignatureValue, ctx);
+	 * 
+	 * }
+	 * </pre>
+	 * 
+	 * @param signParameter      The pdfas api signature parameter. (required; must not be {@code null})
+	 * @param signingCertificate The signing certificate. (required; must not be {@code null})
+	 * @param ctx                The external signature context. (required; must not be {@code null} but may be empty)
+	 * @throws PDFASError Thrown in case of error.
+	 * @see #startExternalSignature(SignParameter, X509Certificate)
+	 * @see #finishExternalSignature(SignParameter, byte[], ExternalSignatureContext)
+	 */
 	void startExternalSignature(@Nonnull SignParameter signParameter, @Nonnull X509Certificate signingCertificate, @Nonnull ExternalSignatureContext ctx) throws PDFASError;
 	
-	// TODO[PDFAS-114]: Add note about which fields are relevant from signParameter to javadoc for finishExternalSignature
-
+	/**
+	 * <p><strong>Starts an external signature process</strong> (step 1 of 2-steps):</p>
+	 * <ul>
+	 * <li>prepares the document to be signed adding
+	 * <ul>
+	 * <li>(visual) signature appearance</li>
+	 * <li>empty pdf signature</li>
+	 * <li>LTV validation data</li>
+	 * </ul>
+	 * </li>
+	 * </ul>
+	 * <p><strong>Requires</strong></p>
+	 * <ul>
+	 * <li>document to be signed</li>
+	 * <li>signer certificate</li>
+	 * </ul>
+	 * <p><strong>Provides</strong></p>
+	 * <ul>
+	 * <li>{@link ExternalSignatureContext} populated with
+	 * <ul>
+	 * <li>digest value and algorithm</li>
+	 * <li>signature algorithm (derived from the provided signer certificate)</li>
+	 * <li>the prepared - still unsigned - document</li>
+	 * <li>the byte range to be signed</li>
+	 * <li>the signing time</li>
+	 * <li>the signature object (e.g. ASN.1 CMS ContentInfo) without the signature value</li>
+	 * <li>the signing certificate</li>
+	 * </ul>
+	 * </li>
+	 * </ul>
+	 * <p><strong>Sample code for using the API</strong></p>
+	 * <pre>
+	 * File pdfasConfigFolder = ...
+	 * PdfAs pdfasApi = PdfAsFactory.createPdfAs(pdfasConfigFolder)
+	 * 
+	 * File signedDocumentFile = ...
+	 * DataSource unsignedDocumentDataSource = ...
+	 * 
+	 * X509Certificate signingCertificate = ...
+	 * PrivateKey signingKey = ...
+	 * 
+	 * SignResult signResult;
+	 * try (OutputStream out = new FileOutputStream(signedDocumentFile)) {
+	 * 
+	 *    SignParameter signParameter = PdfAsFactory.createSignParameter(pdfasApi.getConfiguration(), unsignedDocumentDataSource, out);
+	 *    signParameter.setPlainSigner(new PAdESExternalSigner());
+	 *    // optionally with further settings like signature profile, external SigningTimeSource, LTV etc.
+	 *    signParameter.setFoo(...)
+	 * 
+	 *    ExternalSignatureContext ctx = pdfasApi.startExternalSignature(signParameter, signingCertificate);
+	 *    
+	 *    // ** create external signature (sample code snippet for ECDSA) **
+	 *       // assuming ECDSA (production code should evaluate ctx.getSignatureAlgorithmOid())
+	 *       Signature signature = Signature.getInstance("NONEwithECDSA");
+	 *       signature.initSign(signingKey);
+	 *       signature.update(ctx.getDigestValue());
+	 *       byte[] externalSignatureValue = signature.sign();
+	 * 
+	 *    signResult = pdfasApi.finishExternalSignature(signParameter, externalSignatureValue, ctx);
+	 * 
+	 * }
+	 * </pre>
+	 * 
+	 * @param signParameter      The pdfas api signature parameter. (required; must not be {@code null})
+	 * @param signingCertificate The signing certificate. (required; must not be {@code null})
+	 * @throws PDFASError Thrown in case of error.
+	 * @return The populated external signature context. (never {@code null})
+	 * @see #startExternalSignature(SignParameter, X509Certificate, ExternalSignatureContext)
+	 * @see #finishExternalSignature(SignParameter, byte[], ExternalSignatureContext)
+	 */
+	@Nonnull
+	default ExternalSignatureContext startExternalSignature(@Nonnull SignParameter signParameter, @Nonnull X509Certificate signingCertificate) throws PDFASError {
+		ExternalSignatureContext externalSignatureContext = new ExternalSignatureContext();
+		startExternalSignature(signParameter, signingCertificate, externalSignatureContext);
+		return externalSignatureContext;
+	}
+	
+	/**
+	 * <p><strong>Completes an external signature process</strong> (step 2 of 2-steps):</p>
+	 * <ul>
+	 * <li>incorporates the signature value into the signature object (provided with the external context) (e.g. incorporating the signature value into an encoded ASN.1 {@link ContentInfo})</li>
+	 * <li>performs cryptographical validation of the signature object (using the prepared document from the external signature context as digest input)</li>
+	 * <li>compares the signer certificate from the external signature context with the signer certificate from the signature object</li>
+	 * <li>incorporates the signature object as pdf signature into the prepared document resulting in the final signed document</li>
+	 * </ul>
+	 * <p><strong>Requires</strong></p>
+	 * <ul>
+	 * <li>plain signature value</li>
+	 * <li>{@link ExternalSignatureContext} populated with
+	 * <ul>
+	 * <li>digest value and algorithm</li>
+	 * <li>signature algorithm (derived from the provided signer certificate)</li>
+	 * <li>the prepared - still unsigned - document</li>
+	 * <li>the byte range to be signed</li>
+	 * <li>the signature object (e.g. ASN.1 CMS ContentInfo) without the signature value</li>
+	 * <li>the signing certificate</li>
+	 * </ul>
+	 * </li>
+	 * </ul>
+	 * <p><strong>Provides</strong></p>
+	 * <ul>
+	 * <li>{@link SignResult}</li>
+	 * </ul>
+	 * <p><strong>Sample code for using the API</strong></p>
+	 * 
+	 * <pre>
+	 * File pdfasConfigFolder = ...
+	 * PdfAs pdfasApi = PdfAsFactory.createPdfAs(pdfasConfigFolder)
+	 * 
+	 * File signedDocumentFile = ...
+	 * DataSource unsignedDocumentDataSource = ...
+	 * 
+	 * X509Certificate signingCertificate = ...
+	 * PrivateKey signingKey = ...
+	 * 
+	 * SignResult signResult;
+	 * try (OutputStream out = new FileOutputStream(signedDocumentFile)) {
+	 * 
+	 *    SignParameter signParameter = PdfAsFactory.createSignParameter(pdfasApi.getConfiguration(), unsignedDocumentDataSource, out);
+	 *    signParameter.setPlainSigner(new PAdESExternalSigner());
+	 *    // optionally with further settings like signature profile, external SigningTimeSource, LTV etc.
+	 *    signParameter.setFoo(...)
+	 * 
+	 *    ExternalSignatureContext ctx = pdfasApi.startExternalSignature(signParameter, signingCertificate);
+	 *    
+	 *    // ** create external signature (sample code snippet for ECDSA) **
+	 *       // assuming ECDSA (production code should evaluate ctx.getSignatureAlgorithmOid())
+	 *       Signature signature = Signature.getInstance("NONEwithECDSA");
+	 *       signature.initSign(signingKey);
+	 *       signature.update(ctx.getDigestValue());
+	 *       byte[] externalSignatureValue = signature.sign();
+	 * 
+	 *    signResult = pdfasApi.finishExternalSignature(signParameter, externalSignatureValue, ctx);
+	 * 
+	 * }
+	 * </pre>
+	 * 
+	 * @param signParameter  The pdfas api signature parameter. (required; must not be {@code null})
+	 * @param signatureValue The signature value (provided by an external signature device). (required; must not be
+	 *                       {@code null})
+	 * @param ctx            The external signature context. (required; must not be {@code null} but may be empty)
+	 * @return The signature result. (never {@code null})
+	 * @throws PDFASError Thrown in case of error.
+	 * @see #startExternalSignature(SignParameter, X509Certificate)
+	 * @see #startExternalSignature(SignParameter, X509Certificate, ExternalSignatureContext)
+	 */
 	SignResult finishExternalSignature(@Nonnull SignParameter signParameter, @Nonnull byte[] signatureValue, @Nonnull ExternalSignatureContext ctx) throws PDFASError;
 	
 }
