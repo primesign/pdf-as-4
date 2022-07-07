@@ -801,7 +801,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			SignResultImpl signResult = new SignResultImpl();
 			signResult.setSignerCertificate(iaikSigningCertificate);
 			signResult.setSigningDate(ctx.getSigningTime());
-			// TODO[PDFAS-114]: Add signature position to SignResult
+			// TODO[PRIMESIGN-2610/PRIMESIGN-2986]: Add signature position to SignResult
 			Map<String, String> processInformation = signResult.getProcessInformations();
 			processInformation.put(ErrorConstants.STATUS_INFO_SIGDEVICE, "external signature device");
 

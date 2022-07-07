@@ -292,7 +292,7 @@ public class PdfAsImplTest {
 			assertThat(signResult.getSigningDate(), is(signingTime));
 			assertThat(signResult.getProcessInformations(), hasEntry("SigDevice", "external signature device"));
 			
-			// TODO[PDFAS-114]: Update test once signature position is returned
+			// TODO[PRIMESIGN-2610/PRIMESIGN-2986]: Update test once signature position is returned
 
 		} catch (Exception e) {
 			signedFile.delete();
