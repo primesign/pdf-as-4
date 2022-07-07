@@ -118,6 +118,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		if (parameter.getDataSource() == null) {
 			throw new PDFASError(ERROR_NO_INPUT);
 		}
+		
+		if (parameter.getPlainSigner() == null) {
+			throw new PDFASError(ERROR_SIG_NO_OR_INVALID_PLAINSIGNER);
+		}
 
 	}
 

@@ -19,6 +19,7 @@ public interface ErrorConstants {
 	long ERROR_SIG_INVALID_PROFILE = 11009;
 
 	long ERROR_SIG_CERTIFICATE_MISSMATCH = 11019;
+	long ERROR_SIG_NO_OR_INVALID_PLAINSIGNER = 11020;
 
 	/**
 	 * Error indicating that no LTV data was retrieved (e.g. when no validation data provider is available supporting
