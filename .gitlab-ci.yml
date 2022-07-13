@@ -32,7 +32,7 @@ build-branch:
     refs:
       - master
   script:
-      - mvn $MAVEN_CLI_OPTS -U clean javadoc:jar source:jar deploy -Dregistry=$CI_REGISTRY_IMAGE
+      - mvn $MAVEN_CLI_OPTS -U clean verify -Dregistry=$CI_REGISTRY_IMAGE
 
 build-release:
   stage: release
