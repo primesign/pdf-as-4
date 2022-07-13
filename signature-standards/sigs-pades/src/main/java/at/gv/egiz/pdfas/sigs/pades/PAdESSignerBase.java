@@ -20,6 +20,9 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.sigs.pades;
 
+import static at.gv.egiz.pdfas.sigs.pades.PAdESConstants.FILTER_ADOBE_PPKLITE;
+import static at.gv.egiz.pdfas.sigs.pades.PAdESConstants.SUBFILTER_ETSI_CADES_DETACHED;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +37,9 @@ import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import iaik.x509.X509Certificate;
 
-public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
+public abstract class PAdESSignerBase implements IPlainSigner {
 
-	private Logger log = LoggerFactory.getLogger(LTVAwarePAdESSignerBase.class);
+	private Logger log = LoggerFactory.getLogger(PAdESSignerBase.class);
 
 	@Override
 	public CertificateVerificationData getCertificateVerificationData(RequestedSignature requestedSignature) throws PDFASError {
@@ -68,7 +71,7 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 				return ltvVerificationInfoService.getCertificateVerificationData(eeCertificate, settings);
 				
 			} else {
-				log.info("Unable to handle LTV retrieval for signer certificate with issuer (ski: {}): {}", CertificateUtils.getAuthorityKeyIdentifierHexString(eeCertificate), eeCertificate.getIssuerDN());
+				log.info("Unable to handle LTV retrieval for signer certificate with issuer (ski: {}): {}", CertificateUtils.getAuthorityKeyIdentifierHexString(eeCertificate).orElseGet(() -> null), eeCertificate.getIssuerDN());
 			}
 
 		} catch (Exception e) {
@@ -84,6 +87,16 @@ public abstract class LTVAwarePAdESSignerBase implements IPlainSigner {
 
 		return null;
 
+	}
+
+	@Override
+	public String getPDFSubFilter() {
+		return SUBFILTER_ETSI_CADES_DETACHED;
+	}
+
+	@Override
+	public String getPDFFilter() {
+		return FILTER_ADOBE_PPKLITE;
 	}
 
 }

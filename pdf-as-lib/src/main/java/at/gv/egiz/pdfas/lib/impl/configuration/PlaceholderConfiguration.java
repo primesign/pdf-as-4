@@ -23,12 +23,13 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl.configuration;
 
-import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import at.gv.egiz.pdfas.common.settings.ISettings;
+import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 
 
 public class PlaceholderConfiguration extends SpecificBaseConfiguration 
@@ -57,7 +58,6 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 	 */
 	public boolean isProfileConfigurationEnabled(String selectedProfileID)
 	{
-		logger.info("SelectedProfileID in ProfileConfEnabled: "+selectedProfileID);
 		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_SEARCH_ENABLED;
 		if (configuration.getValuesPrefix(profileMatch)!=null) {
 			Map<String, String> map = configuration.getValuesPrefix(profileMatch);
@@ -72,7 +72,6 @@ public class PlaceholderConfiguration extends SpecificBaseConfiguration
 
 	public String getProfilePlaceholderID(String selectedProfileID)
 	{
-		logger.info("SelectedProfileID in ProfileConfEnabled: "+selectedProfileID);
 		String profileMatch = SIG_OBJECT+SEPERATOR+selectedProfileID+SEPERATOR+PLACEHOLDER_ID;
 		if (configuration.getValuesPrefix(profileMatch)!=null) {
 			Map<String, String> map = configuration.getValuesPrefix(profileMatch);

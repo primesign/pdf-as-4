@@ -24,8 +24,6 @@
 package at.gv.egiz.pdfas.sigs.pades;
 
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.PasswordProtection;
@@ -51,7 +49,6 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsSignatureException;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
-import at.gv.egiz.pdfas.lib.api.verify.VerifyResult;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.util.CertificateUtils;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
@@ -72,7 +69,7 @@ import iaik.smime.ess.ESSCertID;
 import iaik.smime.ess.ESSCertIDv2;
 import iaik.x509.X509Certificate;
 
-public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdESConstants {
+public class PAdESSignerKeystore extends PAdESSignerBase implements PAdESConstants {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(PAdESSignerKeystore.class);
@@ -195,11 +192,6 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 	public PAdESSignerKeystore(PrivateKey privKey, java.security.cert.Certificate cert) throws PDFASError {
 		if(cert == null) {
 			logger.error("PAdESSignerKeystore provided certificate is NULL");
-			throw new NullPointerException();
-		}
-
-		if(privKey == null) {
-			logger.error("PAdESSignerKeystore provided private Key is NULL");
 			throw new NullPointerException();
 		}
 
@@ -338,65 +330,28 @@ public class PAdESSignerKeystore extends LTVAwarePAdESSignerBase implements PAdE
 			SignerInfo signer1 = new SignerInfo(issuer, algorithms[1],
 					algorithms[0], privKey);
 
-			SignedData si = new SignedData(input, SignedData.EXPLICIT);
-			si.setSecurityProvider(getSecurityProvider());
-			si.addCertificates(new Certificate[] { cert });
-
+			SignedData signedData = new SignedData(input, SignedData.EXPLICIT);
+			signedData.setSecurityProvider(getSecurityProvider());
+			signedData.addCertificates(new Certificate[] { cert });
 
 			//Check PAdES Flag
-			if (parameter.getConfiguration().hasValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))
-			{
-				if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG)))
-				{
-					setAttributes(cert, signer1);
-				}
-				else
-				{
-					// FIXME: We must set the very same date and must not create a new date, e.g. use requestedSignature.getStatus().getSigningDate()
-					setAttributes("application/pdf", cert, new Date(), signer1);
-				}
-			}
-			else
-			{
-				// FIXME: We must set the very same date and must not create a new date, e.g. use requestedSignature.getStatus().getSigningDate()
-				setAttributes("application/pdf", cert, new Date(), signer1);
+			if (IConfigurationConstants.TRUE.equalsIgnoreCase(parameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG))) {
+				setAttributes(cert, signer1);
+			} else {
+				setAttributes("application/pdf", cert,  requestedSignature.getStatus().getSigningDate().getTime(), signer1);
 			}
 
-			si.addSignerInfo(signer1);
-			InputStream dataIs = si.getInputStream();
-			byte[] buf = new byte[1024];
-			@SuppressWarnings("unused")
-			int r;
-			while ((r = dataIs.read(buf)) > 0)
-				; // skip data
-			ContentInfo ci = new ContentInfo(si);
-			byte[] signature = ci.getEncoded();
+			signedData.addSignerInfo(signer1);
+			ContentInfo contentInfo = new ContentInfo(signedData);
+			byte[] signature = contentInfo.getEncoded();
 
-			VerifyResult verifyResult = SignatureUtils.verifySignature(
-					signature, input);
+			SignatureUtils.verifySignature(signature, input);
 
 			return signature;
-		} catch (NoSuchAlgorithmException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (iaik.cms.CMSException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (IOException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (CertificateException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (CodingException e) {
-			throw new PdfAsSignatureException("error.pdf.sig.01", e);
-		} catch (PDFASError e) {
+			
+		} catch (NoSuchAlgorithmException | iaik.cms.CMSException | CertificateException | CodingException | PDFASError e) {
 			throw new PdfAsSignatureException("error.pdf.sig.01", e);
 		}
-	}
-
-	public String getPDFSubFilter() {
-		return SUBFILTER_ETSI_CADES_DETACHED;
-	}
-
-	public String getPDFFilter() {
-		return FILTER_ADOBE_PPKLITE;
 	}
 
 }

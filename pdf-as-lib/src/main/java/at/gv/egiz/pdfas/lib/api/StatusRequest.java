@@ -25,6 +25,8 @@ package at.gv.egiz.pdfas.lib.api;
 
 import java.security.cert.CertificateException;
 
+import javax.annotation.Nullable;
+
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 
 /**
@@ -38,7 +40,7 @@ public interface StatusRequest {
 	 * Retrieve the signing certificate and set it via setCertificate
 	 * @return
 	 */
-	public boolean needCertificate();
+	boolean needCertificate();
 	
 	/**
 	 * If true PDF-AS requires a the CAdES signature
@@ -48,39 +50,50 @@ public interface StatusRequest {
 	 * 
 	 * @return
 	 */
-	public boolean needSignature();
+	boolean needSignature();
 	
 	/**
 	 * If true finishSign in PdfAs can be called to retrieve the signed pdf
 	 * @return
 	 */
-	public boolean isReady();
+	boolean isReady();
 	
 	/**
 	 * Gets the data to be signed
 	 * @return
 	 */
-	public byte[] getSignatureData();
+	byte[] getSignatureData();
 	
 	/**
 	 * Gets the byte range of the data to be signed
 	 * @return
 	 */
-	public int[] getSignatureDataByteRange();
+	int[] getSignatureDataByteRange();
 	
 	/**
 	 * Sets the signing certificate
 	 * @param encodedCertificate
 	 * @throws CertificateException
 	 */
-	public void setCertificate(byte[] encodedCertificate) throws CertificateException;
+	void setCertificate(byte[] encodedCertificate) throws CertificateException;
 	
 	/**
-	 * Sets the signature
-	 * @param signatureValue
+	 * Sets the encoded signature.
+	 * 
+	 * @param encodedSignature The encoded signature.
+	 * @deprecated Use {@link #setEncodedSignature(byte[])} instead.
 	 */
-	public void setSigature(byte[] signatureValue) ;
-
-	public SignParameter getSignParameter();
+	void setSigature(byte[] encodedSignature) ;
+	
+	SignParameter getSignParameter();
+	
+	/**
+	 * Sets the encoded signature.
+	 * 
+	 * @param encodedSignature The encoded signature. (optional; may be {@code null})
+	 */
+	default void setEncodedSignature(@Nullable byte[] encodedSignature) {
+		setSigature(encodedSignature);
+	}
 	
 }

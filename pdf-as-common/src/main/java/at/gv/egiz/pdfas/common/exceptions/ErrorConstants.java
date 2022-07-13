@@ -19,6 +19,7 @@ public interface ErrorConstants {
 	long ERROR_SIG_INVALID_PROFILE = 11009;
 
 	long ERROR_SIG_CERTIFICATE_MISSMATCH = 11019;
+	long ERROR_SIG_NO_OR_INVALID_PLAINSIGNER = 11020;
 
 	/**
 	 * Error indicating that no LTV data was retrieved (e.g. when no validation data provider is available supporting
@@ -46,6 +47,16 @@ public interface ErrorConstants {
 	 * The state of at least one of the signer certificate's chain certificates is not valid (e.g. revoked).
 	 */
 	long ERROR_SIG_PADESLTV_CERT_STATUS_NOT_VALID = 11104;
+	
+	/**
+	 * Indicates that the preparations for external signature failed.
+	 */
+	long ERROR_SIG_EXTERNAL_FAILED_START = 11105;
+	
+	/**
+	 * Indicates that an external signature could not be processed.
+	 */
+	long ERROR_SIG_EXTERNAL_FAILED_FINISH = 11106;
 
 	// Verification Errors
 

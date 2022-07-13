@@ -26,10 +26,20 @@ package at.gv.egiz.pdfas.lib.impl;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
+import javax.annotation.Nonnull;
+import javax.annotation.WillNotClose;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,13 +48,15 @@ import at.gv.egiz.pdfas.common.exceptions.PDFASError;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.common.exceptions.PdfAsSettingsException;
 import at.gv.egiz.pdfas.common.settings.ISettings;
-import at.gv.egiz.pdfas.common.utils.PDFUtils;
 import at.gv.egiz.pdfas.common.utils.StreamUtils;
+import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.Configuration;
 import at.gv.egiz.pdfas.lib.api.IConfigurationConstants;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.preprocessor.PreProcessor;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureContext;
+import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureInfo;
 import at.gv.egiz.pdfas.lib.api.sign.IPlainSigner;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter.LTVMode;
@@ -63,6 +75,7 @@ import at.gv.egiz.pdfas.lib.impl.status.PDFObject;
 import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.gv.egiz.pdfas.lib.pki.spi.CertificateVerificationData;
 import at.gv.egiz.pdfas.lib.settings.Settings;
+import at.gv.egiz.pdfas.lib.util.ByteRangeInputStream;
 import at.gv.egiz.pdfas.lib.util.SignatureUtils;
 import at.gv.egiz.sl.util.BKUHeader;
 import iaik.x509.X509Certificate;
@@ -105,6 +118,10 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 
 		if (parameter.getDataSource() == null) {
 			throw new PDFASError(ERROR_NO_INPUT);
+		}
+		
+		if (parameter.getPlainSigner() == null) {
+			throw new PDFASError(ERROR_SIG_NO_OR_INVALID_PLAINSIGNER);
 		}
 
 	}
@@ -175,6 +192,9 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				// determine (claimed) signing time
 		    	Calendar signingDate = parameter.getSigningTimeSource().getSigningTime(requestedSignature);
 		    	requestedSignature.getStatus().setSigningDate(signingDate);
+		    	if (logger.isInfoEnabled()) {
+		    		logger.info("Signing time: {}", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingDate.getTime()));
+		    	}
 
 				// LTV mode controls if and how retrieval/embedding LTV data will be done
 				LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
@@ -378,25 +398,23 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				IPdfSigner signer = status.getBackend().getPdfSigner();
 
 				status.setSigningDate(status.getSignParamter().getSigningTimeSource().getSigningTime(status.getRequestedSignature()));
+		    	if (logger.isInfoEnabled()) {
+		    		logger.info("Signing time: {}", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(status.getSigningDate().getTime()));
+		    	}
 				
-				PDFASSignatureExtractor signatureDataExtractor = signer
-						.buildBlindSignaturInterface(request.getCertificate(),
-								pdfFilter, pdfSubFilter,
-								status.getSigningDate());
+				PDFASSignatureExtractor signatureDataExtractor = signer.buildBlindSignaturInterface(pdfFilter, pdfSubFilter);
 
-				signer.signPDF(status.getPdfObject(),
-						status.getRequestedSignature(), signatureDataExtractor);
+				signer.signPDF(status.getPdfObject(), status.getRequestedSignature(), signatureDataExtractor);
 
-				StringBuilder sb = new StringBuilder();
+				int[] byteRange = signatureDataExtractor.getByteRange();
 
-				int[] byteRange = PDFUtils
-						.extractSignatureByteRange(signatureDataExtractor
-								.getSignatureData());
-
-				for (int i = 0; i < byteRange.length; i++) {
-					sb.append(" " + byteRange[i]);
+				if (logger.isDebugEnabled()) {
+					StringBuilder sb = new StringBuilder();
+					for (int i = 0; i < byteRange.length; i++) {
+						sb.append(" " + byteRange[i]);
+					}
+					logger.debug("ByteRange: " + sb.toString());
 				}
-				logger.debug("ByteRange: " + sb.toString());
 
 				request.setSignatureData(signatureDataExtractor
 						.getSignatureData());
@@ -583,4 +601,218 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 		}
 
 	}
+	
+	@Override
+	public void startExternalSignature(SignParameter signParameter, java.security.cert.X509Certificate signingCertificate, ExternalSignatureContext ctx) throws PDFASError {
+		
+		verifySignParameter(signParameter);
+		
+		logger.info("Starting external signature: {}", ctx);
+		
+		try {
+			
+			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
+			if (pdfasBackend == null) {
+				throw new PDFASError(ERROR_NO_BACKEND);
+			}
+			
+			// skip signPreprocessing performed by original startSign
+			// ...
+			
+			IPdfSigner pdfSigner = pdfasBackend.getPdfSigner();
+
+			// create internal operation status...
+			final ISettings settings = (ISettings) signParameter.getConfiguration();
+			OperationStatus operationStatus = new OperationStatus(settings, signParameter, pdfasBackend);
+			PDFObject pdfObject = pdfSigner.buildPDFObject(operationStatus);
+			pdfObject.setOriginalDocument(signParameter.getDataSource());
+			operationStatus.setPdfObject(pdfObject);
+			operationStatus.setSigningDate(ctx.getSigningTime());
+			
+			// and link it with requested signature
+			RequestedSignature requestedSignature = new RequestedSignature(operationStatus);
+			X509Certificate iaikSigningCertificate = new X509Certificate(signingCertificate.getEncoded());
+			requestedSignature.setCertificate(iaikSigningCertificate);
+			operationStatus.setRequestedSignature(requestedSignature);
+
+			// manage signing time
+			final Calendar signingTime = signParameter.getSigningTimeSource().getSigningTime(requestedSignature);
+			// update signing time in case (external) signing time source provides a deviating date
+			if (!signingTime.equals(ctx.getSigningTime())) {
+				ctx.setSigningTime(signingTime);
+				operationStatus.setSigningDate(signingTime);
+			}
+			if (logger.isInfoEnabled()) {
+				logger.info("Signing time: {}", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingTime.getTime()));
+			}
+
+			IPlainSigner plainSigner = signParameter.getPlainSigner();
+			
+			// LTV mode controls if and how retrieval/embedding LTV data will be done
+			LTVMode ltvMode = requestedSignature.getStatus().getSignParamter().getLTVMode();
+			logger.trace("LTV mode: {}", ltvMode);
+			if (ltvMode != LTVMode.NONE) {
+				CertificateVerificationData certificateVerificationData = plainSigner.getCertificateVerificationData(requestedSignature);
+				requestedSignature.setCertificateVerificationData(certificateVerificationData);
+			}
+			
+			// TODO[PRIMESIGN-2610/PRIMESIGN-3009]: Invoke SignatureObserver
+			
+			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(plainSigner.getPDFFilter(), plainSigner.getPDFSubFilter());
+			
+			// simulate signature in order to extract data to be signed and byte range
+			pdfSigner.signPDF(pdfObject, requestedSignature, signatureDataExtractor);
+
+			// ** digest input data
+			byte[] digestInputData = signatureDataExtractor.getSignatureData();
+			
+			// ** byte range
+			int[] byteRange = signatureDataExtractor.getByteRange();
+			ctx.setSignatureByteRange(byteRange);
+			
+			// ** prepared signed document (without signature yet)
+			byte[] preparedDocument = pdfObject.getSignedDocument();
+			// store prepared signed document in context (use provided DataSource or InMemory DataSource as fallback)
+			// Note that caller may provide a readable and writeable datasource which can be used here.
+			if (ctx.getPreparedDocument() != null) {
+				try (OutputStream out = ctx.getPreparedDocument().getOutputStream()) {
+					IOUtils.write(preparedDocument, out);
+				}
+			} else {
+				ctx.setPreparedDocument(new ByteArrayDataSource(preparedDocument));
+			}
+			
+			boolean enforceETSIPAdES = IConfigurationConstants.TRUE.equalsIgnoreCase(signParameter.getConfiguration().getValue(IConfigurationConstants.SIG_PADES_FORCE_FLAG));
+			ExternalSignatureInfo externalSignatureInfo = plainSigner.determineExternalSignatureInfo(digestInputData, iaikSigningCertificate, signingTime.getTime(), enforceETSIPAdES);
+			
+			ctx.setDigestAlgorithmOid(externalSignatureInfo.getDigestAlgorithm().getAlgorithm().getID());
+			ctx.setDigestValue(externalSignatureInfo.getDigestValue());
+			ctx.setSignatureAlgorithmOid(externalSignatureInfo.getSignatureAlgorithm().getAlgorithm().getID());
+			ctx.setSignatureObject(externalSignatureInfo.getSignatureObject());
+			ctx.setSigningCertificate(signingCertificate);
+			
+		} catch (PDFASError e) {
+			throw e;
+		} catch (Exception e) {
+			throw new PDFASError(ERROR_SIG_EXTERNAL_FAILED_START, e);
+		}
+		
+	}
+	
+	/**
+	 * Validates the provided externa signature context.
+	 * <p>Makes sure that</p>
+	 * <ul>
+	 * <li>the provided context is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getDigestAlgorithmOid()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSignatureByteRange()} is not empty and that the byte range reflects tuples</li>
+	 * <li>{@link ExternalSignatureContext#getDigestValue()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getPreparedDocument()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSignatureAlgorithmOid()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSignatureObject()} is not {@code null}</li>
+	 * <li>{@link ExternalSignatureContext#getSigningCertificate()} is not {@code null}</li>
+	 * </ul>
+	 * @param ctx The external signature context. (required; must not be {@code null})
+	 * @throws IllegalArgumentException in case ctx is not fully populated (except for {@link ExternalSignatureContext#getSigningTime()}).
+	 */
+	static void validate(@Nonnull ExternalSignatureContext ctx) {
+		
+		Objects.requireNonNull(ctx, "Provided external signature context must not be null.");
+		
+		if (ctx.getDigestAlgorithmOid() == null) {
+			throw new IllegalArgumentException("'digestAlgorithmOid' expected to be provided by external signature context.");
+		}
+		if (ArrayUtils.isEmpty(ctx.getSignatureByteRange())) {
+			throw new IllegalArgumentException("Non-empty 'signatureByteRange' expected to be provided by external signature context.");
+		}
+		if (ctx.getSignatureByteRange().length % 2 != 0) {
+			throw new IllegalArgumentException("Invalid 'signatureByteRange' provided by external signature context. Tuples of [offset, length] expected.");
+		}
+		
+		if (ctx.getDigestValue() == null) {
+			throw new IllegalArgumentException("'digestValue' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getPreparedDocument() == null) {
+			throw new IllegalArgumentException("'preparedDocument' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSignatureAlgorithmOid() == null) {
+			throw new IllegalArgumentException("'signatureAlgorithmOid' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSignatureObject() == null) {
+			throw new IllegalArgumentException("'signatureObject' expected to be provided by external signature context.");
+		}
+		
+		if (ctx.getSigningCertificate() == null) {
+			throw new IllegalArgumentException("'signingCertificate' expected to be provided by external signature context.");
+		}
+		
+	}
+	
+	@Override
+	public SignResult finishExternalSignature(SignParameter signParameter, byte[] signatureValue, @WillNotClose ExternalSignatureContext ctx) throws PDFASError {
+		
+		logger.info("Finishing external signature: {}", ctx);
+		
+		try {
+			
+			validate(ctx);
+
+			// ** prepare signature
+			
+			byte[] encodedSignatureValue = signParameter.getPlainSigner().applyPlainExternalSignatureValue(signatureValue, ctx.getSignatureObject());
+
+			PDFASBackend pdfasBackend = BackendLoader.getPDFASBackend(signParameter.getConfiguration());
+			if (pdfasBackend == null) {
+				throw new PDFASError(ERROR_NO_BACKEND);
+			}
+
+			// ** validate signature
+			
+			byte[] digestInputData;
+			try (InputStream in = new ByteRangeInputStream(ctx.getPreparedDocument().getInputStream(), ctx.getSignatureByteRange())) {
+				digestInputData = IOUtils.toByteArray(in);
+			}
+			VerifyResult verifyResult = SignatureUtils.verifySignature(encodedSignatureValue, digestInputData);
+			X509Certificate iaikSigningCertificate = new X509Certificate(ctx.getSigningCertificate().getEncoded());
+			if (!StreamUtils.dataCompare(iaikSigningCertificate.getFingerprintSHA(), ((X509Certificate) verifyResult.getSignerCertificate()).getFingerprintSHA())) {
+				throw new PDFASError(ERROR_SIG_CERTIFICATE_MISSMATCH);
+			}
+			
+			// ** insert signature into document
+
+			byte[] pdfSignature = pdfasBackend.getPdfSigner().rewritePlainSignature(encodedSignatureValue);
+			
+			byte[] preparedDocumentData;
+			try (InputStream in = ctx.getPreparedDocument().getInputStream()) {
+				preparedDocumentData = IOUtils.toByteArray(in);
+			}
+			int[] byteRange = ctx.getSignatureByteRange();
+			int offset = byteRange[1] + 1;
+			for (int i = 0; i < pdfSignature.length; i++) {
+				preparedDocumentData[offset + i] = pdfSignature[i];
+			}
+			
+			// ** write result to provided output stream
+			IOUtils.write(preparedDocumentData, signParameter.getSignatureResult());
+
+			SignResultImpl signResult = new SignResultImpl();
+			signResult.setSignerCertificate(iaikSigningCertificate);
+			signResult.setSigningDate(ctx.getSigningTime());
+			// TODO[PRIMESIGN-2610/PRIMESIGN-2986]: Add signature position to SignResult
+			Map<String, String> processInformation = signResult.getProcessInformations();
+			processInformation.put(ErrorConstants.STATUS_INFO_SIGDEVICE, "external signature device");
+
+			return signResult;
+		
+		} catch (PDFASError e) {
+			throw e;
+		} catch (Exception e) {
+			throw new PDFASError(ERROR_SIG_EXTERNAL_FAILED_FINISH, e);
+		}
+	
+	}
+
 }

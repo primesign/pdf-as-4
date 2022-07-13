@@ -23,13 +23,12 @@
  ******************************************************************************/
 package at.gv.egiz.pdfas.lib.impl;
 
-import iaik.x509.X509Certificate;
-
 import java.security.cert.CertificateException;
 
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
 import at.gv.egiz.pdfas.lib.impl.status.OperationStatus;
+import iaik.x509.X509Certificate;
 
 public class StatusRequestImpl implements StatusRequest {
 
@@ -62,8 +61,15 @@ public class StatusRequestImpl implements StatusRequest {
 	public X509Certificate getCertificate() {
 		return this.certificate;
 	}
-	
+
+	/**
+	 * @deprecated Use {@link #getEncodedSignature()} instead.
+	 */
 	public byte[] getSignature() {
+		return this.encodedSignature;
+	}
+	
+	public byte[] getEncodedSignature() {
 		return this.encodedSignature;
 	}
 	

@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -113,7 +112,6 @@ import at.gv.egiz.pdfas.lib.impl.status.RequestedSignature;
 import at.knowcenter.wag.egov.egiz.pdf.PositioningInstruction;
 import at.knowcenter.wag.egov.egiz.pdf.TablePos;
 import at.knowcenter.wag.egov.egiz.table.Table;
-import iaik.x509.X509Certificate;
 
 public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 	
@@ -160,32 +158,28 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
 			placeholders =PlaceholderFilter.checkPlaceholderSignatureLocationList(pdfObject.getStatus(),
 							pdfObject.getStatus().getSettings(), placeholder_id);
 
+			if (placeholders != null) {
+				
 //            placeholders = SignaturePlaceholderExtractor.getPlaceholders();
-            availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
-
-
-			if(placeholder_id.equalsIgnoreCase("")){
-				if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
-				{
-					placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+				availablePlaceholders = listAvailablePlaceholders(placeholders, existingSignatureLocations(doc));
+				
+				if(placeholder_id.equalsIgnoreCase("")){
+					if(checkAvailablePlaceholders(placeholders,existingSignatureLocations(doc))!=null)
+					{
+						placeholder_id = (checkAvailablePlaceholders(placeholders, existingSignatureLocations(doc))).getId();
+					}
 				}
-			}
-
-			if(availablePlaceholders!=null) {
+				
 				signaturePlaceholderData = PlaceholderFilter
 						.checkPlaceholderSignatureLocation(pdfObject.getStatus(), pdfObject.getStatus().getSettings(),placeholder_id);
+				
 			}
-
-
-
 
 			TablePos tablePos = null;
 
-			if(signaturePlaceholderData!=null)
-			signature.setLocation(signaturePlaceholderData.getPlaceholderName());
-
 			if (signaturePlaceholderData != null) {
 				// Placeholder found!
+				signature.setLocation(signaturePlaceholderData.getPlaceholderName());
                 placeholders.clear();
                 logger.info("Placeholder data found.");
 				if (signaturePlaceholderData.getProfile() != null) {
@@ -737,8 +731,8 @@ public class PADESPDFBOXSigner implements IPdfSigner, IConfigurationConstants {
     }
 
     @Override
-    public PDFASSignatureExtractor buildBlindSignaturInterface(X509Certificate certificate, String filter, String subfilter, Calendar date) {
-        return new SignatureDataExtractor(certificate, filter, subfilter, date);
+    public PDFASSignatureExtractor buildBlindSignaturInterface(String filter, String subfilter) {
+        return new SignatureDataExtractor(filter, subfilter);
     }
 
     @Override

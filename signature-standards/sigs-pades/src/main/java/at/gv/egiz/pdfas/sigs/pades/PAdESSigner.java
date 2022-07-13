@@ -31,33 +31,25 @@ import at.gv.egiz.sl.util.ISLConnector;
 import at.gv.egiz.sl.util.ISignatureConnector;
 import at.gv.egiz.sl.util.ISignatureConnectorSLWrapper;
 
-public class PAdESSigner extends LTVAwarePAdESSignerBase implements PAdESConstants {
+public class PAdESSigner extends PAdESSignerBase implements PAdESConstants {
 	
-	private ISignatureConnector plainSigner;
+	private ISignatureConnector signatureConnector;
 	
 	public PAdESSigner(ISLConnector connector) {
-		this.plainSigner = new ISignatureConnectorSLWrapper(connector);
+		this.signatureConnector = new ISignatureConnectorSLWrapper(connector);
 	}
 	
 	public PAdESSigner(ISignatureConnector signer) {
-		this.plainSigner = signer;
+		this.signatureConnector = signer;
 	}
 
 	public X509Certificate getCertificate(SignParameter parameter) throws PdfAsException {
-		return this.plainSigner.getCertificate(parameter);
+		return this.signatureConnector.getCertificate(parameter);
 	}
 
 	public byte[] sign(byte[] input, int[] byteRange, SignParameter parameter
 			, RequestedSignature requestedSignature) throws PdfAsException {
-		return this.plainSigner.sign(input, byteRange, parameter, requestedSignature);
-	}
-
-	public String getPDFSubFilter() {
-		return SUBFILTER_ETSI_CADES_DETACHED;
-	}
-
-	public String getPDFFilter() {
-		return FILTER_ADOBE_PPKLITE;
+		return this.signatureConnector.sign(input, byteRange, parameter, requestedSignature);
 	}
 
 }
