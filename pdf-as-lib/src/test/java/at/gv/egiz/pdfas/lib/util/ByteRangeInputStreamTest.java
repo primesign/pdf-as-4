@@ -125,9 +125,9 @@ public class ByteRangeInputStreamTest {
 				byte[] buffer = new byte[in.available()];
 				assertEquals(buffer.length, in.read(buffer));
 				out.write(buffer);
-			}
-			if (cycles > 100) {
-				fail("Endless loop detected.");
+				if (cycles++ > 100) {
+					fail("Endless loop detected.");
+				}
 			}
 			result = out.toByteArray();
 		}
