@@ -122,6 +122,7 @@ public interface PdfAs {
 	 * <li>the signing time</li>
 	 * <li>the signature object (e.g. ASN.1 CMS ContentInfo) without the signature value</li>
 	 * <li>the signing certificate</li>
+	 * <li>the applied signature position</li>
 	 * </ul>
 	 * </li>
 	 * </ul>
@@ -211,6 +212,7 @@ public interface PdfAs {
 	 * <li>the signing time</li>
 	 * <li>the signature object (e.g. ASN.1 CMS ContentInfo) without the signature value</li>
 	 * <li>the signing certificate</li>
+	 * <li>the applied signature position</li>
 	 * </ul>
 	 * </li>
 	 * </ul>
