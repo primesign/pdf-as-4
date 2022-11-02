@@ -43,6 +43,7 @@ import at.gv.egiz.pdfas.common.exceptions.PdfAsException;
 import at.gv.egiz.pdfas.lib.api.ByteArrayDataSource;
 import at.gv.egiz.pdfas.lib.api.PdfAs;
 import at.gv.egiz.pdfas.lib.api.PdfAsFactory;
+import at.gv.egiz.pdfas.lib.api.SignaturePosition;
 import at.gv.egiz.pdfas.lib.api.StatusRequest;
 import at.gv.egiz.pdfas.lib.api.sign.ExternalSignatureContext;
 import at.gv.egiz.pdfas.lib.api.sign.SignParameter;
@@ -261,6 +262,8 @@ public class PdfAsImplTest {
 			
 			SignParameter signParameter = PdfAsFactory.createSignParameter(pdfas.getConfiguration(), inputDataSource, out);
 			signParameter.setPlainSigner(new PAdESExternalSigner());
+			signParameter.setSignaturePosition("p:1;x:2;y:3");
+			signParameter.setSignatureProfileId("SIGNATURBLOCK_DE");
 			
 			ctrl.reset();
 			
@@ -277,6 +280,12 @@ public class PdfAsImplTest {
 			
 			pdfas.startExternalSignature(signParameter, signingCertificate, ctx);
 			
+			// make sure ctx is updated
+			assertNotNull(ctx.getSignaturePosition());
+			assertThat(ctx.getSignaturePosition().getPage(), is(1));
+			assertThat(ctx.getSignaturePosition().getX(), is(2f));
+			assertThat(ctx.getSignaturePosition().getY(), is(3f));
+			
 			// ** create external signature
 			Signature signature = Signature.getInstance("NONEwithECDSA");
 			signature.initSign(signingKey);
@@ -292,7 +301,11 @@ public class PdfAsImplTest {
 			assertThat(signResult.getSigningDate(), is(signingTime));
 			assertThat(signResult.getProcessInformations(), hasEntry("SigDevice", "external signature device"));
 			
-			// TODO[PRIMESIGN-2610/PRIMESIGN-2986]: Update test once signature position is returned
+			SignaturePosition signaturePosition = signResult.getSignaturePosition();
+			assertNotNull(signaturePosition);
+			assertThat(signaturePosition.getPage(), is(1));
+			assertThat(signaturePosition.getX(), is(2f));
+			assertThat(signaturePosition.getY(), is(3f));
 
 		} catch (Exception e) {
 			signedFile.delete();

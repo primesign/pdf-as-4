@@ -656,7 +656,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 				requestedSignature.setCertificateVerificationData(certificateVerificationData);
 			}
 			
-			// TODO[PRIMESIGN-2610/PRIMESIGN-3009]: Invoke SignatureObserver
+			// TODO[PRIMESIGN-2610/PRIMESIGN-3009]: Invoke SignatureObserver (signature stamp)
 			
 			PDFASSignatureExtractor signatureDataExtractor = pdfSigner.buildBlindSignaturInterface(plainSigner.getPDFFilter(), plainSigner.getPDFSubFilter());
 			
@@ -690,6 +690,8 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			ctx.setSignatureAlgorithmOid(externalSignatureInfo.getSignatureAlgorithm().getAlgorithm().getID());
 			ctx.setSignatureObject(externalSignatureInfo.getSignatureObject());
 			ctx.setSigningCertificate(signingCertificate);
+			
+			ctx.setSignaturePosition(operationStatus.getRequestedSignature().getSignaturePosition());
 			
 		} catch (PDFASError e) {
 			throw e;
@@ -801,7 +803,7 @@ public class PdfAsImpl implements PdfAs, IConfigurationConstants,
 			SignResultImpl signResult = new SignResultImpl();
 			signResult.setSignerCertificate(iaikSigningCertificate);
 			signResult.setSigningDate(ctx.getSigningTime());
-			// TODO[PRIMESIGN-2610/PRIMESIGN-2986]: Add signature position to SignResult
+			signResult.setSignaturePosition(ctx.getSignaturePosition());
 			Map<String, String> processInformation = signResult.getProcessInformations();
 			processInformation.put(ErrorConstants.STATUS_INFO_SIGDEVICE, "external signature device");
 

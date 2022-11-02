@@ -17,6 +17,8 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import at.gv.egiz.pdfas.lib.api.SignaturePosition;
+
 /**
  * Data structure for storing and passing signature related data supporting external signatures. An external signature
  * creation device is able to take the digest value and to apply the signature.
@@ -43,6 +45,8 @@ public class ExternalSignatureContext implements Closeable {
 	private DataSource preparedDocument;
 
 	private Calendar signingTime;
+	
+	private SignaturePosition signaturePosition;
 
 	/**
 	 * Returns the digest algorithm object identifier as String.
@@ -200,6 +204,25 @@ public class ExternalSignatureContext implements Closeable {
 		this.signingTime = signingTime;
 	}
 
+	/**
+	 * Returns the signature position to be used.
+	 * 
+	 * @return The signature position. (may be {@code null})
+	 */
+	@Nullable
+	public SignaturePosition getSignaturePosition() {
+		return signaturePosition;
+	}
+
+	/**
+	 * Sets the signature position to be used.
+	 * 
+	 * @param signaturePosition The signature position. (optional; may be {@code null})
+	 */
+	public void setSignaturePosition(@Nullable SignaturePosition signaturePosition) {
+		this.signaturePosition = signaturePosition;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -229,6 +252,19 @@ public class ExternalSignatureContext implements Closeable {
 				builder.append(", ");
 			}
 			builder.append("signingTime=").append(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(signingTime.getTime()));
+		}
+		if (signaturePosition != null) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			// @formatter:off
+			builder
+				.append("signaturePosition=[p:").append(signaturePosition.getPage())
+				.append(",x:").append(signaturePosition.getX())
+				.append(",y:").append(signaturePosition.getY())
+				.append(",w:").append(signaturePosition.getWidth())
+				.append(",h:").append(signaturePosition.getHeight()).append("]");
+			// @formatter:on
 		}
 		if (signingCertificate != null) {
 			if (builder.length() > 0) {
