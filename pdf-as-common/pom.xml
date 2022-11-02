@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>at.gv.egiz.pdfas</groupId>
 		<artifactId>pdf-as</artifactId>
-		<version>4.2.0-PS-4</version>
+		<version>4.2.0-PS-5-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>pdf-as-common</artifactId>

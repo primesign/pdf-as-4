@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>at.gv.egiz.pdfas</groupId>
 		<artifactId>signature-standards</artifactId>
-		<version>4.2.0-PS-4</version>
+		<version>4.2.0-PS-5-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>sigs-pades</artifactId>
