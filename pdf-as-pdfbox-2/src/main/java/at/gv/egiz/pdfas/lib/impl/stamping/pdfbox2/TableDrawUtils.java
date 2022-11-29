@@ -66,11 +66,12 @@ public class TableDrawUtils {
 		drawTableBackground(page, contentStream, x, y, width, height,
 				abstractTable, settings);
 
-		drawBorder(page, contentStream, x, y, width, height, abstractTable,
-				doc, subtable, settings);
-//append strings
 		drawContent(page, contentStream, x, y, width, height, abstractTable,
 				doc, subtable, formResources, images, settings, generator, properties);
+		
+		drawBorder(page, contentStream, x, y, width, height, abstractTable,
+				doc, subtable, settings);
+		
 	}
 
 	public static void drawContent(PDPage page,
