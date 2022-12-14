@@ -4,12 +4,11 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
-
 import javax.annotation.Nonnull;
-
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -75,13 +74,21 @@ public class ByteRangeInputStream extends FilterInputStream {
 
 	}
 	
-	private Iterator<ByteRange> ranges;
+	private ListIterator<ByteRange> ranges;
 	private ByteRange currentRange;
 	private long currentPosition = 0;
+	private final boolean fillGapWithNullBytes;
+	private int gapBytesToBeFilled = 0;;
+
 
 	public ByteRangeInputStream(@Nonnull InputStream in, @Nonnull int[] byteRange) {
+		this(in, byteRange, false);
+	}
+
+	public ByteRangeInputStream(@Nonnull InputStream in, @Nonnull int[] byteRange, boolean fillGapWithNullBytes) {
 		super(in);
-		ranges = prepareByteRanges(Objects.requireNonNull(byteRange, "'byteRange' must not be null.")).iterator();
+		ranges = prepareByteRanges(Objects.requireNonNull(byteRange, "'byteRange' must not be null.")).listIterator();
+		this.fillGapWithNullBytes = fillGapWithNullBytes;
 	}
 
 	/**
@@ -143,14 +150,58 @@ public class ByteRangeInputStream extends FilterInputStream {
 		}
 		
 	}
-	
+	/**
+	 * Makes sure {@link #currentRange} reflects the byte range to read from, and intermediate gaps are reflected in {@link #currentRange}. {@link #currentRange} is set {@code null} in
+	 * case to further readable byte ranges are available.
+	 *
+	 * @throws IOException Thrown in case of error reading from original stream.
+	 */
+	private void updateCurrentRangeAndGap() throws IOException {
+		if (currentRange != null && currentRange.bytesLeft() > 0) {
+			// no need to update currentRange
+			return;
+		}
+
+		boolean isFirstRange = ranges.previousIndex() == -1;
+		// update currentRange
+		while (ranges.hasNext() && (currentRange = ranges.next()).bytesLeft <= 0) {
+			// skip empty ranges
+		}
+
+		// do we have readable byte ranges left ?
+		if (currentRange != null && currentRange.bytesLeft() > 0) {
+
+			while (currentPosition < currentRange.getOffset()) {
+				if (isFirstRange) {
+					// skip bytes until reaching next byte range offset
+					long skipped = super.skip(currentRange.getOffset() - currentPosition);
+					currentPosition += skipped;
+				} else {
+					// fill and skip null bytes until reaching next byte range offset
+					long skipped = super.skip(currentRange.getOffset() - (int) currentPosition);
+					currentPosition += skipped;
+					gapBytesToBeFilled += skipped;
+				}
+			}
+
+		} else {
+			// no further byte ranges to read
+			currentRange = null;
+		}
+	}
+
 	@Override
 	public int available() throws IOException {
-		updateCurrentRange();
+
+		if (fillGapWithNullBytes)
+			updateCurrentRangeAndGap();
+		else
+			updateCurrentRange();
+
 		if (currentRange == null) {
 			return 0;
 		}
-		return Math.min(currentRange.bytesLeft(), super.available());
+		return Math.min(gapBytesToBeFilled + currentRange.bytesLeft(), super.available());
 	}
 
 	@Override
@@ -172,13 +223,24 @@ public class ByteRangeInputStream extends FilterInputStream {
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-		updateCurrentRange();
+
+		if (fillGapWithNullBytes)
+			updateCurrentRangeAndGap();
+		else
+			updateCurrentRange();
+
 		if (currentRange == null) {
 			return -1;
 		}
-		int bytesRead = super.read(b, off, Math.min(currentRange.bytesLeft(), len));
+		// fill gap with nullbytes
+		if (fillGapWithNullBytes) Arrays.fill(b, 0, gapBytesToBeFilled, (byte) 0);
+		// read bytes into buffer
+		int bytesRead = super.read(b, off + gapBytesToBeFilled, Math.min(currentRange.bytesLeft(), len));
 		currentRange.consume(bytesRead);
 		currentPosition += bytesRead;
+
+		 bytesRead += gapBytesToBeFilled;
+		gapBytesToBeFilled = 0;
 		return bytesRead;
 	}
 
