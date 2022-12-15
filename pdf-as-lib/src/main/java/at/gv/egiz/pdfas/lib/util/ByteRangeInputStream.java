@@ -224,16 +224,20 @@ public class ByteRangeInputStream extends FilterInputStream {
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
 
-		if (fillGapWithNullBytes)
+		if (fillGapWithNullBytes) {
 			updateCurrentRangeAndGap();
-		else
+		} else {
 			updateCurrentRange();
+		}
 
 		if (currentRange == null) {
 			return -1;
 		}
 		// fill gap with nullbytes
-		if (fillGapWithNullBytes) Arrays.fill(b, 0, gapBytesToBeFilled, (byte) 0);
+		if (fillGapWithNullBytes){
+			Arrays.fill(b, 0, gapBytesToBeFilled, (byte) 0);
+			len -= gapBytesToBeFilled;
+		}
 		// read bytes into buffer
 		int bytesRead = super.read(b, off + gapBytesToBeFilled, Math.min(currentRange.bytesLeft(), len));
 		currentRange.consume(bytesRead);
