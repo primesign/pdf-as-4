@@ -359,15 +359,15 @@ public class ByteRangeInputStreamTest {
 			out.write(buffer);
 
 			long skipped = in.skip(200);         // 200 bytes skipped
-			assertEquals(240, skipped);    // 200 bytes range skipped + 40 bytes gap, pos 299 TODO: discuss what is correct here
- 			skipped = in.skip(1);                //   1 byte skipped, pos 300
+			assertEquals(200, skipped);    // 40 bytes range + 40 bytes gap + 120 range, pos 259 TODO: discuss what is correct here
+ 			skipped = in.skip(1);                //   1 byte skipped, pos 260
 			assertEquals(1, skipped);
 
-			assertEquals(300, IOUtils.copy(in, out)); //  49 bytes range, 150  range, 100 gap, 1 range, pos 600
+			assertEquals(340, IOUtils.copy(in, out)); //  89 bytes range, 150  range, 100 gap, 1 range, pos 600
 			result = out.toByteArray();
 		}
 
-		assertEquals(350, result.length); // 250 bytes range + 100 bytes gap
+		assertEquals(390, result.length); // 50 bytes range + 340 bytes range + 200 skip + 1 skip = 591 + 10 initial skipped gap
 
 		// tmp data result
 		byte[] tmpData = new byte[100 + 40 + 200 + 0 + 150 + 100 + 0 + 1];
@@ -382,10 +382,10 @@ public class ByteRangeInputStreamTest {
 		System.arraycopy(randomData, 600, tmpData, 590,   1);
 
 		// expected result
-		byte[] expectedData = new byte[350];
+		byte[] expectedData = new byte[390];
 		System.arraycopy(tmpData,   0, expectedData,   0, 50);
 		// ... 201 bytes skipped
-		System.arraycopy(tmpData, 291, expectedData, 50, 300);
+		System.arraycopy(tmpData, 251, expectedData, 50, 340);
 
 		assertArrayEquals(expectedData, result);
 
