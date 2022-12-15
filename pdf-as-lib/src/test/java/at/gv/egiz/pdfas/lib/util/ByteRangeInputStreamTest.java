@@ -388,7 +388,55 @@ public class ByteRangeInputStreamTest {
 		System.arraycopy(tmpData, 251, expectedData, 50, 340);
 
 		assertArrayEquals(expectedData, result);
+	}
 
+	@Test
+	public void testReadFromStreamByteWiseWithGapFilled() throws IOException {
+
+		byte[] nullBytes = new byte[10000];
+		byte[] randomData = new byte[10000];
+		new Random().nextBytes(randomData);
+
+		// @formatter:off
+		// 451 bytes total
+		int[] byteRange = {
+			10, 100,   // offset, length  [ 10...109]
+			150, 200,   // offset, length  [150...349]
+			350, 150,   // offset, length  [350...499]
+			600,   0,   // offset, length  []
+			600,   1    // offset, length  [600]
+		};
+		// @formatter:on
+
+		byte[] result;
+		int bytesRead = 0;
+		try (InputStream in = new ByteRangeInputStream(new ByteArrayInputStream(randomData), byteRange, true);
+		     ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+			int data;
+			while ((data = in.read()) != -1) {
+				out.write(data);
+				if (bytesRead++ > 10000) {
+					fail("Endless loop detected.");
+				}
+			}
+			result = out.toByteArray();
+		}
+
+		assertEquals(591, result.length);
+
+		// expected result
+		byte[] expectedData = new byte[100 + 40 + 200 + 0 + 150 + 100 + 0 + 1];
+		System.arraycopy(randomData,  10, expectedData,   0, 100);
+		System.arraycopy(nullBytes,  0, expectedData,   100, 40); //nullbytes
+		System.arraycopy(randomData, 150, expectedData, 140, 200);
+		System.arraycopy(nullBytes,  0, expectedData,   340, 0); //nullbytes
+		System.arraycopy(randomData, 350, expectedData, 340, 150);
+		System.arraycopy(nullBytes,  0, expectedData,   490, 100); //nullbytes
+		System.arraycopy(randomData, 600, expectedData, 590,   0);
+		System.arraycopy(nullBytes,  0, expectedData,   590, 0); //nullbytes
+		System.arraycopy(randomData, 600, expectedData, 590,   1);
+
+		assertArrayEquals(expectedData, result);
 	}
 
 }
