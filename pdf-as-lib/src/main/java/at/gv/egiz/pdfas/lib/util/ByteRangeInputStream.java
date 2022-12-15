@@ -178,7 +178,7 @@ public class ByteRangeInputStream extends FilterInputStream {
 					currentPosition += skipped;
 				} else {
 					// fill and skip null bytes until reaching next byte range offset
-					long skipped = super.skip(currentRange.getOffset() - (int) currentPosition);
+					long skipped = super.skip(currentRange.getOffset() - currentPosition);
 					currentPosition += skipped;
 					gapBytesToBeFilled += skipped;
 				}
@@ -193,10 +193,12 @@ public class ByteRangeInputStream extends FilterInputStream {
 	@Override
 	public int available() throws IOException {
 
-		if (fillGapWithNullBytes)
+		if (fillGapWithNullBytes) {
 			updateCurrentRangeAndGap();
-		else
+		}
+		else {
 			updateCurrentRange();
+		}
 
 		if (currentRange == null) {
 			return 0;
@@ -206,13 +208,25 @@ public class ByteRangeInputStream extends FilterInputStream {
 
 	@Override
 	public int read() throws IOException {
-		updateCurrentRange();
+		if (fillGapWithNullBytes) {
+			updateCurrentRangeAndGap();
+		} else {
+			updateCurrentRange();
+		}
+
 		if (currentRange == null) {
 			return -1;
 		}
-		int value = super.read();
-		currentRange.consume(1);
-		currentPosition++;
+
+		int value;
+		if(gapBytesToBeFilled != 0) {
+			value = 0;
+			gapBytesToBeFilled--;
+		} else {
+			value = super.read();
+			currentRange.consume(1);
+			currentPosition++;
+		}
 		return value;
 	}
 
