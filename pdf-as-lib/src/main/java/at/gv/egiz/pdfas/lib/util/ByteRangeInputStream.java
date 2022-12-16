@@ -165,7 +165,13 @@ public class ByteRangeInputStream extends FilterInputStream {
 	private Iterator<ByteRange> ranges;
 	private ByteRange currentRange;
 	private long currentPosition = 0;
-	
+
+	/**
+	 * Reflects the processing mode of the input stream.
+	 * 
+	 * @author Thomas Knall, PrimeSign GmbH
+	 *
+	 */
 	public enum Mode {
 	
 		/**
