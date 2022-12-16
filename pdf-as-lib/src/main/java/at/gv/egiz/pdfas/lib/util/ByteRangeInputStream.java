@@ -9,9 +9,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-
 import javax.annotation.Nonnull;
-
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -287,7 +285,7 @@ public class ByteRangeInputStream extends FilterInputStream {
 			if (offset < position) {
 				throw new IllegalArgumentException("Overlapping byteRanges are not supported: offset=" + offset + ", length=" + length);
 			}
-			if (length > 0) {
+			if (length != 0) {
 				byteRanges.add(new ByteRange(offset, length, false));
 			} // skip empty byte ranges
 			position = offset + length;
