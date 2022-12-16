@@ -4,11 +4,13 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
+
 import javax.annotation.Nonnull;
+
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -28,19 +30,26 @@ public class ByteRangeInputStream extends FilterInputStream {
 
 		private final int offset;
 		private int bytesLeft;
+		private final boolean gap;
+		
+		private Byte firstByte = (byte) '<';
+		private Byte lastByte =  (byte) '>';
 
 		/**
 		 * Creates a single byte range.
 		 * 
 		 * @param offset The offset. (must be non-negative)
 		 * @param length The length. (must be non-negative)
+		 * @param gap    {@code true} in case the byte range represents a gap between two non-gap byte ranges, {@code false}
+		 *               otherwise.
 		 */
-		public ByteRange(int offset, int length) {
+		public ByteRange(int offset, int length, boolean gap) {
 			if (offset < 0 || length < 0) {
 				throw new IllegalArgumentException("Negative offset or negative length are not supported.");
 			}
 			this.offset = offset;
 			this.bytesLeft = length;
+			this.gap = gap;
 		}
 
 		/**
@@ -72,23 +81,58 @@ public class ByteRangeInputStream extends FilterInputStream {
 			this.bytesLeft -= bytes;
 		}
 
+		public boolean isGap() {
+			return gap;
+		}
+
 	}
 	
-	private ListIterator<ByteRange> ranges;
+	private Iterator<ByteRange> ranges;
 	private ByteRange currentRange;
 	private long currentPosition = 0;
-	private final boolean fillGapWithNullBytes;
-	private int gapBytesToBeFilled = 0;;
-
-
+	
 	public ByteRangeInputStream(@Nonnull InputStream in, @Nonnull int[] byteRange) {
 		this(in, byteRange, false);
 	}
 
-	public ByteRangeInputStream(@Nonnull InputStream in, @Nonnull int[] byteRange, boolean fillGapWithNullBytes) {
+	public ByteRangeInputStream(@Nonnull InputStream in, @Nonnull int[] byteRange, boolean withGaps) {
 		super(in);
-		ranges = prepareByteRanges(Objects.requireNonNull(byteRange, "'byteRange' must not be null.")).listIterator();
-		this.fillGapWithNullBytes = fillGapWithNullBytes;
+		List<ByteRange> byteRanges = prepareByteRanges(Objects.requireNonNull(byteRange, "'byteRange' must not be null."));
+		if (withGaps) {
+			byteRanges = addGaps(byteRanges);
+		}
+		ranges = byteRanges.iterator();
+	}
+	
+	@Nonnull
+	private List<ByteRange> addGaps(@Nonnull List<ByteRange> byteRanges) {
+
+		if (byteRanges.isEmpty()) {
+			return Collections.emptyList();
+		}
+		
+		List<ByteRange> result = new ArrayList<>();
+
+		ByteRange lastByteRange;
+		
+		Iterator<ByteRange> it = byteRanges.iterator();
+		
+		// make sure not to start with gap
+		result.add(lastByteRange = it.next());
+		
+		while (it.hasNext()) {
+			ByteRange byteRange = it.next();
+			// add gap byte range
+			int offset = lastByteRange.getOffset() + lastByteRange.bytesLeft();
+			int length = byteRange.getOffset() - offset;
+			result.add(new ByteRange(offset, length, true));
+			// add regular byte range
+			result.add(byteRange);
+			lastByteRange = byteRange;
+		}
+		
+		return result;
+		
 	}
 
 	/**
@@ -110,7 +154,7 @@ public class ByteRangeInputStream extends FilterInputStream {
 			if (offset < position) {
 				throw new IllegalArgumentException("Overlapping byteRanges are not supported: offset=" + offset + ", length=" + length);
 			}
-			byteRanges.add(new ByteRange(offset, length));
+			byteRanges.add(new ByteRange(offset, length, false));
 			position = offset + length;
 		}
 		return byteRanges;
@@ -150,82 +194,44 @@ public class ByteRangeInputStream extends FilterInputStream {
 		}
 		
 	}
-	/**
-	 * Makes sure {@link #currentRange} reflects the byte range to read from, and intermediate gaps are reflected in {@link #currentRange}. {@link #currentRange} is set {@code null} in
-	 * case to further readable byte ranges are available.
-	 *
-	 * @throws IOException Thrown in case of error reading from original stream.
-	 */
-	private void updateCurrentRangeAndGap() throws IOException {
-		if (currentRange != null && currentRange.bytesLeft() > 0) {
-			// no need to update currentRange
-			return;
-		}
-
-		boolean isFirstRange = ranges.previousIndex() == -1;
-		// update currentRange
-		while (ranges.hasNext() && (currentRange = ranges.next()).bytesLeft <= 0) {
-			// skip empty ranges
-		}
-
-		// do we have readable byte ranges left ?
-		if (currentRange != null && currentRange.bytesLeft() > 0) {
-
-			while (currentPosition < currentRange.getOffset()) {
-				if (isFirstRange) {
-					// skip bytes until reaching next byte range offset
-					long skipped = super.skip(currentRange.getOffset() - currentPosition);
-					currentPosition += skipped;
-				} else {
-					// fill and skip null bytes until reaching next byte range offset
-					long skipped = super.skip(currentRange.getOffset() - currentPosition);
-					currentPosition += skipped;
-					gapBytesToBeFilled += skipped;
-				}
-			}
-
-		} else {
-			// no further byte ranges to read
-			currentRange = null;
-		}
-	}
-
+	
 	@Override
 	public int available() throws IOException {
-
-		if (fillGapWithNullBytes) {
-			updateCurrentRangeAndGap();
-		}
-		else {
-			updateCurrentRange();
-		}
-
+		updateCurrentRange();
 		if (currentRange == null) {
 			return 0;
 		}
-		return Math.min(gapBytesToBeFilled + currentRange.bytesLeft(), super.available());
+		return Math.min(currentRange.bytesLeft(), super.available());
 	}
 
 	@Override
 	public int read() throws IOException {
-		if (fillGapWithNullBytes) {
-			updateCurrentRangeAndGap();
-		} else {
-			updateCurrentRange();
-		}
-
+		updateCurrentRange();
 		if (currentRange == null) {
 			return -1;
 		}
-
+		int value = super.read();
+		currentRange.consume(1);
+		currentPosition++;
+		return currentRange.isGap() ? gapValueRespectingDelimiter() : value;
+	}
+	
+	private int gapValueRespectingDelimiter() {
+		if (!currentRange.isGap()) {
+			throw new IllegalStateException("Current range expected to reflect a gap.");
+		}
 		int value;
-		if(gapBytesToBeFilled != 0) {
-			value = 0;
-			gapBytesToBeFilled--;
+		if (currentRange.firstByte != null) {
+			value = currentRange.firstByte;
+			currentRange.firstByte = null;
+		} else if (currentRange.bytesLeft() == 0) {
+			if (currentRange.lastByte == null) {
+				throw new IllegalStateException("Delimiter '>' already used for gap.");
+			}
+			value = currentRange.lastByte;
+			currentRange.lastByte = null;
 		} else {
-			value = super.read();
-			currentRange.consume(1);
-			currentPosition++;
+			value = 0;
 		}
 		return value;
 	}
@@ -237,34 +243,41 @@ public class ByteRangeInputStream extends FilterInputStream {
 
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
-
-		if (fillGapWithNullBytes) {
-			updateCurrentRangeAndGap();
-		} else {
-			updateCurrentRange();
-		}
-
+		updateCurrentRange();
 		if (currentRange == null) {
 			return -1;
 		}
-		// fill gap with nullbytes
-		if (fillGapWithNullBytes){
-			Arrays.fill(b, 0, gapBytesToBeFilled, (byte) 0);
-			len -= gapBytesToBeFilled;
-		}
-		// read bytes into buffer
-		int bytesRead = super.read(b, off + gapBytesToBeFilled, Math.min(currentRange.bytesLeft(), len));
+		int bytesRead = super.read(b, off, Math.min(currentRange.bytesLeft(), len));
 		currentRange.consume(bytesRead);
 		currentPosition += bytesRead;
-
-		 bytesRead += gapBytesToBeFilled;
-		gapBytesToBeFilled = 0;
+		
+		if (currentRange.isGap()) {
+			for (int i = off; i < off + bytesRead; i++) {
+				b[i] = 0;
+			}
+			adjustGapRespectingDelimiter(b, off, bytesRead);
+		}
+		
 		return bytesRead;
+	}
+	
+	private void adjustGapRespectingDelimiter(byte[] gap, int off, int len) {
+		if (!currentRange.isGap()) {
+			throw new IllegalStateException("Current range expected to reflect a gap.");
+		}
+		if (currentRange.firstByte != null) {
+			gap[off] = currentRange.firstByte;
+			currentRange.firstByte = null;
+		}
+		if (currentRange.lastByte != null && currentRange.bytesLeft() == 0) {
+			gap[off + len - 1] = currentRange.lastByte;
+			currentRange.lastByte = null;
+		}
 	}
 
 	@Override
 	public long skip(long n) throws IOException {
-		return IOUtils.skip(this, n);
+		return IOUtils.skip(this, n); // reads n bytes (this is essential for our code)
 	}
 
 	@Override
