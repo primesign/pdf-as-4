@@ -26,7 +26,7 @@ public class ByteRangeInputStreamTest {
 		// @formatter:off
 		// 451 bytes total
 		int[] byteRange = {
-				10, 100,   // offset, length  [ 10...109]
+				 10, 100,   // offset, length  [ 10...109]
 				150, 200,   // offset, length  [150...349]
 				350, 150,   // offset, length  [350...499]  
 				600,   0,   // offset, length  []
@@ -61,7 +61,7 @@ public class ByteRangeInputStreamTest {
 		// @formatter:off
 		// 451 bytes total
 		int[] byteRange = {
-				10, 100,   // offset, length  [ 10...109]
+				 10, 100,   // offset, length  [ 10...109]
 				150, 200,   // offset, length  [150...349]
 				350, 150,   // offset, length  [350...499]  
 				600,   0,   // offset, length  []
@@ -203,7 +203,9 @@ public class ByteRangeInputStreamTest {
 		// @formatter:on
 		
 		new ByteRangeInputStream(new ByteArrayInputStream(new byte[0]), byteRange);
+		
 	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testInitWithOverlappingByteRanges1WithGap() {
 
@@ -233,6 +235,7 @@ public class ByteRangeInputStreamTest {
 		
 		new ByteRangeInputStream(new ByteArrayInputStream(new byte[0]), byteRange);
 	}
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void testInitWithOddByteRangesWithGap() {
 
@@ -259,6 +262,7 @@ public class ByteRangeInputStreamTest {
 		
 		new ByteRangeInputStream(new ByteArrayInputStream(new byte[0]), byteRange);
 	}
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void testInitWithNegativeOffsetWithGap() {
 
@@ -314,12 +318,15 @@ public class ByteRangeInputStreamTest {
 	}
 
 	private void createGap(byte[] buffer, int start, int length) {
-		if (length < 2) return;
+		if (length < 2) {
+			return;
+		}
 		byte[] nullBytes = new byte[10000];
 		System.arraycopy("<".getBytes(StandardCharsets.UTF_8),  0, buffer,   start, 1);
 		System.arraycopy(nullBytes,  0, buffer,   start + 1, length - 2);
 		System.arraycopy(">".getBytes(StandardCharsets.UTF_8),  0, buffer,   start + length - 1, 1);
 	}
+	
 	@Test
 	public void testReadFromStreamWithGapFilled() throws IOException {
 
@@ -364,7 +371,7 @@ public class ByteRangeInputStreamTest {
 		// @formatter:off
 		// 451 bytes total
 		int[] byteRange = {
-			10, 100,   // offset, length  [ 10...109]
+			 10, 100,   // offset, length  [ 10...109]
 			112, 200,   // offset, length  [112...311]
 		};
 		// @formatter:on
@@ -383,6 +390,7 @@ public class ByteRangeInputStreamTest {
 		System.arraycopy(randomData, 112, expectedData, 102, 200);
 		assertArrayEquals(expectedData, result);
 	}
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void testReadFromStreamWithTooSmallGap() throws IOException {
 		byte[] randomData = new byte[10000];
@@ -391,7 +399,7 @@ public class ByteRangeInputStreamTest {
 		// @formatter:off
 		// 451 bytes total
 		int[] byteRange = {
-			10, 100,   // offset, length  [ 10...109]
+			 10, 100,   // offset, length  [ 10...109]
 			111, 200,   // offset, length  [111...310] -> gap has only space for opening but not closing delimiter
 		};
 		// @formatter:on
@@ -401,8 +409,7 @@ public class ByteRangeInputStreamTest {
 		}
 	}
 
-	@Test
-	(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testReadFromStreamWithMultipleGaps() throws IOException {
 		byte[] randomData = new byte[10000];
 		new Random().nextBytes(randomData);
@@ -438,7 +445,6 @@ public class ByteRangeInputStreamTest {
 		assertArrayEquals(expectedData, result);
 	}
 
-
 	@Test
 	public void testReadFromStreamWithAvailableAndGapFilled() throws IOException {
 
@@ -447,7 +453,7 @@ public class ByteRangeInputStreamTest {
 
 		// @formatter:off
 		int[] byteRange = {
-			10, 100,   // offset, length  [ 10...109]
+			 10, 100,   // offset, length  [ 10...109]
 			150, 200,   // offset, length  [150...349]
 			350, 150,   // offset, length  [350...499]
 			600,   0,   // offset, length  []
@@ -477,7 +483,6 @@ public class ByteRangeInputStreamTest {
 		createGap( expectedData,   340, 0); //nullbytes
 		System.arraycopy(randomData, 350, expectedData, 340, 150);
 
-
 		assertArrayEquals(expectedData, result);
 	}
 
@@ -490,7 +495,7 @@ public class ByteRangeInputStreamTest {
 		// @formatter:off
 		// 451 bytes total
 		int[] byteRange = {
-			10, 100,   // offset, length  [ 10...109]
+			 10, 100,   // offset, length  [ 10...109]
 			150, 200,   // offset, length  [150...349]
 			350, 150,   // offset, length  [350...499]
 			600,   0,   // offset, length  []
@@ -501,26 +506,26 @@ public class ByteRangeInputStreamTest {
 		try (ByteArrayOutputStream out = new ByteArrayOutputStream(); InputStream in = new ByteRangeInputStream(new ByteArrayInputStream(randomData), byteRange, ByteRangeInputStream.Mode.SIGNED_PDF_DATA)) {
 
 			byte[] buffer = new byte[50];
-			assertEquals(50, in.read(buffer));   // 10 skipped gap, read 50 bytes, pos 59
+			assertEquals(50, in.read(buffer));        //  10 skipped gap, read 50 bytes, pos 59
 			out.write(buffer);
 
-			long skipped = in.skip(200);         // 200 bytes skipped
-			assertEquals(200, skipped);    // 40 bytes range + 40 bytes gap + 120 range, pos 259
- 			skipped = in.skip(1);                //   1 byte skipped, pos 260
+			long skipped = in.skip(200);              // 200 bytes skipped
+			assertEquals(200, skipped);               //  40 bytes range + 40 bytes gap + 120 range, pos 259
+ 			skipped = in.skip(1);                     //   1 byte skipped, pos 260
 			assertEquals(1, skipped);
 
 			assertEquals(239, IOUtils.copy(in, out)); //  89 bytes range, 150  range; ignored 100 gap, because 0 range afterwards;
-			result = out.toByteArray(); // pos 600
+			result = out.toByteArray();               // pos 600
 		}
 
-		assertEquals(289, result.length); // 50 bytes range + 340 bytes range + 200 skip + 1 skip = 591 + 10 initial skipped gap
+		assertEquals(289, result.length);             // 50 bytes range + 340 bytes range + 200 skip + 1 skip = 591 + 10 initial skipped gap
 
 		// tmp data result
 		byte[] tmpData = new byte[100 + 40 + 200 + 0 + 150 + 100 + 0 + 1];
-		System.arraycopy(randomData,  10, tmpData,   0, 100);
-		createGap( tmpData,   100, 40); //nullbytes
+		System.arraycopy(randomData, 10, tmpData, 0, 100);
+		createGap(tmpData, 100, 40); // nullbytes
 		System.arraycopy(randomData, 150, tmpData, 140, 200);
-		createGap( tmpData,   340, 0); //nullbytes
+		createGap(tmpData, 340, 0); // nullbytes
 		System.arraycopy(randomData, 350, tmpData, 340, 150);
 		// everything afterwards is ignored
 
@@ -542,7 +547,7 @@ public class ByteRangeInputStreamTest {
 		// @formatter:off
 		// 451 bytes total
 		int[] byteRange = {
-			10, 100,   // offset, length  [ 10...109]
+			 10, 100,   // offset, length  [ 10...109]
 			150, 200,   // offset, length  [150...349]
 			350, 150,   // offset, length  [350...499]
 		};
@@ -566,12 +571,11 @@ public class ByteRangeInputStreamTest {
 
 		// expected result
 		byte[] expectedData = new byte[100 + 40 + 200 + 0 + 150];
-		System.arraycopy(randomData,  10, expectedData,   0, 100);
-		createGap( expectedData,   100, 40); //nullbytes
+		System.arraycopy(randomData, 10, expectedData, 0, 100);
+		createGap(expectedData, 100, 40); // nullbytes
 		System.arraycopy(randomData, 150, expectedData, 140, 200);
-		createGap( expectedData,   340, 0); //nullbytes
+		createGap(expectedData, 340, 0); // nullbytes
 		System.arraycopy(randomData, 350, expectedData, 340, 150);
-
 
 		assertArrayEquals(expectedData, result);
 	}
