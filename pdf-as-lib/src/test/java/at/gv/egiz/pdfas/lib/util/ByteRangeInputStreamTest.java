@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
@@ -322,9 +321,9 @@ public class ByteRangeInputStreamTest {
 			return;
 		}
 		byte[] nullBytes = new byte[10000];
-		System.arraycopy("<".getBytes(StandardCharsets.UTF_8),  0, buffer,   start, 1);
-		System.arraycopy(nullBytes,  0, buffer,   start + 1, length - 2);
-		System.arraycopy(">".getBytes(StandardCharsets.UTF_8),  0, buffer,   start + length - 1, 1);
+		buffer[start] = 60; // '<';
+		System.arraycopy(nullBytes, 0, buffer, start + 1, length - 2);
+		buffer[start + length - 1] = 62; // '>';
 	}
 	
 	@Test

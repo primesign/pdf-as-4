@@ -43,8 +43,8 @@ public class ByteRangeInputStream extends FilterInputStream {
 		private final boolean gap;
 		
 		// preset the delimiters to be used for byte ranges representing a gap
-		private Byte startDelimiter = (byte) '<';
-		private Byte endDelimiter =  (byte) '>';
+		private Byte startDelimiter = 60; // '<'
+		private Byte endDelimiter   = 62; // '>'
 
 		/**
 		 * Creates a single byte range.
