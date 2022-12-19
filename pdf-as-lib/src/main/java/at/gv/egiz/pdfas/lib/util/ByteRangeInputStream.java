@@ -36,7 +36,7 @@ public class ByteRangeInputStream extends FilterInputStream {
 	 * @author Thomas Knall, PrimeSign GmbH
 	 *
 	 */
-	private static class ByteRange {
+	static class ByteRange {
 
 		private final int offset;
 		private int bytesLeft;
@@ -54,7 +54,7 @@ public class ByteRangeInputStream extends FilterInputStream {
 		 * @param gap    {@code true} in case the byte range represents a gap between two non-gap byte ranges, {@code false}
 		 *               otherwise.
 		 */
-		public ByteRange(int offset, int length, boolean gap) {
+		ByteRange(int offset, int length, boolean gap) {
 			if (offset < 0 || length < 0) {
 				throw new IllegalArgumentException("Negative offset or negative length are not supported.");
 			}

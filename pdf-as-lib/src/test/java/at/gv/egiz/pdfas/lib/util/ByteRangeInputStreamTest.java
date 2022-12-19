@@ -2,6 +2,7 @@ package at.gv.egiz.pdfas.lib.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
@@ -283,6 +284,22 @@ public class ByteRangeInputStreamTest {
 		
 		new ByteRangeInputStream(new ByteArrayInputStream(new byte[0]), byteRange);
 	}
+	
+	@Test
+	public void test_byterange_illegalArguments() {
+		
+		assertThrows(IllegalArgumentException.class, () -> new ByteRangeInputStream.ByteRange(0, -1, true));
+		assertThrows(IllegalArgumentException.class, () -> new ByteRangeInputStream.ByteRange(-1, 0, true));
+		assertThrows(IllegalArgumentException.class, () -> new ByteRangeInputStream.ByteRange(-1, -1, true));
+		assertThrows(IllegalArgumentException.class, () -> new ByteRangeInputStream.ByteRange(0, -1, false));
+		assertThrows(IllegalArgumentException.class, () -> new ByteRangeInputStream.ByteRange(-1, 0, false));
+		assertThrows(IllegalArgumentException.class, () -> new ByteRangeInputStream.ByteRange(-1, -1, false));
+		
+		new ByteRangeInputStream.ByteRange(0, 0, true);
+		new ByteRangeInputStream.ByteRange(0, 0, false);
+		
+	}
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void testInitWithNegativeLengthWithGap() {
 
