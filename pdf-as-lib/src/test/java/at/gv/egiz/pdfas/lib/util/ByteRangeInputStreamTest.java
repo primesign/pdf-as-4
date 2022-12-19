@@ -17,7 +17,7 @@ import org.junit.Test;
 public class ByteRangeInputStreamTest {
 
 	@Test
-	public void testReadFromStream() throws IOException {
+	public void testReadFromStreamWithMultipleGaps_DIGEST() throws IOException {
 		
 		byte[] randomData = new byte[10000];
 		new Random().nextBytes(randomData);
@@ -408,8 +408,8 @@ public class ByteRangeInputStreamTest {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testReadFromStreamWithMultipleGaps() throws IOException {
+	@Test
+	public void testReadFromStreamWithMultipleGaps_SIGNED_PDF_DATA() throws IOException {
 		byte[] randomData = new byte[10000];
 		new Random().nextBytes(randomData);
 
@@ -424,24 +424,12 @@ public class ByteRangeInputStreamTest {
 		};
 		// @formatter:on
 
-		byte[] result;
-		try (InputStream in = new ByteRangeInputStream(new ByteArrayInputStream(randomData), byteRange, ByteRangeInputStream.Mode.SIGNED_PDF_DATA)) {
-			result = IOUtils.toByteArray(in);
-		}
-
-		assertEquals(490, result.length);
-
-		// expected result
-		byte[] expectedData = new byte[100 + 40 + 200 + 0 + 150];
-		System.arraycopy(randomData,  10, expectedData,   0, 100);
-		createGap(expectedData, 100, 40); // gap
-		System.arraycopy(randomData, 150, expectedData, 140, 200);
-		createGap(expectedData,   340, 0); // gap ignored
-		System.arraycopy(randomData, 350, expectedData, 340, 150);
-		createGap(expectedData,   490, 100); // gap ignored
-		System.arraycopy(randomData, 600, expectedData, 590,   1); // -> range introducing a second gap
-
-		assertArrayEquals(expectedData, result);
+		assertThrows(IllegalArgumentException.class, () -> {
+			// expect that multiple digests are not supported in SIGNED_PDF_DATA mode
+			try (InputStream in = new ByteRangeInputStream(new ByteArrayInputStream(randomData), byteRange, ByteRangeInputStream.Mode.SIGNED_PDF_DATA)) {
+			}
+		});
+		
 	}
 
 	@Test
