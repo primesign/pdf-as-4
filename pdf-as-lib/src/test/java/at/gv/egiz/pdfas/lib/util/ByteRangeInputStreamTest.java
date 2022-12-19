@@ -1,5 +1,6 @@
 package at.gv.egiz.pdfas.lib.util;
 
+import static org.easymock.EasyMock.createControl;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 import java.util.Random;
 
 import org.apache.commons.io.IOUtils;
+import org.easymock.IMocksControl;
 import org.junit.Test;
 
 public class ByteRangeInputStreamTest {
@@ -565,6 +567,29 @@ public class ByteRangeInputStreamTest {
 		System.arraycopy(randomData, 350, expectedData, 340, 150);
 
 		assertArrayEquals(expectedData, result);
+	}
+
+	/**
+	 * Test that closing ByteRangeInputStream closes the delegated stream.
+	 */
+	@SuppressWarnings("javadoc")
+	@Test
+	public void testClose() throws IOException {
+		
+		IMocksControl ctrl = createControl();
+		
+		InputStream delegatedInputStream = ctrl.createMock(InputStream.class);
+		
+		// expect delegated stream to be closed
+		delegatedInputStream.close();
+		
+		ctrl.replay();
+		
+		InputStream cut = new ByteRangeInputStream(delegatedInputStream, new int[] { });
+		cut.close();
+		
+		ctrl.verify();
+		
 	}
 
 }
